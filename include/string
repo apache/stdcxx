@@ -1535,8 +1535,12 @@ __rw_new_capacity (_RWSTD_STRING_SIZE_TYPE __size,
 {
     typedef _RWSTD_STRING_SIZE_TYPE _RWSizeT;
 
-    _RWSizeT __cap = 
-        _RWSTD_STATIC_CAST (_RWSizeT, __size * _RWSTD_STRING_CAPACITY_RATIO);
+    const _RWSizeT __ratio = _RWSizeT (  (_RWSTD_STRING_CAPACITY_RATIO << 10)
+                                       / _RWSTD_RATIO_DIVIDER);
+
+    const _RWSizeT __cap =   (__size >> 10) * __ratio
+                           + (((__size & 0x3ff) * __ratio) >> 10);
+
     return (__size += _RWSTD_MINIMUM_STRING_CAPACITY) > __cap ? __size : __cap;
 }                     
 
@@ -1557,9 +1561,14 @@ inline _RWSTD_STRING_SIZE_TYPE (_STD::string)
 __rw_new_capacity (_RWSTD_STRING_SIZE_TYPE (_STD::string) __size,
                    const _STD::string*)
 {
-    _RWSTD_STRING_SIZE_TYPE (_STD::string) __cap = 
-        _RWSTD_STATIC_CAST (_RWSTD_STRING_SIZE_TYPE (_STD::string),
-                            __size * _RWSTD_STRING_CAPACITY_RATIO);
+    typedef _RWSTD_STRING_SIZE_TYPE (_STD::string) _RWSizeT;
+
+    const _RWSizeT __ratio = _RWSizeT (  (_RWSTD_STRING_CAPACITY_RATIO << 10)
+                                       / _RWSTD_RATIO_DIVIDER);
+
+    const _RWSizeT __cap =   (__size >> 10) * __ratio
+                           + (((__size & 0x3ff) * __ratio) >> 10);
+
     return (__size += _RWSTD_MINIMUM_STRING_CAPACITY) > __cap ? __size : __cap;
 }                     
 
@@ -1568,9 +1577,14 @@ inline _RWSTD_STRING_SIZE_TYPE (_STD::wstring)
 __rw_new_capacity (_RWSTD_STRING_SIZE_TYPE (_STD::wstring) __size,
                    const _STD::wstring*)
 {
-    _RWSTD_STRING_SIZE_TYPE (_STD::wstring) __cap = 
-        _RWSTD_STATIC_CAST (_RWSTD_STRING_SIZE_TYPE (_STD::wstring),
-                            __size * _RWSTD_STRING_CAPACITY_RATIO);
+    typedef _RWSTD_STRING_SIZE_TYPE (_STD::wstring) _RWSizeT;
+
+    const _RWSizeT __ratio = _RWSizeT (  (_RWSTD_STRING_CAPACITY_RATIO << 10)
+                                       / _RWSTD_RATIO_DIVIDER);
+
+    const _RWSizeT __cap =   (__size >> 10) * __ratio
+                           + (((__size & 0x3ff) * __ratio) >> 10);
+
     return (__size += _RWSTD_MINIMUM_STRING_CAPACITY) > __cap  ? __size : __cap;
 }                     
 

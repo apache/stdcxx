@@ -431,19 +431,26 @@
 // function overloads in the string header.  These are tweakable here
 // with the STRING version of these macros.
 //
+#if !defined (_RWSTD_RATIO_DIVIDER)
+#  define _RWSTD_RATIO_DIVIDER   1000U
+#endif
+
 #if !defined(_RWSTD_MINIMUM_NEW_CAPACITY)
 #  define _RWSTD_MINIMUM_NEW_CAPACITY   32U
 #endif
+
 #if !defined(_RWSTD_NEW_CAPACITY_RATIO)
    // using long doubles to eliminate bogus warnings on g++ 2.95.2/sparc
    // (-W -O2/3 only): warning: overflow on truncation to integer
-#  define _RWSTD_NEW_CAPACITY_RATIO 1.618L
+#  define _RWSTD_NEW_CAPACITY_RATIO 1618U
 #endif
+
 #if !defined(_RWSTD_MINIMUM_STRING_CAPACITY)
 #  define _RWSTD_MINIMUM_STRING_CAPACITY   128U
 #endif
+
 #if !defined(_RWSTD_STRING_CAPACITY_RATIO)
-#  define _RWSTD_STRING_CAPACITY_RATIO 1.618L
+#  define _RWSTD_STRING_CAPACITY_RATIO 1618U
 #endif
 
 #if !defined (_RWSTD_MINIMUM_STRINGBUF_CAPACITY)
