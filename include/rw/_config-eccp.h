@@ -61,3 +61,12 @@
 
 #undef _RWSTD_NO_DEPRECATED_C_HEADERS
 #undef _RWSTD_NO_PURE_C_HEADERS
+
+#ifndef __EXCEPTIONS
+   // disable exceptions when the macro __EXCEPTIONS
+   // is not #defined by the compiler, e.g., when
+   // the -no_exceptions option is used
+#  ifndef _RWSTD_NO_EXCEPTIONS
+#    define _RWSTD_NO_EXCEPTIONS
+#  endif   // _RWSTD_NO_EXCEPTIONS
+#endif   // __EXCEPTIONS

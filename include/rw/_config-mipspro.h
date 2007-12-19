@@ -54,3 +54,13 @@
 #if defined (_RWSTD_NO_IMPLICIT_INCLUSION)
 #  undef _RWSTD_NO_IMPLICIT_INCLUSION
 #endif
+
+#ifndef __EXCEPTIONS
+   // disable exceptions when the macro __EXCEPTIONS
+   // is not #defined by the compiler, e.g., when
+   // the -noexceptions option is used
+#  ifndef _RWSTD_NO_EXCEPTIONS
+#    define _RWSTD_NO_EXCEPTIONS
+#  endif   // _RWSTD_NO_EXCEPTIONS
+#endif   // __EXCEPTIONS
+
