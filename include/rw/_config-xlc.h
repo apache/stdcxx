@@ -138,7 +138,7 @@
 #  define _RWSTD_NO_UNDEFINED_TEMPLATES
 #endif   // __TEMPINC__
 
-#ifndef __EXCEPTIONS
+#if (__IBMCPP__ >= 700) && !defined(__EXCEPTIONS)
    // disable exceptions when the macro __EXCEPTIONS
    // is not #defined by the compiler, e.g., when
    // the -qnoeh option is used
