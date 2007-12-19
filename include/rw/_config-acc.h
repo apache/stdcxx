@@ -88,3 +88,13 @@
 #    endif   // _RWSTD_NO_STRING_NPOS_TYPE
 #  endif   // _RWSTD_NO_EXTERN_TEMPLATE
 #endif   // aCC < 6.0
+
+#ifdef __HPACC_NOEH
+   // disable exceptions when the macro __HPACC_NOEH
+   // is #defined by the compiler, e.g., when the
+   // +noeh option is used
+#  ifndef _RWSTD_NO_EXCEPTIONS
+#    define _RWSTD_NO_EXCEPTIONS
+#  endif   // _RWSTD_NO_EXCEPTIONS
+#endif   // __HPACC_NOEH
+

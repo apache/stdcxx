@@ -46,7 +46,7 @@
    // the -fno-exceptions option is used
 #  ifndef _RWSTD_NO_EXCEPTIONS
 #    define _RWSTD_NO_EXCEPTIONS
-#  endif
+#  endif   // _RWSTD_NO_EXCEPTIONS
 #endif   // __EXCEPTIONS
 
 #if !defined (_RWSTD_USE_PURE_C_HEADERS)

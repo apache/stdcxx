@@ -138,6 +138,15 @@
 #  define _RWSTD_NO_UNDEFINED_TEMPLATES
 #endif   // __TEMPINC__
 
+#ifndef __EXCEPTIONS
+   // disable exceptions when the macro __EXCEPTIONS
+   // is not #defined by the compiler, e.g., when
+   // the -qnoeh option is used
+#  ifndef _RWSTD_NO_EXCEPTIONS
+#    define _RWSTD_NO_EXCEPTIONS
+#  endif   // _RWSTD_NO_EXCEPTIONS
+#endif   // __EXCEPTIONS
+
 
    // avoid using autodetected libc headers
 #undef _RWSTD_ANSI_C_ASSERT_H
