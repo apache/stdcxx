@@ -207,11 +207,15 @@ inline _RWSTD_STREAMSIZE
 basic_stringbuf<_CharT, _Traits, _Allocator>::
 _C_grow (_RWSTD_STREAMSIZE __to) const
 {
+    const _RWSTD_STREAMSIZE __ratio =
+        _RWSTD_STREAMSIZE (  (_RWSTD_NEW_CAPACITY_RATIO << 10)
+                           / _RWSTD_RATIO_DIVIDER);
+
     const _RWSTD_STREAMSIZE __cap =
-        _RWSTD_STATIC_CAST (_RWSTD_STREAMSIZE,
-                            this->_C_bufsize ?
-                            this->_C_bufsize * _RWSTD_NEW_CAPACITY_RATIO
-                            : _RWSTD_MINIMUM_STRINGBUF_CAPACITY);
+        this->_C_bufsize ?
+          (this->_C_bufsize >> 10) * __ratio
+        + (((this->_C_bufsize & 0x3ff) * __ratio) >> 10)
+        : _RWSTD_MINIMUM_STRINGBUF_CAPACITY;
 
     return __cap < __to ? __to : __cap;
 }
