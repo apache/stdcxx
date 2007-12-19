@@ -46,3 +46,12 @@
    // C++ C library headers (the <cxxx> kind)
 #  define _RWSTD_NO_NEW_HEADER
 #endif   // __DECCXX_VER < 60390008
+
+#ifndef __EXCEPTIONS
+   // disable exceptions when the macro __EXCEPTIONS
+   // is not #defined by the compiler, e.g., when
+   // the -LANG:exceptions=OFF option is used
+#  ifndef _RWSTD_NO_EXCEPTIONS
+#    define _RWSTD_NO_EXCEPTIONS
+#  endif   // _RWSTD_NO_EXCEPTIONS
+#endif   // __EXCEPTIONS

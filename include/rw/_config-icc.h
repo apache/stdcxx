@@ -44,6 +44,15 @@
 #  undef _RWSTD_NO_NEW_HEADER
 #  undef _RWSTD_NO_LIBC_IN_STD
 
+#  ifndef __EXCEPTIONS
+     // disable exceptions when the macro __EXCEPTIONS
+     // is not #deined by the compiler, e.g., when
+     // the -fno-exceptions option is used
+#    ifndef _RWSTD_NO_EXCEPTIONS
+#      define _RWSTD_NO_EXCEPTIONS
+#    endif   // _RWSTD_NO_EXCEPTIONS
+#  endif
+
 #else   // if defined (_WIN{32,64})
 
 #  include "_config-msvcrt.h"
