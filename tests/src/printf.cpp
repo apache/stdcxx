@@ -3376,8 +3376,15 @@ rw_snprintf (char *buf, size_t bufsize, const char *fmt, ...)
 
     va_end (va);
 
-    if (size_t (nchars) <= bufsize)
-        memcpy (buf, tmpbuf, size_t (nchars));
+    if (size_t (nchars) < bufsize) {
+        memcpy (buf, tmpbuf, size_t (nchars + 1 /* NUL */));
+    }
+    else {
+        // buffer isn't big enough
+        memcpy (buf, tmpbuf, bufsize);
+        if (bufsize)
+            buf [bufsize - 1] = '\0';
+    }
 
     free (tmpbuf);
 
