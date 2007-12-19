@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id:$
+# $Id: duration 601591 2007-12-06 01:09:56Z sebor $
 #
 ########################################################################
 #
@@ -28,13 +28,20 @@
 #     duration - Write the amount of time between two dates.
 #
 # SYNOPSIS
-#     duration [option(s)...] date-1 [date-2]
+#     duration [ option(s)... ] [ date-1 [ date-2 ]]
 #
 # DESCRIPTION
 #     The duration utility computes the amount of time elapsed between
 #     two dates formatted using the POSIX standard date utility in the
 #     "C" locale, making adjustments for time zone offsets, and writes
 #     the difference to standard output.
+#
+#     The effect of invoking it with no arguments is the same as
+#       duration "`date`".
+#
+#     The effect of invoking it with one argument is the same as
+#       duration "Thu Jan 1 00:00:00 UTC 1970" "`date`"
+#     where 1/1/1970 is the Epoch (the beginning of UNIX time).
 #
 ########################################################################
 
@@ -43,6 +50,8 @@
 myname=$0
 verbose=0
 
+# used to return large values (>255) from functions
+func_return_value=0
 
 # returns 1 if the argument is a leap year, 0 otherwise
 isleap ()
@@ -57,42 +66,42 @@ isleap ()
 # the %c strftime() directive 
 get ()
 {
-    what=$1
-    date=$2
+    get_what=$1
+    date_arg=$2
 
-    date_year=${date##* }
-    if [ $what = year ]; then
-        echo $date_year
+    date_year=${date_arg##* }
+    if [ $get_what = year ]; then
+        func_return_value=$date_year
         return
     fi
 
     # strip year
-    date=${date% *}
+    date_arg=${date_arg% *}
 
     # extract and strip time zone
-    tzname=${date##* }
-    date=${date% *}
+    tzname=${date_arg##* }
+    date_arg=${date_arg% *}
 
     # extract 24-hour time
-    date_time=${date##* }
+    date_time=${date_arg##* }
 
     # strip time
-    date=${date% *}
+    date_arg=${date_arg% *}
 
     # extract day of month
-    date_mday=${date##* }
+    date_mday=${date_arg##* }
 
-    if [ $what = mday ]; then
-        echo $date_mday
+    if [ $get_what = mday ]; then
+        func_return_value=$date_mday
         return
     fi
 
     # strip weekday and day of month
-    date=${date#* }
-    date=${date% *}
+    date_arg=${date_arg#* }
+    date_arg=${date_arg% *}
 
     # strip spaxe date the abbreviated name of month
-    date_mon=${date% }
+    date_mon=${date_arg% }
 
     # compute the one-based month number
     n=0
@@ -105,20 +114,22 @@ get ()
         fi
     done
 
-    if [ $what = mon ]; then
-        echo $date_nummon
+    if [ $get_what = mon ]; then
+        func_return_value=$date_nummon
         return
     fi
 
     # extract seconds (w/o the leading zeros) date the timestamp
     date_sec=${date_time##*:}
     date_sec=${date_sec#0}
-    date_time=${date_time%:*}
 
-    if [ $what = sec ]; then
-        echo $date_sec
+    if [ $get_what = sec ]; then
+        func_return_value=$date_sec
         return
     fi
+
+    # strip seconds
+    date_time=${date_time%:*}
 
     # extract minutes (w/o the leading zeros) date the timestamp
     date_min=${date_time##*:}
@@ -136,8 +147,8 @@ get ()
 
     # extract time zone offset from GMT/UTC
     tzoff=`TZ=$tzname date +%z`
-    if [ $what = "tzoff" ]; then
-        echo $tzoff
+    if [ $get_what = "tzoff" ]; then
+        func_return_value=$tzoff
         return
     fi
 
@@ -162,25 +173,27 @@ get ()
     tzmin=1$tzmin
     tzmin=$((tzmin - 100))
 
-    if [ $what = min ]; then
-        echo $((date_min + tzmin))
+    if [ $get_what = min ]; then
+        func_return_value=$((date_min + tzmin))
         return
     fi
 
     # extract hours (w/o the leading zeros) date the timestamp
     date_hour=${date_time#0}
 
-    if [ $what = hour ]; then
-        echo $((date_hour + tzhour))
+    if [ $get_what = hour ]; then
+        func_return_value=$((date_hour + tzhour))
         return
     fi
 
-    echo "$myname: get $what: unknown component" >&2
+    echo "$myname: get $get_what: unknown component" >&2
 
+    func_return_value=-1
     return 1
 }
 
 
+# computes the number of seconds from the Epoch (1/1/1970)
 seconds_from_epoch()
 {
     date=$1
@@ -188,14 +201,12 @@ seconds_from_epoch()
     # extract the year, the 1-based month and day of month, hours,
     # minutes, and seconds (normalized to the GMT time zone) from
     # the date
-    year=`get year "$date"`
-    mon=`get mon "$date"`
-    mday=`get mday "$date"`
-    hour=`get hour "$date"`
-    min=`get min "$date"`
-    sec=`get sec "$date"`
-
-    day=$mday
+    get year "$date"; year=$func_return_value
+    get mon "$date";  mon=$func_return_value
+    get mday "$date"; mday=$func_return_value
+    get hour "$date"; hour=$func_return_value
+    get min "$date";  min=$func_return_value
+    get sec "$date";  sec=$func_return_value
 
     isleap $year
     if [ $? -eq 0 ]; then
@@ -205,6 +216,9 @@ seconds_from_epoch()
     fi
 
     month=1
+
+    # compute the zero-based yearday (i.e., 0 for January 1)
+    day=$((mday - 1))
 
     for d in 31 $feb_days 31 30 31 30 31 31 30 31 30 31; do
 
@@ -217,13 +231,13 @@ seconds_from_epoch()
     # compute the offset in seconds from the beginning of the year
     sec=$((((((day * 24) + hour) * 60) + min) * 60 + sec))
 
-    # add the offset in seconds from the epoch not counting leap years
-    sec=$((year * 365 * 24 * 60 * 60 + sec))
+    # add the offset in seconds from the Epoch not counting leap years
+    sec=$(((year - 1970) * 365 * 24 * 60 * 60 + sec))
 
     # add one day for each leap year
-    sec=$((((year - 1) / 4) * 24 * 60 * 60 + sec))
+    sec=$(((((year - 1970) - 1) / 4) * 24 * 60 * 60 + sec))
 
-    echo $sec
+    func_return_value=$sec
 }
 
 
@@ -278,25 +292,25 @@ write_full ()
 
     output=""
 
-    if [ $days -ne 0 ]; then
+    if [ $days -ne 0 -o $verbose -ne 0 ]; then
         output="$days day"
         [ $days -ne 1 ] && output="${output}s"
         sep=", "
     fi
 
-    if [ $hrs -ne 0 ]; then
+    if [ $hrs -ne 0 -o $verbose -ne 0 ]; then
         output="$output${sep}$hrs hour"
         [ $hrs -ne 1 ] && output="${output}s"
         sep=", "
     fi
 
-    if [ $mins -ne 0 ]; then
+    if [ $mins -ne 0 -o $verbose -ne 0 ]; then
         output="$output${sep}$mins minute"
         [ $mins -ne 1 ] && output="${output}s"
         sep=", "
     fi
 
-    if [ $secs -ne 0 -o "$output" = "" ]; then
+    if [ $secs -ne 0 -o "$output" = "" -o $verbose -ne 0 ]; then
         output="$output${sep}$secs second"
         [ $secs -ne 1 ] && output="${output}s"
     fi
@@ -310,8 +324,8 @@ write_duration ()
     start=$1
     end=$2
 
-    start_sec=`seconds_from_epoch "$start"`
-    end_sec=`seconds_from_epoch "$end"`
+    seconds_from_epoch "$start"; start_sec=$func_return_value
+    seconds_from_epoch "$end";   end_sec=$func_return_value
 
     diff=$((end_sec - start_sec))
 
@@ -326,8 +340,12 @@ write_duration ()
 
     if [ $verbose -ne 0 ]; then
         echo "offsets from GMT (+-HHMM):" >&2
-        echo "  $start: `get tzoff \"$start\"`"
-        echo "  $end: `get tzoff \"$end\"`"
+
+        get tzoff "$start"; tzoff=$func_return_value
+        echo "  $start: $tzoff"
+
+        get tzoff "$end"; tzoff=$func_return_value
+        echo "  $end: $tzoff"
         echo
         echo "offsets from the Epoch (seconds):" >&2
         echo "  $start: $start_sec" >&2
@@ -383,12 +401,19 @@ done
 # remove command line options and their arguments from the command line
 shift $(($OPTIND - 1))
 
-start=$1
+if [ $# -ge 1 ]; then
+    start=$1
+else
+    start="`LC_ALL=C date`"
+fi
 
 if [ $# -ge 2 ]; then
     end=$2
 else
-    end=`LC_ALL=C date`
+    end=$start
+
+    # by default display the offset from the Epoch
+    start="Thu Jan 1 00:00:00 UTC 1970"
 fi
 
 
