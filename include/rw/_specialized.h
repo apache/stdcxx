@@ -69,8 +69,12 @@ __rw_new_capacity (_RWSTD_CONTAINER_SIZE_TYPE __size, const _Container*)
 {
     typedef _RWSTD_CONTAINER_SIZE_TYPE _RWSizeT;
 
-    _RWSizeT __cap = _RWSTD_STATIC_CAST (_RWSizeT,
-                                       __size * _RWSTD_NEW_CAPACITY_RATIO);
+    const _RWSizeT __ratio = _RWSizeT (  (_RWSTD_NEW_CAPACITY_RATIO << 10)
+                                       / _RWSTD_RATIO_DIVIDER);
+
+    const _RWSizeT __cap =   (__size >> 10) * __ratio
+                           + (((__size & 0x3ff) * __ratio) >> 10);
+
     return (__size += _RWSTD_MINIMUM_NEW_CAPACITY) > __cap ? __size : __cap;
 }                     
 
