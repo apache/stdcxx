@@ -1349,7 +1349,7 @@ EOF
             dir="tests"
 
             case $c in
-                *-stdcxx-*) dir="regress";;
+                *-stdcxx-*) dir="$dir/regress";;
                 0.*)  dir="$dir/self";;
                 17.*) dir="$dir/intro";;
                 18.*) dir="$dir/support";;
