@@ -250,6 +250,30 @@ get_build_date ()
 
 
 ######################################################################
+# formats a size value in an easy-to-read way
+format_size ()
+{
+    size=$1
+
+    if [ $size -ge 1000000 ]; then
+      # over million bytes, get size in megabytes up to 2 decimal places
+        mbsize="$((size / 1048576)).$(((size % 1048576) / 100000))"
+        size="<div title=\"$size bytes\">$mbsize MB</div>"
+    elif [ $size -ge 10000 ]; then
+      # over ten thoudand bytes, get even size in kilobytes
+        kbsize="$((size / 1024))"
+        size="<div title=\"$size bytes\">$kbsize kB</div>"
+    elif [ $size -ge 1000 ]; then
+      # over thoudand bytes, get size in kilobytes up to 2 decimal places
+        kbsize="$((size / 1024)).$(((size % 1024) / 100))"
+        size="<div title=\"$size bytes\">$kbsize kB</div>"
+    fi
+
+    echo $size
+}
+
+
+######################################################################
 # extracts the size of the library binary from the build log
 # being careful to avoid the symlink (in the case of a .so)
 get_lib_size ()
@@ -258,8 +282,12 @@ get_lib_size ()
 
     libsize=`awk '/build\/lib\/libstd[^ ]*\$/{ print $5 }' $file`
     if [ "$libsize" = "" ]; then
-        echo "$myname: warning: unable to extract library size from $l" >&2
+        # avoid warning for missing library size to reduce the noise
+        # in cases when it fails to build
+        # echo "$myname: warning: unable to extract library size from $l" >&2
         unset libsize
+    else
+        libsize=`format_size $libsize`
     fi
 
     echo $libsize
@@ -610,22 +638,22 @@ th {
 td {
     padding: 2px;
     text-align: center;
-    background-color:powderblue;
+    background:powderblue;
 }
 td.rowno {
     padding: 3px;
     text-align: right;
-    background-color:lightgray;
+    background:lightgray;
 }
 td.name {
     padding: 3px;
     text-align: left;
-    background-color:lightblue;
+    background:lightblue;
 }
 td.number {
     padding: 3px;
     text-align: center;
-    background-color:lightblue;
+    background:lightblue;
 }
 td.na {
     background:white;
@@ -635,8 +663,20 @@ td.header {
     background:#cccccc;
     text-align:center;
     font-weight:bold;
+    font-family:lucida mono;
+}
+td.total {
+    background:#cccccc;
+    text-align:center;
+    font-weight:bold;
 }
 td.OK {
+    background:forestgreen;
+    text-align:center;
+    font-weight:bold;
+}
+td.XPASS {
+    color:yellow;
     background:forestgreen;
     text-align:center;
     font-weight:bold;
@@ -666,11 +706,23 @@ td.WARN {
     color:red;
     background:#ffff99;
     text-align:center;
-    font-family:fixed
+    font-weight:bold;
+}
+td.XWARN {
+    color:tomato;
+    background:lightgreen;
+    text-align:center;
+    font-weight:bold;
 }
 td.EXIT {
     color:red;
     background:gold;
+    text-align:center;
+    font-weight:bold;
+}
+td.XEXIT {
+    color:tomato;
+    background:lightgreen;
     text-align:center;
     font-weight:bold;
 }
@@ -684,9 +736,21 @@ td.RUNWARN {
     text-align:center;
     font-weight:bold;
 }
+td.XRUNWARN {
+    color:dimgray;
+    background:lightgreen;
+    text-align:center;
+    font-weight:bold;
+}
 td.DIFF {
     color:red;
     background:#ffff99;
+    font-weight:bold;
+    text-align:center;
+}
+td.XDIFF {
+    color:tomato;
+    background:lightgreen;
     font-weight:bold;
     text-align:center;
 }
@@ -696,9 +760,21 @@ td.ASSERT {
     font-weight:bold;
     text-align:center;
 }
+td.XASSERT {
+    color:tomato;
+    background:lightgreen;
+    font-weight:bold;
+    text-align:center;
+}
 td.SIGNAL {
     color:yellow;
     background:red;
+    font-weight:bold;
+    text-align:center;
+}
+td.XSIGNAL {
+    color:tomato;
+    background:lightgreen;
     font-weight:bold;
     text-align:center;
 }
@@ -707,9 +783,21 @@ td.COMP {
     font-weight:bold;
     text-align:center;
 }
+td.XCOMP {
+    color:violet;
+    background:lightgreen;
+    font-weight:bold;
+    text-align:center;
+}
 td.LINK {
     color:yellow;
     background:mediumpurple;
+    font-weight:bold;
+    text-align:center;
+}
+td.XLINK {
+    color:mediumpurple;
+    background:lightgreen;
     font-weight:bold;
     text-align:center;
 }
@@ -744,13 +832,13 @@ cat <<EOF | output
     <h2>Index</h2>
 
     <ul>
-        <li><a href="#logs">Logs and Columns</a></li>
-        <li><a href="#timings">Timings</a></li>
-        <li><a href="#examples">Examples</a></li>
-        <li><a href="#tests">Tests</a></li>
-        <li><a href="#locales">Locales</a></li>
-        <li><a href="#codes">Codes and Colors</a></li>
-        <li><a href="#buildtypes">Build Types</a></li>
+      <li><a href="#logs">Logs and Columns</a></li>
+      <li><a href="#timings">Timings</a></li>
+      <li><a href="#examples">Examples</a></li>
+      <li><a href="#tests">Tests</a></li>
+      <li><a href="#locales">Locales</a></li>
+      <li><a href="#codes">Codes and Colors</a></li>
+      <li><a href="#buildtypes">Build Types</a></li>
     </ul>
     <hr>
 EOF
@@ -790,7 +878,7 @@ if [ $components_in_rows -ne 0 ]; then
     <table>
       <thead>
         <tr>
-          <th rowspan=3><div title="column number and log">col.</div></th>
+          <th rowspan=3><div title="column number and log">log</div></th>
           <th rowspan=3>build<br>type</th>
           <th colspan=21>build and run times (M:SS)</th>
         </tr>
@@ -848,19 +936,51 @@ EOF
     <table>
       <thead>
         <tr>
-          <th><div title="column number and log">col.</div></th>
-          <th>OS</th>
-          <th>arch</th>
-          <th>compiler</th>
-          <th>build<br>type</th>
-          <th>build start date</th>
-          <th>build<br>age</th>
-          <th>revision</th>
-          <th>library<br>(bytes)</th>
-          <th>build<br>(kB)</th>
-          <th>clean<br>(kB)</th>
-          <th>errors</th>
-          <th>warnings</th>
+          <th rowspan=3><div title="column number and log">log</div></th>
+          <th rowspan=3>operating<br>system</th>
+          <th rowspan=3><div title="hardware architecture">arch</div></th>
+          <th rowspan=3>compiler</th>
+          <th rowspan=3>build<br>type</th>
+          <th rowspan=3>start date and time</th>
+          <th rowspan=3>
+            <div title="build age at the time of this report">
+              age
+            </div>
+          </th>
+          <th rowspan=3>revision</th>
+          <th colspan=5>sizes</th>
+          <th colspan=2>diagnostics</th>
+          <th colspan=3>components</th>
+        </tr>
+        <tr>
+          <th rowspan=2>
+            <div title="size of the library binary">library</div>
+          </th>
+          <th colspan=2>log</th>
+          <th colspan=2>build</th>
+
+          <th rowspan=2>
+            <div title="number of error messages found">errors</div>
+          </th>
+          <th rowspan=2>
+            <div title="number of warning messages found">warnings</div>
+          </th>
+          <th rowspan=2>
+            <div title="number of examples exercised">examples</div>
+          </th>
+          <th rowspan=2>
+            <div title="number of locales exercised">locales</div>
+          </th>
+          <th rowspan=2>
+            <div title="number of tests exercised">tests</div>
+          </th>
+
+        </tr>
+        <tr>
+          <th><div title="size of gzipped log">gzip</div></th>
+          <th><div title="size of expanded log">text</div></th>
+          <th><div title="size of full build">full</div></th>
+          <th><div title="size of clean build">clean</div></th>
         </tr>
       </thead>
       <tbody>
@@ -881,6 +1001,11 @@ n=0
 # space-separated list of names of text logs processed in loop below
 textlogs=""
 
+# running total number of examples, locales, and tests in all logs
+total_examples=0
+total_locales=0
+total_tests=0
+
 for l in $gzlogs; do
     n=$((n + 1))
     fname=`basename $l`
@@ -900,8 +1025,16 @@ for l in $gzlogs; do
     gunzip -c $l > $txtlog
     if [ $? -ne 0 ]; then
         echo "$myname: error unzipping $l" >&2
-        exit 1
+
+        # continue processing the empty log below
     fi
+
+    # determine the size of the compressed and decompressed log
+    gzlogsize=`wc -c $l`
+    gzlogsize=`format_size ${gzlogsize% *}`
+
+    txtlogsize=`wc -c $txtlog`
+    txtlogsize=`format_size ${txtlogsize% *}`
 
     # extract the date and time the build started
     # the date is expected to be introduced by a line like this:
@@ -917,6 +1050,8 @@ for l in $gzlogs; do
         # or just seconds, whichever happens to be the most
         # significant
         age=`$HOME/stdcxx/bin/duration "$date" "$today"`
+        full_age=`$HOME/stdcxx/bin/duration -f "$date" "$today"`
+        age="<div title=\"$full_age\">$age</div>"
     fi
 
     # strip the year from the date
@@ -936,6 +1071,12 @@ for l in $gzlogs; do
     else
         fullbuildsize=${buildsizes%%[^0-9]*}
         cleanbuildsize=${buildsizes#[0-9]*[^0-9]}
+
+        fullbuildsize=$((fullbuildsize * 1024))
+        cleanbuildsize=$((cleanbuildsize * 1024))
+
+        fullbuildsize=`format_size $fullbuildsize`
+        cleanbuildsize=`format_size $cleanbuildsize`
     fi
 
     # extract the source repository revision number the build
@@ -959,8 +1100,17 @@ for l in $gzlogs; do
     compiler=`get_compiler $txtlog`
 
     # count the number of errors and warnings in the build
-    errors=`grep -i error $txtlog | wc -l`
-    warnings=`grep -i warning $txtlog | wc -l`
+    # avoid including false positives for words containing
+    # the string "error" or "warning"
+
+    # avoid counting (often ignored) make errors
+    errors=`  grep -i "[^a-z_A-Z0-9]error[^a-z_A-Z0-9]" $txtlog \
+            | grep -v "[^a-z_A-Z0-9]*gmake[^a-z_A-Z0-9]"| wc -l`
+
+    # (try to) avoid counting lines showing the context of the warning
+    # this should be tailored to every compiler
+    warnings=`  grep -i "[^a-z_A-Z0-9]warning[^a-z_A-Z0-9]" $txtlog \
+              | grep -i -v "called from here" | wc -l`
 
     ###
     if [ $components_in_rows -ne 0 ]; then
@@ -987,19 +1137,21 @@ for l in $gzlogs; do
         tbl_hdr_2="$tbl_hdr_2 <th>$buildtype</th>"
 
         output "      <tr>"
-        output "          <td>$colhdr</td>"
-        output "          <td>$osname</td>"
-        output "          <td>$arch</td>"
-        output "          <td>$compiler</td>"
-        output "          <td>$buildtype</td>"
-        output "          <td>$date</td>"
-        output "          <td>$age</td>"
-        output "          <td><a href=$revurl=$revno>$revno</a></td>"
-        output "          <td>$libsize</td>"
-        output "          <td>$fullbuildsize</td>"
-        output "          <td>$cleanbuildsize</td>"
-        output "          <td>$errors</td>"
-        output "          <td>$warnings</td>"
+        output "        <td>$colhdr</td>"
+        output "        <td>$osname</td>"
+        output "        <td>$arch</td>"
+        output "        <td>$compiler</td>"
+        output "        <td>$buildtype</td>"
+        output "        <td>$date</td>"
+        output "        <td>$age</td>"
+        output "        <td><a href=$revurl=$revno>$revno</a></td>"
+        output "        <td>$libsize</td>"
+        output "        <td>$gzlogsize</td>"
+        output "        <td>$txtlogsize</td>"
+        output "        <td>$fullbuildsize</td>"
+        output "        <td>$cleanbuildsize</td>"
+        output "        <td>$errors</td>"
+        output "        <td>$warnings</td>"
 
         cat <<EOF >>$timings_file
 
@@ -1019,8 +1171,6 @@ EOF
         get_times "total" $txtlog >>$timings_file
 
         echo "        </tr>" >>$timings_file
-        
-        output "      </tr>"
     fi
 
 
@@ -1087,6 +1237,32 @@ EOF
         exit 3
     fi
 
+    if [ $components_in_rows -ne 0 ]; then
+
+        # get  the number of components of each kind in the log
+        nexamples=`wc -l $examples_file`
+        nlocales=`wc -l $locales_file`
+        ntests=`wc -l $tests_file`
+
+        nexamples=${nexamples% *}
+        nlocales=${nlocales% *}
+        ntests=${ntests% *}
+
+        output "        <td>$((nexamples - total_examples))</td>"
+        output "        <td>$((nlocales - total_locales))</td>"
+        output "        <td>$((ntests - total_tests))</td>"
+        output "      </tr>"
+
+        total_examples=$nexamples
+        total_locales=$nlocales
+        total_tests=$ntests
+    fi
+
+    if [ ! -s $runlog ]; then
+        # make sure file is not empty
+        echo "###" >$runlog
+    fi
+
     rm $runlog.next
     rm $txtlog
 done
@@ -1142,157 +1318,7 @@ fi
 
 ######################################################################
 
-awkscript=$TMP/stdcxx-cross.$$.awk
-
-cat > $awkscript <<EOF
-BEGIN {
-    columns     = ""
-    compinx     = 0
-    count       = 0
-    max_asserts = 0
-    min_asserts = -1
-}
-# match the first record to the name optionally followed
-# by one of the three suffixes
-   \$1 ~ "^" name "\$" \
-|| \$1 ~ "^" name ".bat\$" \
-|| \$1 ~ "^" name ".exe\$" \
-|| \$1 ~ "^" name ".sh\$" {
-
-    status = \$2
-
-    if (status == 0) {
-        if (comp == "example" || \$5 == 0) {
-            if (\$3 == 0) {
-                class = "OK"
-                value = "0"
-            }
-            else {
-                ++count;
-                ++nfailures [compinx]
-                class = "RUNWARN"
-                value = "(" \$3 ")"
-            }
-        }
-        else {
-            ++count
-            ++nfailures [compinx]
-
-            class   = "ASSERT"
-            # value = \$5 " / " \$4
-            value   = "(" \$5 ")"
-        }
-
-        if (comp == "test") {
-            asserts [n] = \$5
-
-            if (max_asserts < \$4) {
-                max_asserts = \$4
-            }
-
-            if (\$4 < min_asserts || min_asserts < 0) {
-                min_asserts = \$4
-            }
-        }
-    }
-    else if (0 < status && status < 256) {
-        ++count
-        ++nfailures [compinx]
-
-        class = "EXIT"
-        value = status
-    }
-    else if (status == "FORMAT" || status == "NOUT" || status == "OUTPUT") {
-        ++count
-
-        class = status
-        value = status == "FORMAT" ? "FMAT" : status
-    }
-    else if (status == "DIFF" || status == "COMP" || status == "LINK") {
-        ++count
-        ++nfailures [compinx]
-
-        class = status
-        value = status
-    }
-    else {
-        ++count
-        ++nfailures [compinx]
-
-        class = "SIGNAL"
-        value = status
-    }
-
-    columns = columns "\n        <td class=\"" class "\">" value "</td>"
-
-    ++compinx
-}
-
-function build_summary () {
-    if (verbose || count) {
-        print "      <tr>"
-        print "        <td class=\"rowno\">" n "</td>"
-        print "        <td class=\"name\"><a name=\"" name "\"></a>"
-
-        if (dir != "")
-            print "        <a href=\"$svnpath/" dir "/" name ".cpp?view=markup\">" name "</a>"
-        else
-            print "        " name
-        print "        </td>"
-
-        if (comp == "test") {
-            print "        <td class=\"number\">" max_asserts "</td>"
-        }
-
-        print columns;
-        print "      </tr>"
-    }
-
-    tmpfile = "$TMP/.stdcxx-failtotals.$$.txt"
-
-    if (count) {
-        getline < tmpfile
-        close(tmpfile)
-
-        ORS=" "
-        for (i = 0; i < compinx; ++i) {
-            print nfailures [i] + \$(i + 1) > tmpfile
-        }
-
-        ORS="\n"
-        print "" >> tmpfile
-        close(tmpfile)
-    }
-
-    if (FILENAME == "-") {
-
-        if (comp == "test") {
-            print "<td class=\"header\"></td>"
-        }
-
-        getline < tmpfile
-
-        for (i = 1; i < NF + 1; ++i) {
-            print "        <td class=\"header\">" \$(i) "</td>"
-        }
-
-        system("rm -f " tmpfile)
-    }
-}
-
-function component_summary () {
-    print columns;
-}
-
-END {
-    if (comp != "") {
-        build_summary()
-    }
-    else {
-        component_summary()
-    }
-}
-EOF
+awkscript=$HOME/stdcxx/bin/xcomp.awk
 
 ######################################################################
 
@@ -1303,19 +1329,27 @@ process_components()
     component_name=$1
     component_list=$2
 
+    count=`echo $component_list | wc -w`
+
     if [ "$component_name" = "test" ]; then
         column3="        <th rowspan=2><div title=\"maximum total assertions\">"
-        column3="$column3 asserts</div></th>"
+        column3="$column3 max<br>asserts</div></th>"
     else
         unset column3
     fi
 
     cat <<EOF | output
-    <h2>Results of ${component_name}s</h2>
+    <h2>Results of $count ${component_name}s</h2>
+    <p>
+      Note: ${component_name}s passing across all builds have been omitted
+      for brevity.
+    </p>
     <table>
       <thead>
         <tr>
-          <th rowspan=2><div title="${component_name} number">###</div></th>
+          <th rowspan=2>
+            <div title="${component_name} number of a total of $count">###</div>
+          </th>
           <th rowspan=2>
             <a name="${component_name}s"></a>$component_name name
           </th>
@@ -1326,6 +1360,8 @@ process_components()
       </thead>
       <tbody>
 EOF
+
+    totals_file=$TMP/.stdcxx-failtotals.$$.txt
 
     # iterate over the list of idividual components (examples, tests,
     # or locales) invoking the awk script on each of them (i.e., each
@@ -1338,18 +1374,33 @@ EOF
         # (if it generates one)
         n=$((n + 1))
 
+        # the display name of the component
+        dispname="$c"
+
         # determine the directory in the source repository the component
         # source lives in
         if [ "example" = $component_name ]; then
             dir=""
         elif [ "locale" = $component_name ]; then
-            dir=""
+            locale=${c%.*}
+            if [ "$locale" != "$c" ]; then
+
+                # compose a URL pointing to the character set description
+                # file and the locale defintion file in the repository
+                codeset=${c#*.}
+
+                url="$svnpath/etc/nls/src/$locale?view=markup"
+                dispname="<a href=\"$url\">$locale</a>"
+
+                url="$svnpath/etc/nls/charmaps/$codeset?view=markup"
+                dispname="$dispname.<a href=\"$url\">$codeset</a>"
+            fi
         elif [ "test" = $component_name ]; then
 
             dir="tests"
 
             case $c in
-                *-stdcxx-*) dir="$dir/regress";;
+                *.stdcxx-*) dir="$dir/regress";;
                 0.*)  dir="$dir/self";;
                 17.*) dir="$dir/intro";;
                 18.*) dir="$dir/support";;
@@ -1364,28 +1415,26 @@ EOF
                 27.*) dir="$dir/iostream";;
                 *)    dir="";;
             esac
+
+            if [ "$dir" != "" ]; then
+                dispname="<a href=\"$svnpath/$dir/$c.cpp?view=markup\">$c</a>"
+            fi
         fi
 
           awk -f $awkscript \
-              n=$n dir=$dir name=$c verbose=$verbose comp=$component_name \
-              $textlogs \
+              n=$n dir=$dir name=$c dispname="$dispname" verbose=$verbose \
+              comp=$component_name totalsfile=$totals_file $textlogs    \
         | output
 
     done
-    cat <<EOF | output
-        <tr>
-          <td class="rowno">$n</th>
-          <td class="header">
-            <div title="total number of ${component_name}s/failed number of ${component_name}s">total/failed</div>
-          </td>
-EOF
 
     # set name to bogus value and invoke the script again
     # to get it to print summary information
-    echo "" | awk -f $awkscript comp=$component_name name="@" | output
+    echo "" | awk -f $awkscript comp=$component_name name="@" \
+              totalsfile=$totals_file svnpath=$svnpath        \
+            | output
 
     cat <<EOF | output
-        </tr>
       </tbody>
     </table>
 EOF
@@ -1423,8 +1472,8 @@ EOF
             line=`grep "^$c  *[^-]" $l`
             if [ $? -eq 0 -a "$line" != "" ]; then
                   echo $line \
-                | awk -f $awkscript component=$component_name \
-                      name=$c verbose=$verbose \
+                | awk -f $awkscript component=$component_name   \
+                      name=$c verbose=$verbose svnpath=$svnpath \
                 | output
             else
                 output "        <td class=\"missing\">N/A</td>"
@@ -1462,103 +1511,159 @@ cat <<EOF | output
     <h2><a name="codes"></a>Codes and Colors</h2>
     <table>
       <thead>
+
         <tr>
-          <td class="header">Symbol</td>
-          <td class="header">Meaning</td>
+          <th colspan=4 class="header">Status</th>
+          <th rowspan=2 class="header">Meaning</th>
         </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td class="OK">OK</td>
-            <td class="na">
-              Component completed successfully and produced the expected
-              output.
-            </td>
-          </tr>
-          <tr>
-            <td class="NOUT">NOUT</td>
-            <td class="na">
-              Component completed successfully and produced no output.
-            </td>
-          </tr>
-          <tr>
-            <td class="BASE">BASE</td>
-            <td class="na">
-              Component completed successfully and matched the baseline.
-            </td>
-          </tr>
-          <tr>
-            <td class="FORMAT">FMAT</td>
-            <td class="na">
-               Component completed successfully but produced unexpected
-               output.
-            </td>
-          </tr>
-          <tr>
-            <td class="missing">N/A</td>
-            <td class="na">Component was not tested.</td>
-          </tr>
-          <tr>
-            <td class="XDEP">XDEP</td>
-            <td class="na">
-                Component was not attempted due to a missing (or failed)
-                dependency.
-            </td>
-          </tr>
-          <tr>
-            <td class="COMP">COMP</td>
-            <td class="na">Component failed to compile.</td>
-          </tr>
-          <tr>
-            <td class="LINK">LINK</td>
-            <td class="na">
-                 Component compiled successfully but failed to link.
-            </td>
-          </tr>
-          <tr>
-            <td class="WARN">WARN</td>
-            <td class="na">
-               Component compiled and linked successfully but with warnings.
-            </td>
-          </tr>
-          <tr>
-            <td class="runwarn">(N)</td>
-            <td class="na">
-              Component compiled and linked successfully, exited with
-              a status of 0, but produced N warnings at runtime.
-            </td>
-          </tr>
-          <tr>
-            <td class="EXIT">N</td>
-            <td class="na">
-              Component compiled and linked successfully but exited with
-              a non-zero status of N.
-            </td>
-          </tr>
-          <tr>
-            <td class="DIFF">DIFF</td>
-            <td class="na">
-              Component compiled and linked successfully, exited with
-              a status of 0, but produced unexpected output.
-            </td>
-          </tr>
-          <tr>
-            <td class="SIGNAL">[SIG]&lt;name&gt;</td>
-            <td class="na">
-              Component compiled and linked successfully, but exited
-              with the named signal (for example, SIGABRT).
-            </td>
-          </tr>
-          <tr>
-            <td class="assert">(N)</td>
-            <td class="na">
-              Component compiled and linked successfully, exited with
-              a status of 0, but failed N assertions at runtime.
-            </td>
-          </tr>
+        <tr>
+          <th class="header">
+            <div title="Unexpected success or ordinary failure">
+
+              Unexpected
+            </div>
+          </th>
+          <th class="header">Severity</th>
+          <th class="header">
+            <div title="Ordinary success or expected failure">
+              Expected
+            </div>
+          </th>
+          <th class="header">Severity</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr>
+          <td class="XPASS">XPASS</td>
+          <td class="na">Success</td>
+          <td class="OK">OK</td>
+          <td class="na">Success</td>
+          <td class="na">
+            Component completed successfully and produced the expected
+            output.
+          </td>
+        </tr>
+        <tr>
+          <td colspan=2 class="na"><center>Not Applicable</center></td>
+          <td class="NOUT">NOUT</td>
+          <td class="na">Success</td>
+          <td class="na">
+            Component completed successfully and produced no output.
+          </td>
+        </tr>
+        <tr>
+          <td colspan=2 class="na"><center>Not Applicable</center></td>
+          <td class="BASE">BASE</td>
+          <td class="na">Success</td>
+          <td class="na">
+            Component completed successfully and matched the baseline.
+          </td>
+        </tr>
+        <tr>
+          <td colspan=2 class="na"><center>Not Applicable</center></td>
+          <td class="FORMAT">FMAT</td>
+          <td class="na">Success</td>
+          <td class="na">
+             Component completed successfully but produced unexpected
+             output.
+          </td>
+        </tr>
+        <tr>
+          <td class="missing">N/A</td>
+          <td class="na">Success</td>
+          <td colspan=2 class="na"><center>Not Applicable</center></td>
+          <td class="na">Component was not tested.</td>
+        </tr>
+        <tr>
+          <td class="XDEP">XDEP</td>
+          <td class="na">Failure</td>
+          <td colspan=2 class="na"><center>Not Applicable</center></td>
+          <td class="na">
+              Component was not attempted due to a missing (or failed)
+              dependency.
+          </td>
+        </tr>
+        <tr>
+          <td class="COMP">COMP</td>
+          <td class="na">Failure</td>
+          <td class="XCOMP">XCOMP</td>
+          <td class="na">Success</td>
+          <td class="na">Component failed to compile.</td>
+        </tr>
+        <tr>
+          <td class="LINK">LINK</td>
+          <td class="na">Failure</td>
+          <td class="XLINK">XLINK</td>
+          <td class="na">Success</td>
+          <td class="na">
+               Component compiled successfully but failed to link.
+          </td>
+        </tr>
+        <tr>
+          <td class="WARN">WARN</td>
+          <td class="na">Success</td>
+          <td class="XWARN">XWARN</td>
+          <td class="na">Success</td>
+          <td class="na">
+             Component compiled and linked successfully but with warnings.
+          </td>
+        </tr>
+        <tr>
+          <td class="RUNWARN">(N)</td>
+          <td class="na">Success</td>
+          <td class="XRUNWARN">(N)</td>
+          <td class="na">Success</td>
+          <td class="na">
+
+            Component compiled and linked successfully, exited with
+            a status of 0, but produced N warnings at runtime.
+          </td>
+        </tr>
+        <tr>
+
+          <td class="EXIT">N</td> 
+          <td class="na">Failure</td>
+          <td class="XEXIT">N</td>
+          <td class="na">Success</td>
+          <td class="na">
+            Component compiled and linked successfully but exited with
+            a non-zero status of N.
+          </td>
+        </tr>
+        <tr>
+          <td class="DIFF">DIFF</td>
+          <td class="na">Failure</td>
+          <td class="XDIFF">XDIFF</td>
+          <td class="na">Success</td>
+          <td class="na">
+            Component compiled and linked successfully, exited with
+            a status of 0, but produced unexpected output.
+          </td>
+        </tr>
+        <tr>
+          <td class="SIGNAL">[SIG]&lt;name&gt;</td>
+          <td class="na">Failure</td>
+          <td class="XSIGNAL">X[SIG]&lt;name&gt;</td>
+          <td class="na">Success</td>
+          <td class="na">
+            Component compiled and linked successfully, but exited
+            with the named signal (for example, SIGABRT).
+          </td>
+        </tr>
+        <tr>
+          <td class="ASSERT">(N)</td>
+          <td class="na">Failure</td>
+          <td class="XASSERT">(N)</td>
+          <td class="na">Success</td>
+          <td class="na">
+            Component compiled and linked successfully, exited with
+            a status of 0, but failed N assertions at runtime.
+          </td>
+        </tr>
       </tbody>
     </table>
-    
+   
     <h2><a name="buildtypes"></a>Build Types</h2>
 
     <table>
@@ -1677,10 +1782,10 @@ if [ -z $no_clean ]; then
 
     if [ $verbose -eq 1 ]; then
         echo "$myname: " \
-             "rm $awkscript $examples_file $tests_file $locales_file " \
+             "rm $examples_file $tests_file $locales_file " \
              "$textlogs $timings_file"
     fi
 
-    rm $awkscript $examples_file $tests_file $locales_file $textlogs \
+    rm $examples_file $tests_file $locales_file $textlogs \
        $timings_file
 fi
