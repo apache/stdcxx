@@ -255,16 +255,20 @@ format_size ()
 {
     size=$1
 
-    if [ $size -ge 1000000 ]; then
-      # over million bytes, get size in megabytes up to 2 decimal places
+    if [ $size -ge 1000000000 ]; then
+        # over billion bytes, get size in gigabytes up to 2 decimal places
+        gbsize="$((size / 1073741824)).$(((size % 1073741) / 100000))"
+        size="<div title=\"$size bytes\">$gbsize GB</div>"
+    elif [ $size -ge 1000000 ]; then
+        # over million bytes, get size in megabytes up to 2 decimal places
         mbsize="$((size / 1048576)).$(((size % 1048576) / 100000))"
         size="<div title=\"$size bytes\">$mbsize MB</div>"
     elif [ $size -ge 10000 ]; then
-      # over ten thoudand bytes, get even size in kilobytes
+        # over ten thoudand bytes, get even size in kilobytes
         kbsize="$((size / 1024))"
         size="<div title=\"$size bytes\">$kbsize kB</div>"
     elif [ $size -ge 1000 ]; then
-      # over thoudand bytes, get size in kilobytes up to 2 decimal places
+        # over thoudand bytes, get size in kilobytes up to 2 decimal places
         kbsize="$((size / 1024)).$(((size % 1024) / 100))"
         size="<div title=\"$size bytes\">$kbsize kB</div>"
     fi
@@ -807,6 +811,10 @@ td.xdep {
     font-weight:bold;
     text-align:center;
 }
+tr.LIB {
+    background:pink;
+    color:black;
+}
 EOF
 
 fi
@@ -1060,12 +1068,15 @@ for l in $gzlogs; do
     # extract the size of the library binary from the build log
     libsize=`get_lib_size $txtlog`
 
-    # extract the size of the whole build, both before and after
-    # it's been cleaned
-    buildsizes=`  sed -n '/^### du -sk .\/build\/ .\/build\/\*/{n;p;}' \
+    # extract the size of the whole build introduced by a line
+    # containing the strings "# du -sk build", both before and
+    # afterit's been cleaned
+    buildsizes=`  sed -n '/^##*  *du  *-sk  *.*build/{n;p;}' \
                       $txtlog | sed 's/ *\([1-9][0-9]*\).*/\1/'`
     if [ "$buildsizes" = "" ]; then
-        echo "$myname: warning: unable to extract build size from $l" >&2
+        # avoid warning for missing build size to reduce the noise
+        # in cases when the library fails to build
+        # echo "$myname: warning: unable to extract build size from $l" >&2
         unset fullbuildsize
         unset cleanbuildsize
     else
@@ -1136,7 +1147,11 @@ for l in $gzlogs; do
         tbl_hdr_1="$tbl_hdr_1 <th>$colhdr</th>"
         tbl_hdr_2="$tbl_hdr_2 <th>$buildtype</th>"
 
-        output "      <tr>"
+        if [ "$libsize" = "" ]; then
+            output "      <tr class=\"LIB\">"
+        else
+            output "      <tr>"
+        fi
         output "        <td>$colhdr</td>"
         output "        <td>$osname</td>"
         output "        <td>$arch</td>"
@@ -1326,12 +1341,12 @@ awkscript=$HOME/stdcxx/bin/xcomp.awk
 # component name is one of: { example, locale, test }
 process_components()
 {
-    component_name=$1
-    component_list=$2
+    component_type=$1   # example, locale, or test
+    component_list=$2   # list of component names
 
     count=`echo $component_list | wc -w`
 
-    if [ "$component_name" = "test" ]; then
+    if [ "$component_type" = "test" ]; then
         column3="        <th rowspan=2><div title=\"maximum total assertions\">"
         column3="$column3 max<br>asserts</div></th>"
     else
@@ -1339,19 +1354,19 @@ process_components()
     fi
 
     cat <<EOF | output
-    <h2>Results of $count ${component_name}s</h2>
+    <h2>Results of $count ${component_type}s</h2>
     <p>
-      Note: ${component_name}s passing across all builds have been omitted
+      Note: ${component_type}s passing across all builds have been omitted
       for brevity.
     </p>
     <table>
       <thead>
         <tr>
           <th rowspan=2>
-            <div title="${component_name} number of a total of $count">###</div>
+            <div title="${component_type} number of a total of $count">###</div>
           </th>
           <th rowspan=2>
-            <a name="${component_name}s"></a>$component_name name
+            <a name="${component_type}s"></a>$component_type name
           </th>
           $column3
           $tbl_hdr_1
@@ -1379,9 +1394,9 @@ EOF
 
         # determine the directory in the source repository the component
         # source lives in
-        if [ "example" = $component_name ]; then
+        if [ "example" = $component_type ]; then
             dir=""
-        elif [ "locale" = $component_name ]; then
+        elif [ "locale" = $component_type ]; then
             locale=${c%.*}
             if [ "$locale" != "$c" ]; then
 
@@ -1395,7 +1410,7 @@ EOF
                 url="$svnpath/etc/nls/charmaps/$codeset?view=markup"
                 dispname="$dispname.<a href=\"$url\">$codeset</a>"
             fi
-        elif [ "test" = $component_name ]; then
+        elif [ "test" = $component_type ]; then
 
             dir="tests"
 
@@ -1423,14 +1438,14 @@ EOF
 
           awk -f $awkscript \
               n=$n dir=$dir name=$c dispname="$dispname" verbose=$verbose \
-              comp=$component_name totalsfile=$totals_file $textlogs    \
+              comptype=$component_type totalsfile=$totals_file $textlogs    \
         | output
 
     done
 
     # set name to bogus value and invoke the script again
     # to get it to print summary information
-    echo "" | awk -f $awkscript comp=$component_name name="@" \
+    echo "" | awk -f $awkscript comptype=$component_type name="@" \
               totalsfile=$totals_file svnpath=$svnpath        \
             | output
 
@@ -1445,14 +1460,14 @@ EOF
 # process a list of builds, one build per row
 process_builds()
 {
-    component_name=$1
-    component_list=$2
+    component_type=$1   # example, locale, or test
+    component_list=$2   # list of component names
 
     cat <<EOF | output
-    <h2>Results of ${component_name}s</h2>
+    <h2>Results of ${component_type}s</h2>
     <table>
       <tr>
-        <th><a name="${component_name}s"></a>log</th>
+        <th><a name="${component_type}s"></a>log</th>
         $table_header
       </tr>
 EOF
@@ -1472,7 +1487,7 @@ EOF
             line=`grep "^$c  *[^-]" $l`
             if [ $? -eq 0 -a "$line" != "" ]; then
                   echo $line \
-                | awk -f $awkscript component=$component_name   \
+                | awk -f $awkscript component=$component_type   \
                       name=$c verbose=$verbose svnpath=$svnpath \
                 | output
             else

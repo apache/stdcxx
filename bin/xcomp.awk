@@ -24,7 +24,7 @@
 #
 # SYNOPSIS
 #     myname [n=#] [name=$name] [dispname=$dispname]
-#            [svnpath=$svnpath] [verbose=0|1] [comp=$comp]
+#            [svnpath=$svnpath] [verbose=0|1] [comptype=$comp]
 #            [totalsfile=$totalsfile] [expectfile=$expectfile]
 #            logs...
 #
@@ -33,7 +33,7 @@
 #   name         component name
 #   dispname     component display name
 #   verbose      verbose mode
-#   comp         component kind (example, locale, or test)
+#   comptype     component type (example, locale, or test)
 #   totalsfile   name of totals file
 #   expectfile   name of file with expected results
 #
@@ -45,7 +45,8 @@ BEGIN {
     columns = ""
 
     # total number of times the current component has been found to fail
-    # in all logs
+    # across all logs (a row for the component is normally output only
+    # when compfails is non-zero, except when in verbose mode)
     compfails = 0
 
     # maximum and minimum number of assertions for the current component
@@ -66,12 +67,41 @@ BEGIN {
 
     # array of the total numbers of failed components in each log
     # logfails
+
+    # array of the total numbers of components in each log that
+    # failed one or more runtime assertions
+    # assertcounts
+
+    # array of the total numbers of components in each log that
+    # failed to build (compile or link)
+    # buildfails
+
+    # array of the total numbers of components in each log that
+    # produced unexpected output (DIFF)
+    # diffcounts
+
+    # array of the total numbers of components in each log that
+    # exited with a non-zero status
+    # exitcounts
+
+    # array of the total numbers of components in each log that
+    # exited with a signal
+    # signalcounts
+
+    # array of the total numbers of components in each log that
+    # exited with SIGHUP (likely timed out)
+    # sighupcounts
+
+    # array of the total numbers of components missing from each log
+    # missingcounts
 }
 
 
 # action to keep track of the current file number
 1 == FNR {
     if (0 < fileno && found_in_file < fileno) {
+        ++missingcounts [fileno]
+
         columns = columns "\n        <td class=\"missing\">N/A</td>"
         found_in_file = -1
     }
@@ -98,10 +128,16 @@ BEGIN {
     # The <warn>, <asrts>, <fail>, and <percnt> fields might be missing.
 
     # increment the total of components found in this log
-    ++logcounts [fileno - 1]
+    ++logcounts [fileno]
 
     # the second field is always the exit status of the component
     status = $2
+
+    # the tile (tooltip) to display over the value
+    title = ""
+
+    # the value of the cell
+    value = ""
 
     found_in_file = fileno
 
@@ -109,7 +145,7 @@ BEGIN {
 
         # successful exit status
 
-        if (comp == "example" || $5 == 0) {
+        if (comptype == "example" || $5 == 0) {
 
             # component is an example or, when not, had zero failures
 
@@ -123,10 +159,11 @@ BEGIN {
             }
             else {
                 ++compfails;
-                ++logfails [fileno - 1]
+                ++logfails [fileno]
+
                 class = "RUNWARN"
-                value = "<div title=\"" warnings " warnings\">(" warnings \
-                        ")</div>"
+                title = warnings " runtime warnings"
+                value = "(" warnings ")"
             }
         }
         else {
@@ -134,14 +171,15 @@ BEGIN {
             # component is not an example or, when it is, had failures
 
             ++compfails
-            ++logfails [fileno - 1]
+            ++logfails [fileno]
+            ++assertcounts [fileno]
 
             class = "ASSERT"
-            value = "<div title=\"" $5 " failed assertions out of " $4 \
-                    "\">(" $5 ")</div>"
+            title = $5 " failed assertions out of " $4
+            value = "(" $5 ")"
         }
 
-        if (comp == "test") {
+        if (comptype == "test") {
             asserts [n] = $5
 
             if (max_asserts < $4) {
@@ -155,11 +193,12 @@ BEGIN {
     }
     else if (0 < status && status < 256) {
         ++compfails
-        ++logfails [fileno - 1]
+        ++logfails [fileno]
+        ++exitcounts [fileno]
 
         class = "EXIT"
-        value = "<div title=\"exit status of " status "\">" status \
-                "</div>"
+        title = "exit status of " status
+        value = status
     }
     else if (status == "FORMAT" || status == "NOUT" || status == "OUTPUT") {
         ++compfails
@@ -167,22 +206,66 @@ BEGIN {
         class = status
         value = status == "FORMAT" ? "FMAT" : status
     }
-    else if (status == "DIFF" || status == "COMP" || status == "LINK") {
+    else if (status == "DIFF") {
         ++compfails
-        ++logfails [fileno - 1]
+        ++logfails [fileno]
+        ++diffcounts [fileno]
+
+        class = status
+        value = status
+    }
+    else if (status == "COMP" || status == "LINK") {
+        ++compfails
+        ++logfails [fileno]
+        ++buildfails [fileno]
 
         class = status
         value = status
     }
     else {
         ++compfails
-        ++logfails [fileno - 1]
+        ++logfails [fileno]
+        if (status == "HUP" || status == "SIGHUP")
+            ++sighupcounts [fileno]
+        else
+            ++signalcounts [fileno]
 
         class = "SIGNAL"
         value = status
     }
 
-    columns = columns "\n          <td class=\"" class "\">" value "</td>"
+    columns = columns "\n          <td class=\"" class "\""
+    if (title != "")
+        columns = columns " title=\"" title "\""
+    columns = columns ">" value "</td>"
+}
+
+
+function print_totals (class, title, text, totals, nfields)
+{
+    sum = 0
+
+    row = ""
+
+    for (i = 1; i <= nfields; ++i) {
+        sum += totals [i]
+
+        row = row "            <td class=\"total\">"
+        if (totals [i] != 0)
+            row = row totals [i]
+
+        row = row "</td>"
+    }
+
+    if (sum != 0) {
+   
+        print "          <tr>"
+        print "            <td class=\"header\"></td>"
+        print "            <td class=\"" class "\" title=\"" \
+            title "\">" text "</td>"
+        print extra_cell
+        print "            " row
+    }
 }
 
 
@@ -195,7 +278,7 @@ function build_summary ()
         print "            " dispname
         print "          </td>"
 
-        if (comp == "test") {
+        if (comptype == "test") {
             print "          <td class=\"number\">" max_asserts "</td>"
         }
 
@@ -203,26 +286,37 @@ function build_summary ()
         print "      </tr>"
     }
 
-    if (compfails) {
-        # increment counts in the totals file
+    if (0 > getline line < totalsfile) {
+        # the first time through there is no totalsfile
+        nfields = fileno
+    }
+    else {
+        nfields = split(line, logcounts_prev)
 
-        getline < totalsfile
-        close(totalsfile)
+        getline line < totalsfile
+        split(line, logfails_prev)
 
-        # set the Output Record Separator to space
-        ORS=" "
+        getline line < totalsfile
+        split(line, assertcounts_prev)
 
-        for (i = 0; i < fileno; ++i) {
-            print logcounts [i] + $(i + 1) > totalsfile
-        }
+        getline line < totalsfile
+        split(line, buildfails_prev)
 
-        for (i = 0; i < fileno; ++i) {
-            print logfails [i] + $(i + fileno + 1) > totalsfile
-        }
+        getline line < totalsfile
+        split(line, diffcounts_prev)
 
-        # append a newline to the file
-        ORS="\n"
-        print "" >> totalsfile
+        getline line < totalsfile
+        split(line, exitcounts_prev)
+
+        getline line < totalsfile
+        split(line, signalcounts_prev)
+
+        getline line < totalsfile
+        split(line, sighupcounts_prev)
+
+        getline line < totalsfile
+        split(line, missingcounts_prev)
+
         close(totalsfile)
     }
 
@@ -231,46 +325,128 @@ function build_summary ()
         # the special (bogus) name indicates a request to format
         # totals from the totals file
 
-        # read the totals from the totalsfile
-        getline < totalsfile
+        if (comptype == "test")
+            extra_cell = "            <td class=\"header\">&mdash;</td>"
+        else
+            extra_cell = ""
 
-        nfields=NF
+        print "        <tfoot>"
+        print "          <tr>"
+        print "            <td class=\"header\"></td>"
+        print "            <td class=\"header\">totals for status</td>"
+        print extra_cell
 
-        # output the totals of failed components first
-        print "        <tr>"
-        print "          <td class=\"header\"></td>"
-        print "          <td class=\"header\">"
-        print "            <div title=\"number of failed " comp "s\">failed</div>"
-        print "          </td>"
+        for (i = 1; i <= nfields; ++i)
+            print "<td class=\"header\">&mdash;</td>"
 
-        if (comp == "test") {
-            print "          <td class=\"header\"></td>"
-        }
+        print "          </tr>"
 
-        for (i = nfields / 2; i < nfields; ++i) {
-            print "          <td class=\"total\">" $(i + 1) "</td>"
-        }
+        # output the totals of components that failed to build
+        print_totals("COMP", "number of " comptype "s that failed to build",
+                     "BUILD", buildfails_prev, nfields)
 
-        print "        </tr>"
+        # output the totals of examples that produced unexpected output
+        print_totals("DIFF",
+                     "number of " comptype "s with unexpected output",
+                     "DIFF", diffcounts_prev, nfields);
 
-        # output the totals of all components next
-        print "        <tr>"
-        print "          <td class=\"header\"></td>"
-        print "          <td class=\"header\">"
-        print "            <div title=\"total number of " comp "s\">total</div>"
-        print "          </td>"
+        # output the totals of components that had assertions
+        print_totals("ASSERT",
+                     "number of " comptype "s with failed assertions",
+                     "ASSERT", assertcounts_prev, nfields);
 
-        if (comp == "test") {
-            print "          <td class=\"header\"></td>"
-        }
+        # output the totals of components that exited with non-zero status
+        print_totals("EXIT",
+                     "number of " comptype "s with non-zero exit status",
+                     "EXIT", exitcounts_prev, nfields);
 
-        for (i = 0; i < nfields / 2; ++i) {
-            print "          <td class=\"total\">" $(i + 1) "</td>"
-        }
+        # output the totals of components that exited with a signal
+        print_totals("SIGNAL",
+                     "number of signalled " comptype "s",
+                     "SIGNAL", signalcounts_prev, nfields);
 
-        print "        </tr>"
+        # output the totals of components that exited with a signal
+        print_totals("SIGNAL",
+                     "number of " comptype "s that (likely) timed out",
+                     "SIGHUP", sighupcounts_prev, nfields);
 
+        # output the number if missing components
+        print_totals("MISSING",
+                     "number of missing " comptype "s",
+                     "N/A", missingcounts_prev, nfields);
+
+        # output the totals of failed components
+        print_totals("header",
+                     "number of " comptype "s with any failures",
+                     "all failures", logfails_prev, nfields);
+
+        # output the totals of all components
+        print_totals("header",
+                     "total number of " comptype "s exercised",
+                     "total exercised", logcounts_prev, nfields);
+
+        print "        </tfoot>"
+
+        close(totalsfile)
         system("rm -f " totalsfile)
+    }
+    else {
+        # increment counts in the totals file for each component
+
+        # set the Output Record Separator to space
+        ORS=" "
+
+        for (i = 1; i <= nfields; ++i)
+            print logcounts [i] + logcounts_prev [i] > totalsfile
+
+        print "\n" >> totalsfile
+
+        for (i = 1; i <= nfields; ++i)
+            print logfails [i] + logfails_prev [i] >> totalsfile
+
+        print "\n" >> totalsfile
+
+        for (i = 1; i <= nfields; ++i)
+            print assertcounts [i] + assertcounts_prev [i] >> totalsfile
+
+        print "\n" >> totalsfile
+
+        for (i = 1; i <= nfields; ++i)
+            print buildfails [i] + buildfails_prev [i] >> totalsfile
+
+        print "\n" >> totalsfile
+
+        for (i = 1; i <= nfields; ++i)
+            print diffcounts [i] + diffcounts_prev [i] >> totalsfile
+
+        print "\n" >> totalsfile
+
+        for (i = 1; i <= nfields; ++i)
+            print exitcounts [i] + exitcounts_prev [i] >> totalsfile
+
+        print "\n" >> totalsfile
+
+        for (i = 1; i <= nfields; ++i)
+            print signalcounts [i] + signalcounts_prev [i] >> totalsfile
+
+        print "\n" >> totalsfile
+
+        for (i = 1; i <= nfields; ++i)
+            print sighupcounts [i] + sighupcounts_prev [i] >> totalsfile
+
+        print "\n" >> totalsfile
+
+        for (i = 1; i <= nfields; ++i)
+            print missingcounts [i] + missingcounts_prev [i] >> totalsfile
+
+        print "\n" >> totalsfile
+
+        close(totalsfile)
+
+        # append a newline to the file
+        # ORS="\n"
+        # print "" >> totalsfile
+        # close(totalsfile)
     }
 }
 
@@ -279,8 +455,10 @@ function component_summary () {
 }
 
 END {
-    if (comp != "") {
+    if (comptype != "") {
         if (found_in_file < fileno) {
+
+            ++missingcounts [fileno]
 
             # the component wasn't found in the last file processed
             columns = columns "\n          <td class=\"missing\">N/A</td>"
