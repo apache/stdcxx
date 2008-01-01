@@ -189,7 +189,7 @@ BEGIN {
     # question marks with "."
     gsub("\\.", "\\.", pattern)
     gsub("\\*", ".*", pattern)
-    gsub("?", ".", pattern)
+    gsub("\\?", ".", pattern)
 
     # if patter contains an open brace expand it using the shell
     if (0 < index(pattern, "{")) {
