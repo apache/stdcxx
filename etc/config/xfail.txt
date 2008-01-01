@@ -1,0 +1,44 @@
+########################################################################
+#
+# Expected/known failures in stdcxx examples, locales, and tests.
+#
+# Record format:
+#   <program-name>  <config> <status> <issue>
+#                  [<config> <status> <issue>]*
+#
+#   where <program-name>, <status>, and <issue> are ordinary strings
+#   (containing no whitespace), and <config> is a shell globbing
+#   pattern in the format below. All fields are required, as are all
+#   the components the <status> field.
+#
+#   <config> ::= <os>-<version>-<arch><compiler>-<version>-<buildtype>
+#
+########################################################################
+# Known example failures
+#
+# EXAMPLE                                           EXPECTED  ISSUE
+# NAME              PLATFORM AND BUILD TYPE         STATUS    NUMBER
+# ---------------   ------------------------------  --------  ----------
+codecvt1            *-*-*-*-*                       1         STDCXX-520
+dynatype            *-*-*-vacpp-9.0-*               COMP      STDCXX-605
+limits              aix-*-*-*-*                     DIFF      STDCXX-458
+
+########################################################################
+# Known locale failures
+#
+# LOCALE                                            EXPECTED  ISSUE
+# NAME              PLATFORM AND BUILD TYPE         STATUS    NUMBER
+# --------------    ------------------------------  --------  ----------
+br_FR.ISO-8859-1    *.*.*.*.*                       1         STDCXX-372
+hu_HU.ISO-8859-2    *.*.*.*.*                       1         STDCXX-372
+
+
+########################################################################
+# Known test failures
+#
+# TEST                                              EXPECTED  ISSUE
+# NAME              PLATFORM AND BUILD TYPE         STATUS    NUMBER
+# --------          ------------------------------  --------  ----------
+0.process           aix-5.3-*-vacpp-9.0-*           SEGV      STDCXX-625
+2.smartptr.shared   aix-*-*-vacpp-9.0-*             COMP      STDCXX-360
+19.exceptions.mt    aix-5.3-*-vacpp-9.0-{12,15}?    HUP       STDCXX-644
