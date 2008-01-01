@@ -86,6 +86,9 @@ readonly revurl="$viewvc?view=rev&rev"
 # URL to the trunk of the source repository
 readonly svnpath="$viewvc/incubator/stdcxx/trunk"
 
+# expected failures
+readonly xfailfile=$HOME/stdcxx/etc/config/xfail.txt
+
 ######################################################################
 # global variables
 
@@ -290,8 +293,6 @@ get_lib_size ()
         # in cases when it fails to build
         # echo "$myname: warning: unable to extract library size from $l" >&2
         unset libsize
-    else
-        libsize=`format_size $libsize`
     fi
 
     echo $libsize
@@ -634,6 +635,13 @@ table {
     font-family:courier;
     font-size: 80%;
 }
+caption {
+    background:lightslategray;
+    color:lightgray;
+    font-weight:bold;
+    font-family:lucida mono;
+    font-size: 120%;
+}
 th {
     background:lightgray;
     text-align:center;
@@ -642,20 +650,19 @@ th {
 td {
     padding: 2px;
     text-align: center;
+}
+tr {
     background:powderblue;
 }
 td.rowno {
-    padding: 3px;
     text-align: right;
     background:lightgray;
 }
 td.name {
-    padding: 3px;
     text-align: left;
     background:lightblue;
 }
 td.number {
-    padding: 3px;
     text-align: center;
     background:lightblue;
 }
@@ -663,14 +670,13 @@ td.na {
     background:white;
     text-align:left;
 }
-td.header {
+.header {
     background:#cccccc;
     text-align:center;
     font-weight:bold;
     font-family:lucida mono;
 }
 td.total {
-    background:#cccccc;
     text-align:center;
     font-weight:bold;
 }
@@ -700,7 +706,7 @@ td.OUTPUT {
     text-align:center;
     font-weight:bold;
 }
-td.missing {
+td.MISS {
     color:white;
     background:lightgray;
     text-align:center;
@@ -856,17 +862,11 @@ EOF
 # the location of the logs
 logdir="http://people.apache.org/~sebor/stdcxx/results"
 
-# the names of temporary files containing the list of components
-# (examples, locales, and tests) to process and include in the
-# generated report
-tests_file=$TMP/.stdcxx-tests.$$
-examples_file=$TMP/.stdcxx-examples.$$
-locales_file=$TMP/.stdcxx-locales.$$
+# the name of a temporary file containing the build timings
 timings_file=$TMP/.stdcxx-timings.$$
 
-
-# remove temporary files in case they exist
-rm -f $tests_file $examples_file $locales_file
+# remove the temporary file
+rm -f timings_file
 
 if [ $? -ne 0 ]; then
     exit 2
@@ -886,32 +886,18 @@ if [ $components_in_rows -ne 0 ]; then
     <table>
       <thead>
         <tr>
-          <th rowspan=3><div title="column number and log">log</div></th>
+          <th rowspan=3 title="column number and log">log</th>
           <th rowspan=3>build<br>type</th>
           <th colspan=21>build and run times (M:SS)</th>
         </tr>
         <tr>
-          <th colspan=3>
-            <div title="library configuration times">config</div>
-          </th>
-          <th colspan=3>
-            <div title="library build times">library</div>
-          </th>
-          <th colspan=3>
-            <div title="build times for all examples">examples</div>
-          </th>
-          <th colspan=3>
-            <div title="build times for all utilities">utilities</div>
-          </th>
-          <th colspan=3>
-            <div title="build times for all tests">tests</div>
-          </th>
-          <th colspan=3>
-            <div title="run times for all components">run times</div>
-          </th>
-          <th colspan=3>
-            <div title="total build and run times">total</div>
-          </th>
+          <th colspan=3 title="library configuration times">config</th>
+          <th colspan=3 title="library build times">library</th>
+          <th colspan=3 title="build times for all examples">examples</th>
+          <th colspan=3 title="build times for all utilities">utilities</th>
+          <th colspan=3 title="build times for all tests">tests</th>
+          <th colspan=3 title="run times for all components">run times</th>
+          <th colspan=3 title="total build and run times">total</th>
         </tr>
         <tr>
           <th>real</th>
@@ -944,51 +930,39 @@ EOF
     <table>
       <thead>
         <tr>
-          <th rowspan=3><div title="column number and log">log</div></th>
+          <th rowspan=3 title="column number and log">log</th>
           <th rowspan=3>operating<br>system</th>
-          <th rowspan=3><div title="hardware architecture">arch</div></th>
+          <th rowspan=3 title="hardware architecture">arch</th>
           <th rowspan=3>compiler</th>
           <th rowspan=3>build<br>type</th>
           <th rowspan=3>start date and time</th>
-          <th rowspan=3>
-            <div title="build age at the time of this report">
-              age
-            </div>
-          </th>
+          <th rowspan=3 title="build age at the time of this report">age</th>
           <th rowspan=3>revision</th>
           <th colspan=5>sizes</th>
           <th colspan=2>diagnostics</th>
-          <th colspan=3>components</th>
+          <!-- <th colspan=6>components</th> -->
         </tr>
         <tr>
-          <th rowspan=2>
-            <div title="size of the library binary">library</div>
-          </th>
+          <th rowspan=2 title="size of the library binary">library</th>
           <th colspan=2>log</th>
           <th colspan=2>build</th>
-
-          <th rowspan=2>
-            <div title="number of error messages found">errors</div>
-          </th>
-          <th rowspan=2>
-            <div title="number of warning messages found">warnings</div>
-          </th>
-          <th rowspan=2>
-            <div title="number of examples exercised">examples</div>
-          </th>
-          <th rowspan=2>
-            <div title="number of locales exercised">locales</div>
-          </th>
-          <th rowspan=2>
-            <div title="number of tests exercised">tests</div>
-          </th>
-
+          <th rowspan=2 title="number of error messages found">errors</th>
+          <th rowspan=2 title="number of warning messages found">warnings</th>
+          <!-- <th colspan=2>examples</th> -->
+          <!-- <th colspan=2>locales</th> -->
+          <!-- <th colspan=2>tests</th> -->
         </tr>
         <tr>
-          <th><div title="size of gzipped log">gzip</div></th>
-          <th><div title="size of expanded log">text</div></th>
-          <th><div title="size of full build">full</div></th>
-          <th><div title="size of clean build">clean</div></th>
+          <th title="size of gzipped log">gzip</th>
+          <th title="size of expanded log">text</th>
+          <th title="size of full build">full</th>
+          <th title="size of clean build">clean</th>
+          <!-- <th title="number of examples exercised">total</th> -->
+          <!-- <th title="number of examples failed">failed</th> -->
+          <!-- <th title="number of locales exercised">total</th> -->
+          <!-- <th title="number of locales failed">failed</th> -->
+          <!-- <th title="number of tests exercised">total</th> -->
+          <!-- <th title="number of tests failed">failed</th> -->
         </tr>
       </thead>
       <tbody>
@@ -1004,18 +978,44 @@ fi
 # the text files are stored in the textlogs variable
 
 # number of logs processed in loop below
-n=0
+logcount=0
 
 # space-separated list of names of text logs processed in loop below
 textlogs=""
 
-# running total number of examples, locales, and tests in all logs
-total_examples=0
-total_locales=0
-total_tests=0
+# the minimum, maximum, and the sum of library sizes
+libsize_min=9999999999
+libsize_max=0
+libsize_sum=0
+
+# the minimum, maximum, and the sum of compressed log sizes
+gzlogsize_min=9999999999
+gzlogsize_max=0
+gzlogsize_sum=0
+
+# the minimum, maximum, and the sum of uncompressed log sizes
+txtlogsize_min=9999999999
+txtlogsize_max=0
+txtlogsize_sum=0
+
+# the number of logs counted equals logcount (see above)
+
+# the minimum, maximum, and the sum of full build sizes
+fullbuildsize_min=9999999999
+fullbuildsize_max=0
+fullbuildsize_sum=0
+
+# the minimum, maximum, and the sum of clean build sizes
+cleanbuildsize_min=9999999999
+cleanbuildsize_max=0
+cleanbuildsize_sum=0
+
+# the number of build sizes counted
+buildsize_count=0
+
 
 for l in $gzlogs; do
-    n=$((n + 1))
+    logcount=$((logcount + 1))
     fname=`basename $l`
 
     if [ $verbose -eq 1 ]; then
@@ -1023,11 +1023,10 @@ for l in $gzlogs; do
     fi
 
     # set temporary variables (valid only within the loop)
-    runlog=$TMP/`basename $l`.$$
-    txtlog=$TMP/`basename $l`.txt.$$
+    txtlog=$TMP/`basename $l .gz.txt`.txt.$$
 
     # append the name of the log to the list
-    textlogs="$textlogs $runlog"
+    textlogs="$textlogs $txtlog"
 
     # unzip the log into a temporary text file
     gunzip -c $l > $txtlog
@@ -1039,10 +1038,34 @@ for l in $gzlogs; do
 
     # determine the size of the compressed and decompressed log
     gzlogsize=`wc -c $l`
-    gzlogsize=`format_size ${gzlogsize% *}`
+    gzlogsize=${gzlogsize% *}
+
+    if [ $gzlogsize -lt $gzlogsize_min ]; then
+        gzlogsize_min=$gzlogsize
+    fi
+
+    if [ $gzlogsize -gt $gzlogsize_max ]; then
+        gzlogsize_max=$gzlogsize
+    fi
+
+    gzlogsize_sum=$((gzlogsize_sum + gzlogsize))
+
+    gzlogsize=`format_size $gzlogsize`
 
     txtlogsize=`wc -c $txtlog`
-    txtlogsize=`format_size ${txtlogsize% *}`
+    txtlogsize=${txtlogsize% *}
+
+    if [ $txtlogsize -lt $txtlogsize_min ]; then
+        txtlogsize_min=$txtlogsize
+    fi
+
+    if [ $txtlogsize -gt $txtlogsize_max ]; then
+        txtlogsize_max=$txtlogsize
+    fi
+
+    txtlogsize_sum=$((txtlogsize_sum + txtlogsize))
+
+    txtlogsize=`format_size $txtlogsize`
 
     # extract the date and time the build started
     # the date is expected to be introduced by a line like this:
@@ -1068,6 +1091,22 @@ for l in $gzlogs; do
     # extract the size of the library binary from the build log
     libsize=`get_lib_size $txtlog`
 
+    if [ "$libsize" != "" ]; then
+        if [ $libsize -lt $libsize_min ]; then
+            libsize_min=$libsize
+        fi
+
+        if [ $libsize -gt $libsize_max ]; then
+            libsize_max=$libsize
+        fi
+
+        libsize_sum=$((libsize_sum + libsize))
+
+        libsize=`format_size $libsize`
+        libcount=$((libcount + 1))
+    fi
+
+
     # extract the size of the whole build introduced by a line
     # containing the strings "# du -sk build", both before and
     # afterit's been cleaned
@@ -1085,6 +1124,31 @@ for l in $gzlogs; do
 
         fullbuildsize=$((fullbuildsize * 1024))
         cleanbuildsize=$((cleanbuildsize * 1024))
+
+        if [ "$fullbuildsize" != "" ]; then
+
+            # compute the minimum, maximum, sum, and average
+            if [ $fullbuildsize -lt $fullbuildsize_min ]; then
+                fullbuildsize_min=$fullbuildsize
+            fi
+
+            if [ $cleanbuildsize -lt $cleanbuildsize_min ]; then
+                cleanbuildsize_min=$cleanbuildsize
+            fi
+
+            if [ $fullbuildsize -gt $fullbuildsize_max ]; then
+                fullbuildsize_max=$fullbuildsize
+            fi
+
+            if [ $cleanbuildsize -gt $cleanbuildsize_max ]; then
+                cleanbuildsize_max=$cleanbuildsize
+            fi
+
+            fullbuildsize_sum=$((fullbuildsize_sum + fullbuildsize))
+            cleanbuildsize_sum=$((cleanbuildsize_sum + cleanbuildsize))
+
+            buildsize_count=$((buildsize_count + 1))
+        fi
 
         fullbuildsize=`format_size $fullbuildsize`
         cleanbuildsize=`format_size $cleanbuildsize`
@@ -1136,8 +1200,8 @@ for l in $gzlogs; do
         fbase=${fbase%-$buildtype}
 
         # componse the column header
-        colhdr="<a href=\"$logdir/$fname\"><div title=\"$fbase\">$n"
-        colhdr="$colhdr</div></a>"
+        colhdr="<a href=\"$logdir/$fname\" title=\"$fbase\">$logcount"
+        colhdr="$colhdr</a>"
 
         # when displaying one component (example, test, or locale) per row
         # of the table, format the table header so as to include the build
@@ -1148,10 +1212,12 @@ for l in $gzlogs; do
         tbl_hdr_2="$tbl_hdr_2 <th>$buildtype</th>"
 
         if [ "$libsize" = "" ]; then
-            output "      <tr class=\"LIB\">"
+            table_row="      <tr class=\"LIB\">"
         else
-            output "      <tr>"
+            table_row="      <tr>"
         fi
+
+        output "$table_row"
         output "        <td>$colhdr</td>"
         output "        <td>$osname</td>"
         output "        <td>$arch</td>"
@@ -1167,10 +1233,11 @@ for l in $gzlogs; do
         output "        <td>$cleanbuildsize</td>"
         output "        <td>$errors</td>"
         output "        <td>$warnings</td>"
+        output "      </tr>"
 
         cat <<EOF >>$timings_file
 
-        <tr>
+        $table_row
           <td>$colhdr</td>
           <td>$buildtype</td>
 EOF
@@ -1187,105 +1254,59 @@ EOF
 
         echo "        </tr>" >>$timings_file
     fi
-
-
-    # cut the first part up to the first table from the text log
-    sed -e "1,/^NAME  *STATUS/d" $txtlog > $runlog
-
-    status=$?
-
-    if [ $status -eq 0 ]; then
-
-        # extract the list of locales from the log
-        # removing the .bat or .sh suffix from their names
-
-             sed -e "/^PROGRAM SUMMARY:/,999999d" $runlog              \
-           | sed -e "s/^\([^ ][^ ]*\)  *.*/\1/"                        \
-           | sed -e "s/^\([^ ][^ ]*\)\.bat/\1/"                        \
-                 -e "s/^\([^ ][^ ]*\)\.sh/\1/" >>$locales_file         \
-        && sed -e "1,/^NAME  *STATUS/d" $runlog > $runlog.next
-
-        status=$?
-
-        if [ $verbose -eq 1 ]; then
-            echo "$myname:  extracted locale results into $locales_file"
-        fi
-    else
-        exit 3
-    fi
-
-    if [ $status -eq 0 ]; then
-
-        # extract the list of tests from the log
-        # removing the .exe suffix from their names
-
-             sed -e "/^PROGRAM SUMMARY:/,999999d" $runlog.next          \
-           | sed -e "s/^\([^ ][^ ]*\)  *.*/\1/"                         \
-           | sed -e "s/^\([^ ][^ ]*\)\.exe/\1/" >>$tests_file \
-        && sed -e "1,/^NAME  *STATUS/d" $runlog.next > $runlog.next.2   \
-        && mv $runlog.next.2 $runlog.next
-
-        status=$?
-
-        if [ $verbose -eq 1 ]; then
-            echo "$myname:  extracted test results into $tests_file"
-        fi
-    else
-        exit 3
-    fi
-
-    if [ $status -eq 0 ]; then
-
-        # extract the list of examples from the log
-        # removing the .exe suffix from their names
-
-             sed -e "/^PROGRAM SUMMARY:/,999999d" $runlog.next          \
-           | sed -e "s/^\([^ ][^ ]*\)  *.*/\1/"                         \
-           | sed -e "s/^\([^ ][^ ]*\)\.exe/\1/" >>$examples_file \
-        && sed -e "1,/^NAME  *STATUS/d" $runlog > $runlog.next.2        \
-        && mv $runlog.next.2 $runlog.next
-
-        if [ $verbose -eq 1 ]; then
-            echo "$myname:  extracted example results into $examples_file"
-        fi
-    else
-        exit 3
-    fi
-
-    if [ $components_in_rows -ne 0 ]; then
-
-        # get  the number of components of each kind in the log
-        nexamples=`wc -l $examples_file`
-        nlocales=`wc -l $locales_file`
-        ntests=`wc -l $tests_file`
-
-        nexamples=${nexamples% *}
-        nlocales=${nlocales% *}
-        ntests=${ntests% *}
-
-        output "        <td>$((nexamples - total_examples))</td>"
-        output "        <td>$((nlocales - total_locales))</td>"
-        output "        <td>$((ntests - total_tests))</td>"
-        output "      </tr>"
-
-        total_examples=$nexamples
-        total_locales=$nlocales
-        total_tests=$ntests
-    fi
-
-    if [ ! -s $runlog ]; then
-        # make sure file is not empty
-        echo "###" >$runlog
-    fi
-
-    rm $runlog.next
-    rm $txtlog
 done
 
 
 if [ $components_in_rows -ne 0 ]; then
 
+    gzlogsize_avg=$((gzlogsize_sum / logcount))
+    txtlogsize_avg=$((txtlogsize_sum / logcount))
+
+    libsize_avg=$((libsize_sum / libcount))
+
+    fullbuildsize_avg=$((fullbuildsize_sum / buildsize_count))
+    cleanbuildsize_avg=$((cleanbuildsize_sum / buildsize_count))
+
     output "      </tbody>"
+    output "      <tfooter>"
+    output "        <tr>"
+    output "          <td colspan=8 class=\"header\">min</td>"
+    output "          <td>`format_size $libsize_min`</td>"
+    output "          <td>`format_size $gzlogsize_min`</td>"
+    output "          <td>`format_size $txtlogsize_min`</td>"
+    output "          <td>`format_size $fullbuildsize_min`</td>"
+    output "          <td>`format_size $cleanbuildsize_min`</td>"
+    output "          <td></td>"
+    output "          <td></td>"
+    output "        </tr>"
+    output "        <tr>"
+    output "          <td colspan=8 class=\"header\">max</td>"
+    output "          <td>`format_size $libsize_max`</td>"
+    output "          <td>`format_size $gzlogsize_max`</td>"
+    output "          <td>`format_size $txtlogsize_max`</td>"
+    output "          <td>`format_size $fullbuildsize_max`</td>"
+    output "          <td>`format_size $cleanbuildsize_max`</td>"
+    output "          <td></td>"
+    output "          <td></td>"
+    output "        </tr>"
+    output "        <tr>"
+    output "          <td colspan=8 class=\"header\">total</td>"
+    output "          <td>`format_size $libsize_sum`</td>"
+    output "          <td>`format_size $gzlogsize_sum`</td>"
+    output "          <td>`format_size $txtlogsize_sum`</td>"
+    output "          <td>`format_size $fullbuildsize_sum`</td>"
+    output "          <td>`format_size $cleanbuildsize_sum`</td>"
+    output "          <td class=\"header\" colspan=9 rowspan=2></td>"
+    output "        </tr>"
+    output "        <tr>"
+    output "          <td colspan=8 class=\"header\">average</td>"
+    output "          <td>`format_size $libsize_avg`</td>"
+    output "          <td>`format_size $gzlogsize_avg`</td>"
+    output "          <td>`format_size $txtlogsize_avg`</td>"
+    output "          <td>`format_size $fullbuildsize_avg`</td>"
+    output "          <td>`format_size $cleanbuildsize_avg`</td>"
+    output "        </tr>"
+    output "      </tfooter>"
     output "    </table>"
     output "    <hr>"
 
@@ -1299,12 +1320,12 @@ else
 
     output "    <ol>"
 
-    n=0
+    logcount=0
     for c in $example_list $test_list $locale_list; do
-        n=$((n + 1))
+        logcount=$((logcount + 1))
 
         # output one build per row, with components in columns
-        table_header="$table_header <th><div title=\"$c\">$n</div></th>"
+        table_header="$table_header <th title=\"$c\">$logcount</th>"
         output "      <li>$c</li>"
     done
 
@@ -1313,147 +1334,10 @@ fi
 
 output "    <hr>"
 
-if [ -s $locales_file ]; then
-    # if the list of locales non-empty sort it and weed out duplicates
-       sort $locales_file | uniq > $locales_file.2 \
-    && mv $locales_file.2 $locales_file
-fi
-
-if [ -s $examples_file ]; then
-    # if the list of examples is non-empty sort it and weed out duplicates
-       sort $examples_file | uniq > $examples_file.2 \
-    && mv $examples_file.2 $examples_file
-fi
-
-if [ -s $tests_file ]; then
-    # if list of tests file is non-empty sort it and weed out duplicates
-       sort $tests_file | uniq > $tests_file.2 \
-    && mv $tests_file.2 $tests_file
-fi
-
 ######################################################################
 
-awkscript=$HOME/stdcxx/bin/xcomp.awk
-
-######################################################################
-
-# process a list of components, one component per row
-# component name is one of: { example, locale, test }
-process_components()
-{
-    component_type=$1   # example, locale, or test
-    component_list=$2   # list of component names
-
-    count=`echo $component_list | wc -w`
-
-    if [ "$component_type" = "test" ]; then
-        column3="        <th rowspan=2><div title=\"maximum total assertions\">"
-        column3="$column3 max<br>asserts</div></th>"
-    else
-        unset column3
-    fi
-
-    cat <<EOF | output
-    <h2>Results of $count ${component_type}s</h2>
-    <p>
-      Note: ${component_type}s passing across all builds have been omitted
-      for brevity.
-    </p>
-    <table>
-      <thead>
-        <tr>
-          <th rowspan=2>
-            <div title="${component_type} number of a total of $count">###</div>
-          </th>
-          <th rowspan=2>
-            <a name="${component_type}s"></a>$component_type name
-          </th>
-          $column3
-          $tbl_hdr_1
-        </tr>
-        <tr>$tbl_hdr_2</tr>
-      </thead>
-      <tbody>
-EOF
-
-    totals_file=$TMP/.stdcxx-failtotals.$$.txt
-
-    # iterate over the list of idividual components (examples, tests,
-    # or locales) invoking the awk script on each of them (i.e., each
-    # example, test, or locale) in every iteration of the loop
-    n=0;
-    for c in $component_list; do
-
-        # compute the sequential component number and pass it
-        # to the awk script to include it on the row it generates
-        # (if it generates one)
-        n=$((n + 1))
-
-        # the display name of the component
-        dispname="$c"
-
-        # determine the directory in the source repository the component
-        # source lives in
-        if [ "example" = $component_type ]; then
-            dir=""
-        elif [ "locale" = $component_type ]; then
-            locale=${c%.*}
-            if [ "$locale" != "$c" ]; then
-
-                # compose a URL pointing to the character set description
-                # file and the locale defintion file in the repository
-                codeset=${c#*.}
-
-                url="$svnpath/etc/nls/src/$locale?view=markup"
-                dispname="<a href=\"$url\">$locale</a>"
-
-                url="$svnpath/etc/nls/charmaps/$codeset?view=markup"
-                dispname="$dispname.<a href=\"$url\">$codeset</a>"
-            fi
-        elif [ "test" = $component_type ]; then
-
-            dir="tests"
-
-            case $c in
-                *.stdcxx-*) dir="$dir/regress";;
-                0.*)  dir="$dir/self";;
-                17.*) dir="$dir/intro";;
-                18.*) dir="$dir/support";;
-                19.*) dir="$dir/diagnostics";;
-                20.*) dir="$dir/utilities";;
-                21.*) dir="$dir/strings";;
-                22.*) dir="$dir/localization";;
-                23.*) dir="$dir/containers";;
-                24.*) dir="$dir/iterators";;
-                25.*) dir="$dir/algorithm";;
-                26.*) dir="$dir/numerics";;
-                27.*) dir="$dir/iostream";;
-                *)    dir="";;
-            esac
-
-            if [ "$dir" != "" ]; then
-                dispname="<a href=\"$svnpath/$dir/$c.cpp?view=markup\">$c</a>"
-            fi
-        fi
-
-          awk -f $awkscript \
-              n=$n dir=$dir name=$c dispname="$dispname" verbose=$verbose \
-              comptype=$component_type totalsfile=$totals_file $textlogs    \
-        | output
-
-    done
-
-    # set name to bogus value and invoke the script again
-    # to get it to print summary information
-    echo "" | awk -f $awkscript comptype=$component_type name="@" \
-              totalsfile=$totals_file svnpath=$svnpath        \
-            | output
-
-    cat <<EOF | output
-      </tbody>
-    </table>
-EOF
-}
+# xcross-component script
+xcomp=$HOME/stdcxx/bin/xcomp.awk
 
 ######################################################################
 
@@ -1487,8 +1371,8 @@ EOF
             line=`grep "^$c  *[^-]" $l`
             if [ $? -eq 0 -a "$line" != "" ]; then
                   echo $line \
-                | awk -f $awkscript component=$component_type   \
-                      name=$c verbose=$verbose svnpath=$svnpath \
+                | awk -f $xcomp component=$component_type         \
+                      name=$c verbose=$verbose expect="$expect"   \
                 | output
             else
                 output "        <td class=\"missing\">N/A</td>"
@@ -1502,9 +1386,15 @@ EOF
 
 
 if [ $components_in_rows -ne 0 ]; then
-    process_components "example" "`cat $examples_file`"
-    process_components "test" "`cat $tests_file`"
-    process_components "locale" "`cat $locales_file`"
+
+    # check to see 
+    if [ -r $xfailfile ]; then
+        xfails=$xfailfile
+    else
+        xfails=""
+    fi
+
+    awk -f $xcomp bodyonly=1 $xfails $textlogs | output
 else
     if [ "$examples_list" != "" ]; then
         process_builds "example" "$examples_list"
@@ -1532,17 +1422,12 @@ cat <<EOF | output
           <th rowspan=2 class="header">Meaning</th>
         </tr>
         <tr>
-          <th class="header">
-            <div title="Unexpected success or ordinary failure">
-
-              Unexpected
-            </div>
+          <th class="header" title="Unexpected success or ordinary failure">
+            Unexpected
           </th>
           <th class="header">Severity</th>
-          <th class="header">
-            <div title="Ordinary success or expected failure">
-              Expected
-            </div>
+          <th class="header" title="Ordinary success or expected failure">
+            Expected
           </th>
           <th class="header">Severity</th>
         </tr>
@@ -1577,7 +1462,7 @@ cat <<EOF | output
         </tr>
         <tr>
           <td colspan=2 class="na"><center>Not Applicable</center></td>
-          <td class="FORMAT">FMAT</td>
+          <td class="FORMAT">FORMAT</td>
           <td class="na">Success</td>
           <td class="na">
              Component completed successfully but produced unexpected
@@ -1585,7 +1470,7 @@ cat <<EOF | output
           </td>
         </tr>
         <tr>
-          <td class="missing">N/A</td>
+          <td class="MISS">N/A</td>
           <td class="na">Success</td>
           <td colspan=2 class="na"><center>Not Applicable</center></td>
           <td class="na">Component was not tested.</td>
@@ -1796,11 +1681,8 @@ if [ -z $no_clean ]; then
     # clean up
 
     if [ $verbose -eq 1 ]; then
-        echo "$myname: " \
-             "rm $examples_file $tests_file $locales_file " \
-             "$textlogs $timings_file"
+        echo "$myname: rm $textlogs $timings_file"
     fi
 
-    rm $examples_file $tests_file $locales_file $textlogs \
-       $timings_file
+    rm -f $textlogs $timings_file
 fi
