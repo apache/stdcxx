@@ -258,7 +258,9 @@ format_size ()
 {
     size=$1
 
-    if [ $size -ge 1000000000 ]; then
+    if [ "$size" = "" ]; then
+        :
+    elif [ $size -ge 1000000000 ]; then
         # over billion bytes, get size in gigabytes up to 2 decimal places
         gbsize="$((size / 1073741824)).$(((size % 1073741) / 100000))"
         size="<div title=\"$size bytes\">$gbsize GB</div>"
@@ -1013,6 +1015,8 @@ cleanbuildsize_sum=0
 # the number of build sizes counted
 buildsize_count=0
 
+# the number of successfully built (non-zero size) libraries
+libcount=0
 
 for l in $gzlogs; do
     logcount=$((logcount + 1))
@@ -1262,10 +1266,19 @@ if [ $components_in_rows -ne 0 ]; then
     gzlogsize_avg=$((gzlogsize_sum / logcount))
     txtlogsize_avg=$((txtlogsize_sum / logcount))
 
-    libsize_avg=$((libsize_sum / libcount))
+    if [ 0 -ne $libcount ]; then
+        libsize_avg=$((libsize_sum / libcount))
+    else
+        libsize_avg=""
+    fi
 
-    fullbuildsize_avg=$((fullbuildsize_sum / buildsize_count))
-    cleanbuildsize_avg=$((cleanbuildsize_sum / buildsize_count))
+    if [ 0 -ne $buildsize_count ]; then
+        fullbuildsize_avg=$((fullbuildsize_sum / buildsize_count))
+        cleanbuildsize_avg=$((cleanbuildsize_sum / buildsize_count))
+    else
+        fullbuildsize_avg=""
+        cleanbuildsize_avg=""
+    fi
 
     output "      </tbody>"
     output "      <tfooter>"
