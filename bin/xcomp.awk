@@ -34,11 +34,12 @@
 
 
 BEGIN {
-    # array of component counts for each component
-    # compcnts [<name>]
+    # array of component counts for each section and component
+    # compcnts [section, compname]
 
-    # one-based array of files processed
-    # files [1..]
+    # array of lists of component names for each section with
+    # each list maintaining the same order as in the logs
+    # sectcomponents [section]
 
     # map of [FILENAME,components] to component status
     # compstatuses [FILENAME, compcnts]
@@ -281,6 +282,11 @@ BEGIN {
     compstatus = $2
     expect     = ""
     comment    = ""
+
+    # append the component name to the list of component names
+    # for the current section
+    if (0 == ((section, compname) in compcnts))
+        sectcomponents [section] = sectcomponents [section] " " compname
 
     # increment the number of times the current component occurs
     # in the current section across all logs
@@ -836,9 +842,6 @@ function print_section(section)
 
     print "      <tbody>"
 
-    # one-based component index (of all found)
-    compinx = 0
-
     # reset the arrays
     split("", logcompwarns)
     split("", logcompfails)
@@ -852,16 +855,21 @@ function print_section(section)
     else
         colspan = ""
 
+    # one-based component index (of all found)
+    # not every component makes it into the table
+    compinx = 0
+
+    # one-based row index (of all rows printed)
     rowinx = 1
 
-    for (ci in compcnts) {
+    # split the list of components in the current section into an array
+    # (the list of component names is in the same order as in the log)
+    compcount = split(sectcomponents [section], components, " ")
 
-        # only process the specified section
-        if (section != substr(ci, 1, 1))
-            continue
+    # iterate over the array
+    for (ci = 1; ci <= compcount; ++ci) {
 
-        # extract the name of the component from the key
-        compname = substr(ci, 3)
+        compname = components [ci]
 
         # determine whether the current component should be included
         # in output or not and if so, print it out
