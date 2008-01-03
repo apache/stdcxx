@@ -226,8 +226,17 @@ BEGIN {
 ########################################################################
 # logfile only processing below
 
-# action to extract the build date and time
+# action to extract the (POSIX) build date and time (date output)
 /^##* *date *: *$/ {
+
+    getline
+
+    logdates [FILENAME] = $0
+}
+
+
+# action to extract the Windows build date (date /T output)
+/ *date  *[/]T *$/ {
 
     getline
 
@@ -443,11 +452,28 @@ BEGIN {
 
 function get_date(fulldate)
 {
-    split(fulldate, fields)
-    month = fields [2]
-    mday  = fields [3]
+    n = split(fulldate, fields)
 
-    date = monthnames [month] "/" mday
+    if (2 == n) {
+        # assume Windows 'date /T' format (i.e., "AbWeekDay MM/DD/YYYY")
+
+        date = fields [2]
+
+        split(date, fields, "/")
+
+        date = (0 + fields [1]) "/" (0 + fields [2])
+    }
+    else if (2 < n) {
+        # assume POSIX standard 'date' format in the "C" locale
+        # i.e., "AbWeekDay AbMon  D HH:MM:SS $TZ YYYY"
+
+        month = fields [2]
+        mday  = fields [3]
+
+        date = monthnames [month] "/" mday
+    }
+    else
+        date = "N/A"
 
     return date
 }
@@ -466,13 +492,14 @@ function get_buildtype(fname)
 {
     # look for the beginning of the buildtype component followed
     # by the (Subversion) revision number
-    pos = match(fname, "-[1-9][0-9]*[aAdDsS]-[1-9][0-9]*-log")
+    pos = match(fname, "-(8|11|12|15)[aAdDsS]-[1-9][0-9]*-log")
 
     # is not found, try looking for the buildtype followed by
     # the name of the threads library and only then followed
     #  by the (Subversion) revision number
     if (0 == pos)
-        pos = match(fname, "-[1-9][0-9]*[aAdDsS]-[a-z][a-z]*-[1-9][0-9]*-log*")
+        pos = match(fname,
+                    "-(8|11|12|15)[aAdDsS]-[a-z][a-z_0-9]*-[1-9][0-9]*-log*")
 
     buildtype = substr(fname, pos + 1)
 
@@ -760,9 +787,17 @@ function print_section(section)
 
         logname = logfnames [i]
 
-        loggzfname = substr(logname, 1, index(logname, ".txt") - 1) ".gz.txt"
+        # strip the leading directory prefix, if any
+        pos = match(logname, "/[^/]+$")
+        if (0 < pos)
+            loggzfname = substr(logname, pos + 1)
 
-        colnos = colnos "          <td title=\"" logname "\">"
+        # insert the .gz suffix before the final .txt suffix
+        # to form the name of the original gzipped log file
+        loggzfname = substr(loggzfname, 1, index(loggzfname, ".txt") - 1)
+        loggzfname = loggzfname ".gz.txt"
+
+        colnos = colnos "          <td title=\"" loggzfname "\">"
         colnos = colnos "<a href=\"" loggzfname "\">" i "</a></td>"
 
         buildtype = get_buildtype(logname)
@@ -770,9 +805,18 @@ function print_section(section)
 
         row1 = row1 "          <td title=\"" buildmode "\">" buildtype "</td>\n"
 
-        fulldate = logdates [logname]
-        date     = get_date(fulldate)
-        time     = get_time(fulldate)
+        if (logname in logdates) { 
+            # parse the date and time from the date extracted
+            # from the log
+            fulldate = logdates [logname]
+            date     = get_date(fulldate)
+            time     = get_time(fulldate)
+        }
+        else {
+            # date not available
+            fulldate = "unknown date"
+            date     = "N/A"
+        }
 
         row2 = row2 "          <td title=\"" fulldate "\">" date "</td>\n"
     }
