@@ -23,7 +23,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2007 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -256,7 +256,55 @@ namespace std {
 
 }   // std
 
-#endif   // !_RWSTD_NO_NAMESPACE && !_RWSTD_NO_HONOR_STD && !_RWSTD_NO_USING_LIBC_IN_STD
+
+#ifdef _RWSTD_STRICT_ANSI
+// undefine shadow macros in strict mode
+#  undef fpos_t
+#  undef remove
+#  undef rename
+#  undef tmpfile
+#  undef tmpnam
+#  undef fclose
+#  undef fflush
+#  undef fopen
+#  undef freopen
+#  undef setbuf
+#  undef setvbuf
+#  undef fprintf
+#  undef fscanf
+#  undef printf
+#  undef scanf
+#  undef sprintf
+#  undef sscanf
+#  undef vfprintf
+#  undef vprintf
+#  undef vsprintf
+#  undef fgetc
+#  undef fgets
+#  undef fputc
+#  undef fputs
+#  undef getc
+#  undef getchar
+#  undef gets
+#  undef putc
+#  undef putchar
+#  undef puts
+#  undef ungetc
+#  undef fread
+#  undef fwrite
+#  undef fgetpos
+#  undef fseek
+#  undef fsetpos
+#  undef ftell
+#  undef rewind
+#  undef clearerr
+#  undef feof
+#  undef ferror
+#  undef perror
+#endif
+
+
+#endif   // !_NO_NAMESPACE && !__NO_HONOR_STD && !_NO_USING_LIBC_IN_STD
 
 #endif   // _RWSTD_CSTDIO_INCLUDED
 
