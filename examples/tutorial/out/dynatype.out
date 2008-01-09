@@ -1,7 +1,6 @@
-dynatype v1 = 1
-int (v1) = 1
-double (v1 = 3.14) = 3.14
-double (v2 = v1) = 3.14
-(const char*)(v2 = "abc") = abc
-(const char*)(v1 = v2) = abc
-exception
+static_cast<const int&>(v1 = 1) = 1
+static_cast<const double&>(v1 = 3.14) = 3.14
+static_cast<const double&>(v2 = v1) = 3.14
+static_cast<const char* const&>(v2 = "abc") = abc
+static_cast<const char* const&>(v1 = v2) = abc
+static_cast<const char&>(v3) = exception
