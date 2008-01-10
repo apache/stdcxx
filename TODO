@@ -13,12 +13,6 @@ to the existing Makefile-based infrastructure in the 4.3.0 release.
 First, a word of warning.  The current version is incomplete and quite
 likely broken.  Hack at your own risk.
 
-To utilize files in this branch, unpack the 4.2.0 distribution into a
-source directory and overlay it with files from this branch.  (The
-LICENSE.txt file from 4.2.0 distribution and the AUTHORS file from this
-branch should map to the same directory.)  There should be no file or
-directory name conflicts.
-
 To "bootstrap" the resulting distribution, run the following commands
 in the top-level source directory:
 
