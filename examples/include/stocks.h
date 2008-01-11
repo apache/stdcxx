@@ -141,7 +141,7 @@ struct StockXchange: public std::locale::facet
    typedef std::locale::facet facet;
      
    StockXchange(std::size_t refs=0): facet(refs){}
-   virtual ~StockXchange(){}
+   virtual ~StockXchange();
    
    static std::locale::id id;
    virtual bool put (std::ostream& os) const;

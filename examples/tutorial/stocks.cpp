@@ -39,6 +39,16 @@
 std::locale::id StockXchange::id;
 
 
+StockXchange::~StockXchange ()
+{
+    database::const_iterator begin = companyDatabase.begin ();
+    database::const_iterator end   = companyDatabase.end ();
+
+    while (begin < end)
+        delete *begin++;
+}
+
+
 void StockXchange::localTime (std::ostream& os) const
 {
     const char pat[] = "%c";
@@ -115,37 +125,24 @@ std::ostream & operator<< (std::ostream& os, const StockXchange&)
 int main ()
 {
     typedef std::pair<StockXchange*, std::locale> sl_pair;
-    typedef std::deque<sl_pair*, std::allocator<sl_pair*> > Xchange;
+    typedef std::deque<sl_pair, std::allocator<sl_pair> > Xchange;
     Xchange sXchange;
     
     std::ostream os (std::cout.rdbuf ());
-    
-    // Add some hypothetical companies that went public.
-    // ("Company name" , "initial stock price")
-    
-    NewYorkStockXchange *nse = new NewYorkStockXchange;
-    nse->add ("Hyper Software", 20.50);
-    nse->add ("Florida Fish", 15.10);
-    nse->add ("Inka Inc", 9.50);
-    nse->add ("Emory Chemicals", 11.00);
-    
-    TokyoStockXchange *tse = new TokyoStockXchange;
-    tse->add ("Akiro Electronics", 12.30);
-    
-    FrankFurtStockXchange *fse = new FrankFurtStockXchange;   
-    fse->add ("B\166rsen-Software", 9.75);
-    fse->add ("M\174nchner R\174ck", 19.75);
-    
-    ParisStockXchange *pse = new ParisStockXchange;   
-    pse->add ("Wines Inc.", 11.50);
-    pse->add ("Eiffel Co.", 11.50);
+    const std::locale loc (os.getloc ());
     
     const char *p = std::setlocale (LC_ALL, US_LOCALE);
     if (!p)
         std::cerr << "\nNot a valid locale: " << US_LOCALE << '\n';
     else {
+        NewYorkStockXchange *nse = new NewYorkStockXchange;
+        nse->add ("Hyper Software", 20.50);
+        nse->add ("Florida Fish", 15.10);
+        nse->add ("Inka Inc", 9.50);
+        nse->add ("Emory Chemicals", 11.00);
+   
         os.imbue (std::locale (std::locale (US_LOCALE), nse));
-        sXchange.push_front (new sl_pair (nse, os.getloc ()));
+        sXchange.push_front (sl_pair (nse, os.getloc ()));
         os << *nse;
     }
     
@@ -153,8 +150,12 @@ int main ()
     if (!p)
         std::cerr<< "\nNot a valid locale: " << GERMAN_LOCALE << '\n';
     else {
+        FrankFurtStockXchange *fse = new FrankFurtStockXchange;   
+        fse->add ("B\166rsen-Software", 9.75);
+        fse->add ("M\174nchner R\174ck", 19.75);
+    
         os.imbue (std::locale (std::locale (GERMAN_LOCALE), fse));
-        sXchange.push_front (new sl_pair (fse, os.getloc ()));
+        sXchange.push_front (sl_pair (fse, os.getloc ()));
         os << *fse;
     }
     
@@ -162,8 +163,12 @@ int main ()
     if (!p)
         std::cerr << "\nNot a valid locale: " << FRENCH_LOCALE << '\n';
     else {
+        ParisStockXchange *pse = new ParisStockXchange;   
+        pse->add ("Wines Inc.", 11.50);
+        pse->add ("Eiffel Co.", 11.50);
+    
         os.imbue (std::locale (std::locale (FRENCH_LOCALE), pse));
-        sXchange.push_front (new sl_pair (pse, os.getloc ()));
+        sXchange.push_front (sl_pair (pse, os.getloc ()));
         os << *pse;
     }
     
@@ -171,8 +176,11 @@ int main ()
     if (!p)
         std::cerr << "\nNot a valid locale: " << JAPANESE_LOCALE << '\n';
     else {
+        TokyoStockXchange *tse = new TokyoStockXchange;
+        tse->add ("Akiro Electronics", 12.30);
+    
         os.imbue (std::locale (std::locale (JAPANESE_LOCALE), tse));
-        sXchange.push_front (new sl_pair (tse, os.getloc ()));
+        sXchange.push_front (sl_pair (tse, os.getloc ()));
         os << *tse;
     }
     
@@ -183,8 +191,8 @@ int main ()
             Xchange::const_iterator it_begin = sXchange.begin ();
             Xchange::const_iterator it_end   = sXchange.end ();
             while (it_begin < it_end) {
-                os.imbue ((*it_begin)->second);
-                os << (*(*it_begin)->first);
+                os.imbue ((*it_begin).second);
+                os << (*(*it_begin).first);
                 it_begin++;
             }
         }
@@ -192,7 +200,9 @@ int main ()
             break;
     }
 
-    std::cout << '\n';
+    os << '\n';
+
+    os.imbue (loc);
 
     return 0;
 }
