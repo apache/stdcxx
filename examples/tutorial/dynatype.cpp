@@ -64,6 +64,20 @@ class dynatype
     void (dynatype::*p_remove)();
     void (dynatype::*p_copy)(const dynatype&);
 
+    // provides access to the mapped data value or throws bad_cast
+    template <class T>
+    T& retrieve (const T*) {
+        if (map<T>::get ().end () == map<T>::get ().find (this))
+            throw std::bad_cast ();
+        return map<T>::get () [this];
+    }
+
+    // overload throws away const on template parameter
+    template <class T>
+    T& retrieve (const T*) const {
+        return const_cast<dynatype*>(this)->retrieve ((T*)0);
+    }
+
 public:
 
     dynatype ();
@@ -91,16 +105,14 @@ public:
     // dynatype throws std::bad_cast if the types don't match exactly
     template <class T>
     operator T& () {
-        if (map<T>::get ().end () == map<T>::get ().find (this))
-            throw std::bad_cast ();
-        return map<T>::get () [this];
+        return retrieve ((T*)0);
     }
 
     // retrieve a const reference to the concrete type from an instance of
     // dynatype throws std::bad_cast if the types don't match exactly
     template <class T>
     operator const T& () const {
-        return static_cast<T&> (*const_cast<dynatype*> (this));
+        return retrieve ((T*)0);
     }
 
     // assign a value of any type to an instance of dynatype
@@ -194,38 +206,37 @@ operator= (const T &t)
 int main ()
 {
     try {
-        std::cout << "dynatype v1 = 1\n";
 
         // create an instance of dynatype an initialized it with an int
         dynatype v1 = 1;
 
-        std::cout << "int (v1) = "
-                  << int (v1) << std::endl;
+        std::cout << "static_cast<const int&>(v1 = 1) = ";
+        std::cout <<  static_cast<const int&>(v1) << '\n';
 
         // assign a double to an instance of dynatype
         v1 = 3.14;
 
-        std::cout << "double (v1 = 3.14) = "
-                  << double (v1) << std::endl;
+        std::cout << "static_cast<const double&>(v1 = 3.14) = ";
+        std::cout <<  static_cast<const double&>(v1) << '\n';
 
         // copy construct an instance of dynatype
         dynatype v2 = v1;
 
-        std::cout << "double (v2 = v1) = "
-                  << double (v2) << std::endl;
+        std::cout << "static_cast<const double&>(v2 = v1) = ";
+        std::cout <<  static_cast<const double&>(v2) << '\n';
 
         // assign a const char* literal to an instance of dynatype
         const char* const literal = "abc";
         v2 = literal;
 
-        std::cout << "(const char*)(v2 = \"abc\") = "
-                  << (const char*)v2 << std::endl;
+        std::cout << "static_cast<const char* const&>(v2 = \"abc\") = ";
+        std::cout <<  static_cast<const char* const&>(v2) << '\n';
 
         // assign one instance of dynatype to another
         v1 = v2;
 
-        std::cout << "(const char*)(v1 = v2) = "
-                  << (const char*)v1 << std::endl;
+        std::cout << "static_cast<const char* const&>(v1 = v2) = ";
+        std::cout <<  static_cast<const char* const&>(v1) << '\n';
 
         // create uninitialized (untyped) instances of dynatype
         dynatype v3, v4;
@@ -234,11 +245,13 @@ int main ()
         v3 = v4;
 
         // attempt to extract any value from an unitialized dynatype fails
-        std::cout << "char (v3) = "
-                  << char (v3) << std::endl;
+        std::cout << "static_cast<const char&>(v3) = ";
+        std::cout <<  static_cast<const char&>(v3) << '\n';
         
     }
     catch (...) {
         std::cerr << "exception\n";
     }
+
+    return 0;
 }
