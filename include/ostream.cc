@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -35,19 +35,25 @@ basic_ostream<_CharT, _Traits>&
 basic_ostream<_CharT, _Traits>::flush ()
 {
     if (this->rdbuf ()) {
-        _RWSTD_MT_GUARD (this->_C_bufmutex ());
 
-        int __res = 0;
+        // see LWG issue 581
 
-        _TRY {
-            __res = this->rdbuf ()->pubsync ();
+        const sentry __opfx (*this);
+
+        if (__opfx) {
+
+            int __res = 0;
+
+            _TRY {
+                __res = this->rdbuf ()->pubsync ();
+            }
+            _CATCH (...) {
+                this->setstate (ios_base::badbit | _RW::__rw_rethrow);
+            }
+
+            if (-1 == __res)
+                this->setstate (ios_base::badbit);
         }
-        _CATCH (...) {
-            this->setstate (ios_base::badbit | _RW::__rw_rethrow);
-        }
-
-        if (-1 == __res)
-            this->setstate (ios_base::badbit);
     }
 
     return *this;
