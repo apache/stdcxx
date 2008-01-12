@@ -84,7 +84,7 @@ readonly viewvc="http://svn.apache.org/viewvc"
 readonly revurl="$viewvc?view=rev&rev"
 
 # URL to the trunk of the source repository
-readonly svnpath="$viewvc/incubator/stdcxx/trunk"
+readonly svnpath="$viewvc/stdcxx/trunk"
 
 # expected failures
 readonly xfailfile=$HOME/stdcxx/etc/config/xfail.txt
@@ -1195,7 +1195,7 @@ for l in $gzlogs; do
     if [ $components_in_rows -ne 0 ]; then
         # retrieve the revision log
         # revlog="`svn log -r $revno \
-        #              http://svn.apache.org/repos/asf/incubator/stdcxx`"
+        #              http://svn.apache.org/repos/asf/stdcxx`"
 
         # trim the suffix from fname, including the revision number
         # and the build type

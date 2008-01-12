@@ -125,7 +125,7 @@ BEGIN {
     buildmodes ["15s"] = "archive, debug, reentrant"
     buildmodes ["15S"] = "archive, debug, reentrant, wide"
 
-    svnpath="http://svn.apache.org/viewvc/incubator/stdcxx/trunk"
+    svnpath="http://svn.apache.org/viewvc/stdcxx/trunk"
 
     # regular expression to match a name (e.g., compiler or OS)
     re_name    = "[A-Za-z][A-Za-z_0-9]*"
