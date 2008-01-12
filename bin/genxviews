@@ -247,6 +247,10 @@ process_results "FreeBSD 6.2" "x86" "gcc 3.4.4" \
                 freebsd-6.2-x86-gcc-3.4.4.html
 
 # HP-UX ################################################################
+process_results "HP-UX 11.31" "IPF" "HP aCC 6.15" \
+                "hpux-11.31-ia64-acc-6.15-*-*-log.gz.txt" \
+                hpux-11.31-ia64-6.15.html
+
 process_results "HP-UX 11.31" "PA-RISC" "HP aCC 3.74" \
                 "hpux-11.31-pa-acc-3.74-*-*-log.gz.txt" \
                 hpux-11.31-pa-acc-3.74.html
