@@ -23,7 +23,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -109,7 +109,9 @@ public:
           _C_cur_pos (pos_type (off_type (-1))),
           _C_beg_pos (pos_type (off_type (-1))),
           _C_pbacksize (0) {
-        setbuf (0, _RWSTD_DEFAULT_BUFSIZE);
+        // call the virtual setbuf defined in this class (but
+        // not an override defined in a class derived from it)
+        basic_filebuf::setbuf (0, _RWSTD_DEFAULT_BUFSIZE);
     }
 
 #if     defined (_RWSTD_NO_EXT_FILEBUF)            \
