@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2005-2006 Rogue Wave Software.
+ * Copyright 2005-2008 Rogue Wave Software, Inc.
  *
  **************************************************************************/
 
@@ -35,7 +35,6 @@
 
 #include <climits>   // for MB_LEN_MAX
 #include <clocale>   // for LC_CTYPE, setlocale()
-#include <cstdio>    // for sprintf()
 #include <cstdlib>   // for MB_CUR_MAX, free(), size_t
 #include <cstring>   // for strcpy(), strlen()
 #include <cwchar>    // for codecvt
@@ -218,9 +217,10 @@ get_mb_chars (mb_char_array_t mb_chars)
                      std::size_t (-1));
 
     if (!mbc) {
-        std::fprintf (stderr, "*** unable to find any multibyte characters "
-                      "in locale \"%s\" with MB_CUR_MAX = %u\n",
-                      std::setlocale (LC_CTYPE, 0), MB_CUR_MAX);
+        rw_fprintf (rw_stderr, "*** unable to find any multibyte characters "
+                    "in locale \"%s\" with MB_CUR_MAX = %u\n",
+                    std::setlocale (LC_CTYPE, 0),
+                    unsigned (MB_CUR_MAX));
         return 0;
     }
 
@@ -240,9 +240,10 @@ get_mb_chars (mb_char_array_t mb_chars)
 
         if (0 == mbc) {
             if (i < mb_cur_max) {
-                std::fprintf (stderr, "*** unable to find %u-byte characters "
-                              "in locale \"%s\" with MB_CUR_MAX = %u\n",
-                              i + 1, std::setlocale (LC_CTYPE, 0), MB_CUR_MAX);
+                rw_fprintf (rw_stderr, "*** unable to find %zu-byte characters"
+                            " in locale \"%s\" with MB_CUR_MAX = %u\n",
+                            i + 1, std::setlocale (LC_CTYPE, 0),
+                            unsigned (MB_CUR_MAX));
                 mb_cur_max = 0;
                 break;
             }
@@ -265,7 +266,7 @@ find_mb_locale (std::size_t *mb_cur_max, mb_char_array_t mb_chars)
     RW_ASSERT (0 != mb_chars);
 
     if (2 > MB_LEN_MAX) {
-        std::fprintf (stderr, "MB_LEN_MAX = %d, giving up\n", MB_LEN_MAX);
+        rw_fprintf (rw_stderr, "MB_LEN_MAX = %d, giving up\n", MB_LEN_MAX);
         return 0;
     }
 
@@ -299,9 +300,9 @@ find_mb_locale (std::size_t *mb_cur_max, mb_char_array_t mb_chars)
     }
 
     if (*mb_cur_max < 2) {
-        std::fprintf (stderr, "*** unable to find a full set of multibyte "
-                      "characters in locale \"%s\" with MB_CUR_MAX = %u "
-                      "(computed)", mb_locale_name, *mb_cur_max);
+        rw_fprintf (rw_stderr, "*** unable to find a full set of multibyte "
+                    "characters in locale \"%s\" with MB_CUR_MAX = %u "
+                    "(computed)", mb_locale_name, *mb_cur_max);
         mb_locale_name = 0;
     }
     else {

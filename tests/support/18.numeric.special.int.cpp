@@ -23,7 +23,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2004-2007 Rogue Wave Software, Inc.
+ * Copyright 2004-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -321,7 +321,7 @@ struct Limits <unsigned short>
 
     static int compute_digits10 () {
         char buf [80];
-        return std::sprintf (buf, "%u", USHRT_MAX) - 1;
+        return std::sprintf (buf, "%u", unsigned (USHRT_MAX)) - 1;
     }
 };
 

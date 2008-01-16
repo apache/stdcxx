@@ -126,7 +126,7 @@ extern "C" void* thr_func (void *arg)
 {
     thr_args* const targs = (thr_args*)arg;
 
-    std::printf ("thread %d starting...\n", targs->threadno_);
+    std::printf ("thread %ld starting...\n", targs->threadno_);
 
 #ifndef _RWSTD_INT64_T
 

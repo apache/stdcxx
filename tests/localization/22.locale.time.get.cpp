@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2001-2006 Rogue Wave Software.
+ * Copyright 2001-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -1228,7 +1228,7 @@ make_LC_TIME (const time_data *td)
 
         char segment [256];
 
-        std::sprintf (segment, "%c:%u:%04d/%02d/%02d:",
+        std::sprintf (segment, "%c:%d:%04d/%02d/%02d:",
                       td->era [i].offset < 0 ? '-' : '+',
                       td->era [i].offset < 0 ? -td->era [i].offset
                                              : td->era [i].offset,
