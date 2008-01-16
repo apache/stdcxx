@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2001-2006 Rogue Wave Software.
+ * Copyright 2001-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -922,7 +922,7 @@ print_ce_info (unsigned                             tab_num,
                 // sym is sized at 13 because there will never be more then
                 // 99,999 collating elements
                 char sym [13];
-                std::sprintf (sym, "<RW_CE_%d>", ce_num++);
+                std::sprintf (sym, "<RW_CE_%u>", ce_num++);
 
                 ce_map.insert (std::make_pair (sym, elem));
                 std::cout << "collating-element " << sym << " from \"";
@@ -2610,7 +2610,7 @@ print_charmap (const __rw::__rw_codecvt_t *cvt,
         print_ellipsis (mbchar, last_byte, last_ucs4, last_wchar);
 
     // process subsequent maps
-    for (std::size_t i = 0; i != UCHAR_MAX + 1U; ++i) {
+    for (unsigned i = 0; i != UCHAR_MAX + 1U; ++i) {
 
         if (UINT_MAX == tab [i]) {
             // invalid multibyte sequence (i.e., unused slot)
