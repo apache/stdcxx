@@ -192,9 +192,9 @@ struct TokyoStockXchange: public StockXchange
 }; 
 
 
-struct FrankFurtStockXchange: public StockXchange
+struct FrankfurtStockXchange: public StockXchange
 {
-    FrankFurtStockXchange (std::size_t refs = 0)
+    FrankfurtStockXchange (std::size_t refs = 0)
         : StockXchange (refs) { }
 
     virtual void localTime(std::ostream& os) const {
