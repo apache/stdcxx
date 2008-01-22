@@ -119,12 +119,6 @@
 #    include <windows.h>
 #    define _RWSTD_MUTEX_T _RTL_CRITICAL_SECTION
 
-#    ifndef _MSC_VER
-#      define _InterlockedIncrement InterlockedIncrement
-#      define _InterlockedDecrement InterlockedDecrement
-#      define _InterlockedExchange  InterlockedExchange
-#    endif    // _MSC_VER
-
 #  else   // if defined (_RWSTD_NO_FWD_DECLARATIONS)
 
    // avoid #including this header (MFC doesn't like it)
@@ -146,24 +140,6 @@ LeaveCriticalSection (_RTL_CRITICAL_SECTION*);
 
 __declspec (dllimport) void __stdcall
 DeleteCriticalSection (_RTL_CRITICAL_SECTION*);
-
-
-#if defined (_RWSTD_INTERLOCKED_T) && !defined (_MSC_VER)
-
-__declspec (dllimport) long __stdcall
-InterlockedIncrement (_RWSTD_INTERLOCKED_T*);
-
-__declspec (dllimport) long __stdcall
-InterlockedDecrement (_RWSTD_INTERLOCKED_T*);
-
-__declspec (dllimport) long __stdcall
-InterlockedExchange (_RWSTD_INTERLOCKED_T*, long);
-
-#  define _InterlockedIncrement InterlockedIncrement
-#  define _InterlockedDecrement InterlockedDecrement
-#  define _InterlockedExchange  InterlockedExchange
-
-#endif   // _RWSTD_INTERLOCKED_T && !_MSC_VER
 
 }   // extern "C"
 
