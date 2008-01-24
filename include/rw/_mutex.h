@@ -141,24 +141,6 @@ LeaveCriticalSection (_RTL_CRITICAL_SECTION*);
 __declspec (dllimport) void __stdcall
 DeleteCriticalSection (_RTL_CRITICAL_SECTION*);
 
-
-#if defined _RWSTD_INTERLOCKED_T && (!defined (_MSC_VER) || _MSC_VER < 1400)
-
-__declspec (dllimport) long __stdcall
-InterlockedIncrement (_RWSTD_INTERLOCKED_T*);
-
-__declspec (dllimport) long __stdcall
-InterlockedDecrement (_RWSTD_INTERLOCKED_T*);
-
-__declspec (dllimport) long __stdcall
-InterlockedExchange (_RWSTD_INTERLOCKED_T*, long);
-
-#  define _InterlockedIncrement InterlockedIncrement
-#  define _InterlockedDecrement InterlockedDecrement
-#  define _InterlockedExchange  InterlockedExchange
-
-#endif   // _RWSTD_INTERLOCKED_T && (!_MSC_VER || _MSC_VER < 1400)
-
 }   // extern "C"
 
 _RWSTD_NAMESPACE (__rw) { 
@@ -176,21 +158,35 @@ union __rw_critical_section {
 
 #  endif   // _RWSTD_NO_FWD_DECLARATIONS
 
-#  if defined (_MSC_VER) && _MSC_VER >= 1400 && !defined (__INTEL_COMPILER)
-#    include <intrin.h>
+#  ifdef _MSC_VER
+extern "C" long __cdecl _InterlockedIncrement (volatile long*);
+extern "C" long __cdecl _InterlockedDecrement (volatile long*);
+extern "C" long __cdecl _InterlockedExchange (volatile long*, long);
+#    ifndef __INTEL_COMPILER
+#      pragma intrinsic (_InterlockedIncrement)
+#      pragma intrinsic (_InterlockedDecrement)
+#      pragma intrinsic (_InterlockedExchange)
+#    endif   // __INTEL_COMPILER
 
-#    pragma intrinsic (_InterlockedIncrement)
-#    pragma intrinsic (_InterlockedIncrement16)
-#    pragma intrinsic (_InterlockedDecrement)
-#    pragma intrinsic (_InterlockedDecrement16)
-#    pragma intrinsic (_InterlockedExchange)
+#    if _MSC_VER >= 1400 && !defined (__INTEL_COMPILER)
+extern "C" short __cdecl _InterlockedIncrement16 (volatile short*);
+extern "C" short __cdecl _InterlockedDecrement16 (volatile short*);
+#      pragma intrinsic (_InterlockedIncrement16)
+#      pragma intrinsic (_InterlockedDecrement16)
+#    endif   // _MSC_VER >= 1400 && !__INTEL_COMPILER
 
 #    ifdef _M_X64
-#      pragma intrinsic (_InterlockedIncrement64)
-#      pragma intrinsic (_InterlockedDecrement64)
-#      pragma intrinsic (_InterlockedExchange64)
-#    endif
-#  endif   // _MSC_VER >= 1400 && !__INTEL_COMPILER
+extern "C" long long __cdecl _InterlockedIncrement64 (volatile long long*);
+extern "C" long long __cdecl _InterlockedDecrement64 (volatile long long*);
+extern "C" long long __cdecl _InterlockedExchange64 (volatile long long*,
+                                                     long long);
+#      ifndef __INTEL_COMPILER
+#        pragma intrinsic (_InterlockedIncrement64)
+#        pragma intrinsic (_InterlockedDecrement64)
+#        pragma intrinsic (_InterlockedExchange64)
+#      endif   // __INTEL_COMPILER
+#    endif   // _M_X64
+#  endif   // _MSC_VER
 
 
 _RWSTD_NAMESPACE (__rw) { 
