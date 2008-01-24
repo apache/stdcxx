@@ -89,7 +89,9 @@
 #endif   // _RWSTD_NO_STATIC_CONST_MEMBER_DEFINITION
 
    // enable iostream and locale support for long long integers
-#define _RWSTD_LONG_LONG __int64
+#if _MSC_VER <= 1300 || defined (_RWSTD_NO_LONG_LONG)
+#  define _RWSTD_LONG_LONG __int64
+#endif   // _MSC_VER <= 1300 || _RWSTD_NO_LONG_LONG
 
 #if defined (_WIN64)
      // FIXME: handle by forward declaring fuctions in <rw/_mutex.h>
