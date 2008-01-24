@@ -1071,7 +1071,7 @@ struct limits_values<long double>
 
 #  ifdef __hpux
 
-        if (big_endian) { on floating types
+        if (big_endian) {
             snan.bits [sizeof snan.val - 3] = '\x80';
         }
         else {
@@ -1173,19 +1173,19 @@ void test_limits (FloatT, const char *tname, const char *fmt)
 
     // self-test: assert that endianness is correctly computed
 #if defined (__alpha)
-    RW_WARNING (t, !big_endian, ("alpha is typically little-endian"));
+    rw_warn (!big_endian, 0, __LINE__, "alpha is typically little-endian");
 #elif defined (_AIX)
-    RW_WARNING (t, big_endian, ("AIX is big-endian"));
-#elif defined (__hppa)
-    RW_WARNING (t, big_endian, ("HPPA is big-endian"));
+    rw_warn (big_endian, 0, __LINE__, "AIX is big-endian");
+#elif defined (__hpux) && defined (_BIG_ENDIAN)
+    rw_warn (big_endian, 0, __LINE__, "HP-UX is big-endian");
 #elif defined (__i386__)
-    RW_WARNING (t, !big_endian, ("Intel x86 is little-endian"));
+    rw_warn (!big_endian, 0, __LINE__, "Intel x86 is little-endian");
 #elif defined (__sparc)
-    RW_WARNING (t, big_endian, ("SPARC is big-endian"));
+    rw_warn (big_endian, 0, __LINE__, "SPARC is big-endian");
 #elif defined (_WIN64)
-    RW_WARNING (t, !big_endian, ("WIN64 is little-endian"));
+    rw_warn (!big_endian, "WIN64 is little-endian");
 #elif defined (_WIN32)
-    RW_WARNING (t, !big_endian, ("WIN32 is little-endian"));
+    rw_warn (!big_endian, "WIN32 is little-endian");
 #endif
 
 #ifndef _RWSTD_NO_STATIC_CONST_MEMBER_INIT
@@ -1224,7 +1224,7 @@ void test_limits (FloatT, const char *tname, const char *fmt)
         /* verify value */                                               \
         rw_assert (FLim::member == value, 0, __LINE__,                   \
                    "numeric_limits<%s>::" #member " == %i, got %i",      \
-                   tname, FVal::member, value);                          \
+                   tname, FVal::member (), value);                       \
     } while (0)
 
 // account for NaN != NaN
