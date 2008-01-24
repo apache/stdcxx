@@ -1,6 +1,6 @@
 /************************************************************************
 *
-* 21.string.stdcxx-175.cpp - regression test for STDCXX-162
+* 21.string.stdcxx-162.cpp - regression test for STDCXX-162
 *
 * https://issues.apache.org/jira/browse/STDCXX-162
 *
