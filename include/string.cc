@@ -83,14 +83,16 @@ _C_get_rep (size_type __cap, size_type __len)
 
         _RWSTD_REQUIRES (__cap <= max_size (),
                          (_RWSTD_ERROR_LENGTH_ERROR,
-                          _RWSTD_FUNC ("basic_string::_C_get_rep(size_type, "
-                                       "size_type)"), __cap, max_size ()));
+                          _RWSTD_FUNC ("basic_string::_C_get_rep (size_type, "
+                                       "size_type)"),
+                          __cap, max_size ()));
     }
 
     _RWSTD_REQUIRES (__len <= __cap,
                      (_RWSTD_ERROR_LENGTH_ERROR,
-                      _RWSTD_FUNC ("basic_string::_C_get_rep(size_type, "
-                                   "size_type)"), __len, __cap));
+                      _RWSTD_FUNC ("basic_string::_C_get_rep (size_type, "
+                                   "size_type)"),
+                      __len, __cap));
 
     if (!__cap) {
         _RWSTD_ASSERT (!__len);
@@ -126,7 +128,7 @@ basic_string (const basic_string &__s, size_type __pos, size_type __n,
 {
     _RWSTD_REQUIRES (__pos <= __s.size (),
                      (_RWSTD_ERROR_OUT_OF_RANGE,
-                      _RWSTD_FUNC ("basic_string::basic_string(const "
+                      _RWSTD_FUNC ("basic_string::basic_string (const "
                                    "basic_string&, size_type, size_type)"),
                       __pos, __s.size ()));
 
@@ -135,9 +137,10 @@ basic_string (const basic_string &__s, size_type __pos, size_type __n,
     size_type __nlen =  __n == npos ? 0 : __n;
     size_type __maxlen = __nlen > __rlen ? __nlen : __rlen; 
     if (__maxlen) 
-      _C_data = _C_get_rep (_C_grow (size_type (), __maxlen), __rlen)->data ();
+        _C_data = _C_get_rep (_C_grow (size_type (), __maxlen),
+                              __rlen)->data ();
     else
-      _C_data = _C_get_rep (__maxlen, __rlen)->data ();
+        _C_data = _C_get_rep (__maxlen, __rlen)->data ();
 
     traits_type::copy (_C_data, &__s._C_data [__pos], __rlen);
 }
@@ -151,8 +154,9 @@ basic_string (size_type __n, value_type __c,
 {
     _RWSTD_REQUIRES (__n <= max_size (),
                      (_RWSTD_ERROR_LENGTH_ERROR,
-                      _RWSTD_FUNC ("basic_string::basic_string(size_type, "
-                                   "value_type)"), __n, max_size ()));
+                      _RWSTD_FUNC ("basic_string::basic_string (size_type, "
+                                   "value_type)"),
+                      __n, max_size ()));
 
     if (__n)
         _C_data = _C_get_rep (_C_grow (size_type (), __n), __n)->data ();
@@ -173,7 +177,7 @@ basic_string (const_pointer __s, size_type __n,
 
     _RWSTD_REQUIRES (__n <= max_size (),
                      (_RWSTD_ERROR_LENGTH_ERROR,
-                      _RWSTD_FUNC ("basic_string::basic_string(const_pointer,"
+                      _RWSTD_FUNC ("basic_string::basic_string (const_pointer,"
                                    "size_type, const allocator_type&)"),
                       __n, max_size ()));
 
@@ -190,7 +194,7 @@ template <class _CharT, class _Traits, class _Allocator>
 basic_string<_CharT, _Traits, _Allocator>::
 basic_string (const_pointer __s,
               const allocator_type &__alloc /* = allocator_type () */)
-    : allocator_type(__alloc)
+    : allocator_type (__alloc)
 {     
     _RWSTD_ASSERT (__s != 0);
 
@@ -245,7 +249,7 @@ assign (const basic_string &__str, size_type __pos, size_type __n)
 {
     _RWSTD_REQUIRES (__pos <= __str.size (),
                      (_RWSTD_ERROR_OUT_OF_RANGE,
-                      _RWSTD_FUNC ("basic_string::assign(basic_string&, "
+                      _RWSTD_FUNC ("basic_string::assign (basic_string&, "
                                    "size_type, size_type)"),
                       __pos, __str.size ()));
 
@@ -261,17 +265,17 @@ basic_string<_CharT, _Traits, _Allocator>::
 insert (size_type __pos1,
         const basic_string& __str, size_type __pos2, size_type __n)
 {
-    _RWSTD_REQUIRES (__pos1 <= size() && __pos2 <= __str.size (),
+    _RWSTD_REQUIRES (__pos1 <= size () && __pos2 <= __str.size (),
                      (_RWSTD_ERROR_OUT_OF_RANGE,
-                      _RWSTD_FUNC ("basic_string::insert(size_type, const "
+                      _RWSTD_FUNC ("basic_string::insert (size_type, const "
                                    "basic_string&, size_type, size_type)"), 
-                      __pos1 > size() ? __pos1:__pos2, __str.size ()));
+                      __pos1 > size () ? __pos1:__pos2, __str.size ()));
     
     const size_type __rlen = _C_min (__str.size () - __pos2, __n);
 
     _RWSTD_REQUIRES (size () <= max_size () - __rlen,
                      (_RWSTD_ERROR_LENGTH_ERROR,
-                      _RWSTD_FUNC ("basic_string::insert(size_type, const "
+                      _RWSTD_FUNC ("basic_string::insert (size_type, const "
                                    "basic_string&, size_type, size_type)"), 
                       size (), max_size () - __rlen));
 
@@ -286,12 +290,13 @@ insert (size_type __pos1, const basic_string &__str)
 {
     _RWSTD_REQUIRES (__pos1 <= size (),
                      (_RWSTD_ERROR_OUT_OF_RANGE,
-                      _RWSTD_FUNC ("basic_string::insert(size_type, const "
-                                   "basic_string&)"), __pos1, size ()));
+                      _RWSTD_FUNC ("basic_string::insert (size_type, const "
+                                   "basic_string&)"),
+                      __pos1, size ()));
     
-    _RWSTD_REQUIRES (size() <= max_size() - __str.size(),
+    _RWSTD_REQUIRES (size () <= max_size () - __str.size (),
                      (_RWSTD_ERROR_LENGTH_ERROR,
-                      _RWSTD_FUNC ("basic_string::insert(size_type, "
+                      _RWSTD_FUNC ("basic_string::insert (size_type, "
                                    "const basic_string&)"),
                       size (), max_size () - __str.size ()));
 
@@ -311,7 +316,7 @@ replace (size_type __pos1, size_type __n1, const_pointer __s, size_type __n2)
 
     _RWSTD_REQUIRES (__pos1 <= __size0,
                      (_RWSTD_ERROR_OUT_OF_RANGE, 
-                     _RWSTD_FUNC ("basic_string::replace(size_type, size_type"
+                     _RWSTD_FUNC ("basic_string::replace (size_type, size_type"
                                   ", const_pointer, size_type)"), 
                       __pos1, __size0 > __n2 ? __size0 : __n2));
 
@@ -320,15 +325,15 @@ replace (size_type __pos1, size_type __n1, const_pointer __s, size_type __n2)
 
     _RWSTD_REQUIRES (__n2 <= max_size (),
                      (_RWSTD_ERROR_LENGTH_ERROR,
-                     _RWSTD_FUNC ("basic_string::replace(size_type, size_type"
+                     _RWSTD_FUNC ("basic_string::replace (size_type, size_type"
                                   ", const_pointer, size_type)"), 
-                     __n2, max_size()));
+                     __n2, max_size ()));
 
     _RWSTD_REQUIRES (__size0 - __xlen <= max_size () - __n2,
                      (_RWSTD_ERROR_LENGTH_ERROR,
-                     _RWSTD_FUNC ("basic_string::replace(size_type, size_type"
+                     _RWSTD_FUNC ("basic_string::replace (size_type, size_type"
                                   ", const_pointer, size_type)"), 
-                      __size0 - __xlen, max_size() - __n2));
+                      __size0 - __xlen, max_size () - __n2));
 
     // compute the resulting string size
     const size_type __size1 = __size0 - __xlen + __n2;
@@ -365,7 +370,7 @@ replace (size_type __pos1, size_type __n1, const_pointer __s, size_type __n2)
 
             traits_type::move (__beg + __n2, __beg + __n1, __rem);
 
-            traits_type::move (__beg, __s, __n2);
+            traits_type::copy (__beg, __s, __n2);
 
             traits_type::assign (_C_data [__size1], value_type ());
 
@@ -393,7 +398,7 @@ replace (size_type __pos, size_type __len, size_type __count, value_type __val)
 
     _RWSTD_REQUIRES (__pos <= __size0,
                      (_RWSTD_ERROR_OUT_OF_RANGE, 
-                      _RWSTD_FUNC ("basic_string::replace(size_type, "
+                      _RWSTD_FUNC ("basic_string::replace (size_type, "
                                    "size_type, size_type, value_type)"),
                       __pos, __size0));
 
@@ -401,7 +406,7 @@ replace (size_type __pos, size_type __len, size_type __count, value_type __val)
 
     _RWSTD_REQUIRES (__size0 - __xlen <= max_size () - __count,
                      (_RWSTD_ERROR_LENGTH_ERROR,
-                      _RWSTD_FUNC ("basic_string::replace(size_type, "
+                      _RWSTD_FUNC ("basic_string::replace (size_type, "
                                    "size_type, size_type, value_type)"), 
                       __size0 - __xlen, max_size () - __count));
 
@@ -484,63 +489,64 @@ basic_string<_CharT, _Traits, _Allocator>::
 replace (iterator __first1, iterator __last1,
          _InputIter __first2, _InputIter __last2, void*)
 {
-  basic_string &__s = *this;
+    basic_string &__s = *this;
 
 #  endif   // _RWSTD_NO_STRING_OUTLINED_MEMBER_TEMPLATES
 
-    _RWSTD_ASSERT_RANGE (__first1, __s._C_make_iter (__s._C_data + __s.size ()));
+    _RWSTD_ASSERT_RANGE (__first1,
+                         __s._C_make_iter (__s._C_data + __s.size ()));
     _RWSTD_ASSERT_RANGE (__first1, __last1);
     _RWSTD_ASSERT_RANGE (__first2, __last2);
 
      // use a (probably) faster algorithm if possible
-     if (_STD::__is_bidirectional_iterator(_RWSTD_ITERATOR_CATEGORY(_InputIter,
-                                                                   __last2)))
-         return __s.__replace_aux (__first1, __last1, __first2, __last2);
+    if (_STD::__is_bidirectional_iterator (_RWSTD_ITERATOR_CATEGORY(_InputIter,
+                                                                    __last2)))
+        return __s.__replace_aux (__first1, __last1, __first2, __last2);
 
-     for ( ; !(__first2 == __last2); ++__first1, ++__first2) {
+    for ( ; !(__first2 == __last2); ++__first1, ++__first2) {
 
-         const size_type __off = __s._C_off (__first1);
+        const size_type __off = __s._C_off (__first1);
 
-         _RWSTD_REQUIRES (__off <= __s.max_size(),
-                          (_RWSTD_ERROR_LENGTH_ERROR,
-                           _RWSTD_FUNC ("basic_string::replace(iterator, "
-                                        "iterator, InputIterator, "
-                                        "InputIterator)"),
-                           __s._C_off (__first1), __s.max_size ()));
+        _RWSTD_REQUIRES (__off <= __s.max_size (),
+                         (_RWSTD_ERROR_LENGTH_ERROR,
+                          _RWSTD_FUNC ("basic_string::replace (iterator, "
+                                       "iterator, InputIterator, "
+                                       "InputIterator)"),
+                          __s._C_off (__first1), __s.max_size ()));
          
-         // extend the string if necessary
-         if (__first1 == __last1) {
-             // compute the size of new buffer
-             const size_type __cap = __s._C_grow (__s.size (), size_type ());
+        // extend the string if necessary
+        if (__first1 == __last1) {
+            // compute the size of new buffer
+            const size_type __cap = __s._C_grow (__s.size (), size_type ());
 
-             const size_type __delta = __cap - __s.size ();
+            const size_type __delta = __cap - __s.size ();
 
-             // allocate a new buffer
-             _C_string_ref_type *__tmp = __s._C_get_rep (__cap, __cap);
+            // allocate a new buffer
+            _C_string_ref_type *__tmp = __s._C_get_rep (__cap, __cap);
 
-             // copy data from old to new, leaving a hole for additions
-             traits_type::copy (__tmp->data (), __s._C_data, __off);
-             traits_type::copy (__tmp->data () + __off + __delta,
-                                __s._C_data + __off,
-                                __s._C_make_iter (__s._C_data + __s.size ()) 
-                                - __last1);
-             __s._C_unlink (__tmp->data ());
-             __first1 = __s._C_make_iter (__s._C_data + __off);
-             __last1  = __first1 + __delta;
-         }
+            // copy data from old to new, leaving a hole for additions
+            traits_type::copy (__tmp->data (), __s._C_data, __off);
+            traits_type::copy (__tmp->data () + __off + __delta,
+                               __s._C_data + __off,
+                               __s._C_make_iter (__s._C_data + __s.size ()) 
+                               - __last1);
+            __s._C_unlink (__tmp->data ());
+            __first1 = __s._C_make_iter (__s._C_data + __off);
+            __last1  = __first1 + __delta;
+        }
 
-         // copy data over
-         traits_type::assign (*__first1, *__first2);
-     }
+        // copy data over
+        traits_type::assign (*__first1, *__first2);
+    }
 
-     if (!(__first1 == __last1)) {
-         const size_type __pos = __s._C_off (__first1);
-         const size_type __n   = __s._C_off (__first1, __last1);
+    if (!(__first1 == __last1)) {
+        const size_type __pos = __s._C_off (__first1);
+        const size_type __n   = __s._C_off (__first1, __last1);
 
-         __s.replace (__pos, __n, size_type (), value_type ());
-     }
+        __s.replace (__pos, __n, size_type (), value_type ());
+    }
 
-     return __s;
+    return __s;
 }
 
 // Special function for random access and bi-directional iterators
@@ -563,7 +569,7 @@ __rw_replace_aux (_STD::basic_string<_CharT, _Traits, _Alloc> &__s,
     typedef _TYPENAME allocator_type::difference_type difference_type;
 
     typedef _RW::__string_ref<value_type, traits_type, allocator_type>
-     _C_string_ref_type;
+    _C_string_ref_type;
 
 #  else   // if !defined (_RWSTD_NO_STRING_OUTLINED_MEMBER_TEMPLATES)
 
@@ -574,7 +580,7 @@ basic_string<_CharT, _Traits, _Allocator>::
 __replace_aux (iterator __first1, iterator __last1, 
                _InputIter __first2, _InputIter __last2)
 {
-  basic_string &__s = *this;
+    basic_string &__s = *this;
 
 #  endif  // _RWSTD_NO_STRING_OUTLINED_MEMBER_TEMPLATES
 
@@ -589,55 +595,58 @@ __replace_aux (iterator __first1, iterator __last1,
 
     _RWSTD_REQUIRES (__pos <= __s.size (),
                      (_RWSTD_ERROR_OUT_OF_RANGE,
-                      _RWSTD_FUNC ("basic_string::__replace_aux(iterator, "
+                      _RWSTD_FUNC ("basic_string::__replace_aux (iterator, "
                                    "iterator, InputIterator, InputIterator)"),
                       __pos, __s.size ()));
 
-    size_type __slen = __s.size() - __pos;
+    size_type __slen = __s.size () - __pos;
     size_type __xlen = __n < __slen ? __n : __slen; 
 
-    _RWSTD_REQUIRES (__s.size () - __xlen <= __s.max_size() - __n2,
+    _RWSTD_REQUIRES (__s.size () - __xlen <= __s.max_size () - __n2,
                      (_RWSTD_ERROR_LENGTH_ERROR, 
-                      _RWSTD_FUNC ("basic_string::__replace_aux(iterator, "
+                      _RWSTD_FUNC ("basic_string::__replace_aux (iterator, "
                                    "iterator, InputIterator, InputIterator)"),
                       __s.size () - __xlen, __s.max_size () - __n2));
 
-    size_type __len = __s.size() - __xlen + __n2;  // Final string length.
+    size_type __len = __s.size () - __xlen + __n2;  // Final string length.
 
     if (!__len) {
         // Special case a substitution that leaves the string empty.
         __s._C_unlink (__s._C_nullref ()->data ());
     }
     else {
-      size_type __d = 0;
-      size_type __rem = __s.size() - __xlen - __pos; // length of bit at the end
-      // Check for shared representation, insufficient capacity, 
-      if (   __s.capacity() < __len
-          || size_type (1) < size_type (__s._C_pref()->_C_get_ref ()))
-      {
-        // Need to allocate a new reference.
-          const size_type __cap = __s._C_grow (__s.size (), __len);
+        size_type __d = 0;
+        // length of bit at the end
+        size_type __rem = __s.size () - __xlen - __pos;
+        // Check for shared representation, insufficient capacity, 
+        if (   __s.capacity () < __len
+            || size_type (1) < size_type (__s._C_pref ()->_C_get_ref ()))
+        {
+            // Need to allocate a new reference.
+            const size_type __cap = __s._C_grow (__s.size (), __len);
 
-        _C_string_ref_type * __temp = __s._C_get_rep (__cap, __len);
-        if (__pos) traits_type::copy(__temp->data(), __s._C_data, __pos);
-        for (__d = 0; __d < __n2; __d++)
-            traits_type::assign (*(__temp->data()+__pos+__d), *__first2++);
-        if (__rem)
-            traits_type::copy (__temp->data () + __pos + __n2,
-                               __s._C_data + __pos + __n, __rem);
-        __s._C_unlink (__temp->data ());
-      }
-      else
-      {
-        // Current reference has enough room.
-        if (__rem)  
-          traits_type::move(__s._C_data+__pos+__n2, __s._C_data+__pos+__n, 
-                            __rem);
-        for (__d = 0; __d < __n2; __d++)
-            traits_type::assign (*(__s._C_data+__pos+__d), *__first2++);
-        traits_type::assign (__s._C_data[__s._C_pref()->_C_size._C_size 
-                                         = __len], value_type());
-      }
+            _C_string_ref_type * __temp = __s._C_get_rep (__cap, __len);
+            if (__pos)
+                traits_type::copy (__temp->data (), __s._C_data, __pos);
+            for (__d = 0; __d < __n2; __d++)
+                traits_type::assign (*(__temp->data ()+__pos + __d),
+                                     *__first2++);
+            if (__rem)
+                traits_type::copy (__temp->data () + __pos + __n2,
+                                   __s._C_data + __pos + __n, __rem);
+            __s._C_unlink (__temp->data ());
+        }
+        else {
+            // Current reference has enough room.
+            if (__rem)  
+                traits_type::move (__s._C_data + __pos + __n2,
+                                   __s._C_data + __pos + __n, 
+                                   __rem);
+            for (__d = 0; __d < __n2; __d++)
+                traits_type::assign (*(__s._C_data + __pos + __d), *__first2++);
+            traits_type::assign (__s._C_data [__s._C_pref ()->_C_size._C_size
+                                              = __len], value_type ());
+        }
     }
     return __s;
 }
@@ -650,10 +659,11 @@ _TYPENAME basic_string<_CharT, _Traits, _Allocator>::size_type
 basic_string<_CharT, _Traits, _Allocator>::
 copy (pointer __s, size_type __n, size_type __pos) const
 {
-    _RWSTD_REQUIRES (__pos <= size(),
+    _RWSTD_REQUIRES (__pos <= size (),
                      (_RWSTD_ERROR_OUT_OF_RANGE, 
-                      _RWSTD_FUNC ("basic_string::copy(pointer, size_type, "
-                                   "size_type)"), __pos, size ()));
+                      _RWSTD_FUNC ("basic_string::copy (pointer, size_type, "
+                                   "size_type)"),
+                      __pos, size ()));
 
     const size_type __rlen = _C_min (size () - __pos, __n);
 
@@ -725,20 +735,19 @@ find (const_pointer __seq, size_type __off, size_type __len) const
 template <class _CharT, class _Traits, class _Allocator>
 _TYPENAME basic_string<_CharT, _Traits, _Allocator>::size_type
 basic_string<_CharT, _Traits, _Allocator>::
-rfind (const_pointer __s,  size_type __pos, size_type __n) const
+rfind (const_pointer __s, size_type __pos, size_type __n) const
 {
-    _RWSTD_ASSERT(__s != 0);
+    _RWSTD_ASSERT (__s != 0);
 
-    if (size() < __n)
-      return npos;
+    if (size () < __n)
+        return npos;
     
-    size_type __slen = size() -__n;
+    size_type __slen = size () - __n;
     size_type __xpos_start = __slen < __pos ? __slen : __pos; 
 
-    for (size_type __xpos = __xpos_start+1; __xpos != 0 ; __xpos--)
-    {
-      if (!traits_type::compare(_C_data+__xpos-1, __s, __n))
-        return __xpos-1;
+    for (size_type __xpos = __xpos_start + 1; __xpos != 0 ; __xpos--) {
+        if (!traits_type::compare (_C_data + __xpos - 1, __s, __n))
+            return __xpos - 1;
     }
 
     return npos;
@@ -750,13 +759,12 @@ _TYPENAME basic_string<_CharT, _Traits, _Allocator>::size_type
 basic_string<_CharT, _Traits, _Allocator>::
 find_first_of (const_pointer __s, size_type __pos, size_type __n) const
 {
-    _RWSTD_ASSERT(__s != 0);
+    _RWSTD_ASSERT (__s != 0);
 
-    for (size_type __xpos = __pos; __xpos < size() ; __xpos++)
-    {
-      for (size_type __i = 0; __i < __n ; __i++)
-        if (traits_type::eq(_C_data[__xpos], __s[__i]))
-          return __xpos;
+    for (size_type __xpos = __pos; __xpos < size () ; __xpos++) {
+        for (size_type __i = 0; __i < __n ; __i++)
+            if (traits_type::eq (_C_data [__xpos], __s [__i]))
+                return __xpos;
     }
 
     return npos;
@@ -768,19 +776,18 @@ _TYPENAME basic_string<_CharT, _Traits, _Allocator>::size_type
 basic_string<_CharT, _Traits, _Allocator>::
 find_last_of (const_pointer __s, size_type __pos, size_type __n) const
 {
-    _RWSTD_ASSERT(__s != 0);
+    _RWSTD_ASSERT (__s != 0);
 
-    if (size())
-    {
-      size_type __slen = size() -1;
-      size_type __xpos_start = __pos < __slen ? __pos : __slen; 
-      for (size_type __xpos = __xpos_start+1; __xpos != 0 ; __xpos--)
-      {
-        for(size_type __i = 0; __i < __n ; __i++)
-          if (traits_type::eq(_C_data[__xpos-1], __s[__i]))
-            return __xpos-1;
-      } 
+    if (size ()) {
+        size_type __slen = size () - 1;
+        size_type __xpos_start = __pos < __slen ? __pos : __slen; 
+        for (size_type __xpos = __xpos_start+1; __xpos != 0 ; __xpos--) {
+            for (size_type __i = 0; __i < __n ; __i++)
+                if (traits_type::eq (_C_data [__xpos - 1], __s [__i]))
+                    return __xpos - 1;
+        }
     }
+
     return npos;
 }
 
@@ -790,21 +797,18 @@ _TYPENAME basic_string<_CharT, _Traits, _Allocator>::size_type
 basic_string<_CharT, _Traits, _Allocator>::
 find_first_not_of (const_pointer __s, size_type __pos, size_type __n) const
 {
-    _RWSTD_ASSERT(__s != 0);
+    _RWSTD_ASSERT (__s != 0);
 
-    for (size_type __xpos = __pos; __xpos < size() ; __xpos++)
-    {
-      bool __found = false;
-      for (size_type __i = 0; __i < __n ; __i++)
-      {
-        if (traits_type::eq(_C_data[__xpos], __s[__i]))
-        {
-          __found = true;
-          break;
+    for (size_type __xpos = __pos; __xpos < size () ; __xpos++) {
+        bool __found = false;
+        for (size_type __i = 0; __i < __n ; __i++) {
+            if (traits_type::eq (_C_data [__xpos], __s [__i])) {
+                __found = true;
+                break;
+            }
         }
-      }
-      if (!__found)
-        return __xpos;
+        if (!__found)
+            return __xpos;
     }
 
     return npos;
@@ -816,26 +820,22 @@ _TYPENAME basic_string<_CharT, _Traits, _Allocator>::size_type
 basic_string<_CharT, _Traits, _Allocator>::
 find_last_not_of (const_pointer __s, size_type __pos, size_type __n) const
 {
-    _RWSTD_ASSERT(__s != 0);
+    _RWSTD_ASSERT (__s != 0);
 
-    if (size())
-    {
-      size_type __slen = size() -1;
-      size_type __xpos_start = __pos < __slen ? __pos : __slen; 
-      for (size_type __xpos = __xpos_start+1; __xpos != 0 ; __xpos--)
-      {
-        bool __found = false;
-        for (size_type __i = 0; __i < __n ; __i++)
-        {
-          if (traits_type::eq(_C_data[__xpos-1], __s[__i]))
-          {
-            __found = true;
-            break;
-          }
+    if (size ()) {
+        size_type __slen = size () - 1;
+        size_type __xpos_start = __pos < __slen ? __pos : __slen; 
+        for (size_type __xpos = __xpos_start + 1; __xpos != 0 ; __xpos--) {
+            bool __found = false;
+            for (size_type __i = 0; __i < __n ; __i++) {
+                if (traits_type::eq (_C_data [__xpos - 1], __s [__i])) {
+                    __found = true;
+                    break;
+                }
+            }
+            if (!__found)
+                return __xpos - 1;
         }
-        if (!__found)
-          return __xpos-1;
-      }
     }
 
     return npos;
@@ -849,10 +849,11 @@ substr (size_type __pos, size_type __n) const
 {
     _RWSTD_REQUIRES (__pos <= size (),
                      (_RWSTD_ERROR_OUT_OF_RANGE, 
-                      _RWSTD_FUNC ("basic_string::substr(size_type, size_type) "
-                                   "const"), __pos, size ()));
+                      _RWSTD_FUNC ("basic_string::substr (size_type, "
+                                   "size_type) const"),
+                      __pos, size ()));
 
-    size_type __slen = size() -__pos;
+    size_type __slen = size () - __pos;
     size_type __rlen = __n < __slen ? __n : __slen;
     return basic_string (_C_data + __pos, __rlen);
 }
@@ -865,14 +866,15 @@ compare (size_type __pos1, size_type __n1,
 {
     _RWSTD_REQUIRES (__pos2 <= __str.size (),
                      (_RWSTD_ERROR_OUT_OF_RANGE, 
-                      _RWSTD_FUNC ("basic_string::compare(size_type, size_type,"
-                                   "const basic_string&, size_type, size_type) "
-                                   "const"), __pos2, __str.size ()));
+                      _RWSTD_FUNC ("basic_string::compare (size_type, "
+                                   "size_type, const basic_string&, "
+                                   "size_type, size_type) const"),
+                      __pos2, __str.size ()));
 
     if (__str.size () - __pos2 < __n2)
         __n2 = __str.size () - __pos2;
 
-    return compare (__pos1, __n1, __str.c_str()+__pos2, __n2);
+    return compare (__pos1, __n1, __str.c_str () + __pos2, __n2);
 }
 
 
@@ -883,17 +885,18 @@ compare (size_type __pos, size_type __n1,
 {
     _RWSTD_REQUIRES (__pos <= size (),
                      (_RWSTD_ERROR_OUT_OF_RANGE, 
-                      _RWSTD_FUNC ("basic_string::compare(size_type, size_type,"
-                                   " const const_pointer, size_type) const"),
+                      _RWSTD_FUNC ("basic_string::compare (size_type, "
+                                   "size_type, const const_pointer, "
+                                   "size_type) const"),
                       __pos, size ()));
 
-    if(size() - __pos < __n1)
-      __n1 = size() - __pos;
+    if (size () - __pos < __n1)
+        __n1 = size () - __pos;
     size_type __rlen = __n1 < __n2 ? __n1 : __n2; 
-    int __res = traits_type::compare(_C_data+__pos,__s, __rlen);
+    int __res = traits_type::compare (_C_data + __pos, __s, __rlen);
 
     if (__res == 0)
-      __res = (__n1 < __n2) ? -1 : (__n1 != __n2);
+        __res = (__n1 < __n2) ? -1 : (__n1 != __n2);
 
     return __res;
 }

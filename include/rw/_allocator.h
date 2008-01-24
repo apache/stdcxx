@@ -316,7 +316,7 @@ public:
   
     const_pointer address (const_reference __x) const {
         // lwg issue 350
-        return _RWSTD_REINTERPRET_CAST (pointer,
+        return _RWSTD_REINTERPRET_CAST (const_pointer,
                    &_RWSTD_REINTERPRET_CAST (const char&, __x));
     }
 
