@@ -370,7 +370,7 @@ replace (size_type __pos1, size_type __n1, const_pointer __s, size_type __n2)
 
             traits_type::move (__beg + __n2, __beg + __n1, __rem);
 
-            traits_type::move (__beg, __s, __n2);
+            traits_type::copy (__beg, __s, __n2);
 
             traits_type::assign (_C_data [__size1], value_type ());
 
