@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2005-2006 Rogue Wave Software.
+ * Copyright 2005-2008 Rogue Wave Software, Inc.
  *
  **************************************************************************/
 
@@ -134,12 +134,16 @@ _RWSTD_DLLIMPORT int (fileno)(FILE*) _LIBC_THROWS ();
 #      define RW_TEST_COMPILER "Intel C++, __INTEL_COMPILER = " \
               RW_TEST_STR (__INTEL_COMPILER)
 #    endif
-#  elif defined (__EDG__)
-#    define RW_TEST_COMPILER "EDG eccp, __EDG_VERSION__ = " \
-            RW_TEST_STR (__EDG_VERSION__)
 #  elif defined (__HP_aCC)
+#    if defined (__EDG_VERSION__)
+#      define RW_TEST_ACC_EDG_VER \
+              ", __EDG_VERSION__ = "  RW_TEST_STR (__EDG_VERSION__)
+#    else
+#      define RW_TEST_ACC_EDG_VER ""
+#    endif
 #    define RW_TEST_COMPILER "HP aCC, __HP_aCC = " \
-            RW_TEST_STR (__HP_aCC)
+            RW_TEST_STR (__HP_aCC) \
+            RW_TEST_ACC_EDG_VER
 #  elif defined (__IBMCPP__)
 #    define RW_TEST_COMPILER "IBM VisualAge C++, __IBMCPP__ = " \
             RW_TEST_STR (__IBMCPP__)
@@ -149,6 +153,12 @@ _RWSTD_DLLIMPORT int (fileno)(FILE*) _LIBC_THROWS ();
 #  elif defined (__SUNPRO_CC)
 #    define RW_TEST_COMPILER "SunPro, __SUNPRO_CC = " \
             RW_TEST_STR (__SUNPRO_CC)
+#  elif defined (__EDG__)
+     // handle the vanilla EDG eccp last to avoid overriding
+     // the real compiler's macro (compilers such as Intel C++
+     // and HP aCC use eccp for their C++ front end) 
+#    define RW_TEST_COMPILER "EDG eccp, __EDG_VERSION__ = " \
+            RW_TEST_STR (__EDG_VERSION__)
 #  else
 #    define RW_TEST_COMPILER "unknown"
 #  endif
