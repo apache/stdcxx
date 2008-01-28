@@ -35,6 +35,7 @@
 
 #ifdef _MSC_VER
 #  include <climits>     // for INT_MAX
+#  include <crtdbg.h>    // for _CrtSetReportMode()
 #endif
 
 #include <rw_new.h>
@@ -475,6 +476,12 @@ run_test (int, char**)
 
 int main (int argc, char *argv[])
 {
+#ifdef _MSC_VER
+    // disable "Invalid allocation size: 4294967292 bytes"
+    // message box from malloc()
+    _CrtSetReportMode (_CRT_ERROR, _CRTDBG_MODE_DEBUG);
+#endif
+
     return rw_test (argc, argv, __FILE__,
                     "lib.temporary.buffer",
                     0 /* no comment */,
