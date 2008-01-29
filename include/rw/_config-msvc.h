@@ -54,6 +54,10 @@
    // disable "return type for operator->' is not a UDT"
 #  pragma warning (disable: 4284)
 
+   // disable "nonstandard extension used :"
+   // "'extern' before template explicit instantiation"
+#  pragma warning (disable: 4231)
+
    // disable "decorated name length exceeded"
 #  pragma warning (disable: 4503)
 
