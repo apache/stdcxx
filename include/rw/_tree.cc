@@ -348,28 +348,48 @@ insert (iterator __it, const value_type &__v, bool __dup)
 
 #endif   // _RWSTDDEBUG
 
-    if (__it == begin ()) {
-        if (size () && _C_cmp (_KeyOf ()(__v), _ITER_NODE (__it)->_C_key ()))
-            return _C_insert (_ITER_NODE (__it), _ITER_NODE (__it), __v);
+    const _C_link_t __hint = _ITER_NODE (__it);
+
+    // if __hint is the right most child and __key is greater,
+    // then insert on the right
+    if (__hint == _C_end->_C_child [1]) {
+        if (_C_cmp (__hint->_C_key (), _KeyOf ()(__v)))
+            return _C_insert (0, __hint, __v);
         return insert (__v, __dup).first;
     }
 
-    if (__it == end ()) {
-        if (_C_cmp (_C_end->_C_child [1]->_C_key(), _KeyOf ()(__v)))
-            return _C_insert (0, _C_end->_C_child [1], __v);
-
+    // if __hint is past the end and __key is greater,
+    // then insert on the right
+    if (__hint == _C_end) {
+        if (_C_cmp (__hint->_C_child [1]->_C_key(), _KeyOf ()(__v)))
+            return _C_insert (0, __hint->_C_child [1], __v);
         return insert (__v, __dup).first;
     }
 
-    const iterator __prev = --__it;
+    // if __hint is the leftmost child and __key is less
+    // then insert on the left
+    if (__hint == _C_end->_C_child [0]) {
+        if (size () && _C_cmp (_KeyOf ()(__v), __hint->_C_key ()))
+            return _C_insert (__hint, __hint, __v);
+        return insert (__v, __dup).first;
+    }
 
+    const iterator __prev = __it++;
+
+    // if __v falls between __prev and __it, then insert it there
     if (   _C_cmp (_ITER_NODE (__prev)->_C_key (), _KeyOf ()(__v))
         && _C_cmp (_KeyOf ()(__v), _ITER_NODE (__it)->_C_key ())) {
+
+        // if there is no right child of __prev, then __prev is the
+        // left child of __it and we insert to right of __prev
         if (_C_link_t () == _ITER_NODE (__prev)->_C_child [1])
             return _C_insert (0, _ITER_NODE (__prev), __v); 
+
+        // otherwise we insert on the left of __it
         return _C_insert (_ITER_NODE (__it), _ITER_NODE (__it), __v);
     }
 
+    // otherwise, do a full traversal
     return insert (__v, __dup).first;
 }
 
