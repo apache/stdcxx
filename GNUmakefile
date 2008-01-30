@@ -151,6 +151,12 @@
 #
 #   WARNFLAGS - any compiler warning options
 #
+#   WITH_PURIFY - set to `true' to build with purify. additional flags
+#                 can be specified in PURIFYFLAGS.
+#
+#   WITH_CADVISE - set to `true' to build with cadvise. additional flags
+#                  can be specified in CADVISEFLAGS.
+#
 ########################################################################
 
 SHELL = /bin/sh
@@ -642,6 +648,10 @@ $(MAKEFILE_IN): $(configpath)
           && echo "BUILDTAG   = $(BUILDTAG)"             >> $(MAKEFILE_IN)  \
           && echo "PLATFORM   = $(PLATFORM)"             >> $(MAKEFILE_IN)  \
           && echo "DEFAULT_SHROBJ = $(DEFAULT_SHROBJ)"   >> $(MAKEFILE_IN)  \
+          && echo "WITH_CADVISE = $(WITH_CADVISE)"       >> $(MAKEFILE_IN)  \
+          && echo "CADVISEFLAGS = $(CADVISEFLAGS)"       >> $(MAKEFILE_IN)  \
+          && echo "WITH_PURIFY = $(WITH_PURIFY)"         >> $(MAKEFILE_IN)  \
+          && echo "PURIFYFLAGS = $(PURIFYFLAGS)"         >> $(MAKEFILE_IN)  \
           && echo "CXX_REPOSITORY = $(CXX_REPOSITORY)"	 >> $(MAKEFILE_IN));
 
 # creates the build directory tree and generates makefile.in
