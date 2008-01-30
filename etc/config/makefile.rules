@@ -70,6 +70,25 @@ $(CATFILE): $(MSGFILES)
 	-gencat $@ $^
 
 
+ifeq ($(WITH_PURIFY),true)
+  ifeq ($(PURIFYFLAGS),)
+    PURIFYFLAGS  = -windows=no
+	PURIFYFLAGS += -log-file=stderr -view-file=$@.purify-view
+  endif
+
+  ifneq ($(OSNAME),AIX)
+	PURIFY = purify $(PURIFYFLAGS)
+  endif
+endif
+
+ifeq ($(WITH_CADVISE),true)
+  ifeq ($(CADVISEFLAGS),)
+    CADVISEFLAGS = +w
+  endif
+
+  CADVISE = cadvise $(CADVISEFLAGS)
+endif
+
 ########################################################################
 #  COMMON RULES
 ########################################################################
@@ -89,17 +108,17 @@ ifeq ($(NO_DOT_O),)
 
 # make the rule match for sources matching *.out.cpp
 %.out.o: %.out.cpp
-	$(CXX) -c $(CPPFLAGS) $(CXXFLAGS) $(call CXX.repo,$<) $<
+	$(CADVISE) $(CXX) -c $(CPPFLAGS) $(CXXFLAGS) $(call CXX.repo,$<) $<
 
 %.o: %.cpp
-	$(CXX) -c $(CPPFLAGS) $(CXXFLAGS) $(call CXX.repo,$<) $<
+	$(CADVISE) $(CXX) -c $(CPPFLAGS) $(CXXFLAGS) $(call CXX.repo,$<) $<
 
 # make the rule match for objects matching *.out.o
 %.out: %.out.o
-	$(LD) $< -o $@ $(LDFLAGS) $(LDLIBS) $(call CXX.repo,$<)
+	$(PURIFY) $(LD) $< -o $@ $(LDFLAGS) $(LDLIBS) $(call CXX.repo,$<)
 
 %: %.o
-	$(LD) $< -o $@ $(LDFLAGS) $(LDLIBS) $(call CXX.repo,$<)
+	$(PURIFY) $(LD) $< -o $@ $(LDFLAGS) $(LDLIBS) $(call CXX.repo,$<)
 
 # disable compilation and linking in the same step
 # %: %.cpp
@@ -108,8 +127,8 @@ else
 
 # compile and link in one step to eliminate the space overhead of .o files
 %: %.cpp
-	$(CXX) $< -o $@ $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) $(LDLIBS) \
-               $(call CXX.repo,$<)
+	$(CADVISE) $(PURIFY) $(CXX) $< -o $@ $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) \
+               $(LDLIBS) $(call CXX.repo,$<)
 
 endif   # eq ($(NO_DOT_O),)
 
