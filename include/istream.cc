@@ -810,7 +810,7 @@ operator>> (basic_istream<_CharT, _Traits>&            __is,
             const _RWSTD_SIZE_T __maxlen =
                 __is.width () ? __is.width () : __str.max_size ();
 
-            __str.erase ();
+            __str.clear ();
 
             const ctype<_CharT> &__ctp =
                 _USE_FACET (ctype<_CharT>, __is.getloc ());
@@ -986,7 +986,7 @@ getline (basic_istream<_CharT, _Traits>&            __is,
 
         _TRY {
 
-            __str.erase ();
+            __str.clear ();
 
             const _RWSTD_SIZE_T __max_size = __str.max_size ();
 
