@@ -266,7 +266,12 @@ public:
     void reserve (size_type = 0);
 
     void clear () {
-        _C_unlink (_C_nullref ()->data ());
+        if (size_type (1) < size_type (_C_pref ()->_C_get_ref ()))
+            _C_unlink (_C_nullref ()->data ());
+        else {
+            traits_type::assign (_C_data [0], value_type ());
+            _C_pref ()->_C_size._C_size = 0;
+        }
     }
 
     bool empty () const  {
