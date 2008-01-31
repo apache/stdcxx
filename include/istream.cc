@@ -877,7 +877,7 @@ getline (basic_istream<_CharT, _Traits>&            __is,
 
     if (__ipfx) { 
 
-        __str.erase ();
+        __str.clear ();
 
         // carefuly handle arithmetic overflow
         _SizeT __n = __str.max_size ();

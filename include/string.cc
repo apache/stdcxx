@@ -379,7 +379,7 @@ replace (size_type __pos1, size_type __n1, const_pointer __s, size_type __n2)
     }
     else {
         // special case a substitution that leaves the string empty.
-        _C_unlink (_C_nullref ()->data ());
+        clear ();
     }
 
     return *this;
@@ -452,8 +452,8 @@ replace (size_type __pos, size_type __len, size_type __count, value_type __val)
         }
     }
     else {
-        // construct the empty string
-        _C_unlink (_C_nullref ()->data ());
+        // special case a substitution that leaves the string empty.
+        clear ();
     }
 
     return *this;
