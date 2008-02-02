@@ -32,8 +32,8 @@ int main ()
 {
     std::string s (100, 's');
 
-    const size_t n = s.capacity ();
-    const char*  p = s.c_str ();
+    const std::string::size_type n = s.capacity ();
+    const std::string::const_pointer p = s.c_str ();
 
     // verify getline(), clear(), erase() and replace() do not
     // unnecessarily resize or reallocate the data buffer
