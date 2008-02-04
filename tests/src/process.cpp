@@ -193,6 +193,7 @@ _rw_map_errno (DWORD err)
 #  include <unistd.h>     // for fork(), execv(), access(), sleep()
 #  include <setjmp.h>     // for setjmp(), longjmp()
 #  include <signal.h>     // for signal()
+#  include <time.h>       // for time()
 
 /**************************************************************************/
 
@@ -519,97 +520,140 @@ rw_waitpid (rw_pid_t pid, int* result, int timeout/* = -1*/)
 
 extern "C" {
 
-typedef void sig_handler_t (int);
+static int alarm_timeout;
 
-static void
-sig_handler (int)
-{
-    // do not re-register for signal here. it causes
-    // a stack overflow problem on HP-UX and AIX.
+static void handle_alarm_signal (int) {
+    alarm_timeout = 1;
 }
+
+typedef void (*signal_handler_t) (int);
 
 }
 
 _TEST_EXPORT rw_pid_t
-rw_waitpid (rw_pid_t pid, int* result, int timeout/* = -1*/)
+rw_waitpid (rw_pid_t pid, int* presult, int timeout/* = -1*/)
 {
-    int status = 0;
-    const int options = 0 > timeout ? 0 : WNOHANG;
+#ifdef _RWSTD_EDG_ECCP
+#  define _RWSTD_NO_SIGACTION
+#endif
 
-    rw_pid_t ret = waitpid (pid, &status, options);
-    if (-1 == ret)
-        rw_error (0, __FILE__, __LINE__,
-                  "waitpid (%{P}, %#p, %{?}WNOHANG%{:}%i%{;}) failed: "
-                  "errno = %{#m} (%{m})",
-                  pid, &status, WNOHANG == options, options);
+#ifndef _RWSTD_NO_SIGACTION
+    struct sigaction prev_alarm_action;
+#else
+    signal_handler_t prev_alarm_handler = 0;
+#endif
+    int              prev_alarm_timeout = 0;
 
-    if (0 < timeout && 0 == ret) {
-        // process still active, wait
+    alarm_timeout = 0;
+    if (0 < timeout) {
 
-        unsigned utimeout = unsigned (timeout);
+#ifndef _RWSTD_NO_SIGACTION
+        struct sigaction alarm_action;
+        memset (&alarm_action, 0, sizeof alarm_action);
 
-        do {
-            sig_handler_t* old_handler = signal (SIGCHLD, sig_handler);
+        const signal_handler_t handler_fun = handle_alarm_signal;
+        memcpy (&alarm_action.sa_handler, &handler_fun,
+                sizeof alarm_action.sa_handler);
 
-            utimeout = sleep (utimeout);
+        sigaction (SIGALRM, &alarm_action, &prev_alarm_action);
+#else
+        prev_alarm_handler = signal (SIGALRM, handle_alarm_signal);
+#endif
+        prev_alarm_timeout = alarm (timeout);
 
-            signal (SIGCHLD, old_handler);
+    }
 
-            if (utimeout) {
-                // possible that the child has exited
-                ret = waitpid (pid, &status, WNOHANG);
-                if (-1 == ret) {
-                    rw_error (0, __FILE__, __LINE__,
-                              "waitpid (%{P}, %#p, WNOHANG) failed: "
-                              "errno = %{#m} (%{m})",
-                              pid, &status);
-                }
-                else if (0 == ret) {
-                    // child still active
-                    continue;
-                }
-                else {
-                    // child has exited
-                    RW_ASSERT (pid == ret);
-                }
+    int result = 0;
+    if (!presult)
+        presult = &result;
+
+    const time_t start = time(0);
+
+    int status   = 0;
+    rw_pid_t ret = 0;
+    do {
+
+        ret = waitpid (pid, &status, 0);
+
+        if (-1 == ret) {
+
+            if (EINTR == errno && alarm_timeout) {
+
+                // we are expected to return 0 on timeout
+                ret = 0;
+            }
+            else if (EINTR == errno) {
+
+                rw_warn (0, __FILE__, __LINE__,
+                         "waitpid (%{P}, %#p, 0) interrupted: "
+                         "errno = %{#m} (%{m})",
+                         pid, &status);
+
+                continue; // try again
             }
             else {
-                // timeout elapsed
-                RW_ASSERT (0 == ret);
+
+                rw_error (0, __FILE__, __LINE__,
+                          "waitpid (%{P}, %#p, 0) failed: "
+                          "errno = %{#m} (%{m})",
+                          pid, &status);
+            }
+
+        }
+        else if (ret == pid) {
+
+            if (WIFSIGNALED (status)) {
+                // process exited with a signal
+                const int signo = WTERMSIG (status);
+
+                rw_error (0, __FILE__, __LINE__,
+                          "the process (pid=%{P}) exited with signal %d (%{K})",
+                          pid, signo, signo);
+
+                *presult = signo;
+            }
+            else if (WIFEXITED (status)) {
+                // process exited with a status
+                const int retcode = WEXITSTATUS (status);
+
+                if (retcode)
+                    rw_error (0, __FILE__, __LINE__,
+                              "the process (pid=%{P}) exited with return code %d",
+                              pid, retcode);
+
+                *presult = retcode;
+            }
+            else {
+                *presult = -1;
             }
         }
-        while (false);
-    }
-
-    if (ret == pid) {
-
-        if (WIFSIGNALED (status)) {
-            // process exited with a signal
-            const int signo = WTERMSIG (status);
-
-            rw_error (0, __FILE__, __LINE__,
-                      "the process (pid=%{P}) exited with signal %d (%{K})",
-                      pid, signo, signo);
-
-            if (result)
-                *result = signo;
+        else {
+            *presult = -1;
         }
-        else if (WIFEXITED (status)) {
-            // process exited with a status
-            const int retcode = WEXITSTATUS (status);
 
-            if (retcode)
-                rw_error (0, __FILE__, __LINE__,
-                          "the process (pid=%{P}) exited with return code %d",
-                          pid, retcode);
+    } while(false);
 
-            if (result)
-                *result = retcode;
+    if (0 < timeout) {
+
+        if (prev_alarm_timeout) {
+            const int delta = time(0) - start;
+
+            if (delta < prev_alarm_timeout)
+                prev_alarm_timeout -= delta;
+            else
+                prev_alarm_timeout = 1;
         }
-        else if (result)
-            *result = -1;
-    }
 
+        alarm (prev_alarm_timeout);
+
+#ifndef _RWSTD_NO_SIGACTION
+        sigaction (SIGALRM, &prev_alarm_action, 0);
+#else
+        signal (SIGALRM, prev_alarm_handler);
+#endif
+
+    }    
+    
     return ret;
 }
 
