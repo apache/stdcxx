@@ -87,10 +87,9 @@ wchar="btowc fgetwc fgetws fputwc fputws fwide fwprintf fwscanf getwc        \
        wcschr((wchar_t*)0,0) wcscmp wcscoll wcscpy wcscspn wcsftime wcslen   \
        wcsncat wcsncmp wcsncpy wcspbrk((wchar_t*)0,(wchar_t*)0)              \
        wcsrchr((wchar_t*)0,0) wcsrtombs wcsspn                               \
-       wcsstr((wchar_t*)0,(wchar_t*)0) wcstod wcstod wcstof wcstok wcstol    \
-       wcstold wcstoll wcstoul wcstoull wcsxfrm wctob                        \
-       wmemchr((wchar_t*)0,0,0) wmemcmp wmemcpy wmemmove wmemset wprintf     \
-       wscanf"
+       wcsstr((wchar_t*)0,(wchar_t*)0) wcstod wcstof wcstok wcstol wcstold   \
+       wcstoll wcstoul wcstoull wcsxfrm wctob wmemchr((wchar_t*)0,0,0)       \
+       wmemcmp wmemcpy wmemmove wmemset wprintf wscanf"
 
 
 # wctype functions
