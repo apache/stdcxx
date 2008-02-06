@@ -1054,7 +1054,7 @@ function makeLibrary(srcFiles, outFile, shared)
         return ret;
 
     var objNames = srcFiles.replace(/(?:[\S]+[/\\\\])?([^/\\\\]+\.)cpp/gi, 
-        stageDir + "/$1obj");
+        stageDir + "\\$1obj");
 
     if (shared)
     {
