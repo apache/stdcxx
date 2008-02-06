@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2005-2007 Rogue Wave Software, Inc.
+ * Copyright 2005-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -35,7 +35,7 @@
 #include <environ.h>    // for rw_putenv()
 
 #include <bitset>       // for bitset
-#include <ios>          // for ios::openmode, ios::seekdir
+#include <ios>          // for ios::iostate, ios::openmode, ios::seekdir
 #include <string>       // for string
 
 #include <assert.h>     // for assert()
@@ -805,6 +805,29 @@ test_basic_string ()
 static void
 test_ios_bitmasks ()
 {
+    //////////////////////////////////////////////////////////////////
+    printf ("%s\n", "extension: \"%{Is}\": std::ios_base::iostate");
+
+    const int bad  = std::ios_base::badbit;
+    const int eof  = std::ios_base::eofbit;
+    const int fail = std::ios_base::failbit;
+    const int good = std::ios_base::goodbit;
+
+    TEST ("[%{Is}]", 0,                0, 0, "[goodbit]");
+    TEST ("[%{Is}]", bad,              0, 0, "[badbit]");
+    TEST ("[%{Is}]", eof,              0, 0, "[eofbit]");
+    TEST ("[%{Is}]", fail,             0, 0, "[failbit]");
+
+    TEST ("[%{#Is}]", 0,               0, 0, "[std::ios::goodbit]");
+    TEST ("[%{#Is}]", bad,             0, 0, "[std::ios::badbit]");
+    TEST ("[%{#Is}]", eof,             0, 0, "[std::ios::eofbit]");
+    TEST ("[%{#Is}]", fail,            0, 0, "[std::ios::failbit]");
+
+    TEST ("[%{Is}]", bad | eof,        0, 0, "[badbit | eofbit]");
+    TEST ("[%{Is}]", bad | fail,       0, 0, "[badbit | failbit]");
+    TEST ("[%{Is}]", eof | fail,       0, 0, "[eofbit | failbit]");
+    TEST ("[%{Is}]", bad | eof | fail, 0, 0, "[badbit | eofbit | failbit]");
+
     //////////////////////////////////////////////////////////////////
     printf ("%s\n", "extension: \"%{Io}\": std::ios_base::opemode");
 
