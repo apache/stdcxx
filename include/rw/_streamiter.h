@@ -25,7 +25,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -99,9 +99,7 @@ public:
     _RWSTD_OPERATOR_ARROW (const value_type* operator->() const);
 
     // 24.5.1.2, p3
-    istream_iterator& operator++ () {
-        return _C_strm && !!*_C_strm && (*_C_strm >> _C_val), *this;
-    }
+    istream_iterator& operator++ ();
 
     // 24.5.1.2, p5
     istream_iterator operator++ (int) {
@@ -116,13 +114,26 @@ protected:
 };
 
 
+template <class _TypeT, class _CharT, class _Traits, class _Distance>
+inline istream_iterator<_TypeT, _CharT, _Traits, _Distance>&
+istream_iterator<_TypeT, _CharT, _Traits, _Distance>::
+operator++ ()
+{
+    // incrementing an end-of-stream iterator has undefined behavior
+    if (_C_strm && (*_C_strm >> _C_val).eof ())
+        _C_strm = 0;
+
+    return *this;
+}
+
+
 // 24.5.1.2, p6
 template <class _TypeT, class _CharT, class _Traits, class _Distance>
 inline bool
 operator== (const istream_iterator<_TypeT, _CharT, _Traits, _Distance>& __x,
             const istream_iterator<_TypeT, _CharT, _Traits, _Distance>& __y)
 {
-    return (__x._C_strm && !!*__x._C_strm) == (__y._C_strm && !!*__y._C_strm);
+    return __x._C_strm == __y._C_strm;
 }
 
 
