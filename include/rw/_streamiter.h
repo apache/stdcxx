@@ -120,7 +120,9 @@ istream_iterator<_TypeT, _CharT, _Traits, _Distance>::
 operator++ ()
 {
     // incrementing an end-of-stream iterator has undefined behavior
-    if (_C_strm && (*_C_strm >> _C_val).eof ())
+
+    // see also LWG issue 788
+    if (_C_strm && (*_C_strm >> _C_val).fail ())
         _C_strm = 0;
 
     return *this;
