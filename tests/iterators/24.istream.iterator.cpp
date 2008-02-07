@@ -100,8 +100,7 @@ void test_ctors (const TempParams<T, CharT, Traits, Dist> &params)
     // below, to prevent the iterator ctor from creating an end-of-stream
     // iterator (in case it doesn't delay extracting a value until it's
     // needed)
-    strm1.rdbuf ()->sputc (CharT ());
-    strm1.rdbuf ()->sputc (CharT ());
+    strm1 << "1 2 ";
 
     // verify [reverse.iter], p3, i.e., that two istream_iterators
     // constructed from the same stream always compare equal
@@ -119,7 +118,7 @@ void test_ctors (const TempParams<T, CharT, Traits, Dist> &params)
     StringStream strm2;
     strm2.imbue (strm1.getloc ());
 
-    strm2.rdbuf ()->sputc (CharT ());
+    strm2 << "2 ";
 
     const Iterator iter3 (strm2);
 
@@ -209,46 +208,58 @@ void test_ops (const TempParams<T, CharT, Traits, Dist> &params)
     const bool is_signed = zero - one < zero;
     const bool is_exact  = one / two == zero;
 
+    // see LWG issue 788
+    // an istream_iterator object becomes an end-of-stream iterator
+    // after a failed extraction (i.e., when the call to fail() on
+    // the associated stream returns true)
+
     if (is_char) {
+
+        //    +-- controlled sequence
+        //    |     +-- extracted value
+        //    |     |    +-- iterator equal to EOS after extraction
+        //    |     |    |      +-- stream state after extraction
+        //    |     |    |      |
+        //    V     V    V      V
         TEST ("",  '\0', true,  Eof | Fail);
         TEST ("1", '1',  false, Good);
         TEST ("2", '2',  false, Good);
     }
     else {
         TEST ("",      0, true,  Eof | Fail);
-        TEST ("1",     1, true,  Eof);
+        TEST ("1",     1, false, Eof);
         TEST ("1 ",    1, false, Good);
-        TEST ("+1",    1, true,  Eof);
-        TEST (" 1",    1, true,  Eof);
+        TEST ("+1",    1, false, Eof);
+        TEST (" 1",    1, false, Eof);
         TEST (" 1 ",   1, false, Good);
-        TEST (" +1",   1, true,  Eof);
-        TEST ("2",     2, true,  Eof);
-        TEST ("+2",    2, true,  Eof);
-        TEST (" 2",    2, true,  Eof);
-        TEST (" +2",   2, true,  Eof);
-        TEST ("99",   99, true,  Eof);
-        TEST ("+99",  99, true,  Eof);
-        TEST (" 99",  99, true,  Eof);
-        TEST (" +99", 99, true,  Eof);
+        TEST (" +1",   1, false, Eof);
+        TEST ("2",     2, false, Eof);
+        TEST ("+2",    2, false, Eof);
+        TEST (" 2",    2, false, Eof);
+        TEST (" +2",   2, false, Eof);
+        TEST ("99",   99, false, Eof);
+        TEST ("+99",  99, false, Eof);
+        TEST (" 99",  99, false, Eof);
+        TEST (" +99", 99, false, Eof);
 
         TEST ("+",     0, true,  Eof | Fail);
         TEST ("-",     0, true,  Eof | Fail);
         TEST (" +",    0, true,  Eof | Fail);
         TEST (" -",    0, true,  Eof | Fail);
-        TEST ("++",    0, false, Fail);
-        TEST ("--",    0, false, Fail);
-        TEST (" ++",   0, false, Fail);
-        TEST (" --",   0, false, Fail);
-        TEST ("*",     0, false, Fail);
-        TEST (" *",    0, false, Fail);
+        TEST ("++",    0, true,  Fail);
+        TEST ("--",    0, true,  Fail);
+        TEST (" ++",   0, true,  Fail);
+        TEST (" --",   0, true,  Fail);
+        TEST ("*",     0, true,  Fail);
+        TEST (" *",    0, true,  Fail);
 
         if (is_signed) {
-            TEST ("-1",    -1, true,  Eof);
-            TEST (" -1",   -1, true,  Eof);
-            TEST ("-2",    -2, true,  Eof);
-            TEST (" -2",   -2, true,  Eof);
-            TEST ("-99",  -99, true,  Eof);
-            TEST (" -99", -99, true,  Eof);
+            TEST ("-1",    -1, false, Eof);
+            TEST (" -1",   -1, false, Eof);
+            TEST ("-2",    -2, false, Eof);
+            TEST (" -2",   -2, false, Eof);
+            TEST ("-99",  -99, false, Eof);
+            TEST (" -99", -99, false, Eof);
         }
 
         if (is_exact) {
@@ -258,27 +269,27 @@ void test_ops (const TempParams<T, CharT, Traits, Dist> &params)
             TEST (" +4.",  4, false, Good);
         }
         else {
-            TEST (".1",          0.1,      true,  Eof);
-            TEST ("+.2",         0.2,      true,  Eof);
-            TEST ("-.3",        -0.3,      true,  Eof);
-            TEST (" +.4",        0.4,      true,  Eof);
-            TEST (" -.5",       -0.5,      true,  Eof);
+            TEST (".1",          0.1,      false, Eof);
+            TEST ("+.2",         0.2,      false, Eof);
+            TEST ("-.3",        -0.3,      false, Eof);
+            TEST (" +.4",        0.4,      false, Eof);
+            TEST (" -.5",       -0.5,      false, Eof);
             TEST ("1..",         1.0,      false, Good);
 
-            TEST ("1.234",       1.234,    true,  Eof);
-            TEST ("+1.235",     +1.235,    true,  Eof);
-            TEST ("-1.236",     -1.236,    true,  Eof);
-            TEST (" +1.237",    +1.237,    true,  Eof);
-            TEST (" -1.238",    -1.238,    true,  Eof);
-            TEST ("1.239e1",     1.239e1,  true,  Eof);
-            TEST ("1.240e+1",    1.240e+1, true,  Eof);
-            TEST ("-1.241e+2",  -1.241e+2, true,  Eof);
+            TEST ("1.234",       1.234,    false, Eof);
+            TEST ("+1.235",     +1.235,    false, Eof);
+            TEST ("-1.236",     -1.236,    false, Eof);
+            TEST (" +1.237",    +1.237,    false, Eof);
+            TEST (" -1.238",    -1.238,    false, Eof);
+            TEST ("1.239e1",     1.239e1,  false, Eof);
+            TEST ("1.240e+1",    1.240e+1, false, Eof);
+            TEST ("-1.241e+2",  -1.241e+2, false, Eof);
             TEST ("-1.242e-3 ", -1.242e-3, false, Good);
 
             TEST ("1.3e",        0,        true,  Eof | Fail);
             TEST ("1.4e+",       0,        true,  Eof | Fail);
             TEST ("1.5e-",       0,        true,  Eof | Fail);
-            TEST ("1.6e+ ",      0,        false, Fail);
+            TEST ("1.6e+ ",      0,        true,  Fail);
         }
     }
 }
@@ -309,6 +320,15 @@ void do_test (TestId      id,
 
 /***********************************************************************/
 
+int opt_char;
+int opt_wchar_t;
+int opt_UserTraits;
+int opt_short;
+int opt_int;
+int opt_long;
+int opt_double;
+
+
 // exercise different specializations of T
 template <class CharT, class Traits, class Dist>
 void do_test (TestId      id,
@@ -318,7 +338,8 @@ void do_test (TestId      id,
 {
 #undef TEST
 #define TEST(T, fmt)   \
-    do_test<T, CharT, Traits, Dist>(id, #T, fmt, cname, trname, dname)
+    if (opt_ ## T)     \
+        do_test<T, CharT, Traits, Dist>(id, #T, fmt, cname, trname, dname)
 
     // cannot instantiate basic_istream<CharT>::operator>>(char&)
     // for any CharT other than char
@@ -348,6 +369,15 @@ run_test (int, char*[])
 {
     static const TestId test_ids [] = { TestCtors, TestOps };
 
+    if (opt_char < 0)
+        rw_note (0, 0, __LINE__, "tests of char specialization disabled");
+
+    if (opt_wchar_t < 0)
+        rw_note (0, 0, __LINE__, "tests of wchar_t specialization disabled");
+
+    if (opt_UserTraits < 0)
+        rw_note (0, 0, __LINE__, "tests of UserTraits specialization disabled");
+
     typedef std::char_traits<char> Traits;
     typedef UserTraits<char>       UsrTraits;
 
@@ -355,25 +385,38 @@ run_test (int, char*[])
 
         const TestId id = test_ids [i];
 
-        // call these helper functions directly to avoid instantiating
-        // basic_istream<CharT>::operator>>(char&) on any CharT other
-        // than char
-        do_test<char, char, Traits, std::ptrdiff_t>(id, "char", "%{hhi}",
-                                                    0, 0, 0);
-        do_test<char, char, UsrTraits, std::ptrdiff_t>(id, "char", "%{hhi}",
-                                                       0, "UserTraits<char>",
-                                                       "std::ptrdiff_t");
+        if (0 <= opt_char) {
 
-        do_test<char, Traits>(id, 0, 0);
-        do_test<char, UsrTraits>(id, "char", "UserTraits<char>");
+            // call these helper functions directly to avoid instantiating
+            // basic_istream<CharT>::operator>>(char&) on any CharT other
+            // than char
+            do_test<char, char, Traits, std::ptrdiff_t>(id, "char", "%{hhi}",
+                                                        0, 0, 0);
+
+            if (0 <= opt_UserTraits)
+                do_test<char, char, UsrTraits, std::ptrdiff_t>(id, "char",
+                    "%{hhi}", 0, "UserTraits<char>", "std::ptrdiff_t");
+
+            do_test<char, Traits>(id, 0, 0);
+
+            if (0 <= opt_UserTraits)
+                do_test<char, UsrTraits>(id, "char", "UserTraits<char>");
+        }
 
 #ifndef _RWSTD_NO_WCHAR_T
 
-        typedef std::char_traits<wchar_t> WTraits;
-        typedef UserTraits<wchar_t>       WUsrTraits;
+        if (0 <= opt_wchar_t) {
 
-        do_test<wchar_t, WTraits>(id, 0, 0);
-        do_test<wchar_t, WUsrTraits>(id, "wchar_t", "UserTraits<wchar_t>");
+            typedef std::char_traits<wchar_t> WTraits;
+            typedef UserTraits<wchar_t>       WUsrTraits;
+
+            do_test<wchar_t, WTraits>(id, 0, 0);
+
+            if (0 <= opt_UserTraits)
+                do_test<wchar_t, WUsrTraits>(id, "wchar_t",
+                                             "UserTraits<wchar_t>");
+
+        }
 
 #endif   // _RWSTD_NO_WCHAR_T
 
@@ -391,5 +434,19 @@ int main (int argc, char *argv[])
                     "lib.istream.iterator",
                     0 /* no comment */,
                     run_test,
-                    "", 0);
+                    "|-char~ "
+                    "|-wchar_t~ "
+                    "|-UserTraits~ "
+                    "|-short~ "
+                    "|-int~ "
+                    "|-long~ "
+                    "|-double~ ",
+                    &opt_char,
+                    &opt_wchar_t,
+                    &opt_UserTraits,
+                    &opt_short,
+                    &opt_int,
+                    &opt_long,
+                    &opt_double,
+                    (void*)0   /* sentinel */);
 }
