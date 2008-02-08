@@ -46,6 +46,7 @@
 #include <rw/_error.h>
 
 #include "setlocale.h"
+#include "punct.h"
 
 
 #if defined (_MSC_VER) && defined (_WIN64)
@@ -599,7 +600,7 @@ __rw_get_punct(const __rw_facet *pfacet, int flags, wchar_t)
 
 const char*
 __rw_get_stdio_fmat (char buf [32], int type, unsigned fmtflags,
-                     _STD::streamsize prec)
+                     _RWSTD_STREAMSIZE prec)
 {
     char *pbuf = buf;
 

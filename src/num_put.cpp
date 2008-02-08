@@ -37,6 +37,7 @@
 #include <loc/_num_put.h>
 
 #include "strtol.h"   // for __rw_digit_map
+#include "punct.h"    // for __rw_get_stdio_fmat
 
 
 #ifndef _RWSTD_NO_SNPRINTF
@@ -69,11 +70,6 @@ _RWSTD_NAMESPACE (__rw) {
 static const char __rw_digits[] =
     "0123456789abcdefghijklmnopqrstuvwxyz"
     "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-
-
-const char*
-__rw_get_stdio_fmat (char buf [32], int type, unsigned fmtflags,
-                     _STD::streamsize prec);
 
 
 #ifdef _RWSTD_LONG_LONG

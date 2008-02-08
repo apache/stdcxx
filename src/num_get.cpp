@@ -31,6 +31,7 @@
 
 #include "setlocale.h"
 #include "strtol.h"
+#include "punct.h"      // for __rw_get_stdio_fmat
 
 #include <ios>          // for ios_base, needed by <rw/_punct.h>
 #include <loc/_num_get.h>
@@ -105,11 +106,6 @@ extern const long double __rw_ldbl_infinity;
 #endif   // _RWSTD_NO_LONG_DOUBLE
 
 }   // extern "C"/"C++"
-
-
-const char*
-__rw_get_stdio_fmat (char buf [32], int type, unsigned fmtflags,
-                     _STD::streamsize prec);
 
 
 // verifies that the `grps' array of size `ngrps' representing the
