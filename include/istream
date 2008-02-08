@@ -522,21 +522,7 @@ ws (basic_istream<_CharT, _Traits> &__strm)
 }
 
 
-_EXPORT
-template<class _CharT, class _Traits, class _Allocator>
-basic_istream<_CharT, _Traits>&
-operator>> (basic_istream<_CharT, _Traits>&,
-            basic_string<_CharT, _Traits, _Allocator>&);
-
-
-_EXPORT
-template<class _CharT, class _Traits, class _Allocator>
-basic_istream<_CharT, _Traits>&
-getline (basic_istream<_CharT, _Traits>&,
-         basic_string<_CharT, _Traits, _Allocator>&,
-         _CharT);
-
-
+// 21.3.7.9 - defined here, declared inline in <string>
 template<class _CharT, class _Traits, class _Allocator>
 inline basic_istream<_CharT, _Traits>& 
 getline (basic_istream<_CharT, _Traits>&            __is,

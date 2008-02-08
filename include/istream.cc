@@ -780,6 +780,7 @@ getline (char_type *__line, streamsize __size, char_type __delim)
 }
 
 
+// 21.3.7.9 - defined here, declared in <string>
 _EXPORT
 template<class _CharT, class _Traits, class _Allocator>
 basic_istream<_CharT, _Traits>&
@@ -962,6 +963,7 @@ operator>> (basic_istream<_CharT, _Traits>&            __is,
 }
 
 
+// 21.3.7.9 - defined here, declared in <string>
 _EXPORT
 template<class _CharT, class _Traits, class _Allocator>
 basic_istream<_CharT, _Traits>&
