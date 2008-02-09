@@ -32,7 +32,7 @@
 
 int main ()
 {
-    struct: std::filebuf {
+    struct MyBuf : std::filebuf {
         int_type overflow (int_type c) {
             return std::filebuf::overflow (c);
         }
