@@ -32,7 +32,7 @@
 
 int main ()
 {
-    struct: std::streambuf {
+    struct MyBuf : std::streambuf {
         int_type underflow () {
             static int i = 0;
             // i == 0: sgect() invoked from sentry ctor
