@@ -407,10 +407,9 @@ int main ()
                     width, width < 10 ? " " : "", type,                 \
                     width, width < 10 ? " " : "", type);                \
         else                                                            \
-            printf ("#define _RWSTD_INT%d_T %s          %s%s\n"         \
+            printf ("#define _RWSTD_INT%d_T %s          signed %s\n"    \
                     "#define _RWSTD_UINT%d_T %s         unsigned %s\n", \
-                    width, width < 10 ? " " : "",                       \
-                    8 == width && '\xff' < 0 ? "signed " : "", type,    \
+                    width, width < 10 ? " " : "", type,                 \
                     width, width < 10 ? " " : "", type);                \
     } while (0)
 
