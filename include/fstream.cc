@@ -23,7 +23,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1997-2006 Rogue Wave Software, Inc.
+ * Copyright 1997-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -76,27 +76,52 @@ basic_filebuf<_CharT, _Traits>*
 basic_filebuf<_CharT, _Traits>::
 close (bool __close_file /* = true */)
 {
+    // close_file is false when close() is called from detach()
+
     _RWSTD_ASSERT (this->_C_is_valid ());
 
     if (!is_open ())
         return 0;   // failure
 
-    // avoid expensive call to overflow() unless necessary
-    if (this->pptr () != this->pbase () && this->_C_is_eof (overflow ()))
-        return 0;   // failure
+    // close() returns this on success, 0 on failure
+    basic_filebuf *__retval = this;
 
-    // write out any unshift sequence if necessary
-    // (applies to multibyte, state dependent encodings only)
-    if (this->_C_out_last () && !_C_unshift ())
-        return 0;   // failure
+    _TRY {
+        // avoid expensive call to overflow() unless necessary
+        if (this->pptr () != this->pbase () && this->_C_is_eof (overflow ()))
+            __retval = 0;   // failure
 
-    if (__close_file && _RW::__rw_fclose (_C_file, this->_C_state))
-        return 0;   // failure
+        // write out any unshift sequence if necessary
+        // (applies to multibyte, state dependent encodings only)
+        if (__retval && this->_C_out_last () && !_C_unshift ())
+            __retval = 0;   // failure
+    }
+    _CATCH (...) {
+        // either overflow() or codecvt::unshift() threw
 
-    _C_file    = 0;
-    _C_cur_pos = _C_beg_pos = pos_type (off_type (-1));
+        if (__close_file) {
+            _RW::__rw_fclose (_C_file, this->_C_state);
 
-    return this;
+            // zero out the file pointer except when detaching fd
+            _C_file    = 0;
+            _C_cur_pos = _C_beg_pos = pos_type (off_type (-1));
+
+        }
+
+        // rethrow the caught exception
+        _RETHROW;
+    }
+
+    if (__close_file) {
+        if (_RW::__rw_fclose (_C_file, this->_C_state))
+            __retval = 0;
+
+        // zero out the file pointer except when detaching fd
+        _C_file    = 0;
+        _C_cur_pos = _C_beg_pos = pos_type (off_type (-1));
+    }
+
+    return __retval;
 }
 
 
