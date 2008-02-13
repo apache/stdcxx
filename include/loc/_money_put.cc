@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -71,21 +71,21 @@ _C_put (iter_type __it, int __opts, ios_base &__flags, char_type __fill,
     const _Punct1* __pun1;
 
     if (__intl) {
-        __pun0 = 0;
         __pun1 = &_RWSTD_USE_FACET (_Punct1, __flags.getloc ());
     }
     else {
         __pun0 = &_RWSTD_USE_FACET (_Punct0, __flags.getloc ());
-        __pun1 = 0;
     }
 
     const ctype<_CharT> &__ctp =
         _RWSTD_USE_FACET (ctype<_CharT>,__flags.getloc ());
 
+    const char __signchar = __ctp.narrow (*__s, '\0');
+
     money_base::pattern __fmat;   // negative or positive format
     string_type         __sign;   // negative or positive sign
 
-    if ('-' == __ctp.narrow (*__s, '\0')) {
+    if ('-' == __signchar) {
         if (__intl) {
             __fmat = __pun1->neg_format ();
             __sign = __pun1->negative_sign ();
@@ -106,7 +106,7 @@ _C_put (iter_type __it, int __opts, ios_base &__flags, char_type __fill,
             __fmat = __pun0->pos_format ();
             __sign = __pun0->positive_sign ();
         }
-        if ('+' == __ctp.narrow (*__s, '\0')) {
+        if ('+' == __signchar) {
             ++__s;
             --__n;
         }
