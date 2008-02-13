@@ -23,7 +23,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -198,7 +198,7 @@ str () const
         __last  = this->egptr ();
     }
 
-    return _C_string_type (__first, __last - __first);
+    return _C_string_type (__first, __last);
 }
 
 

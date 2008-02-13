@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2007 Rogue Wave Software, Inc.
+ * Copyright 1994-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -78,9 +78,10 @@ messages<_CharT>::do_get (messages_base::catalog __cat,
             return _RWSTD_REINTERPRET_CAST (const _CharT*, __text);
         }
 
-        typedef char_traits<char> CharTraits;
+        typedef char_traits<char> _CharTraits;
+        typedef _RWSTD_SIZE_T     _SizeT;
 
-        const _RWSTD_SIZE_T __src_len = CharTraits::length (__text);
+        const _SizeT      __src_len = _CharTraits::length (__text);
         const char* const __src_first = __text;
         const char* const __src_last  = __text + __src_len;
         const char*       __src_next  = __src_first;
@@ -105,7 +106,9 @@ messages<_CharT>::do_get (messages_base::catalog __cat,
         switch (__res) {
         case codecvt_base::ok:
             // shrink the converted string accordingly
-            __result_str.resize (__dst_next - __dst_first);
+            _RWSTD_ASSERT (__dst_first <= __dst_next);
+
+            __result_str.resize (_SizeT (__dst_next - __dst_first));
             return __result_str;
 
         case codecvt_base::noconv:
@@ -122,7 +125,7 @@ messages<_CharT>::do_get (messages_base::catalog __cat,
                 const _Ctype& __ctp =
                     _RWSTD_USE_FACET (_Ctype, _RW::__rw_get_locale (__cat));
 
-                for (_RWSTD_SIZE_T __i = 0; __i != __src_len; ++__i)
+                for (_SizeT __i = 0; __i != __src_len; ++__i)
                     __dst_first [__i] = __ctp.widen (__text [__i]);
 
                 return __result_str;
