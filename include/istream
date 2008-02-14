@@ -567,26 +567,26 @@ _RWSTD_NAMESPACE (std) {
 
 #if _RWSTD_INSTANTIATE (_BASIC_ISTREAM, _CHAR)
 
-_RWSTD_INSTANTIATE_2 (class _RWSTD_EXPORT
+_RWSTD_INSTANTIATE_2 (class _RWSTD_TI_EXPORT
                       basic_istream<char, char_traits<char> >);
 
-_RWSTD_INSTANTIATE_FUN_1 (_RWSTD_EXPORT istream&
+_RWSTD_INSTANTIATE_FUN_1 (_RWSTD_TI_EXPORT istream&
                           operator>> (istream&, string&));
 
-_RWSTD_INSTANTIATE_FUN_1 (_RWSTD_EXPORT istream&
+_RWSTD_INSTANTIATE_FUN_1 (_RWSTD_TI_EXPORT istream&
                           getline (istream&, string&, char));
 
 #endif   // _RWSTD_INSTANTIATE (_BASIC_ISTREAM, _CHAR)
 
 #if _RWSTD_INSTANTIATE (_BASIC_ISTREAM, _WCHAR_T)
 
-_RWSTD_INSTANTIATE_2 (class _RWSTD_EXPORT
+_RWSTD_INSTANTIATE_2 (class _RWSTD_TI_EXPORT
                       basic_istream<wchar_t, char_traits<wchar_t> >);
 
-_RWSTD_INSTANTIATE_FUN_1 (_RWSTD_EXPORT wistream&
+_RWSTD_INSTANTIATE_FUN_1 (_RWSTD_TI_EXPORT wistream&
                           operator>> (wistream&, wstring&));
 
-_RWSTD_INSTANTIATE_FUN_1 (_RWSTD_EXPORT wistream&
+_RWSTD_INSTANTIATE_FUN_1 (_RWSTD_TI_EXPORT wistream&
                           getline (wistream&, wstring&, wchar_t));
 #endif   // _RWSTD_INSTANTIATE (_BASIC_ISTREAM, _WCHAR_T)
 

@@ -1299,6 +1299,13 @@ __rw_assert_fail (const char*, const char*, int, const char*)
 #endif   // _RWSTD_NO_STRTOULL
 
 
+#ifdef _RWSTD_LIB_SRC
+#  define _RWSTD_TI_EXPORT    /* empty */
+#else    // #ifndef _RWSTD_LIB_SRC
+#  define _RWSTD_TI_EXPORT    _RWSTD_EXPORT
+#endif   // _RWSTD_LIB_SRC
+
+
 #if     defined (_RWSTD_INSTANTIATE_TEMPLATES)       \
     && !defined (_RWSTD_NO_EXPLICIT_INSTANTIATION)   \
     && !defined (_RWSTD_NO_INSTANTIATE)
@@ -1311,6 +1318,9 @@ __rw_assert_fail (const char*, const char*, int, const char*)
 #  define _RWSTD_INSTANTIATE_1(arg)          template arg
 #  define _RWSTD_INSTANTIATE_2(a1, a2)       template a1, a2
 #  define _RWSTD_INSTANTIATE_3(a1, a2, a3)   template a1, a2, a3
+
+#  undef  _RWSTD_TI_EXPORT
+#  define _RWSTD_TI_EXPORT    _RWSTD_EXPORT
 
 #  ifdef _RWSTD_NO_FUNCTION_EXPLICIT_INSTANTIATION
      // replace explicit function template instantiations with
