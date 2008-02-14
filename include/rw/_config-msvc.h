@@ -48,21 +48,37 @@
 #  endif   // _RWSTD_NO_STRING_NPOS_TYPE
 #endif   // MSVC <= 7.0
 
-   // disable "Same type qualifier used more than once"
-#  pragma warning (disable: 4114)
+// disable "Same type qualifier used more than once"
+#pragma warning (disable: 4114)
 
-   // disable "return type for operator->' is not a UDT"
-#  pragma warning (disable: 4284)
+// disable "return type for operator->' is not a UDT"
+#pragma warning (disable: 4284)
 
-   // disable "nonstandard extension used :"
-   // "'extern' before template explicit instantiation"
-#  pragma warning (disable: 4231)
+// disable "nonstandard extension used :"
+// "'extern' before template explicit instantiation"
+#pragma warning (disable: 4231)
 
-   // disable "decorated name length exceeded"
-#  pragma warning (disable: 4503)
+// RWDLL - defined for all Rogue Wave(R) products built as shared libs
+// _RWSHARED - defined for libstd built/used as a shared lib
+#if defined (RWDLL) || defined (_RWSHARED)
 
-   // disable "identifier was truncated to 255 characters"
-#  pragma warning (disable: 4786)
+   // disable "class needs to have dll-interface to be used by cliens"
+#  pragma warning (disable: 4251)
 
-   // disable "'function': was declared deprecated"
-#  pragma warning (disable: 4996)
+   // disable "non dll-interface class used as base for dll-interface class"
+#  pragma warning (disable: 4275)
+
+#endif   // RWDLL || _RWSHARED
+
+// disable "decorated name length exceeded"
+#pragma warning (disable: 4503)
+
+// disable "'identifier' : no suitable definition"
+// "provided for explicit template instantiation request"
+#pragma warning (disable: 4661)
+
+// disable "identifier was truncated to 255 characters"
+#pragma warning (disable: 4786)
+
+// disable "'function': was declared deprecated"
+#pragma warning (disable: 4996)
