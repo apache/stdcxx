@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -738,8 +738,12 @@ __rw_iso2022jp_designate (__rw_iso2022_state_t& state,
             if (_RWSTD_STATIC_CAST (_RWSTD_SIZE_T, to_end - to) < len)
                 return CODECVT_PARTIAL;
 
-            memcpy (to, esc, len);
-            to += len;
+            if (len) {
+                _RWSTD_ASSERT (to && esc);
+                
+                memcpy (to, esc, len);
+                to += len;
+            }
 
             // adjust the state
             state.g_map [2] = reg;
@@ -750,8 +754,12 @@ __rw_iso2022jp_designate (__rw_iso2022_state_t& state,
         if (_RWSTD_STATIC_CAST (_RWSTD_SIZE_T, to_end - to) < len)
             return CODECVT_PARTIAL;
 
-        memcpy (to, ss, sslen);
-        to += sslen;
+        if (sslen) {
+            _RWSTD_ASSERT (to && ss);
+
+            memcpy (to, ss, sslen);
+            to += sslen;
+        }
 
         // adjust the single shift indicator
         state.sshift2 = 1;
@@ -761,8 +769,12 @@ __rw_iso2022jp_designate (__rw_iso2022_state_t& state,
         if (_RWSTD_STATIC_CAST (_RWSTD_SIZE_T, to_end - to) < len)
             return CODECVT_PARTIAL;
 
-        memcpy (to, esc, len);
-        to += len;
+        if (len) {
+            _RWSTD_ASSERT (to && esc);
+
+            memcpy (to, esc, len);
+            to += len;
+        }
 
         // adjust the state
         state.g_map [0]   = reg;
@@ -1534,7 +1546,7 @@ __rw_ucs4_to_interm (  const wchar_t*& from,
     // utf8 temporary buffer
     char tmp [_UTF8_MB_CUR_MAX];
 
-    for (int i = 0; i < int(sizeof (db_array)/sizeof (unsigned char)); i++) {
+    for (size_t i = 0; i < sizeof db_array / sizeof *db_array; ++i) {
         char* ptmp = tmp;
 
         // obtain the database mapping
