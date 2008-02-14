@@ -1,4 +1,3 @@
-// checking for extern function template extension
 
 /***************************************************************************
  *
@@ -22,32 +21,43 @@
  * 
  **************************************************************************/
 
-// include a file containing the definition of a template
-// and an extern template directive referencing an explicit
-// instantiation of the same template in extern_function_template_imp.o
+// avoid including <config.h> here to avoid inadvertently
+// trying to introduce dependencies on other config tests
+// that the config infrastructure won't know about (since
+// it only searches .cpp files for them)
+// #include <config.h>
 
-#include "extern_function_template_imp.h"
+#if __GNUG__ >= 3
+   // disable gcc 3.x (and beyond) error: ISO C++ forbids the use
+   // of `extern' on explicit instantiations
+#  pragma GCC system_header
+#endif   // gcc >= 3
 
-// establish a dependency on extern_function_template_imp.o to make sure
-// the extern_function_template_imp.cpp is compiled before this file
-#ifndef _RWSTD_NO_extern_function_template_imp
 
-// link with the object file below
-// LDOPTS = extern_function_template_imp.o
-
-#endif   // _RWSTD_NO_extern_function_template_imp
-
-int main ()
+template <class T>
+struct S
 {
-    S<int> s;
+    T t;
+};
 
-    int res = 0;
+template <class T>
+S<T> foobar (S<T> s)
+{
+#if defined (INSTANTIATE)
+    s.t = 1;
+#else   // if !defined (INSTANTIATE)
+    s.t = -1;
+#endif   // INSTANTIATE
 
-    // verify that the call compiles and links
-    res += foobar (s).t;
-
-    // verify that the call resolves to the definition emitted
-    // by the explicit instantiation in extern_function_template_imp.o
-    // and not the one here
-    return !(1 == res);
+    return s;
 }
+
+#if defined (INSTANTIATE)
+
+template S<int> foobar (S<int>);
+
+#else   // if !defined (INSTANTIATE)
+
+extern template S<int> foobar (S<int>);
+
+#endif   // INSTANTIATE
