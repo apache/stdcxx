@@ -788,40 +788,136 @@ operator>> (basic_istream<_CharT, _Traits>&            __is,
 {
     _RWSTD_ASSERT (0 != __is.rdbuf ());
 
+    const _TYPENAME basic_istream<_CharT, _Traits>::sentry
+        __ipfx (__is /* , noskipws = false */);
+
     ios_base::iostate __err = ios_base::goodbit;
 
-    _RWSTD_SIZE_T __gcount = 0;
+    typedef _RWSTD_SIZE_T _SizeT;
+
+    // count of characters read from stream
+    _SizeT __gcount = 0;
 
     _TRY {
 
-        const _TYPENAME basic_istream<_CharT, _Traits>::sentry
-            __ipfx (__is /* , noskipws = false */);
-
         if (__ipfx) {
 
-            basic_streambuf<_CharT, _Traits>* const __rdbuf = __is.rdbuf ();
+            __str.clear ();
 
-            // FIXME: code commented out to work around an HP aCC 3.14.10
-            // bug #JAGac86264
-
-            // typedef _TYPENAME
-            //     basic_string<_CharT, _Traits, _Allocator>::size_type
-
-            const _RWSTD_SIZE_T __maxlen =
+            // maximum number of characters we can read
+            _RWSTD_SIZE_T __n =
                 __is.width () ? __is.width () : __str.max_size ();
 
-            __str.clear ();
+            basic_streambuf<_CharT, _Traits>* const __rdbuf = __is.rdbuf ();
 
             const ctype<_CharT> &__ctp =
                 _USE_FACET (ctype<_CharT>, __is.getloc ());
 
-            // increment gcount only _after_ sbumpc() but _before_
-            // the subsequent call to sgetc() to correctly reflect
-            // the number of extracted characters in the presence
-            // of exceptions thrown from streambuf virtuals
-            for ( ; __maxlen != __gcount; __rdbuf->sbumpc (), ++__gcount) {
+#ifndef _RWSTD_NO_FRIEND_TEMPLATE
 
-                const _TYPENAME _Traits::int_type __c (__rdbuf->sgetc ());
+            while (__n != 0) {
+
+                const _CharT* const __gptr  = __rdbuf->gptr ();
+                const _CharT* const __egptr = __rdbuf->egptr ();
+
+                // maximum number of characters would want to extract
+                _SizeT __navail = __egptr - __gptr;
+                if (__n < __navail)
+                    __navail = __n;
+
+                if (__navail) {
+
+                    // find the delimeter in the squence if it exists, or
+                    // get pointer to end of sequence
+                    const _CharT* __pdel = __gptr;
+                    for (/**/; __pdel != __egptr; ++__pdel) {
+
+                        const _TYPENAME _Traits::int_type
+                            __c = _Traits::to_int_type(*__pdel);
+
+                        if (_Traits::eq_int_type (__c, _Traits::eof ())) {
+                            __err = ios_base::eofbit;
+                            break;
+                        }
+
+                        if (__ctp.is (__ctp.space, *__pdel))
+                            break;
+                    }
+
+                    // __pdel is either pointing to a delimiter or one past
+                    // the end of the input stream get area. if it is past
+                    // the end, then set it to null.
+                    if (__pdel == __egptr) {
+                        __pdel = 0;
+                    }
+
+                    if (__pdel) {
+                        __navail = __pdel - __gptr + 1;
+                        __n     -= __navail - 1;
+                    }
+                    else if (__n == __navail)
+                        __n -= --__navail;
+                    else
+                        __n -= __navail;
+
+                    // store characters excluding the delimiter
+                    __str.append (__gptr, __navail - !!__pdel);
+
+                    __gcount += __navail;
+
+                    // advance gptr() by the number of extracted
+                    // characters, including the delimiter
+                    __rdbuf->gbump (__navail);
+
+                    // we found a delimiter before the end of the get area,
+                    // break out of outer loop
+                    if (__pdel) {
+                        break;
+                    }
+
+                    if (2 > __n && _SizeT (__egptr - __gptr) != __navail) {
+                        __err = ios_base::failbit;
+                        break;
+                    }
+                }
+                else {
+
+                    // n data in buffer, trigger underflow()
+                    // note that streambuf may be unbuffered
+                    const _TYPENAME _Traits::int_type
+                        __c = __rdbuf->sgetc ();
+
+                    if (_Traits::eq_int_type (__c, _Traits::eof ())) {
+                        __err = ios_base::eofbit;
+                        break;
+                    }
+
+                    // convert to char_type so that isspace works correctly
+                    const _TYPENAME _Traits::char_type
+                        __ch = _Traits::to_char_type (__c);
+
+                    if (__ctp.is (__ctp.space, __ch))
+                        break;
+
+                    __str.push_back (__ch);
+                    --__n;
+
+                    __rdbuf->sbumpc ();
+
+                    // increment gcount only _after_ sbumpc() but _before_
+                    // the subsequent call to sgetc() to correctly reflect
+                    // the number of extracted characters in the presence
+                    // of exceptions thrown from streambuf virtuals
+                    ++__gcount;
+                }
+            }
+
+#else   // if defined (_RWSTD_NO_FRIEND_TEMPLATE)
+
+            for ( ; __n != 0; ) {
+
+                const _TYPENAME _Traits::int_type
+                    __c (__rdbuf->sgetc ());
 
                 if (_Traits::eq_int_type (__c, _Traits::eof ())) {
                     __err = ios_base::eofbit;
@@ -836,13 +932,24 @@ operator>> (basic_istream<_CharT, _Traits>&            __is,
                     break;
 
                 __str.push_back (__ch);
+                --__n;
+
+                __rdbuf->sbumpc ();
+
+                // increment gcount only _after_ sbumpc() but _before_
+                // the subsequent call to sgetc() to correctly reflect
+                // the number of extracted characters in the presence
+                // of exceptions thrown from streambuf virtuals
+                ++__gcount;
             }
+
+#endif   // if defined (_RWSTD_NO_FRIEND_TEMPLATE)
 
             __is.width (0);
         }
     }
     _CATCH (...) {
-        __is.setstate (__is.badbit | _RW::__rw_rethrow);
+        __is.setstate (ios_base::badbit | _RW::__rw_rethrow);
     }
 
     if (!__gcount)
@@ -852,7 +959,7 @@ operator>> (basic_istream<_CharT, _Traits>&            __is,
         __is.setstate (__err);
 
     return __is;
-}  
+}
 
 
 _EXPORT
