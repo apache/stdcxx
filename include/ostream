@@ -244,14 +244,14 @@ public:
 // explicit instantiation followed by explicit specialization is illegal
 // according to 14.6.4.1, p7 but MSVC allows it (linker errors otherwise)
 
-_RWSTD_INSTANTIATE_2 (class _RWSTD_EXPORT
+_RWSTD_INSTANTIATE_2 (class _RWSTD_TI_EXPORT
                       basic_ostream<char, char_traits<char> >);
 
 #  endif   // _RWSTD_INSTANTIATE (_BASIC_OSTREAM, _CHAR)
 
 #  if _RWSTD_INSTANTIATE (_BASIC_OSTREAM, _WCHAR_T)
 
-_RWSTD_INSTANTIATE_2 (class _RWSTD_EXPORT
+_RWSTD_INSTANTIATE_2 (class _RWSTD_TI_EXPORT
                       basic_ostream<wchar_t, char_traits<wchar_t> >);
 
 #  endif   // _RWSTD_INSTANTIATE (_BASIC_OSTREAM, _WCHAR_T)
@@ -554,14 +554,14 @@ inline wostream& flush (wostream& __strm)
 
 #  if _RWSTD_INSTANTIATE (_BASIC_OSTREAM, _CHAR)
 
-_RWSTD_INSTANTIATE_2 (class _RWSTD_EXPORT
+_RWSTD_INSTANTIATE_2 (class _RWSTD_TI_EXPORT
                       basic_ostream<char, char_traits<char> >);
 
 #  endif   // _RWSTD_INSTANTIATE (_BASIC_OSTREAM, _CHAR)
 
 #  if _RWSTD_INSTANTIATE (_BASIC_OSTREAM, _WCHAR_T)
 
-_RWSTD_INSTANTIATE_2 (class _RWSTD_EXPORT
+_RWSTD_INSTANTIATE_2 (class _RWSTD_TI_EXPORT
                       basic_ostream<wchar_t, char_traits<wchar_t> >);
 
 #  endif   // _RWSTD_INSTANTIATE (_BASIC_OSTREAM, _WCHAR_T)

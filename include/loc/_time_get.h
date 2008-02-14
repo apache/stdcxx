@@ -221,13 +221,13 @@ _RWSTD_NAMESPACE (std) {
 
 #if _RWSTD_INSTANTIATE (_TIME_GET, _CHAR)
 
-_RWSTD_INSTANTIATE_1 (class _RWSTD_EXPORT time_get<char>);
+_RWSTD_INSTANTIATE_1 (class _RWSTD_TI_EXPORT time_get<char>);
 
 #endif   // _RWSTD_INSTANTIATE (_TIME_GET, _CHAR)
 
 #if _RWSTD_INSTANTIATE (_TIME_GET, _WCHAR_T)
 
-_RWSTD_INSTANTIATE_1 (class _RWSTD_EXPORT time_get<wchar_t>);
+_RWSTD_INSTANTIATE_1 (class _RWSTD_TI_EXPORT time_get<wchar_t>);
 
 #endif   // _RWSTD_INSTANTIATE (_TIME_GET, _WCHAR_T)
 

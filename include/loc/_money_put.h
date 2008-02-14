@@ -120,13 +120,13 @@ _RWSTD_NAMESPACE (std) {
 
 #if _RWSTD_INSTANTIATE (_MONEY_PUT, _CHAR)
 
-_RWSTD_INSTANTIATE_1 (struct _RWSTD_EXPORT money_put<char>);
+_RWSTD_INSTANTIATE_1 (struct _RWSTD_TI_EXPORT money_put<char>);
 
 #endif   // _RWSTD_INSTANTIATE (_MONEY_PUT, _CHAR)
 
 #if _RWSTD_INSTANTIATE (_MONEY_PUT, _WCHAR_T)
 
-_RWSTD_INSTANTIATE_1 (struct _RWSTD_EXPORT money_put<wchar_t>);
+_RWSTD_INSTANTIATE_1 (struct _RWSTD_TI_EXPORT money_put<wchar_t>);
 
 #endif   // _RWSTD_INSTANTIATE (_MONEY_PUT, _WCHAR_T)
 

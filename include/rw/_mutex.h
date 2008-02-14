@@ -409,8 +409,8 @@ __rw_mutex_base __rw_static_mutex<_TypeT>::_C_mutex
 // explicitly instantiated to work around a g++ 2.95.2 bug on COFF systems
 // (such as IBM AIX or DEC OSF1) where it "forgets" to do so implicitly for
 // explicitly initialized static data members
-_RWSTD_INSTANTIATE_1 (class _RWSTD_EXPORT __rw_static_mutex<int>);
-_RWSTD_INSTANTIATE_1 (class _RWSTD_EXPORT __rw_static_mutex<size_t>);
+_RWSTD_INSTANTIATE_1 (class _RWSTD_TI_EXPORT __rw_static_mutex<int>);
+_RWSTD_INSTANTIATE_1 (class _RWSTD_TI_EXPORT __rw_static_mutex<size_t>);
 
 #endif   // _RWSTD_INSTANTIATE (_STATIC_MUTEX, _INT)
 

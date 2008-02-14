@@ -1634,7 +1634,7 @@ _RWSTD_NAMESPACE (std) {
 
 #if _RWSTD_INSTANTIATE (_BASIC_STRING, _CHAR)
 
-_RWSTD_INSTANTIATE_3 (class _RWSTD_EXPORT
+_RWSTD_INSTANTIATE_3 (class _RWSTD_TI_EXPORT
                       basic_string<char, char_traits<char>,
                                    allocator<char> >);
 
@@ -1642,7 +1642,7 @@ _RWSTD_INSTANTIATE_3 (class _RWSTD_EXPORT
 
 #if _RWSTD_INSTANTIATE (_BASIC_STRING, _WCHAR_T)
 
-_RWSTD_INSTANTIATE_3 (class _RWSTD_EXPORT
+_RWSTD_INSTANTIATE_3 (class _RWSTD_TI_EXPORT
                       basic_string<wchar_t, char_traits<wchar_t>,
                                    allocator<wchar_t> >);
 
