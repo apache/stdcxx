@@ -170,8 +170,6 @@ protected:
 
 private:
 
-    _RWSTD_STREAMSIZE _C_grow (_RWSTD_STREAMSIZE) const;
-
     // called from overflow, underflow, et al to get egptr()
     // caught up with pptr()
     void _C_catchup (char_type*);
@@ -199,25 +197,6 @@ str () const
     }
 
     return _C_string_type (__first, __last);
-}
-
-
-template <class _CharT, class _Traits, class _Allocator>
-inline _RWSTD_STREAMSIZE
-basic_stringbuf<_CharT, _Traits, _Allocator>::
-_C_grow (_RWSTD_STREAMSIZE __to) const
-{
-    const _RWSTD_STREAMSIZE __ratio =
-        _RWSTD_STREAMSIZE (  (_RWSTD_NEW_CAPACITY_RATIO << 10)
-                           / _RWSTD_RATIO_DIVIDER);
-
-    const _RWSTD_STREAMSIZE __cap =
-        this->_C_bufsize ?
-          (this->_C_bufsize >> 10) * __ratio
-        + (((this->_C_bufsize & 0x3ff) * __ratio) >> 10)
-        : _RWSTD_MINIMUM_STRINGBUF_CAPACITY;
-
-    return __cap < __to ? __to : __cap;
 }
 
 
