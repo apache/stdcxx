@@ -103,10 +103,10 @@ str (const char_type *__s, _RWSTD_SIZE_T __slen)
             _RWSTD_STREAMSIZE (  (_RWSTD_NEW_CAPACITY_RATIO << 10)
                                / _RWSTD_RATIO_DIVIDER);
 
-        const _RWSTD_STREAMSIZE __cap =
-            this->_C_buffsize ?
-              (this->_C_buffsize >> 10) * __ratio
-            + (((this->_C_buffsize & 0x3ff) * __ratio) >> 10)
+        const _RWSTD_SIZE_T __cap =
+            this->_C_bufsize ?
+              (this->_C_bufsize >> 10) * __ratio
+            + (((this->_C_bufsize & 0x3ff) * __ratio) >> 10)
             : _RWSTD_MINIMUM_STRINGBUF_CAPACITY;
 
         __bufsize = __cap < __bufsize ? __bufsize : __cap;
