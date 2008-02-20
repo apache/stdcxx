@@ -476,6 +476,8 @@ __rw_replace (_STD::basic_string<_CharT, _Traits, _Alloc> &__s,
     typedef _Alloc                                allocator_type;
     typedef _TYPENAME allocator_type::size_type   size_type;
 
+    typedef _STD::basic_string<_CharT, _Traits, _Alloc> _C_string_type;
+
     typedef _RW::__string_ref<value_type, traits_type, allocator_type>
      _C_string_ref_type;
 
@@ -489,6 +491,8 @@ basic_string<_CharT, _Traits, _Allocator>::
 replace (iterator __first1, iterator __last1,
          _InputIter __first2, _InputIter __last2, void*)
 {
+    typedef basic_string _C_string_type;
+
     basic_string &__s = *this;
 
 #  endif   // _RWSTD_NO_STRING_OUTLINED_MEMBER_TEMPLATES
@@ -498,55 +502,59 @@ replace (iterator __first1, iterator __last1,
     _RWSTD_ASSERT_RANGE (__first1, __last1);
     _RWSTD_ASSERT_RANGE (__first2, __last2);
 
+    if (__first2 == __last2) {
+        if (__first1 == __last1)
+            return __s;
+
+        const size_type __pos = __s._C_off (__first1);
+        const size_type __n = __s._C_off (__first1, __last1);
+        return __s.replace (__pos, __n, size_type (), value_type ());
+    }
+
      // use a (probably) faster algorithm if possible
     if (_STD::__is_bidirectional_iterator (_RWSTD_ITERATOR_CATEGORY(_InputIter,
                                                                     __last2)))
         return __s.__replace_aux (__first1, __last1, __first2, __last2);
 
-    for ( ; !(__first2 == __last2); ++__first1, ++__first2) {
+    _C_string_type __s3;
+    _TYPENAME _C_string_type::iterator __first3 = __s3.begin ();
+    
+    for ( ; !(__first2 == __last2); ++__first2, ++__first3) {
 
-        const size_type __off = __s._C_off (__first1);
+        const size_type __off = __s3._C_off (__first3);
 
-        _RWSTD_REQUIRES (__off <= __s.max_size (),
+        _RWSTD_REQUIRES (__off <= __s3.max_size (),
                          (_RWSTD_ERROR_LENGTH_ERROR,
                           _RWSTD_FUNC ("basic_string::replace (iterator, "
                                        "iterator, InputIterator, "
                                        "InputIterator)"),
-                          __s._C_off (__first1), __s.max_size ()));
+                          __s3._C_off (__first3), __s3.max_size ()));
          
         // extend the string if necessary
-        if (__first1 == __last1) {
+        if (__s3.end () == __first3) {
             // compute the size of new buffer
-            const size_type __cap = __s._C_grow (__s.size (), size_type ());
+            const size_type __cap = __s3._C_grow (__s3.size (), size_type ());
 
-            const size_type __delta = __cap - __s.size ();
+            const size_type __delta = __cap - __s3.size ();
 
             // allocate a new buffer
-            _C_string_ref_type *__tmp = __s._C_get_rep (__cap, __cap);
+            _C_string_ref_type *__tmp = __s3._C_get_rep (__cap, __cap);
 
             // copy data from old to new, leaving a hole for additions
-            traits_type::copy (__tmp->data (), __s._C_data, __off);
-            traits_type::copy (__tmp->data () + __off + __delta,
-                               __s._C_data + __off,
-                               __s._C_make_iter (__s._C_data + __s.size ()) 
-                               - __last1);
-            __s._C_unlink (__tmp->data ());
-            __first1 = __s._C_make_iter (__s._C_data + __off);
-            __last1  = __first1 + __delta;
+            traits_type::copy (__tmp->data (), __s3._C_data, __off);
+            __s3._C_unlink (__tmp->data ());
+            __first3 = __s3._C_make_iter (__s3._C_data + __off);
         }
 
         // copy data over
-        traits_type::assign (*__first1, *__first2);
+        traits_type::assign (*__first3, *__first2);
     }
 
-    if (!(__first1 == __last1)) {
-        const size_type __pos = __s._C_off (__first1);
-        const size_type __n   = __s._C_off (__first1, __last1);
+    const size_type __size = __s3._C_off (__first3);
+    traits_type::assign (__s3._C_data [__size], value_type ());
+    __s3._C_pref ()->_C_size._C_size = __size;
 
-        __s.replace (__pos, __n, size_type (), value_type ());
-    }
-
-    return __s;
+    return __s.__replace_aux (__first1, __last1, __s3.begin (), __s3.end ());
 }
 
 // Special function for random access and bi-directional iterators
@@ -567,9 +575,15 @@ __rw_replace_aux (_STD::basic_string<_CharT, _Traits, _Alloc> &__s,
     typedef _Alloc                                    allocator_type;
     typedef _TYPENAME allocator_type::size_type       size_type;
     typedef _TYPENAME allocator_type::difference_type difference_type;
+    typedef _TYPENAME allocator_type::pointer         pointer;
+    typedef _TYPENAME allocator_type::const_pointer   const_pointer;
+    typedef _TYPENAME allocator_type::const_reference const_reference;
 
     typedef _RW::__string_ref<value_type, traits_type, allocator_type>
     _C_string_ref_type;
+
+    typedef _RWSTD_ALLOC_TYPE (allocator_type, value_type)
+    _C_value_alloc_type;
 
 #  else   // if !defined (_RWSTD_NO_STRING_OUTLINED_MEMBER_TEMPLATES)
 
@@ -592,23 +606,24 @@ __replace_aux (iterator __first1, iterator __last1,
     const size_type  __n2 = _DISTANCE (__first2, __last2, size_type);
     const size_type  __n  = __s._C_off (__first1, __last1);
     const size_type __pos = __s._C_off (__first1);
+    const size_type __ssize = __s.size ();
 
-    _RWSTD_REQUIRES (__pos <= __s.size (),
+    _RWSTD_REQUIRES (__pos <= __ssize,
                      (_RWSTD_ERROR_OUT_OF_RANGE,
                       _RWSTD_FUNC ("basic_string::__replace_aux (iterator, "
                                    "iterator, InputIterator, InputIterator)"),
-                      __pos, __s.size ()));
+                      __pos, __ssize));
 
-    size_type __slen = __s.size () - __pos;
+    size_type __slen = __ssize - __pos;
     size_type __xlen = __n < __slen ? __n : __slen; 
 
-    _RWSTD_REQUIRES (__s.size () - __xlen <= __s.max_size () - __n2,
+    _RWSTD_REQUIRES (__ssize - __xlen <= __s.max_size () - __n2,
                      (_RWSTD_ERROR_LENGTH_ERROR, 
                       _RWSTD_FUNC ("basic_string::__replace_aux (iterator, "
                                    "iterator, InputIterator, InputIterator)"),
-                      __s.size () - __xlen, __s.max_size () - __n2));
+                      __ssize - __xlen, __s.max_size () - __n2));
 
-    size_type __len = __s.size () - __xlen + __n2;  // Final string length.
+    size_type __len = __ssize - __xlen + __n2;  // Final string length.
 
     if (!__len) {
         // Special case a substitution that leaves the string empty.
@@ -617,13 +632,13 @@ __replace_aux (iterator __first1, iterator __last1,
     else {
         size_type __d = 0;
         // length of bit at the end
-        size_type __rem = __s.size () - __xlen - __pos;
-        // Check for shared representation, insufficient capacity, 
+        size_type __rem = __ssize - __xlen - __pos;
+        // Check for shared representation, insufficient capacity
         if (   __s.capacity () < __len
             || size_type (1) < size_type (__s._C_pref ()->_C_get_ref ()))
         {
             // Need to allocate a new reference.
-            const size_type __cap = __s._C_grow (__s.size (), __len);
+            const size_type __cap = __s._C_grow (__ssize, __len);
 
             _C_string_ref_type * __temp = __s._C_get_rep (__cap, __len);
             if (__pos)
@@ -638,14 +653,38 @@ __replace_aux (iterator __first1, iterator __last1,
         }
         else {
             // Current reference has enough room.
-            if (__rem)  
+            pointer __tmp = 0;
+
+            if (__n2) {
+                const const_pointer __ptr =
+                    &_RWSTD_REINTERPRET_CAST (const_reference, *__first2);
+
+                if (__s.data () <= __ptr && __s.data () + __ssize > __ptr) {
+                    __tmp = _RWSTD_VALUE_ALLOC (_C_value_alloc_type, __s,
+                                                allocate (__n2));
+                    for (__d = 0; __d < __n2; __d++)
+                        traits_type::assign (*(__tmp + __d), *__first2++);
+                }
+            }
+
+            if (__rem)
                 traits_type::move (__s._C_data + __pos + __n2,
                                    __s._C_data + __pos + __n, 
                                    __rem);
-            for (__d = 0; __d < __n2; __d++)
-                traits_type::assign (*(__s._C_data + __pos + __d), *__first2++);
-            traits_type::assign (__s._C_data [__s._C_pref ()->_C_size._C_size
-                                              = __len], value_type ());
+
+            if (__tmp) {
+                traits_type::copy (__s._C_data + __pos, __tmp, __n2);
+                _RWSTD_VALUE_ALLOC (_C_value_alloc_type, __s,
+                                    deallocate (__tmp, __n2));
+            }
+            else {
+                for (__d = 0; __d < __n2; __d++)
+                    traits_type::assign (*(__s._C_data + __pos + __d),
+                                         *__first2++);
+            }
+
+            __s._C_pref ()->_C_size._C_size = __len;
+            traits_type::assign (__s._C_data [__len], value_type ());
         }
     }
     return __s;
