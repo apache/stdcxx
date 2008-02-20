@@ -51,6 +51,10 @@
 #  define E2BIG   7   /* AIX, HP-UX, Linux, Solaris */
 #endif
 
+#ifndef EINTR
+#  define EINTR   4
+#endif
+
 #ifndef SIGCHLD
 #  if defined (_RWSTD_OS_AIX) || defined (_RWSTD_OS_OSF)
      // AIX, Tru64
@@ -64,6 +68,10 @@
 #endif
 
 // all known Unices
+#ifndef SIGALRM
+#  define SIGALRM  14
+#endif
+
 #ifndef SIGHUP
 #  define SIGHUP   1
 #endif
