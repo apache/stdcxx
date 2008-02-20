@@ -26,12 +26,20 @@
  * 
  **************************************************************************/
 
+#include <rw/_defs.h>
+
 #if defined (__linux__) && !defined (_XOPEN_SOURCE) 
    // on Linux define _XOPEN_SOURCE to get CODESET defined in <langinfo.h>
 #  define _XOPEN_SOURCE 500   /* Single UNIX conformance */
 #endif   // __linux__
 
-#include <rw/_defs.h>
+#ifdef _RWSTD_EDG_ECCP
+   // disable error #450-D: the type "long long" is nonstandard
+   // issued for uses of the type in Linux system headers (e.g.,
+   // pthreadtypes.h)
+#  pragma diag_suppress 450
+#endif   // vanilla EDG eccp demo
+
 #include _RWSTD_SYS_TYPES_H
 
 #if _RWSTD_PATH_SEP == '/'

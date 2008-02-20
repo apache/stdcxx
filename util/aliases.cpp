@@ -22,9 +22,18 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2001-2007 Rogue Wave Software, Inc.
+ * Copyright 2001-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
+
+#include <rw/_defs.h>
+
+#ifdef _RWSTD_EDG_ECCP
+   // disable error #450-D: the type "long long" is nonstandard
+   // issued for uses of the type in Linux system headers (e.g.,
+   // pthreadtypes.h)
+#  pragma diag_suppress 450
+#endif   // vanilla EDG eccp demo
 
 #ifdef __linux__
    // on Linux define _XOPEN_SOURCE to get CODESET defined in <langinfo.h>
@@ -33,8 +42,6 @@
 #endif   // __linux__
 
 #include "diagnostic.h"
-
-#include <rw/_defs.h>
 
 #include <cassert>   // for assert()
 #include <cerrno>    // for errno
