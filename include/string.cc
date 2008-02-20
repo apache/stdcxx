@@ -535,8 +535,6 @@ replace (iterator __first1, iterator __last1,
             // compute the size of new buffer
             const size_type __cap = __s3._C_grow (__s3.size (), size_type ());
 
-            const size_type __delta = __cap - __s3.size ();
-
             // allocate a new buffer
             _C_string_ref_type *__tmp = __s3._C_get_rep (__cap, __cap);
 
@@ -581,9 +579,6 @@ __rw_replace_aux (_STD::basic_string<_CharT, _Traits, _Alloc> &__s,
 
     typedef _RW::__string_ref<value_type, traits_type, allocator_type>
     _C_string_ref_type;
-
-    typedef _RWSTD_ALLOC_TYPE (allocator_type, value_type)
-    _C_value_alloc_type;
 
 #  else   // if !defined (_RWSTD_NO_STRING_OUTLINED_MEMBER_TEMPLATES)
 
@@ -660,8 +655,9 @@ __replace_aux (iterator __first1, iterator __last1,
                     &_RWSTD_REINTERPRET_CAST (const_reference, *__first2);
 
                 if (__s.data () <= __ptr && __s.data () + __ssize > __ptr) {
-                    __tmp = _RWSTD_VALUE_ALLOC (_C_value_alloc_type, __s,
-                                                allocate (__n2));
+                    const _RWSTD_SIZE_T __tmp_size = __n2 * sizeof (value_type);
+                    __tmp = _RWSTD_STATIC_CAST (pointer,
+                                                ::operator new (__tmp_size));
                     for (__d = 0; __d < __n2; __d++)
                         traits_type::assign (*(__tmp + __d), *__first2++);
                 }
@@ -674,8 +670,7 @@ __replace_aux (iterator __first1, iterator __last1,
 
             if (__tmp) {
                 traits_type::copy (__s._C_data + __pos, __tmp, __n2);
-                _RWSTD_VALUE_ALLOC (_C_value_alloc_type, __s,
-                                    deallocate (__tmp, __n2));
+                ::operator delete (__tmp);
             }
             else {
                 for (__d = 0; __d < __n2; __d++)
