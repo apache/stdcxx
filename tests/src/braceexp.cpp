@@ -1,5 +1,10 @@
+// expand _TEST_EXPORT macros
+#define _RWSTD_TEST_SRC
+
 #include <stdlib.h>
 #include <string.h>
+
+#include <rw_braceexp.h>
 
 
 inline int _rw_is_digit (int ch)
@@ -698,9 +703,8 @@ bool _rw_brace_graph::brace_expand (_rw_recursion_context* self, char sep)
     return true;
 }
 
-//
-char* rw_brace_expand (const char* brace_expr,
-                       char* s, _RWSTD_SIZE_T n, char sep)
+_TEST_EXPORT char*
+rw_brace_expand (const char* brace_expr, char* s, _RWSTD_SIZE_T n, char sep)
 {
     if (!brace_expr)
         return 0;
