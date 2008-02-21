@@ -26,17 +26,6 @@
  * 
  **************************************************************************/
 
-#include "path.h"
-
-#include "diagnostic.h"   // for issue_diag()
-
-#include <cassert>        // for assert()
-#include <cerrno>         // for ERANGE
-#include <cstdlib>        // for getenv()
-#include <cstring>        // for strerror()
-#include <string>         // for string
-
-
 #ifndef _MSC_VER
 #  ifdef __linux__
      // for symlink()
@@ -57,6 +46,17 @@
 #  include <sys/types.h>
 #  include <sys/stat.h>    // for struct stat, stat()
 #endif  // _MSC_VER
+
+
+#include "path.h"
+
+#include "diagnostic.h"   // for issue_diag()
+
+#include <cassert>        // for assert()
+#include <cerrno>         // for ERANGE
+#include <cstdlib>        // for getenv()
+#include <cstring>        // for strerror()
+#include <string>         // for string
 
 
 static char* get_cwd (char* s, std::size_t l)
