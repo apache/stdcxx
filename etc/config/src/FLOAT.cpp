@@ -31,9 +31,10 @@
 
 enum {
     // the enumerators below are expected to be hidden by macros #defined
-    // in the "float_defs.h" header #included below; references to macros
-    // that are not #defined in the header will silently use these
-    // enumerators and prevent compilation errors that would result otherwise
+    // in the <float.h> header #included below through "float_defs.h";
+    // references to macros that are not #defined in the header will
+    // silently use these enumerators and prevent compilation errors that
+    // would result otherwise
     DBL_DIG         =    15,   // default
     DBL_MANT_DIG    =    53,
     DBL_MAX_10_EXP  =   308,
