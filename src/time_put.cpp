@@ -612,7 +612,7 @@ __rw_get_timepunct (const __rw_facet *pfacet, int flags, _RWSTD_SIZE_T inx)
             // reallocate, again using operator new to avoid mismatch
             // with facet destructor
             char* const tmp = 
-                _RWSTD_STATIC_CAST(char* const, ::operator new (tmpsize));
+                _RWSTD_STATIC_CAST(char*, ::operator new (tmpsize));
             memcpy (tmp, pun, sizeof *pun + off);
 
             ::operator delete (_RWSTD_REINTERPRET_CAST (char*, pun));
