@@ -522,16 +522,6 @@ ws (basic_istream<_CharT, _Traits> &__strm)
 }
 
 
-// 21.3.7.9 - defined here, declared inline in <string>
-template<class _CharT, class _Traits, class _Allocator>
-inline basic_istream<_CharT, _Traits>& 
-getline (basic_istream<_CharT, _Traits>&            __is,
-         basic_string<_CharT, _Traits, _Allocator>& __str)
-{
-    return getline (__is, __str, __is.widen ('\n'));
-}
-
-
 // 27.6.1.5
 template<class _CharT, class _Traits /* = char_traits<_CharT> */>
 class basic_iostream
@@ -570,12 +560,6 @@ _RWSTD_NAMESPACE (std) {
 _RWSTD_INSTANTIATE_2 (class _RWSTD_TI_EXPORT
                       basic_istream<char, char_traits<char> >);
 
-_RWSTD_INSTANTIATE_FUN_1 (_RWSTD_TI_EXPORT istream&
-                          operator>> (istream&, string&));
-
-_RWSTD_INSTANTIATE_FUN_1 (_RWSTD_TI_EXPORT istream&
-                          getline (istream&, string&, char));
-
 #endif   // _RWSTD_INSTANTIATE (_BASIC_ISTREAM, _CHAR)
 
 #if _RWSTD_INSTANTIATE (_BASIC_ISTREAM, _WCHAR_T)
@@ -583,11 +567,6 @@ _RWSTD_INSTANTIATE_FUN_1 (_RWSTD_TI_EXPORT istream&
 _RWSTD_INSTANTIATE_2 (class _RWSTD_TI_EXPORT
                       basic_istream<wchar_t, char_traits<wchar_t> >);
 
-_RWSTD_INSTANTIATE_FUN_1 (_RWSTD_TI_EXPORT wistream&
-                          operator>> (wistream&, wstring&));
-
-_RWSTD_INSTANTIATE_FUN_1 (_RWSTD_TI_EXPORT wistream&
-                          getline (wistream&, wstring&, wchar_t));
 #endif   // _RWSTD_INSTANTIATE (_BASIC_ISTREAM, _WCHAR_T)
 
 }   // namespace std
@@ -596,5 +575,12 @@ _RWSTD_INSTANTIATE_FUN_1 (_RWSTD_TI_EXPORT wistream&
 #if _RWSTD_DEFINE_TEMPLATE_LAST (_BASIC_ISTREAM)
 #  include <istream.cc>
 #endif   // _RWSTD_DEFINE_TEMPLATE_LAST (_BASIC_ISTREAM)
+
+
+#ifndef _RWSTD_STRING_EXTRACTORS_INCLUDED
+#  define _RWSTD_INCLUDE_STRING_EXTRACTORS
+#  include <rw/_stringio.h>
+#endif   // _RWSTD_STRING_EXTRACTORS_INCLUDED
+
 
 #endif   // _RWSTD_ISTREAM_INCLUDED
