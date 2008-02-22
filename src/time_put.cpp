@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2001-2006 Rogue Wave Software.
+ * Copyright 2001-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -615,7 +615,7 @@ __rw_get_timepunct (const __rw_facet *pfacet, int flags, _RWSTD_SIZE_T inx)
                 _RWSTD_STATIC_CAST(char*, ::operator new (tmpsize));
             memcpy (tmp, pun, sizeof *pun + off);
 
-            ::operator delete (_RWSTD_REINTERPRET_CAST (char*, pun));
+            ::operator delete (pun);
 
             pun      = _RWSTD_REINTERPRET_CAST (__rw_time_t*, tmp);
             pmem     = _RWSTD_REINTERPRET_CAST (_RWSTD_UINT32_T*, pun);
