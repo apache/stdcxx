@@ -35,11 +35,13 @@
 static int nerrors;
 
 static void
-test (int line, const char* brace_expr, const char* expect)
+test (int line, const char* brace_expr, _RWSTD_SIZE_T n, const char* expect,
+      const char* fname,
+      char* (fn)(const char*, _RWSTD_SIZE_T, char*, _RWSTD_SIZE_T, char))
 {
     char buf [128];
 
-    char* result = rw_brace_expand (brace_expr, buf, sizeof (buf), ' ');
+    char* result = fn (brace_expr, n, buf, sizeof (buf), ' ');
 
     const bool equal =   (expect && result)
                        ? !strcmp (expect, result)
@@ -50,9 +52,9 @@ test (int line, const char* brace_expr, const char* expect)
         ++nerrors;
 
         fprintf (stderr,
-                 "%d. rw_brace_expand(\"%s\", ...) failed. "
+                 "%d. %s(\"%s\", ...) failed. "
                  "expected \"%s\" got \"%s\"\n",
-                 line, brace_expr,
+                 line, fname, brace_expr,
                  expect ? expect : "(null)",
                  result ? result : "(null)");
     }
@@ -62,19 +64,160 @@ test (int line, const char* brace_expr, const char* expect)
 }
 
 
-#define TEST(s,e) test (__LINE__, s, e)
+#define DO_TEST(s,e,f) test (__LINE__, s, strlen (s), e, #f, f)
+#define TEST_COMMON(fn) run_tests (#fn, fn)
 
-
-////////////////////////////////////////////////////////////////////
-// runs Bash 3.2 tests -- see bash-3.2/tests/braces.tests
 static void
-run_bash_tests ()
+run_tests (const char* fname,
+    char* (fn)(const char*, _RWSTD_SIZE_T, char*, _RWSTD_SIZE_T, char))
 {
+#undef TEST
+#define TEST(s,e) test (__LINE__, s, strlen (s), e, fname, fn)
+
+    // run our tests
+    TEST ("", "");
+
+    TEST ("a", "a");
+    TEST ("a\\b", "ab");
+
+    TEST ("{",     0);
+    TEST ("}",     "}");
+    TEST ("{}",    "");
+
+    TEST ("}{",    0);
+    TEST ("}{}",   "}");
+    TEST ("}{}{",  0);
+    TEST ("{{",    0);
+    TEST ("}}",    "}}");
+
+    TEST ("{0}"  , "0");
+    TEST ("\\{0}", "{0}");
+    TEST ("{\\0}", "0");
+    TEST ("{0\\}", 0);
+
+    TEST ("{\\{}", "{");
+    TEST ("{\\}}", "}");
+
+    TEST ("a{0}",            "a0");
+    TEST ("a{0}b",           "a0b");
+    TEST ("a\\{0\\}b",       "a{0}b");
+    TEST ("a\\{0,123,4\\}b", "a{0,123,4}b");
+
+    // extension: bash sequence expansion
+    TEST ("{0..a}", "0..a");
+    TEST ("{a..0}", "a..0");
+
+    TEST ("{0..0}",   "0");
+    TEST ("{0..5}",   "0 1 2 3 4 5");
+    TEST ("{4..2}",   "4 3 2");
+    TEST ("{+5..6}",  "5 6");
+    TEST ("{6..+7}",  "6 7");
+    TEST ("{+7..+8}", "7 8");
+    TEST ("{11..21}", "11 12 13 14 15 16 17 18 19 20 21");
+    TEST ("{0001..0002}", "1 2");
+    TEST ("{-0001..0002}", "-1 0 1 2");
+
+    TEST ("{-3..-1}", "-3 -2 -1");
+    TEST ("{+3..-2}", "3 2 1 0 -1 -2");
+    TEST ("{-3..+2}", "-3 -2 -1 0 1 2");
+
+    TEST ("{a..g}",   "a b c d e f g");
+    TEST ("{g..c}",   "g f e d c");
+    TEST ("{A..G}",   "A B C D E F G");
+    TEST ("{G..C}",   "G F E D C");
+    TEST ("{AB..CD}", "AB..CD");
+
+    TEST ("{0..1}",   "0 1");
+    TEST ("\\{0..1}", "{0..1}");
+    TEST ("{\\0..1}", "0..1");
+    TEST ("{0\\..1}", "0..1");
+    TEST ("{0.\\.1}", "0..1");
+    TEST ("{0..\\1}", "0..1");
+    TEST ("{0..1\\}", 0);
+
+    // list expansion
+    TEST ("{,}",   "");
+    TEST ("{,",    0);
+    TEST ("a{,}",  "a a");
+    TEST ("b{,",   0);
+    TEST ("{c,}",  "c");
+    TEST ("{d,",   0);
+    TEST ("{,e}",  "e"); // for 100% compatibility this should be " e"
+    TEST ("{,f",   0);
+    TEST ("{,}g",  "g g");
+    TEST ("a{,}b", "ab ab");
+
+    TEST ("{,,}",   "");
+    TEST ("a{,,}",  "a a a");
+    TEST ("{b,,}",  "b");
+    TEST ("{,c,}",  "c");
+    TEST ("{,,d}",  "d");
+    TEST ("{,,}e",  "e e e");
+    TEST ("a{,,}b", "ab ab ab");
+
+    TEST ("{abc,def}",     "abc def");
+    TEST ("{ab\\c,d\\ef}", "abc def");
+    TEST ("abc{d,e,f}",    "abcd abce abcf");
+    
+    TEST ("z{c,a{d..f}a,c}z",  "zcz zadaz zaeaz zafaz zcz");
+    TEST ("z{c,a{d,e,f}a,c}z", "zcz zadaz zaeaz zafaz zcz");
+    
+    TEST ("{abc,{,d,e,f,}}",      "abc d e f");
+    TEST ("{abc,{,d,e,f,}}{x,y}", "abcx abcy x y dx dy ex ey fx fy x y");
+    TEST ("{abc,{,d\\,e\\,f,}}",  "abc d,e,f");
+
+    // series of list and sequence expansions
+    TEST ("A{0..3}",         "A0 A1 A2 A3");
+    TEST ("A{0..2}{6..7}",   "A06 A07 A16 A17 A26 A27");
+    TEST ("A{A}{0..3}",      "AA0 AA1 AA2 AA3");
+    TEST ("A{0..3}{A}",      "A0A A1A A2A A3A");
+    TEST ("{A,a}{I,i}{X,x}", "AIX AIx AiX Aix aIX aIx aiX aix");
+
+    // list expansion with nested sequence expansions
+    TEST ("A{0,{4..7}{,}}", "A0 A4 A4 A5 A5 A6 A6 A7 A7");
+    TEST ("a{1,3,x{5..9}y}b", "a1b a3b ax5yb ax6yb ax7yb ax8yb ax9yb");
+
+    // make absolutely sure that we don't treat ${ as an open brace.
+    // we must expand its contents if appropriate.
+    TEST ("a${b}c",            "a${b}c");
+    TEST ("a{${b},c,d}e",      "a${b}e ace ade");
+    TEST ("a{b,${c},d}e",      "abe a${c}e ade");
+    TEST ("a{b,${c{1,2}},d}e", "abe a${c1}e a${c2}e ade");
+
+    // csh specific behavior, lists with single items are valid and
+    // expanded
+    TEST ("{s}",         "s");
+    TEST ("{{s}}",       "s");
+    TEST ("{{{s}}",      0);
+    TEST ("{s,t}",       "s t");
+    TEST ("{{s,t}}",     "s t");
+    TEST ("{{{{s,t}}}}", "s t");
+
+    // extension: bash sequence expansion with csh behavior
+    TEST ("{{-10..10}}",
+        "-10 -9 -8 -7 -6 -5 -4 -3 -2 -1 0 1 2 3 4 5 6 7 8 9 10");
+    TEST ("{{{-10..10}}}",
+        "-10 -9 -8 -7 -6 -5 -4 -3 -2 -1 0 1 2 3 4 5 6 7 8 9 10");
+
+    // escaping nested braces
+    TEST ("\\{{{-3..3}}", "{-3 {-2 {-1 {0 {1 {2 {3");
+    TEST ("{\\{{-3..3}}", "{-3 {-2 {-1 {0 {1 {2 {3");
+    TEST ("{{\\{-3..3}}", "{-3..3");
+
+    TEST ("{{{-3..3\\}}}}", "-3..3}");
+    TEST ("{{{-3..3}\\}}}", "-3} -2} -1} 0} 1} 2} 3}");
+    TEST ("{{{-3..3}}\\}}", "-3} -2} -1} 0} 1} 2} 3}");
+    TEST ("{{{-3..3}}}\\}", "-3} -2} -1} 0} 1} 2} 3}");
+
+
+    // lifted from the bash-3.2 testsuite and modified to be consistent
+    // with expectations of the csh shell and our extensions.
+
     TEST ("ff{c,b,a}",   "ffc ffb ffa");
     TEST ("f{d,e,f}g",   "fdg feg ffg");
     TEST ("{l,n,m}xyz",  "lxyz nxyz mxyz");
-    TEST ("{abc\\,def}", "{abc,def}");
-    TEST ("{abc}",       "{abc}");
+    TEST ("{abc\\,def}", "abc,def");
+    TEST ("{abc}",       "abc");
 
     TEST ("\\{a,b,c,d,e}",          "{a,b,c,d,e}");
     TEST ("{x,y,\\{a,b,c}}",        "x} y} {a} b} c}");
@@ -83,22 +226,74 @@ run_bash_tests ()
     TEST ("/usr/{ucb/{ex,edit},lib/{ex,how_ex}}",
           "/usr/ucb/ex /usr/ucb/edit /usr/lib/ex /usr/lib/how_ex");
 
-    // we don't have eval
-    // TEST ("XXXX\\{`echo a b c | tr ' ' ','`\\}", "XXXX{a,b,c}");
-    // TEST ("eval echo XXXX\\{`echo a b c | tr ' ' ','`\\}",
-    //       "XXXXa XXXXb XXXXc");
+    TEST ("{}", "");
+    TEST ("}",  "}");
+    TEST ("{",  0);
 
-    TEST ("{}",        "{}");
-    TEST ("{ }",       "{ }");
-    TEST ("}",         "}");
-    TEST ("{",         "{");
-    TEST ("abcd{efgh", "abcd{efgh");
+    TEST ("abcd{efgh", 0);
 
-    TEST ("foo {1,2} bar", "foo 1 2 bar");
+    TEST ("{1..10}", "1 2 3 4 5 6 7 8 9 10");
 
-    // we don't have eval
-    // TEST ("`zecho foo {1,2} bar`",  "foo 1 2 bar");
-    // TEST ("$(zecho foo {1,2} bar)", "foo 1 2 bar");
+    TEST ("{{0..10},braces}", "0 1 2 3 4 5 6 7 8 9 10 braces");
+    TEST ("x{{0..10},braces}y",
+          "x0y x1y x2y x3y x4y x5y x6y x7y x8y x9y x10y xbracesy");
+
+    TEST ("{3..3}",    "3");
+    TEST ("x{3..3}y",  "x3y");
+    TEST ("{10..1}",   "10 9 8 7 6 5 4 3 2 1");
+    TEST ("{10..1}y",  "10y 9y 8y 7y 6y 5y 4y 3y 2y 1y");
+    TEST ("x{10..1}y", "x10y x9y x8y x7y x6y x5y x4y x3y x2y x1y");
+
+    TEST ("{a..f}", "a b c d e f");
+    TEST ("{f..a}", "f e d c b a");
+    TEST ("{f..f}", "f");
+
+    // mixes are incorrectly-formed brace expansions
+    TEST ("{1..f}", "1..f");
+    TEST ("{f..1}", "f..1");
+
+    // do negative numbers work?
+    TEST ("{-1..-10}", "-1 -2 -3 -4 -5 -6 -7 -8 -9 -10");
+    TEST ("{-20..0}",
+          "-20 -19 -18 -17 -16 -15 -14 -13 -12 -11 -10 "
+          "-9 -8 -7 -6 -5 -4 -3 -2 -1 0");
+
+    TEST ("a-{b{d,e}}-c",    "a-bd-c a-be-c");
+    TEST ("a-{bdef-{g,i}-c", 0);
+}
+
+static void
+run_brace_expand_tests ()
+{
+#undef TEST
+#define TEST(s,e) DO_TEST (s,e,rw_brace_expand)
+
+    TEST_COMMON (rw_brace_expand);
+
+    // rw_brace_expand does not do whitespace collapse.
+    TEST ("a {1,2} b",       "a 1 b a 2 b");
+    TEST ("a\t\t{1,2}\t\tb", "a\t\t1\t\tb a\t\t2\t\tb");
+
+    TEST ("{ }",   " ");
+    TEST ("{{ }}", " ");
+    TEST ("{{ }",  0); // brace mismatch
+}
+
+static void
+run_shell_expand_tests ()
+{
+#undef TEST
+#define TEST(s,e) DO_TEST (s,e,rw_shell_expand)
+
+    TEST_COMMON (rw_shell_expand);
+
+    // rw_shell_expand does whitespace collapse
+    TEST ("a {1,2} b",       "a 1 2 b");
+    TEST ("a\t\t{1,2}\t\tb", "a 1 2 b");
+
+    TEST ("{ }",   0); // brace mismatch
+    TEST ("{{ }}", 0); // brace mismatch
+    TEST ("{{ }",  0); // brace mismatch
 
 #if 0   // not implemented yet
 
@@ -116,156 +311,13 @@ run_bash_tests ()
     rw_putenv ("var=:varx=:vary=");
 
 #endif   // 0
-
-    TEST ("{1..10}", "1 2 3 4 5 6 7 8 9 10");
-
-    // this doesn't work in Bash 3.2
-    // TEST ("{0..10,braces}", "0 1 2 3 4 5 6 7 8 9 10 braces");
-
-    // but this does
-    TEST ("{{0..10},braces}", "0 1 2 3 4 5 6 7 8 9 10 braces");
-    TEST ("x{{0..10},braces}y",
-          "x0y x1y x2y x3y x4y x5y x6y x7y x8y x9y x10y xbracesy");
-
-    TEST ("{3..3}",    "3");
-    TEST ("x{3..3}y",  "x3y");
-    TEST ("{10..1}",   "10 9 8 7 6 5 4 3 2 1");
-    TEST ("{10..1}y",  "10y 9y 8y 7y 6y 5y 4y 3y 2y 1y");
-    TEST ("x{10..1}y", "x10y x9y x8y x7y x6y x5y x4y x3y x2y x1y");
-
-    TEST ("{a..f}", "a b c d e f");
-    TEST ("{f..a}", "f e d c b a");
-
-    TEST ("{a..A}",
-          "a ` _ ^ ]  [ Z Y X W V U T S R Q P O N M L K J I H G F E D C B A");
-    TEST ("{A..a}",
-          "A B C D E F G H I J K L M N O P Q R S T U V W X Y Z [  ] ^ _ ` a");
-
-    TEST ("{f..f}", "f");
-
-    // mixes are incorrectly-formed brace expansions
-    TEST ("{1..f}", "{1..f}");
-    TEST ("{f..1}", "{f..1}");
-
-    TEST ("0{1..9} {10..20}",
-          "01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20");
-
-    // do negative numbers work?
-    TEST ("{-1..-10}", "-1 -2 -3 -4 -5 -6 -7 -8 -9 -10");
-    TEST ("{-20..0}",
-          "-20 -19 -18 -17 -16 -15 -14 -13 -12 -11 -10 "
-          "-9 -8 -7 -6 -5 -4 -3 -2 -1 0");
-
-    // weirdly-formed brace expansions -- fixed in post-bash-3.1
-    TEST ("a-{b{d,e}}-c",    "a-{bd}-c a-{be}-c");
-    TEST ("a-{bdef-{g,i}-c", "a-{bdef-g-c a-{bdef-i-c");
 }
-
 
 int main ()
 {
-    TEST ("", "");
+    run_brace_expand_tests ();
 
-    TEST ("a", "a");
-    TEST ("a\\b", "ab");
-
-    TEST ("{",     "{");
-    TEST ("}",     "}");
-    TEST ("{}",    "{}");
-    TEST ("{ }",   "{ }");
-    TEST ("{  }",  "{  }");   // is this right?
-    TEST ("}{",    "}{");
-    TEST ("}{}",   "}{}");
-    TEST ("}{}{",  "}{}{");
-    TEST ("{{",    "{{");
-    TEST ("}}",    "}}");
-    TEST ("{{ }",  "{{ }");
-    TEST ("{{ }}", "{{ }}");
-
-    TEST ("{0}"  , "{0}");
-    TEST ("\\{0}", "{0}");
-    TEST ("{\\0}", "{0}");
-    TEST ("{0\\}", "{0}");
-
-    TEST ("{\\{}", "{{}");
-    TEST ("{\\}}", "{}}");
-
-    TEST ("{0..1}", "0 1");
-    TEST ("\\{0..1}", "{0..1}");
-    TEST ("{\\0..1}", "{0..1}");
-    TEST ("{0\\..1}", "{0..1}");
-    TEST ("{0.\\.1}", "{0..1}");
-    TEST ("{0..\\1}", "{0..1}");
-    TEST ("{0..1\\}", "{0..1}");
-
-    TEST ("a{0}",      "a{0}");
-    TEST ("a{0}b",     "a{0}b");
-    TEST ("a\\{0\\}b", "a{0}b");
-    TEST ("a\\{0,123,4\\}b", "a{0,123,4}b");
-
-    TEST ("{0..a}", "{0..a}");
-    TEST ("{a..0}", "{a..0}");
-
-    TEST ("{0..0}", "0");
-    TEST ("{0..5}", "0 1 2 3 4 5");
-    TEST ("{4..2}", "4 3 2");
-    TEST ("{+5..6}", "5 6");
-    TEST ("{6..+7}", "6 7");
-    TEST ("{+7..+8}", "7 8");
-    TEST ("{11..21}", "11 12 13 14 15 16 17 18 19 20 21");
-
-    TEST ("{-3..-1}", "-3 -2 -1");
-    TEST ("{+3..-2}", "3 2 1 0 -1 -2");
-    TEST ("{-3..+2}", "-4 -3 -2 -1 0 1 2");
-
-    TEST ("{a..g}", "a b c d e f g");
-    TEST ("{g..c}", "g f e d c");
-    TEST ("{A..G}", "A B C D E F G");
-    TEST ("{G..C}", "G F E D C");
-    TEST ("{AB..CD}", "{AB..CD}");
-
-    TEST ("{,}", "");
-    TEST ("{,",  "{,");
-    TEST ("a{,}", "a a");
-    TEST ("b{,",  "b{,");
-    TEST ("{c,}", "c");
-    TEST ("{d,",  "{d,");
-    TEST ("{,e}", "e");
-    TEST ("{,f",  "{,f");
-    TEST ("{,}g", "g g");
-    TEST ("a{,}b", "ab ab");
-
-    TEST ("{,,}", "");
-    TEST ("a{,,}", "a a a");
-    TEST ("{b,,}", "b");
-    TEST ("{,c,}", "c");
-    TEST ("{,,d}", "d");
-    TEST ("{,,}e", "e e e");
-    TEST ("a{,,}b", "ab ab ab");
-
-    TEST ("{abc,def}", "abc def");
-    TEST ("{ab\\c,d\\ef}", "abc def");
-    TEST ("abc{d,e,f}", "abcd abce abcf");
-    
-    TEST ("z{c,a{d..f}a,c}z", "zcz zadaz zaeaz zafaz zcz");
-    TEST ("z{c,a{d,e,f}a,c}z", "zcz zadaz zaeaz zafaz zcz");
-    
-    TEST ("{abc,{,d,e,f,}}", "abc d e f");
-    TEST ("{abc,{,d,e,f,}}{x,y}", "abcx abcy x y dx dy ex ey fx fy x y");
-    TEST ("{abc,{,d\\,e\\,f,}}", "abc d,e,f");
-
-    TEST ("A{0..3}", "A0 A1 A2 A3");
-    TEST ("A{0..2}{6..7}", "A06 A07 A16 A17 A26 A27");
-    TEST ("A{A}{0..3}", "A{A}{0..3}");
-    TEST ("A{0..3}{A}", "A0{A} A1{A} A2{A} A3{A}");
-
-    TEST ("{A,a}{I,i}{X,x}", "AIX AIx AiX Aix aIX aIx aiX aix");
-    TEST ("A{0,{4..7}{,}}", "A0 A4 A4 A5 A5 A6 A6 A7 A7");
-    TEST ("a{1,3,x{5..9}y}b", "a1b a3b ax5yb ax6yb ax7yb ax8yb ax9yb");
-    TEST ("{en,es}_{US,MX}.*", "en_US.* en_MX.* es_US.* es_MX.*");
-
-    // verify we pass tests from the Bash test suite
-    run_bash_tests ();
+    run_shell_expand_tests ();
 
     // return 0 on success, 1 on failure
     return !(0 == nerrors);

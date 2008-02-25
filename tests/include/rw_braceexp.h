@@ -30,28 +30,64 @@
 
 #include <testdefs.h>
 
-
-// rw_brace_expand() performs brace expansion according to chapter 3.5.1 of
-// the Bash Reference Manual with the exception of special handling for the
-// string `${'. This function is, for the most part, consistent with brace
-// expansion used by bash 3.0.
+// rw_brace_expand() performs brace expansion similar to the csh shell.
+// the base grammar for the brace expansion is supposed to be..
+//
+//   string     ::= <brace-expr> | [ <chars> ]
+//   brace-expr ::= <string> '{' <brace-list> | <brace-sequ> '}' <string> |
+//                  <string>
+//   brace-list ::= <string> ',' <brace-list> | <string>
+//   brace-sequ ::= <upper>   '.' '.' <upper>   |
+//                  <lower>   '.' '.' <lower>   |
+//                  <integer> '.' '.' <integer>
+//   chars      ::= <pcs-char> <string> | <pcs-char>
+//   integer    ::= ['+' | '-'] <digits>
+//   upper      ::= pcs-char 'a-z'
+//   lower      ::= pcs-char 'A-Z'
+//   digit      ::= pcs-char '0-9'
+//   digits     ::= <digit> <digits> | <digit>
+//   pcs-char   ::= character in the Portable Character Set
+//
+// many examples can be found in the test 0.braceexp.cpp.
+//
 
 //
-// this function will attempt to expand the brace expression `brace_expr'
-// into `n' bytes of the output buffer `s', seperating each expansion with
-// a single seperator character `sep'. if the output buffer `s' is is null,
-// or the number of bytes `n' is insufficient to contain all expansions of
-// `brace_expr', an appropriately sized buffer will be allocated with
-// malloc(). a pointer to the output buffer that is used will be returned.
-// if the pointer returned is not equal to the user supplied input buffer
-// `s', then the caller is expected to free() the returned pointer at some
-// point.
+// this function will attempt to expand `sz' bytes of the brace expression
+// `brace_expr'  into `n' bytes of the  output buffer `s', seperating each
+// expansion with a single seperator character `sep'. if the output buffer
+// `s' is is null, or the  number of bytes `n' is  insufficient to contain
+// all  expansions of `brace_expr', an  appropriately sized buffer will be
+// allocated  with malloc(). a  pointer to the  output buffer that is used
+// will be  returned. if the  pointer  returned  is not  equal to the user
+// supplied  input  buffer `s', then the caller is  expected to free() the
+// returned pointer.
 //
-// this function can return null if the brace expansion could not be
-// processed.
+// this  function can  return null  if  the  brace  expansion could not be
+// processed. this can happen if, for example, the brace expression string
+// contains an unmatched unescaped open brace.  the function can also fail
+// and return null if a memory allocation request fails.
 //
 _TEST_EXPORT char*
-rw_brace_expand (const char* brace_expr, char* s, _RWSTD_SIZE_T n, char sep);
+rw_brace_expand (const char* brace_expr, _RWSTD_SIZE_T sz,
+                 char* s, _RWSTD_SIZE_T n, char sep);
+
+
+//
+// this  function is  similar to  rw_brace_expand, except  that the  input
+// string `shell_expr' is tokenized on whitespace, and each non-whitespace
+// token is expanded seperately. this function will fail if an attempt to
+// brace expand one of the tokens fails, regardless of the reason for that
+// failure.
+//
+// the caller may need to free() the returned pointer. please see comments
+// above for details.
+//
+// this  function only does tokenization and brace expansion at this time.
+// at some point it may make  sense to add environment variable expansion.
+//
+_TEST_EXPORT char*
+rw_shell_expand (const char* shell_expr, _RWSTD_SIZE_T sz,
+                 char* s, _RWSTD_SIZE_T n, char sep);
 
 
 #endif   // RW_BRACEEXP_H_INCLUDED
