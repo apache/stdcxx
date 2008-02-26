@@ -22,39 +22,23 @@
  * 
  **************************************************************************/
 
-// establish a dependency on extern_function_template_imp.{cpp,o}
+// include a file containing the definition of a template
+// and an extern template directive referencing an explicit
+// instantiation of the same template in extern_function_template_imp.o
+
+#include "extern_function_template_imp.h"
+
+// establish a dependency on extern_function_template_imp.o to make sure
+// the extern_function_template_imp.cpp is compiled before this file
 #ifndef _RWSTD_NO_extern_function_template_imp
 
-// link the object file produced by compiling this file
-// with the object file below
+// link with the object file below
 // LDOPTS = extern_function_template_imp.o
 
 #endif   // _RWSTD_NO_extern_function_template_imp
 
-
-template <class T>
-struct S
-{
-    T t;
-};
-
-
-template <class T>
-S<T> foobar (S<T> s)
-{
-    // foobar<int>() explicitly instantiated in extern_function_template_imp.cpp
-    // is defined to set s.t to 1
-    s.t = -1;
-
-    return s;
-}
-
-extern template S<int> foobar (S<int>);
-
 int main ()
 {
-    // S<int>::bar () is defined to return 1 in extern_function_template_imp.o
-
     S<int> s;
 
     int res = 0;
