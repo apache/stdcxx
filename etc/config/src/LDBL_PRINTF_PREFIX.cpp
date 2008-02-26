@@ -25,24 +25,7 @@
 #include <stdio.h>
 
 #include "config.h"
-
-#ifndef _RWSTD_NO_FLOAT_H
-#  include <float.h>
-
-#  if defined (__EDG__) && defined (__linux__)
-
-     // gcc on Linux #defines these using its own propriterary __extension__
-#    undef LDBL_EPSILON
-#    undef LDBL_MIN
-#    undef LDBL_MAX
-
-     // redefine to prevent compilation errors
-#    define LDBL_EPSILON 1.0842021724855044e-19L
-#    define LDBL_MIN     3.3621031431120935e-4932L
-#    define LDBL_MAX     1.1897314953572317e+4932L
-#  endif   // defined (__EDG__) && defined (__linux__)
-
-#endif   // _RWSTD_NO_FLOAT_H
+#include "float_defs.h"   // for LDBL_XXX constants
 
 
 // avoid having to #include <string.h>
