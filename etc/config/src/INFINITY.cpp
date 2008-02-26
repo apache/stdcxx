@@ -22,10 +22,10 @@
  * 
  **************************************************************************/
 
-#include <float.h>    // for FLT_MIN, DBL_MIN, LDBL_MIN
 #include <stdio.h>    // for printf()
 
 #include "config.h"
+#include "float_defs.h"  // for FLT_MIN, DBL_MIN, LDBL_MIN
 
 /***************************************************************************
  *
