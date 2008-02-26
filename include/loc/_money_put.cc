@@ -67,8 +67,8 @@ _C_put (iter_type __it, int __opts, ios_base &__flags, char_type __fill,
     typedef moneypunct<_CharT, false> _Punct0;
     typedef moneypunct<_CharT, true>  _Punct1;
 
-    const _Punct0* __pun0;
-    const _Punct1* __pun1;
+    const _Punct0* __pun0 = 0;
+    const _Punct1* __pun1 = 0;
 
     if (__intl) {
         __pun1 = &_RWSTD_USE_FACET (_Punct1, __flags.getloc ());
