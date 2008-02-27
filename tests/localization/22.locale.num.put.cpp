@@ -337,7 +337,7 @@ void do_test (charT           /* dummy */,
 
         // fail at most once for each specialization
         rw_assert (!width_fail++, 0, lineno,
-                   "%line d: num_put<%s>::put (..., %s = %s) "
+                   "line %d: num_put<%s>::put (..., %s = %s) "
                    "failed to reset width from %d; width() = %d",
                    __LINE__, cname, tname, TOSTR (val),
                    TOSTR (buf), width, ios.width ());
@@ -1576,7 +1576,7 @@ void inf_nan_test (charT, floatT, const char *cname, const char *tname)
 #if 0
 
     // temporarily disabled (NAN format is platform specific
-    // and subject to bugs -- see for example STDCXX-460)
+    // and subject to bugs -- see for example STDCXX-464)
 
     const floatT nan = 0 / zero;
 
@@ -1917,6 +1917,8 @@ void ldbl_test (charT, const char *cname)
     TEST (T, Pi, SHOWALL (scientific),  0, 0, ' ', "", "+3.E+00", Eof, 3.0L);
 
     // with {g,G}, precision indicates the number of significant digits
+    // the precision == 0 should have the same effect as precision == 1
+    TEST (T, Pi, 0,  0, 0, ' ', "", "%.0Lg",  Eof, 3.0L);
     TEST (T, Pi, 0,  1, 0, ' ', "", "%.1Lg",  Eof, 3.0L);
     TEST (T, Pi, 0,  2, 0, ' ', "", "%.2Lg",  Eof, 3.1L);
     TEST (T, Pi, 0,  3, 0, ' ', "", "%.3Lg",  Eof, 3.14L);
