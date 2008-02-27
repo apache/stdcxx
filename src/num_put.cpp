@@ -571,12 +571,14 @@ __rw_fix_flt (char *&end, _RWSTD_SIZE_T &len,
     char* beg = end - len;
 
     // workaround for the STDCXX-2 issue
-    if (   !(flags & _RWSTD_IOS_FIXED)
+    if (   _RWSTD_IOS_FIXED != (flags & _RWSTD_IOS_FLOATFIELD)
+        && _RWSTD_IOS_SCIENTIFIC != (flags & _RWSTD_IOS_FLOATFIELD)
         && 2 < len
         && '0' == beg [0]
         && ('.' == beg [1] || ',' == beg [1])) {
 
         // for the 0.0 value the MSVC libc inserts redundant '0' character
+        // when %g format is used in sprintf()
         const char* ptr;
         for (ptr = beg + 2; ptr != end && '0' == *ptr; ++ptr) ;
 
@@ -602,15 +604,30 @@ __rw_fix_flt (char *&end, _RWSTD_SIZE_T &len,
             --end;
         }
         else if ('#' == end [-4]) {
-            // normalize the format of infinity to conform to C99
-
-            const char str[] = "iInNfF";
-
+            // may be #INF or #IND
             const bool cap = !!(flags & _RWSTD_IOS_UPPERCASE);
 
-            end [-6] = str [cap + 0];
-            end [-5] = str [cap + 2];
-            end [-4] = str [cap + 4];
+            if ('F' == end [-1]) {
+                // assuming #INF
+                // normalize the format of infinity to conform to C99
+
+                const char str[] = "iInNfF";
+
+                end [-6] = str [cap + 0];
+                end [-5] = str [cap + 2];
+                end [-4] = str [cap + 4];
+            }
+            else {
+                // assuming #IND
+                // normalize the format of NaN to conform to C99
+
+                const char str[] = "nNaA";
+
+                end [-6] = str [cap + 0];
+                end [-5] = str [cap + 2];
+                end [-4] = str [cap + 0];
+            }
+
             end -= 3;
             len -= 3;
         }
