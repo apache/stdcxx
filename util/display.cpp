@@ -118,8 +118,8 @@ print_header_plain (const char* const argv[])
 {
     (void)&argv;
 
-    puts ("NAME                           STATUS WARN ASSERTS FAILED PERCNT"
-          "    USER     SYS    REAL");
+    puts ("NAME                                     STATUS WARN ASSERTS "
+          "FAILED PERCNT    USER     SYS    REAL");
 }
 
 
