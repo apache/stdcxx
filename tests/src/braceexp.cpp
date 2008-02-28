@@ -1052,16 +1052,16 @@ char* rw_shell_expand (const char* shell_expr, _RWSTD_SIZE_T sz,
         if (exp) {
 
             // in case user uses a null seperator
-            const char* s = exp;
-            for (/**/; *s; s += strlen (s) + 1)
+            const char* term = exp;
+            for (/**/; *term; term += strlen (term) + 1)
                 ;
 
-            const _RWSTD_SIZE_T n = exp < s ? (s - exp) - 1 : 0;
+            const _RWSTD_SIZE_T len = exp < term ? (term - exp) - 1 : 0;
         
             if (is_first_expand)
-                app = result.append (exp, n);
+                app = result.append (exp, len);
             else if (result.append (&sep, 1))
-                app = result.append (exp, n);
+                app = result.append (exp, len);
         }
 
         is_first_expand = false;
