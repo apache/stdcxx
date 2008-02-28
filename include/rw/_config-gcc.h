@@ -129,10 +129,11 @@
 #    define _RWSTD_NO_DEPRECATED_LIBC_IN_STD
 #  endif
 
-   // exception::what() is incorrectly detected as not defined
-   // causing linker errors due to multiple definitions; see
-   // STDCXX-338
-#  undef _RWSTD_NO_EXCEPTION_WHAT
+#  ifdef _RWSHARED
+     // disabe exporting timeplate instantations in shared builds
+     // see STDCXX-507
+#    define _RWSTD_NO_EXTERN_TEMPLATE
+#  endif
 #endif   // __CYGWIN__
 
 #ifdef _RWSTD_OS_OSF1
