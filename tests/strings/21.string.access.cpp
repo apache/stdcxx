@@ -271,9 +271,7 @@ void test_access (charT, Traits*, Allocator*,
             char ()
         };
 
-        const size_t n = NPOS != tcase.nres ? 1 : 0;
-
-        const bool success = n == rw_match (exp_res, pres, n);
+        const bool success = 1 == rw_match (exp_res, pres, 1);
         rw_assert (success, 0, tcase.line,
                    "line %d. %{$FUNCALL} == %{#c}, got %{#c}",
                    __LINE__, tcase.nres, *pres);
