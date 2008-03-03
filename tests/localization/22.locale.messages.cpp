@@ -817,6 +817,16 @@ void test_messages (charT, const char *cname, const char *locname)
 static int
 run_test (int, char*[])
 {
+
+#ifdef _RWSTD_OS_AIX
+
+    // must do this so that NLSPATH lookup works correctly for both
+	// the C and POSIX locales.
+    const int p = rw_putenv ("LC__FASTMSG=false");
+    rw_note (!p, 0, __LINE__, "failed to set LC__FASTMSG");
+    
+#endif    // _RWSTD_OS_AIX
+
     for (int i = 0; i < MAX_SETS; ++i) {
         for (int j = 0; j < MAX_MESSAGES; ++j)
             catalog.append (messages [i][j], std::strlen (messages [i][j]) + 1);
