@@ -98,6 +98,7 @@ _RWSTD_EXPORT _RWSTD_SIZE_T __rw_wcslen (const wchar_t*);
 #      define _RWSTD_MEMCHR    __builtin_memchr
 #    else   // gcc < 4.3
 #      include _RWSTD_CSTRING   // for memchr()
+#      define _RWSTD_MEMCHR    _RWSTD_C::memchr
 #    endif   // gcc 4.3
 #  else   // gcc < 4.0
 #    include _RWSTD_CSTRING   // for memcmp(), ...
