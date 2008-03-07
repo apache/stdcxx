@@ -23,6 +23,7 @@
  **************************************************************************/
 
 #include "config.h"
+#include "nodbg.h"
 
 #if !defined (_RWSTD_NO_NEW_THROWS) && !defined (_RWSTD_NO_NEW_OFLOW_SAFE)
 #  include <stddef.h>   // for size_t
@@ -52,29 +53,11 @@ struct bad_alloc { };
 enum bad_alloc { };
 
 
-#if defined (_MSC_VER)
-
-#include <crtdbg.h>  // for _CrtSetReportMode()
-
-void disable_msc_gui ()
-{
-    _CrtSetReportMode (_CRT_WARN, _CRTDBG_MODE_FILE);
-    _CrtSetReportMode (_CRT_ERROR, _CRTDBG_MODE_FILE);
-    _CrtSetReportMode (_CRT_ASSERT, _CRTDBG_MODE_FILE);
-}
-
-#else   // if !defined (_MSC_VER)
-
-void disable_msc_gui () { /* no-op */ }
-
-#endif   // _MSC_VER
-
-
 int main ()
 {
     // prevent MSVC's libc from popping up a dialog box
     // with an out-of-memory message
-    disable_msc_gui ();
+    nodbg ();
 
     try {
 

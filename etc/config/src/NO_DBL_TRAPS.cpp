@@ -37,11 +37,15 @@
  * disables traps as required by C).
  */
 
+#include "nodbg.h"
+
 double dbl_get_zero ();
 double dbl_get_one ();
 
 int main (int argc, char*[])
 {
+    nodbg ();
+
     double dbl_inf;
     double dbl_nan;
 
