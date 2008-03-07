@@ -1,4 +1,4 @@
-// checking if operator new() throws
+// checking if operator new() checks the argument for overflow
 
 /***************************************************************************
  *
@@ -25,13 +25,6 @@
 #include "config.h"
 #include "nodbg.h"
 
-#ifndef _RWSTD_NO_SETRLIMIT
-// test for setrlimit() presence before compiling current file
-#endif   // _RWSTD_NO_SETRLIMIT
-
-// proclimits.h must be included only after #if[n]def _RWSTD_NO_SETRLIMIT
-#include "proclimits.h"
-
 #if 2 == __GNUG__
 #  ifndef _RWSTD_NO_HONOR_STD
 #    ifdef _RWSTD_NO_STD_TERMINATE
@@ -39,10 +32,6 @@
 #    endif   // _RWSTD_NO_STD_TERMINATE
 #  endif   // _RWSTD_NO_HONOR_STD
 #endif   // gcc 2.x
-
-#ifndef _RWSTD_NO_NEW_OFLOW_SAFE
-// test if operator new() checks the argument for overflow
-#endif   // _RWSTD_NO_NEW_OFLOW_SAFE
 
 
 // 18.4.1.1
@@ -53,22 +42,11 @@ int main ()
 {
     nodbg ();
 
-    // decrease resource limit to a minimum to induce a failure
-    // without unreasonably stressing the system
-    limit_memory (0);
-
-    void *p = (void*)1;
-
     try {
-        const size_t size = (size_t)1 << (sizeof (size_t) * 8 - 1);
-
-        for (int i = 0; i != 256; ++i) {
-            // try to allocate a huge amount of memory
-            p = ::operator new (size);
-            // do not delete
-        }
+        void* p = ::operator new (size_t (-1));
     }
     catch (...) {
+        // exit successfully if new threw
         return 0;
     }
 
