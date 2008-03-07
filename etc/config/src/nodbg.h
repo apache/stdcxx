@@ -1,4 +1,4 @@
-// checking for dynamic_cast
+// definition of the nodbg() function
 
 /***************************************************************************
  *
@@ -18,37 +18,37 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1999-2007 Rogue Wave Software, Inc.
+ * Copyright 1999-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
-#include "config.h"
-#include "nodbg.h"
+#ifdef _WIN32
 
+#  include <windows.h>
 
-#ifndef _RWSTD_NO_HONOR_STD
-#  ifdef _RWSTD_NO_STD_TERMINATE
-#    include "terminate.h"
-#  endif   // _RWSTD_NO_STD_TERMINATE
-#endif   // _RWSTD_NO_HONOR_STD
+#  ifdef _MSC_VER
+#    include <crtdbg.h>  // for _CrtSetReportMode()
+#  endif
 
-
-struct A
+void nodbg ()
 {
-    virtual ~A () { }
-};
+#  ifdef _MSC_VER
+    // prevent the Microsoft C library from popping up GUI windows
+    // on various failures and direct error messages to the console
+    // instead
+    _CrtSetReportMode (_CRT_WARN, _CRTDBG_MODE_DEBUG);
+    _CrtSetReportMode (_CRT_ERROR, _CRTDBG_MODE_DEBUG);
+    _CrtSetReportMode (_CRT_ASSERT, _CRTDBG_MODE_DEBUG);
+#  endif
 
-struct B: A { };
-struct C: A { };
-
-
-int main ()
-{
-    nodbg ();
-
-    B b;
-
-    A *a = &b;
-    
-    return !(dynamic_cast<B*>(a) && !dynamic_cast<C*>(a));
+    // disable displaying the critical-error-handler
+    // and general-protection-fault message boxes
+    // windows.h included in thread.h
+    SetErrorMode (SEM_FAILCRITICALERRORS | SEM_NOGPFAULTERRORBOX);
 }
+
+#else
+
+void nodbg () { }
+
+#endif   // _WIN32
