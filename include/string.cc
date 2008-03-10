@@ -652,7 +652,7 @@ __replace_aux (iterator __first1, iterator __last1,
 
             if (__n2) {
                 const const_pointer __ptr =
-                    &_RWSTD_REINTERPRET_CAST (const_reference, *__first2);
+                    &_RWSTD_STATIC_CAST (const_reference, *__first2);
 
                 if (__s.data () <= __ptr && __s.data () + __ssize > __ptr) {
                     const _RWSTD_SIZE_T __tmp_size = __n2 * sizeof (value_type);
