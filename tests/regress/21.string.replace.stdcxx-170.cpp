@@ -33,15 +33,17 @@ int main ()
 {
     std::string s ("abc");
 
-    s.replace (s.begin (), s.begin (), s.rbegin () + 1, s.rbegin () + 2);
-
+    s.replace (s.begin (), s.begin (), s.begin () + 1, s.begin () + 2);
     assert ("babc" == s);
 
     s = "abc";
 
-    typedef const unsigned char UChar;
-    s.replace (s.begin (), s.begin (), (UChar*)&s [1], (UChar*)&s [2]);
+    s.replace (s.begin (), s.begin (), s.rbegin () + 1, s.rbegin () + 2);
+    assert ("babc" == s);
 
+    s = "abc";
+
+    s.replace (s.begin (), s.begin (), &s [1], &s [2]);
     assert ("babc" == s);
 
     return 0;
