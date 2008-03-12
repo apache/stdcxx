@@ -121,7 +121,7 @@ get_money (std::basic_string<charT> *pval, bool intl = false)
 
 // manipulator for the insertion of monetary long double values
 inline std::__rw_smanip<money_put_manip<long double>, bool>
-put_money (long double val, bool intl = false)
+put_money (const long double &val, bool intl = false)
 {
     // return an object of the manipulator implementation type
     // that will store the function arguments until its function

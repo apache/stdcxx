@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -109,7 +109,7 @@ void partial_sort_example ()
     std::cout << '\n';
 
     // Make a std::list of random integers.
-    std::list<int, std::allocator<int> > aList (15, 0);
+    std::list<int, std::allocator<int> > aList (15);
     std::generate (aList.begin (), aList.end (), randomValue);
     std::copy (aList.begin (), aList.end (), intOut);
     std::cout << '\n';
@@ -179,7 +179,7 @@ void merge_example ()
 
     // Make a std::list and std::vector of 10 random integers.
     std::vector<int, std::allocator<int> > aVec (10);
-    std::list<int, std::allocator<int> > aList (10, 0);
+    std::list<int, std::allocator<int> > aList (10);
     std::generate (aVec.begin (), aVec.end (), randomValue);
     std::sort (aVec.begin (), aVec.end ());
     std::generate_n (aList.begin (), 10, randomValue);

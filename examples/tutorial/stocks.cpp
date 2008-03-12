@@ -150,7 +150,7 @@ int main ()
     if (!p)
         std::cerr<< "\nNot a valid locale: " << GERMAN_LOCALE << '\n';
     else {
-        FrankFurtStockXchange *fse = new FrankFurtStockXchange;   
+        FrankfurtStockXchange *fse = new FrankfurtStockXchange;   
         fse->add ("B\166rsen-Software", 9.75);
         fse->add ("M\174nchner R\174ck", 19.75);
     

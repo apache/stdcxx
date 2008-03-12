@@ -49,9 +49,9 @@
 
 #if defined (_AIX)
 #  define US_LOCALE             "en_US"
-#  define GERMAN_LOCALE         "De_DE.IBM-850"
-#  define FRENCH_LOCALE         "Fr_FR.IBM-850"
-#  define JAPANESE_LOCALE       "Ja_JP.IBM-932"
+#  define GERMAN_LOCALE         "de_DE"
+#  define FRENCH_LOCALE         "fr_FR"
+#  define JAPANESE_LOCALE       "ja_JP"
 #elif defined (__hpux)
 #  define US_LOCALE             "en_US.iso88591"
 #  define GERMAN_LOCALE         "de_DE.iso88591"
@@ -63,10 +63,10 @@
 #  define FRENCH_LOCALE         "fr_FR"
 #  define JAPANESE_LOCALE       "ja_JP"
 #elif defined (__osf__)
-#  define US_LOCALE             "en_US"
-#  define GERMAN_LOCALE         "de_DE.88591"
-#  define FRENCH_LOCALE         "fr_FR.88591"
-#  define JAPANESE_LOCALE       "ja_JA.88591"
+#  define US_LOCALE             "en_US.ISO8859-1"
+#  define GERMAN_LOCALE         "de_DE.ISO8859-1"
+#  define FRENCH_LOCALE         "fr_FR.ISO8859-1"
+#  define JAPANESE_LOCALE       "ja_JP"
 #elif defined (SNI)
 #  define US_LOCALE             "En"
 #  define GERMAN_LOCALE         "De"
@@ -192,9 +192,9 @@ struct TokyoStockXchange: public StockXchange
 }; 
 
 
-struct FrankFurtStockXchange: public StockXchange
+struct FrankfurtStockXchange: public StockXchange
 {
-    FrankFurtStockXchange (std::size_t refs = 0)
+    FrankfurtStockXchange (std::size_t refs = 0)
         : StockXchange (refs) { }
 
     virtual void localTime(std::ostream& os) const {
