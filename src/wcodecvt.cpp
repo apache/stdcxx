@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2001-2007 Rogue Wave Software, Inc.
+ * Copyright 2001-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -342,9 +342,6 @@ __rw_xlit (const _RW::__rw_codecvt_t* impl,
 }
 
 
-//  This returns two result codes:  error and ok. The partial error result
-//  is not  returned because there  is no way  to know whether or  not the
-//  input sequence contains any more valid characters.
 static _STD::codecvt_base::result
 __rw_libc_do_in (_RWSTD_MBSTATE_T &state,
                  const char       *from, 
@@ -359,95 +356,59 @@ __rw_libc_do_in (_RWSTD_MBSTATE_T &state,
 
     _STD::codecvt_base::result res = _STD::codecvt_base::ok;
 
-    _RWSTD_MBSTATE_T save_state = state;   // saved state before conversion
+    // compute the length of the source sequence in bytes and
+    // the size of the destination buffer in wide characters
+    _RWSTD_SIZE_T src_len  = from_end - from;
+    _RWSTD_SIZE_T dst_size = to_limit - to;
 
-    _RWSTD_SIZE_T src_len = from_end - from;   // source length
-    _RWSTD_SIZE_T dst_len = to_limit - to;       // destination length
+    // set the initial values to the source and destination pointers
+    const char* psrc = from;
+    wchar_t*    pdst = to;
 
-    const char*   psrc = from_next ? from_next : "";   // source
-    wchar_t*      pdst = to_next;                      // destination
+    while (dst_size && src_len) {
 
-#ifndef _RWSTD_NO_MBSRTOWCS
-    // mbsrtowcs() requires the input to be a NULL-terminated string
-    const _RWSTD_SIZE_T ret = mbsrtowcs (pdst, &psrc, dst_len, &state);
-#else   // if defined (_RWSTD_NO_MBSRTOWCS)
-    const _RWSTD_SIZE_T ret = _RWSTD_SIZE_MAX;
-#endif    // _RWSTD_NO_MBSRTOWCS
-
-    // if an error occurred during the restartable function
-    // or if that function is not available
-    if (_RWSTD_SIZE_MAX == ret) {
-        // the conversion here (besides the previous failure) is done 
-        // one character at a time because the non-reentrant/restartable 
-        // counterpart of mbsrtowcs() does not provide any information
-        // about the size of the input that has been processed.
-        _RWSTD_UNUSED (state);
-
-        // restore `psrc' value
-        psrc = from_next ? from_next : "";
-
-        while (dst_len && src_len) {
-
-            _RWSTD_SIZE_T tmp;
+        // the number of bytes that form the next multibyte character
+        _RWSTD_SIZE_T nbytes;
 
 #ifndef _RWSTD_NO_MBRTOWC
-            tmp = mbrtowc (pdst, psrc, src_len, &state);
+        nbytes = mbrtowc (pdst, psrc, src_len, &state);
 #elif !defined (_RWSTD_NO_MBTOWC)
-            tmp = mbtowc (pdst, psrc, src_len);
+        nbytes = mbtowc (pdst, psrc, src_len);
 #else
-            tmp = _RWSTD_SIZE_MAX;
+        nbytes = _RWSTD_SIZE_MAX;
 #endif
 
-            // error; -1 result comes only from an illegal sequence
-            if (_RWSTD_SIZE_MAX == tmp) {
-                res = _STD::codecvt_base::error;
-                break;
-            }
+        // -1 indicates an invalid sequence (i.e., error)
+        if (nbytes == (_RWSTD_SIZE_T)(-1)) {
+        res = _STD::codecvt_base::error;
+            break;
+        }
  
-            // not enough bytes in input to form a valid 
-            // character - translates to an ok result
-            if (tmp == (_RWSTD_SIZE_T)(-2))
-                break;
+        // -2 indicates an ambiguous but valid subsequence
+        // (i.e., ok)
+        if (nbytes == (_RWSTD_SIZE_T)(-2))
+            break;
 
-            // the multibyte sequence is the NULL character
-            if (tmp == 0) 
-                tmp++;
+        // 0 indicates the NUL character (skip over it)
+        if (nbytes == 0) 
+            ++nbytes;
 
-            // adjust the pointers
-            psrc    += tmp;
-            src_len -= tmp;
-            ++pdst;
-            --dst_len;
-        }
-
-        // adjust "next" pointers
-        from_next = psrc;
-        to_next   = pdst;
-
+        // > 0 indicates the number of bytes in the successfully
+        // converted multibyte character
+        psrc    += nbytes;
+        src_len -= nbytes;
+        ++pdst;
+        --dst_size;
     }
-    else {
-        // the conversion succeeded on the first attempt
 
-        if (psrc)
-            from_next = psrc;
-        else {
-
-            // mbsrtowcs() sets `psrc' to 0 if the conversions
-            // stops due to the terminating NUL character
-
-            const _RWSTD_SIZE_T tmp =
-                __rw_libc_mbrlen (save_state, from_next, ret);
-            
-            from_next += tmp;
-        }
-
-        to_next += ret;
-    }
+    // adjust "next" pointers
+    from_next = psrc;
+    to_next   = pdst;
 
     // if the conversion has exhausted all space in the destination
     // range AND there are more COMPLETE characters in the source
     // range then we have a "partial" conversion
-    if (res == _STD::codecvt_base::ok && src_len && !dst_len) {
+    if (res == _STD::codecvt_base::ok && src_len && !dst_size) {
         _RWSTD_MBSTATE_T tmp_state = state;
         _RWSTD_SIZE_T tmp = __rw_libc_mbrlen (tmp_state, psrc, src_len);
         if (tmp < (_RWSTD_SIZE_T)(-2))
