@@ -1,4 +1,4 @@
-// checking for dynamic_cast
+// checking if operator new() checks the argument for overflow
 
 /***************************************************************************
  *
@@ -25,30 +25,30 @@
 #include "config.h"
 #include "nodbg.h"
 
+#if 2 == __GNUG__
+#  ifndef _RWSTD_NO_HONOR_STD
+#    ifdef _RWSTD_NO_STD_TERMINATE
+#      include "terminate.h"
+#    endif   // _RWSTD_NO_STD_TERMINATE
+#  endif   // _RWSTD_NO_HONOR_STD
+#endif   // gcc 2.x
 
-#ifndef _RWSTD_NO_HONOR_STD
-#  ifdef _RWSTD_NO_STD_TERMINATE
-#    include "terminate.h"
-#  endif   // _RWSTD_NO_STD_TERMINATE
-#endif   // _RWSTD_NO_HONOR_STD
 
-
-struct A
-{
-    virtual ~A () { }
-};
-
-struct B: A { };
-struct C: A { };
-
+// 18.4.1.1
+// -3- Required behavior: Return a non-null pointer ... or else throw 
+// a bad_alloc exception.
 
 int main ()
 {
     nodbg ();
 
-    B b;
+    try {
+        void* p = ::operator new (size_t (-1));
+    }
+    catch (...) {
+        // exit successfully if new threw
+        return 0;
+    }
 
-    A *a = &b;
-    
-    return !(dynamic_cast<B*>(a) && !dynamic_cast<C*>(a));
+    return 1;
 }
