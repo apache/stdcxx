@@ -75,6 +75,7 @@ var srcDir = slnDir + "\\etc\\config\\src";
 var runWindowMode = 0;
 var timeOut = 30000; // 30 sec
 var logFileName = "config.log";
+var confInfo = null;
 
 var description = new configure; // run
 
@@ -209,7 +210,7 @@ function configure()
 
     getCompilerOpts(WScript.Arguments.Named("SolutionName"));
     
-    var confInfo = configs.get(WScript.Arguments.Named("ConfigurationName"));
+    confInfo = configs.get(WScript.Arguments.Named("ConfigurationName"));
 
     CPPFLAGS += " /GR"; // enable RTTI for tests
 
@@ -270,10 +271,6 @@ function configure()
     else
         appendLineToOutFile("#define _RWSTD_NO_REENTRANT");
 
-    // compile .lib.cpp s
-    if (0 == compileLibs(confInfo.dll))
-        cleanQuit(1, exitmsg);
-    
     // compile, link and run .cpp's (if possible)
     if (0 == runExeTests())
         cleanQuit(1, exitmsg);
@@ -729,31 +726,6 @@ function readTextFile(fileName)
     return text;
 }
 
-//compiles all libraries (.lib.cpp files)
-function compileLibs(shared)
-{
-    var folder = fso.GetFolder(srcDir);
-    var fc = new Enumerator(folder.Files);
-    for (; !fc.atEnd(); fc.moveNext())
-    {
-        var file = fc.item();
-        if (!(/\.lib\.cpp$/i).test(file.Name))
-        {
-             continue; //not a library file
-        }
-        var outLibName = file.Name.replace(/\.cpp/i, ".lib");
-        if (makeLibrary(srcDir + "\\" + file.Name, outLibName, shared) != 0)
-        {
-            WScript.StdErr.WriteLine(
-                "Configure: Fatal error: Failed to build library " 
-                    + outLibName);
-            return 0;
-        }
-    }
-    
-    return 1;
-}
-
 // gets description from text if present
 function getDescription(text)
 {
@@ -776,7 +748,7 @@ function getDescription(text)
     return results[1];
 }
 
-// compiles, links and runs (if possible) all .cpp (except .lib.cpp files)
+// compiles, links and runs (if possible) all .cpp
 function runExeTests()
 {
     // first determine all files to be processed
@@ -786,10 +758,8 @@ function runExeTests()
     for (; !fc.atEnd(); fc.moveNext())
     {
         var file = fc.item();
-        if (!/(?!.*\.lib\.cpp)\.cpp$/.test(file.Name))
-        {
-             continue; // not an "exe" cpp file
-        }
+        if (!(/\.cpp$/i).test(file.Name))
+             continue; // not an cpp file
         srcs.push(file.Name); // save file name for processing
     }
 
@@ -834,44 +804,58 @@ function runExeTests()
             
             var textResult = ""; // text output of a test
             // compile file
-            var result = compileFiles(srcFile);
-            if (result == 0 && /\s*main\s*\(/.test(srcText))            
+            var result = 0;
+            if ((/\.lib\.cpp$/i).test(test))
             {
-                // main function present. file is runnable
-                // get library and object dependencies
-                var fileBase = stageDir + "\\" + base;
-                var modules =  fileBase + ".obj";
-                var ldopts = 
-                    (/^[^A-Z_a-z0-9]*LDOPTS\s*=\s*(\S*)\s*$/m).exec(srcText);
-                if (ldopts != null)
+                // this is a library file
+                var outLibName = test.replace(/\.cpp/i, ".lib");
+                result = makeLibrary(srcDir + "\\" + test, outLibName, confInfo.dll);
+                if (result)
+                    WScript.StdErr.WriteLine(
+                        "Configure: Fatal error: Failed to build library " 
+                        + outLibName);
+            }
+            else
+            {
+                result = compileFiles(srcFile);
+                if (0 == result && /\s*main\s*\(/.test(srcText))            
                 {
-                    // replace $(LIBSUFFIX) with .lib and replace .o with .obj
-                    modules += " " + stageDir + "\\" +
-                        ldopts[1].replace(/\$\(LIBSUFFIX\)/, ".lib").
-                                  replace(/\.o/, ".obj");
-                }
-                var exeFile = base + ".exe";
-                var fullExeName = fileBase + ".exe";
-                result = linkFiles(modules, exeFile);
-                if (result == 0) // can execute
-                {
-                    var exec = WshShell.Exec(fullExeName);
-                    var time = 0;
-                    while (exec.Status == 0)
+                    // main function present. file is runnable
+                    // get library and object dependencies
+                    var fileBase = stageDir + "\\" + base;
+                    var modules =  fileBase + ".obj";
+                    var ldopts = 
+                        (/^[^A-Z_a-z0-9]*LDOPTS\s*=\s*(\S*)\s*$/m).exec(srcText);
+                    if (ldopts != null)
                     {
-                        WScript.Sleep(100); // wait for completion
-                        time += 100;
-                        if (time > timeOut)
-                        {
-                            WScript.StdErr.WriteLine(
-                                "Configure: Fatal error: Test " + test
-                                 + " failed to complete in " + timeOut / 1000
-                                 + " seconds");
-                            return 0;
-                        }
+                        // replace $(LIBSUFFIX) with .lib and replace .o with .obj
+                        modules += " " + stageDir + "\\" +
+                            ldopts[1].replace(/\$\(LIBSUFFIX\)/, ".lib").
+                                      replace(/\.o/, ".obj");
                     }
-                    result = exec.ExitCode;
-                    textResult = exec.StdOut.ReadAll();
+                    var exeFile = base + ".exe";
+                    var fullExeName = fileBase + ".exe";
+                    result = linkFiles(modules, exeFile);
+                    if (result == 0) // can execute
+                    {
+                        var exec = WshShell.Exec(fullExeName);
+                        var time = 0;
+                        while (exec.Status == 0)
+                        {
+                            WScript.Sleep(100); // wait for completion
+                            time += 100;
+                            if (time > timeOut)
+                            {
+                                WScript.StdErr.WriteLine(
+                                    "Configure: Fatal error: Test " + test
+                                     + " failed to complete in " + timeOut / 1000
+                                     + " seconds");
+                                return 0;
+                            }
+                        }
+                        result = exec.ExitCode;
+                        textResult = exec.StdOut.ReadAll();
+                    }
                 }
             }
             // append symbol result
@@ -936,10 +920,6 @@ function checkDependencies(srcText, configText, dumpUnresolved)
         var dep = /_RWSTD_(?:NO_)?(\S+)/.exec(deps[i])[1];
         // remove _IN_LIBC | _IN_LIBM from dependency string
         dep = dep.replace(/_IN_LIB[CM]/, "");
-        if ((/\.lib$/i).test(dep)) // skip libraries
-        {
-            continue;
-        }
         var rx = new RegExp("_RWSTD_NO_" + dep);
         if (!rx.test(configText))
         {

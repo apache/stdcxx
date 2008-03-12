@@ -23,6 +23,7 @@
  **************************************************************************/
 
 #include "thread.h"
+#include "nodbg.h"
 
 
 extern "C" void* thread_proc (void *arg)
@@ -51,12 +52,7 @@ extern "C" void* thread_proc (void *arg)
 
 int main ()
 {
-#if defined (_WIN32)
-    // disable displaying the critical-error-handler
-    // and general-protection-fault message boxes
-    // windows.h included in thread.h
-    SetErrorMode (SEM_FAILCRITICALERRORS | SEM_NOGPFAULTERRORBOX);
-#endif   // _WIN32
+    nodbg ();
 
     pthread_t tid [2];
 
