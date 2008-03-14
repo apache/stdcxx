@@ -32,6 +32,12 @@
 #ifndef _RWSTD_PODARRAY_H_INCLUDED
 #define _RWSTD_PODARRAY_H_INCLUDED
 
+
+#if __GNUG__ >= 3
+#  pragma GCC system_header
+#endif   // gcc >= 3
+
+
 #include <string.h>
 #include <rw/_traits.h>
 #include <rw/_defs.h>
@@ -204,17 +210,19 @@ typedef __rw_pod_array<char, 256> __rw_chararray;
 
 _RWSTD_NAMESPACE (__rw) { 
 
-#if _RWSTD_INSTANTIATE_POD_ARRAY
+#if _RWSTD_INSTANTIATE (_POD_ARRAY, _CHAR)
 
 // used throughout locale
-_RWSTD_INSTANTIATE_2 (class _RWSTD_EXPORT __rw_pod_array<char, 256>);
+_RWSTD_INSTANTIATE_2 (class __rw_pod_array<char, 256>);
+
+#endif   // _RWSTD_INSTANTIATE (_POD_ARRAY, _CHAR)
+
+#if _RWSTD_INSTANTIATE (_POD_ARRAY, _UINT)
 
 // used in collate.cpp
-_RWSTD_INSTANTIATE_2 (class _RWSTD_EXPORT
-                      __rw_pod_array<const unsigned int*, 1024>);
+_RWSTD_INSTANTIATE_2 (class __rw_pod_array<const unsigned int*, 1024>);
 
-
-#endif   // _RWSTD_INSTANTIATE_POD_ARRAY
+#endif   // _RWSTD_INSTANTIATE (_POD_ARRAY, _UINT)
 
 }   // namespace __rw
 
