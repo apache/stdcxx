@@ -486,7 +486,7 @@ BEGIN {
 
 
 # extract the Windows build date (date /T output)
-/>date  *[/]T *$/ {
+/>date  *\/T *$/ {
 
     getline
 
