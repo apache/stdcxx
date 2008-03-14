@@ -244,14 +244,14 @@ public:
 // explicit instantiation followed by explicit specialization is illegal
 // according to 14.6.4.1, p7 but MSVC allows it (linker errors otherwise)
 
-_RWSTD_INSTANTIATE_2 (class _RWSTD_EXPORT
+_RWSTD_INSTANTIATE_2 (class _RWSTD_TI_EXPORT
                       basic_ostream<char, char_traits<char> >);
 
 #  endif   // _RWSTD_INSTANTIATE (_BASIC_OSTREAM, _CHAR)
 
 #  if _RWSTD_INSTANTIATE (_BASIC_OSTREAM, _WCHAR_T)
 
-_RWSTD_INSTANTIATE_2 (class _RWSTD_EXPORT
+_RWSTD_INSTANTIATE_2 (class _RWSTD_TI_EXPORT
                       basic_ostream<wchar_t, char_traits<wchar_t> >);
 
 #  endif   // _RWSTD_INSTANTIATE (_BASIC_OSTREAM, _WCHAR_T)
@@ -484,18 +484,6 @@ flush (basic_ostream<_CharT, _Traits>& __strm)
 }
  
 
-// 21.3.7.9, p3 - defined here, declared inline in <string>
-template<class _CharT, class _Traits, class _Allocator>
-inline basic_ostream<_CharT, _Traits>&
-operator<< (basic_ostream<_CharT, _Traits>                  & __strm,
-            const basic_string<_CharT, _Traits, _Allocator> &__str)
-{
-    _RW::__rw_insert (__strm, __str.data (), __str.length (),
-                      __strm.width ());
-    return __strm;
-}
-
-
 #if defined (_MSC_VER) && _MSC_VER < 1310
 
 // working around an MSVC bug that causes it to pick the member
@@ -554,14 +542,14 @@ inline wostream& flush (wostream& __strm)
 
 #  if _RWSTD_INSTANTIATE (_BASIC_OSTREAM, _CHAR)
 
-_RWSTD_INSTANTIATE_2 (class _RWSTD_EXPORT
+_RWSTD_INSTANTIATE_2 (class _RWSTD_TI_EXPORT
                       basic_ostream<char, char_traits<char> >);
 
 #  endif   // _RWSTD_INSTANTIATE (_BASIC_OSTREAM, _CHAR)
 
 #  if _RWSTD_INSTANTIATE (_BASIC_OSTREAM, _WCHAR_T)
 
-_RWSTD_INSTANTIATE_2 (class _RWSTD_EXPORT
+_RWSTD_INSTANTIATE_2 (class _RWSTD_TI_EXPORT
                       basic_ostream<wchar_t, char_traits<wchar_t> >);
 
 #  endif   // _RWSTD_INSTANTIATE (_BASIC_OSTREAM, _WCHAR_T)
@@ -573,6 +561,12 @@ _RWSTD_INSTANTIATE_2 (class _RWSTD_EXPORT
 #if _RWSTD_DEFINE_TEMPLATE_LAST (_BASIC_OSTREAM)
 #  include <ostream.cc>
 #endif   // _RWSTD_DEFINE_TEMPLATE_LAST (_BASIC_OSTREAM)
+
+
+#ifndef _RWSTD_STRING_INSERTER_INCLUDED
+#  define _RWSTD_INCLUDE_STRING_INSERTER
+#  include <rw/_stringio.h>
+#endif   // _RWSTD_STRING_INSERTER_INCLUDED
 
 
 #endif   // _RWSTD_OSTREAM_INCLUDED

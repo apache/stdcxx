@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2001-2006 Rogue Wave Software.
+ * Copyright 2001-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -94,7 +94,7 @@ _C_get (iter_type __it, iter_type __end, bool __intl, ios_base &__flags,
     const char *__grpend   = 0;      // the end of the last group
 
 
-    long __sign = 0;    // the sign of the result if detected
+    int __sign = 0;    // the sign of the result if detected (-1, 0, or +1)
 
     // buffer must always start with a sign (__rw_get_num requirement)
     // use a '+' and overwrite it with a '-' if necessary
@@ -102,7 +102,9 @@ _C_get (iter_type __it, iter_type __end, bool __intl, ios_base &__flags,
 
     const int __fl = __flags.flags ();
 
-    for (_RWSTD_SIZE_T __i = 0; !__ebits && __i != sizeof __pat.field; ++__i) {
+    typedef _RWSTD_SIZE_T _SizeT;
+
+    for (_SizeT __i = 0; !__ebits && __i != sizeof __pat.field; ++__i) {
 
         switch (__pat.field [__i]) {
 
@@ -124,7 +126,7 @@ _C_get (iter_type __it, iter_type __end, bool __intl, ios_base &__flags,
                 && (0 == __cs.size () || !(__fl & _RW::__rw_showbase)))
                 break;
 
-            _RWSTD_SIZE_T __nc = 0;
+            _SizeT __nc = 0;
 
             while (__it != __end && __ctp.is (ctype_base::space, *__it)) {
                 ++__it;
@@ -148,7 +150,7 @@ _C_get (iter_type __it, iter_type __end, bool __intl, ios_base &__flags,
                 || __sign < 0 && __ns.size () > 1
                 || __sign > 0 && __ps.size () > 1) {
 
-                for (_RWSTD_SIZE_T __nc = 0; __nc != __cs.size ();
+                for (_SizeT __nc = 0; __nc != __cs.size ();
                      ++__nc, ++__it) {
                     if (__it == __end || !_Traits::eq (*__it, __cs [__nc])) {
 
@@ -259,7 +261,7 @@ _C_get (iter_type __it, iter_type __end, bool __intl, ios_base &__flags,
         if (__buf [1]) {
 
             // process the remainder of a multicharacter sign
-            const _RWSTD_SIZE_T __sizes [] = {
+            const _SizeT __sizes [] = {
                 __ps.size () ? __ps.size () -1 : 0,
                 __ns.size () ? __ns.size () -1 : 0
             };
@@ -274,7 +276,7 @@ _C_get (iter_type __it, iter_type __end, bool __intl, ios_base &__flags,
                 // if the first character of a multi-character sign
                 // has been seen, try to extract the rest of the sign
 
-                _RWSTD_SIZE_T __inx = 0;
+                _SizeT __inx = 0;
 
                 int __errtmp = 1;   // no duplicates allowed
 
@@ -304,7 +306,7 @@ _C_get (iter_type __it, iter_type __end, bool __intl, ios_base &__flags,
                     // if both signs begin with the same character,
                     // the result is positive (22.2.6.1.2, p3)
                     *__buf = __inx ? '-' : '+';
-                    __sign = -long (__inx);
+                    __sign = -int (__inx);
                 }
             }
             else if (__sign < 0) {
@@ -316,20 +318,21 @@ _C_get (iter_type __it, iter_type __end, bool __intl, ios_base &__flags,
                 const char *__start = __buf + 1;
                 for (; '0' == *__start && '0' == __start [1]; ++__start);
 
+                // invert the sign if negative
                 __sign = __sign < 0;
 
                 // widen narrow digits optionally preceded by the minus sign
                 // into the basic_string object as required by 22.2.6.1.2, p1
-                __pstr->resize ((__pcur - __start) + __sign);
+                __pstr->resize ((__pcur - __start) + _SizeT (__sign));
 
                 if (__sign)
                     _Traits::assign ((*__pstr)[0], __ctp.widen ('-'));
 
-                __ctp.widen (__start, __pcur, &(*__pstr)[__sign]);
+                __ctp.widen (__start, __pcur, &(*__pstr)[_SizeT (__sign)]);
             }
 
-            const char   *__grs = "";
-            _RWSTD_SIZE_T __grn = 0;
+            const char *__grs = "";
+            _SizeT      __grn = 0;
 
             // 22.2.6.1.2, p1: thousands separators are optional
 

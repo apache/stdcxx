@@ -481,13 +481,6 @@
 
 #    define _RWSTD_CLASS_EXPORT    _RWSTD_EXPORT
 #    define _RWSTD_MEMBER_EXPORT   /* empty */
-
-   // disable warnings:
-   // C4251: class needs to have dll-interface to be used by cliens
-   // C4275: non dll-interface class used as base for dll-interface class
-#  pragma warning (disable: 4251)
-#  pragma warning (disable: 4275)
-
 #else
    // disable Windows hacks
 #  define _RWSTD_EXPORT          /* empty */
@@ -1306,6 +1299,13 @@ __rw_assert_fail (const char*, const char*, int, const char*)
 #endif   // _RWSTD_NO_STRTOULL
 
 
+#ifdef _RWSTD_LIB_SRC
+#  define _RWSTD_TI_EXPORT    /* empty */
+#else    // #ifndef _RWSTD_LIB_SRC
+#  define _RWSTD_TI_EXPORT    _RWSTD_EXPORT
+#endif   // _RWSTD_LIB_SRC
+
+
 #if     defined (_RWSTD_INSTANTIATE_TEMPLATES)       \
     && !defined (_RWSTD_NO_EXPLICIT_INSTANTIATION)   \
     && !defined (_RWSTD_NO_INSTANTIATE)
@@ -1318,6 +1318,9 @@ __rw_assert_fail (const char*, const char*, int, const char*)
 #  define _RWSTD_INSTANTIATE_1(arg)          template arg
 #  define _RWSTD_INSTANTIATE_2(a1, a2)       template a1, a2
 #  define _RWSTD_INSTANTIATE_3(a1, a2, a3)   template a1, a2, a3
+
+#  undef  _RWSTD_TI_EXPORT
+#  define _RWSTD_TI_EXPORT    _RWSTD_EXPORT
 
 #  ifdef _RWSTD_NO_FUNCTION_EXPLICIT_INSTANTIATION
      // replace explicit function template instantiations with
@@ -1332,12 +1335,8 @@ __rw_assert_fail (const char*, const char*, int, const char*)
 #elif     defined (_MSC_VER)                          \
       && !defined (_RWSTD_NO_EXPLICIT_INSTANTIATION)  \
       && !defined (_RWSTD_NO_INSTANTIATE)
-   // disable warning C4231: nonstandard extension used :
-   //         'extern' before template explicit instantiation
-#  pragma warning (disable: 4231)
 
 #  define _RWSTD_INSTANTIATE(ign1, type)   (!_RWSTD_NO ## type)
-
 #  define _RWSTD_INSTANTIATE_1(arg)        extern template arg
 #  define _RWSTD_INSTANTIATE_2(a1, a2)     extern template a1, a2
 #  define _RWSTD_INSTANTIATE_3(a1, a2, a3) extern template a1, a2, a3

@@ -226,15 +226,15 @@ _RWSTD_NAMESPACE (std) {
 
 #if _RWSTD_INSTANTIATE (_MONEYPUNCT, _CHAR)
 
-_RWSTD_INSTANTIATE_2 (struct _RWSTD_EXPORT moneypunct<char, true>);
-_RWSTD_INSTANTIATE_2 (struct _RWSTD_EXPORT moneypunct<char, false>);
+_RWSTD_INSTANTIATE_2 (struct _RWSTD_TI_EXPORT moneypunct<char, true>);
+_RWSTD_INSTANTIATE_2 (struct _RWSTD_TI_EXPORT moneypunct<char, false>);
 
 #endif   // _RWSTD_INSTANTIATE (_MONEYPUNCT, _CHAR)
 
 #if _RWSTD_INSTANTIATE (_MONEYPUNCT, _WCHAR_T)
 
-_RWSTD_INSTANTIATE_2 (struct _RWSTD_EXPORT moneypunct<wchar_t, true>);
-_RWSTD_INSTANTIATE_2 (struct _RWSTD_EXPORT moneypunct<wchar_t, false>);
+_RWSTD_INSTANTIATE_2 (struct _RWSTD_TI_EXPORT moneypunct<wchar_t, true>);
+_RWSTD_INSTANTIATE_2 (struct _RWSTD_TI_EXPORT moneypunct<wchar_t, false>);
 
 #endif   // _RWSTD_INSTANTIATE (_MONEYPUNCT, _WCHAR_T)
 

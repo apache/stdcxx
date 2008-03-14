@@ -344,14 +344,14 @@ _RWSTD_NAMESPACE (std) {
 
 #if _RWSTD_INSTANTIATE (_BASIC_IOS, _CHAR)
 
-_RWSTD_INSTANTIATE_2 (class _RWSTD_EXPORT
+_RWSTD_INSTANTIATE_2 (class _RWSTD_TI_EXPORT
                       basic_ios<char, char_traits<char> >);
 
 #endif   // _RWSTD_INSTANTIATE (_BASIC_IOS, _CHAR)
 
 #if _RWSTD_INSTANTIATE (_BASIC_IOS, _WCHAR_T)
 
-_RWSTD_INSTANTIATE_2 (class _RWSTD_EXPORT
+_RWSTD_INSTANTIATE_2 (class _RWSTD_TI_EXPORT
                       basic_ios<wchar_t, char_traits<wchar_t> >);
 
 #endif   // _RWSTD_INSTANTIATE (_BASIC_IOS, _WCHAR_T)

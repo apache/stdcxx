@@ -268,13 +268,13 @@ _RWSTD_NAMESPACE (std) {
 
 #if _RWSTD_INSTANTIATE (_NUM_GET, _CHAR)
 
-_RWSTD_INSTANTIATE_1 (struct _RWSTD_EXPORT num_get<char>);
+_RWSTD_INSTANTIATE_1 (struct _RWSTD_TI_EXPORT num_get<char>);
 
 #endif   // _RWSTD_INSTANTIATE (_NUM_GET, _CHAR)
 
 #if _RWSTD_INSTANTIATE (_NUM_GET, _WCHAR_T)
 
-_RWSTD_INSTANTIATE_1 (struct _RWSTD_EXPORT num_get<wchar_t>);
+_RWSTD_INSTANTIATE_1 (struct _RWSTD_TI_EXPORT num_get<wchar_t>);
 
 #endif   // _RWSTD_INSTANTIATE (_NUM_GET, _WCHAR_T)
 
