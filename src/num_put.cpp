@@ -563,9 +563,34 @@ __rw_put_groups (char **pbuf, _RWSTD_SIZE_T len, _RWSTD_SIZE_T bufsize,
 
 
 static inline void
-__rw_fix_flt (char *&end, _RWSTD_SIZE_T &len, unsigned flags)
+__rw_fix_flt (char *&end, _RWSTD_SIZE_T &len,
+              unsigned flags, _RWSTD_STREAMSIZE prec)
 {
 #if defined (_WIN32) || defined (_WIN64)
+
+    char* beg = end - len;
+
+    // workaround for the STDCXX-2 issue
+    if (   _RWSTD_IOS_FIXED != (flags & _RWSTD_IOS_FLOATFIELD)
+        && _RWSTD_IOS_SCIENTIFIC != (flags & _RWSTD_IOS_FLOATFIELD)
+        && 2 < len
+        && '0' == beg [0]
+        && ('.' == beg [1] || ',' == beg [1])) {
+
+        // for the 0.0 value the MSVC libc inserts redundant '0' character
+        // when %g format is used in sprintf()
+        const char* ptr;
+        for (ptr = beg + 2; ptr != end && '0' == *ptr; ++ptr) ;
+
+        if (ptr == end) {
+            const _RWSTD_SIZE_T exp_len =
+                0 > prec ? 7 : (1 < prec ? prec + 1 : 2);
+            if (exp_len < len) {
+                end = beg + exp_len;
+                len = exp_len;
+            }
+        }
+    }
 
     if (len > 5) {
         // make Win32 output conform to C99 printf() requirements
@@ -579,15 +604,30 @@ __rw_fix_flt (char *&end, _RWSTD_SIZE_T &len, unsigned flags)
             --end;
         }
         else if ('#' == end [-4]) {
-            // normalize the format of infinity to conform to C99
-
-            const char str[] = "iInNfF";
-
+            // may be #INF or #IND
             const bool cap = !!(flags & _RWSTD_IOS_UPPERCASE);
 
-            end [-6] = str [cap + 0];
-            end [-5] = str [cap + 2];
-            end [-4] = str [cap + 4];
+            if ('F' == end [-1]) {
+                // assuming #INF
+                // normalize the format of infinity to conform to C99
+
+                const char str[] = "iInNfF";
+
+                end [-6] = str [cap + 0];
+                end [-5] = str [cap + 2];
+                end [-4] = str [cap + 4];
+            }
+            else {
+                // assuming #IND
+                // normalize the format of NaN to conform to C99
+
+                const char str[] = "nNaA";
+
+                end [-6] = str [cap + 0];
+                end [-5] = str [cap + 2];
+                end [-4] = str [cap + 0];
+            }
+
             end -= 3;
             len -= 3;
         }
@@ -607,6 +647,8 @@ __rw_fix_flt (char *&end, _RWSTD_SIZE_T &len, unsigned flags)
     }
 
 #else
+
+    _RWSTD_UNUSED (prec);
 
     // normalize the format of infinity and NaN to one of
     // { INF, inf, NAN, nan, NANQ, nanq, NANS, nans }
@@ -760,7 +802,7 @@ __rw_put_num (char **pbuf, _RWSTD_SIZE_T bufsize,
         end = *pbuf + len;
 
         // fix up output to conform to C99
-        __rw_fix_flt (end, len, flags);
+        __rw_fix_flt (end, len, flags, fpr);
         break;
 
     case __rw_facet::_C_double | __rw_facet::_C_ptr:
@@ -788,7 +830,7 @@ __rw_put_num (char **pbuf, _RWSTD_SIZE_T bufsize,
         end = *pbuf + len;
 
         // fix up output to conform to C99
-        __rw_fix_flt (end, len, flags);
+        __rw_fix_flt (end, len, flags, fpr);
         break;
 
 #ifndef _RWSTD_NO_LONG_DOUBLE
@@ -817,7 +859,7 @@ __rw_put_num (char **pbuf, _RWSTD_SIZE_T bufsize,
         end = *pbuf + len;
 
         // fix up output to conform to C99
-        __rw_fix_flt (end, len, flags);
+        __rw_fix_flt (end, len, flags, fpr);
         break;
 
 #endif   // _RWSTD_NO_LONG_DOUBLE

@@ -202,6 +202,8 @@ __rw_memattr (const void *addr, _RWSTD_SIZE_T nbytes, int attr)
                 return next == page ? -1 : DIST (next, addr);
         }
 
+#  else
+        _RWSTD_UNUSED (errno_save);
 #  endif
 
         if (_RWSTD_SIZE_MAX == nbytes) {
