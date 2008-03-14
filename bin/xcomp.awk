@@ -1723,6 +1723,26 @@ function format_size(size)
 }
 
 
+function get_gzlogfname(fname)
+{
+    # strip directory prefix from file name
+    pos = match(fname, ".*/")
+    if (0 < pos)
+        fref = substr(fname, RLENGTH + 1)
+    else
+        fref = fname
+
+    # replace the temporary PID suffix with ".gz"
+    pos = match(fref, "\\.[1-9][0-9]*$")
+    if (0 < pos)
+        fref = substr(fref, 1, pos - 1)
+
+    fref = fref ".gz"
+
+    return fref
+}
+
+
 function print_logtable()
 {
     thead =                                                             \
@@ -1801,7 +1821,9 @@ function print_logtable()
         else
             print "        <tr>"
 
-        print "          <td><a href=\"" fname "\">" i "</a></td>"
+        # strip directory prefix from file name
+        loghref = get_gzlogfname(fname)
+        print "          <td><a href=\"" loghref "\">" i "</a></td>"
 
         ################################################################
         # extract and format the operating system name and version
@@ -1995,7 +2017,9 @@ function print_timingstable()
         else
             print "        <tr>"
 
-        print "          <td><a href=\"" fname "\">" i "</a></td>"
+        # strip directory prefix from file name
+        loghref = get_gzlogfname(fname)
+        print "          <td><a href=\"" loghref "\">" i "</a></td>"
 
         buildtype = get_buildtype(fname)
         print "          <td>" buildtype "</td>"
