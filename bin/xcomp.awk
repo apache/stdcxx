@@ -1737,7 +1737,8 @@ function get_gzlogfname(fname)
     if (0 < pos)
         fref = substr(fref, 1, pos - 1)
 
-    fref = fref ".gz"
+    # replace the trailing .txt suffix with .gz.txt
+    sub("\\.txt$", ".gz.txt", fref)
 
     return fref
 }
