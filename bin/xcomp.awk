@@ -1931,9 +1931,9 @@ function format_time(timestr)
 
 function print_timingstable()
 {
-    thead =         \
-        "<table>\n"   \
-        "  <thead>\n" \
+    thead =                                                             \
+        "<table>\n"                                                     \
+        "  <thead>\n"                                                   \
         "    <tr>\n"                                                    \
         "      <th rowspan=3 title=\"column number and log\">"          \
         "log</th>\n"                                                    \
@@ -1954,7 +1954,7 @@ function print_timingstable()
         "      <th colspan=3 title=\"run times for all components\">"   \
         "run times</th>\n"                                              \
         "      <th colspan=3 title=\"total build and run times\">"      \
-        "total</th>\n"                                                  \
+        "<b>total</b></th>\n"                                           \
         "    </tr>\n"                                                   \
         "    <tr>\n"                                                    \
         "      <th>real</th>\n"                                         \
@@ -2016,9 +2016,19 @@ function print_timingstable()
                 usrtim  = format_time(atimes [2])
                 systim  = format_time(atimes [3])
 
-                timecells = timecells "<td>" realtim "</td>"
-                timecells = timecells "<td>" usrtim "</td>"
-                timecells = timecells "<td>" systim "</td>"
+                # highlight total times in bold
+                if ("total" == stage) {
+                    pfx = "<b>"
+                    sfx = "</b>"
+                }
+                else {
+                    pfx = ""
+                    sfx = ""
+                }
+                    
+                timecells = timecells "<td>" pfx realtim sfx "</td>"
+                timecells = timecells "<td>" pfx usrtim  sfx "</td>"
+                timecells = timecells "<td>" pfx systim  sfx "</td>"
             }
             else {
                 timecells = timecells "<td></td><td></td><td></td>"
