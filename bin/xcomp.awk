@@ -23,12 +23,10 @@
 ########################################################################
 #
 # SYNOPSIS
-#     myname [comptype=<string>] [bodyonly=0|1] logs...
+#     myname [bodyonly=0|1] logs...
 #
 # VARIABLES:
 #   bodyonly     when non-zero, suppresses the <html> tags
-#   comptype     component type (example, locale, or test)
-#   expect       set of expected results
 #
 ########################################################################
 
@@ -47,6 +45,15 @@ BEGIN {
     sectnames [1] = "locale"
     sectnames [2] = "test"
     sectnames [3] = "example"
+
+    # names of build stages
+    buildstages [1] = "config"
+    buildstages [2] = "lib"
+    buildstages [3] = "examples"
+    buildstages [4] = "bin"
+    buildstages [5] = "tests"
+    buildstages [6] = "runall"
+    buildstages [7] = "total"
 
     # displayed and cout as failures
     states ["ASSERT"] =  1
@@ -130,8 +137,8 @@ BEGIN {
     # regular expression to match a name (e.g., compiler or OS)
     re_name    = "[A-Za-z][A-Za-z_0-9]*"
 
-    # regular expression to match a version string
-    re_version = "[1-9][0-9]*(\\.[0-9][0-9]*)*"
+    # regular expression to match a version string (includes 0)
+    re_version = "[0-9]+(\\.[0-9]+)*"
 
     # regular expression matching the buildtype string
     re_buildtype = "(8|11|12|15)[aAdDsS](-(solaris|win32))?"
@@ -140,10 +147,21 @@ BEGIN {
     re_logname = re_name "-" re_version    \
         "-" re_name "-" re_name "-" re_version \
         "-" re_buildtype "-" "[1-9][0-9]*-log"
-}
 
+    # get today's date
+    "LC_ALL=C date" | getline todays_date
 
-# action to detect the type of file
+    # set the conversion format to two decimal places
+    CONVFMT = "%.3g"
+
+    # field separator character (not an awk variable)
+    FSEP = "|"
+
+}   # BEGIN
+
+########################################################################
+
+# detect the type of file
 1 == FNR {
     section = 0
 
@@ -169,7 +187,7 @@ BEGIN {
 }
 
 
-# action to process file containing specification of expected failures
+# process file containing specification of expected failures
 1 == expect_file && $1 ~ "^[^#][^#]" {
 
     if (1 == index($0, " ")) {
@@ -227,8 +245,239 @@ BEGIN {
 ########################################################################
 # logfile only processing below
 
-# action to extract the (POSIX) build date and time (date output)
-/^##* *date *: *$/ {
+# extract operating system name and its version, and hardware
+# architecture (if possible)
+/^ *#+ *uname / {
+
+    getline
+
+    uname_output = $0
+
+    osname   = $1
+    osver    = ""
+    osdesc   = uname_output
+    arch     = ""
+    archdesc = ""
+
+    if (osname == "AIX") {
+        # AIX <host> 2 5 00CBEEBE4C00
+        osver = $4 "." $3
+        arch  = "PowerPC"
+    }
+    else if (osname ~ "^CYGWIN") {
+        # CYGWIN_NT-5.1 <host> 1.5.24(0.156/4/2) 2007-01-31 10:57 i686 Cygwin
+        osname = "Cygwin"
+        osver  = substr($3, 1, index($3, "(") - 1)
+
+        pos = match(uname_output, " i[2-6]86 ")
+        if (0 < pos) {
+            arch = substr(uname_output, pos + 1, 4)
+        }
+        else if (uname_output ~ " x86 ") {
+            arch = "x86"
+        }
+    }
+    else if (osname == "FreeBSD") {
+        # 
+        osver = $3
+    }
+    else if (osname == "HP-UX") {
+        # HP-UX <host> B.11.31 U ia64 3417177861 unlimited-user license
+        # HP-UX <host> B.11.23 U 9000/800 3952255646 unlimited-user license
+        # HP-UX <host> B.11.11 U 9000/800 1936254444 unlimited-user license
+        osver = $3
+        arch  = $5
+    }
+    else if (osname == "IRIX64") {
+        # IRIX64 <host> 6.5 04101930 IP27
+        osver = $3
+        arch  = "MIPS"
+    }
+    else if (osname == "Linux")
+        # Linux <host> <ver> #1 SMP <builddate> x86_64 x86_64 x86_64 GNU/Linux
+        osver = ""
+    else if (osname == "SunOS") {
+        # SunOS <host> <ver> Generic_118855-33 i86pc i386 i86pc
+        # SunOS <host> <ver> Generic_118833-33 sun4u sparc SUNW,Sun-Fire-V215
+        # SunOS <host> <ver> Generic_117350-43 sun4u sparc SUNW,Sun-Fire-V240
+        osver = $3
+        if (0 < index($0, "sparc"))
+            arch = "SPARC"
+        else
+            arch = "x86"
+    }
+    else if (osname == "OSF1") {
+        # OSF1 <host.domain> V5.1 1885 alpha
+        osver = $3
+    }
+
+    logos [FILENAME] = osname " " osver FSEP osdesc FSEP arch FSEP archdesc
+}
+
+
+# extract Linux distro name and version
+/^ *#+ *cat  *\/etc\/.*-release/ {
+
+    getline
+
+    if (1 == match($1, "^LSB_VERSION"))
+        getline
+
+    osname   = ""
+    osver    = ""
+    osdesc   = $0
+    arch     = ""
+    archdesc = ""
+
+    # Red Hat Enterprise Linux Server release 5 (Tikanga)
+    # Red Hat Enterprise Linux AS release 4 (Nahant Update 4)
+    # Red Hat Enterprise Linux AS release 4 (Nahant Update 2)
+    # Red Hat Enterprise Linux AS release 3 (Taroon Update 8)
+
+    # SUSE Linux Enterprise Server 10 (x86_64)
+    # SUSE LINUX Enterprise Server 9 (x86_64)
+
+    # remove the Red Hat code name including the release
+    # and keep the distribution code name and update info:
+    #   RHEL 5:      Tikanga (Update 1 through 2)
+    #   RHEL 4:      Nahant (Update 1 through 6)
+    #   RHEL 3:      Taroon (Update 1 through 9)
+    #   RHEL 2.1 AS: Pensacola
+    #   RHEL 2.1 ES: Panama
+
+    if ("RedHat" == $1 $2) {
+
+        if ("EnterpriseLinux" == $3 $4) {
+            if ("AS" == $5)
+                osname = "RHAS"
+            else if ("ES" == $5)
+                osname = "RHES"
+            else if ("WS" == $5)
+                osname = "RHWS"
+            else
+                osname = "RHEL"
+        }
+        else
+            osname = "RHL"
+
+        match($0, "release " re_version)
+        if (0 < RSTART)
+            osver = substr($0, RSTART + 8, RLENGTH - 8)
+
+        match($0, "Update [1-9][0-9]*")
+        if (0 < RSTART)
+            osver = osver "." substr($0, RSTART + 7, RLENGTH - 7)
+        else
+            osver = osver ".0"
+    }
+    else if ($1 == "SUSE") {
+        osname = "SLES"
+        osver  = $5
+    }
+
+    logos [FILENAME] = osname " " osver FSEP osdesc FSEP arch FSEP archdesc
+}
+
+
+# extract x86 processor name and version
+/^ *#+ *cat  *\/proc\/cpuinfo/ {
+
+    arch     = ""
+    archdesc = ""
+
+    # look for CPU manufacturer and other goodies in the contents
+    # of /proc/cpuinfo
+    do {
+        getline
+
+        if ($1 $2 $3 == "modelname:") {
+
+            $1 = ""   # model
+            $2 = ""   # name
+            $3 = ""   # :
+
+            archdesc = $0
+        }
+
+        if ($1 $2 == "arch:") {
+
+            $1 = ""   # arch
+            $2 = ""   # :
+
+            arch = $0
+        }
+
+        if ($1 $2 == "family:") {
+
+            $1 = ""   # family
+            $2 = ""   # :
+
+            if (arch == "")
+                arch = "IA64"
+
+            archdesc = $0
+        }
+
+        if (arch != "" && archdesc != "")
+            break
+
+    } while (0 < NF)
+
+    # bail if no architecture could be determined
+    if (arch == "" && archdesc == "")
+        next
+
+    # strip leading whitespace (result of assigning $N = "")
+    archdesc = substr(archdesc, match(archdesc, "[A-Za-z]"))
+
+    n = split(logos [FILENAME], platfields, FSEP)
+    osname   = platfields [1]
+    osdesc   = platfields [2]
+    # arch     = platfields [3]
+    # archdesc = platfields [4]
+
+    if (uname_output ~ " x86_64 ") {
+        if (archdesc ~ "Intel\\(R\\)")
+            arch = "EM64T"
+        else if (archdesc ~ "AMD ")
+            arch = "AMD64"
+        else
+            arch = "x86_64"
+    }
+    else if (uname_output ~ " ia64 ") {
+        if (arch == "")
+            arch = "IA64"
+    }
+    else if (arch == "") {
+        pos = match(uname_output, " i[3456]86 ")
+        if (0 < pos)
+            arch = substr(uname_output, pos + 1, 4)
+        else if (uname_output ~ " x86 ")
+            arch = "x86"
+    }
+
+    logos [FILENAME] = osname FSEP osdesc FSEP arch FSEP archdesc
+}
+
+
+# extract processor architecture info on Windows
+/^PROCESSOR_IDENTIFIER=/ {
+
+    n = split(logos [FILENAME], platfields, FSEP)
+    osname   = platfields [1]
+    osdesc   = platfields [2]
+    arch     = platfields [3]
+    archdesc = substr($0, index($0, "=") + 1)
+
+    if ("" == arch)
+        arch = substr(archdesc, 1, index(archdesc, " ") - 1)
+
+    logos [FILENAME] = osname FSEP osdesc FSEP arch FSEP archdesc
+}
+
+
+# extract the (POSIX) build date and time (date output)
+/^ *#+ *date *: *$/ {
 
     getline
 
@@ -236,12 +485,178 @@ BEGIN {
 }
 
 
-# action to extract the Windows build date (date /T output)
-/ *date  *[/]T *$/ {
+# extract the Windows build date (date /T output)
+/>date  *[/]T *$/ {
 
     getline
 
     logdates [FILENAME] = $0
+}
+
+
+# extract compiler name and version
+/^configuring stdcxx / {
+
+    cxxdesc = $5
+
+    pos = index(cxxdesc, "-")
+    if (0 < pos) {
+        cxxname = substr(cxxdesc, 1, pos - 1)
+        cxxver  = substr(cxxdesc, pos + 1)
+    }
+    else
+        cxxname = cxxdesc
+
+    if (cxxname == "aCC")
+        cxxname = "HP aCC"
+    else if (cxxname == "CC" && uname_output ~ "^IRIX64")
+        cxxname = "SGI MIPSpro"
+    else if (cxxname == "cxx" && uname_output ~ "^OSF1")
+        cxxname = "HP C++"
+    else if (cxxname == "eccp")
+        cxxname = "EDG eccp"
+    else if (cxxname == "icc")
+        cxxname = "Intel C++"
+    else if (cxxname ~ "^xlC")
+        cxxname = "IBM XLC++"
+
+    logos [FILENAME] = logos [FILENAME] FSEP cxxname " " cxxver FSEP cxxdesc
+}
+
+
+# extract compiler name and version (Visual Studio build)
+/^Configuring for / {
+
+    cxxdesc = $3
+
+    pos = index(cxxdesc, "-")
+    if (0 < pos) {
+        cxxname = substr(cxxdesc, 1, pos - 1)
+        cxxver  = substr(cxxdesc, pos + 1)
+    }
+    else
+        cxxname = cxxdesc
+
+    if (cxxname == "msvc")
+        cxxname = "MSVC"
+    else if (cxxname = "icc")
+        cxxname = "Intel C++"
+
+    logos [FILENAME] = logos [FILENAME] FSEP cxxname " " cxxver FSEP cxxdesc
+}
+
+
+# extract compiler name and version (Visual Studio build)
+/^Selected compiler: / {
+    $1 = ""
+    $2 = ""
+    cxxdesc = $0
+
+    if (cxxdesc ~ "Intel.*C++") {
+        cxxname = "Intel C++"
+        cxxver  = $5
+    }
+    else {
+        cxxname = $1 " " $2
+        cxxver  = $3
+    }
+
+    logos [FILENAME] = logos [FILENAME] FSEP cxxname " " cxxver FSEP cxxdesc
+}
+
+
+# see if the library failed to configure or build (UNIX)
+/^g?make: \*\*\* \[(config|lib)\] Error/ {
+    buildstatus [FILENAME] = "LIB"
+}
+
+
+# see if the library failed to configure or build (Windows)
+/.stdcxx - [1-9][0-9]* error(s), [1-9][0-9]* warning(s)/ {
+    buildstatus [FILENAME] = "LIB"
+}
+
+
+# extract the real, user and system times for the children of the shell
+# that executed the commands from the log
+# the format of the output is:
+#   <real-time>
+#   <times-output>
+# with <real-time> looking like:
+#   [1-9][0-9]*m[1-9][0-9]s
+# and with <times-output> being the output of the POSIX standard times
+# built-in utility, i.e., the first line giving the system and user times
+# for the shell and the second line giving the system and user times for
+# its children in the format:
+#   "%dm%fs %dm%fs"
+# we don't care about the shell times, just the times for its children,
+# so we skip that line
+/^ *#+ real, user, system time \(/ {
+
+    stage = substr($6, 2, index($6, ")") - 2);
+
+    getline      # real time
+    times = $0
+    getline      # ignore shell times
+    getline      # times for all children
+
+    pos   = index($0, " ")
+    times = times FSEP substr($0, 1, pos - 1)
+    times = times FSEP substr($0, pos + 1)
+
+    # times is: <real> FSEP <usr> FSEP <sys>
+    logstagetimes [FILENAME, stage] = times
+}
+
+
+# extract the size of the library
+/^ *#+ ls -l/ {
+
+    while (0 < NF) {
+        size = $5
+        getline
+    }
+
+    libsizes [FILENAME] = size
+
+}
+
+
+# extract the full build size or the size after the clean target
+/^ *#+ *du -sk / {
+
+    getline
+
+    if (FILENAME in buildsizes)
+        cleansizes [FILENAME] = $1
+    else
+        buildsizes [FILENAME] = $1
+}
+
+
+# count the number of (make) errors
+/^g?make: \*\*\* \[.*\] Error /{
+
+    ++logerrors [FILENAME]
+}
+
+
+# count the number of (Visual Studio) errors
+/ - [1-9][0-9]* error\(s\), [1-9][0-9]* warning\(s\)/{
+
+    if (cxxname ~ "^MSVC")
+        ++logerrors [FILENAME]
+}
+
+
+# count the number of warnings
+/[^A-Z_0-9](WARNING|[Ww]arning)[^A-Z_0-9]/ {
+
+    # if the library hasn't been seen yet count this as a library warning
+    if (!(FILENAME in libsizes))
+        ++libwarnings [FILENAME]
+    else
+        ++logwarnings [FILENAME]
 }
 
 
@@ -258,6 +673,7 @@ BEGIN {
     # skip this record
     next
 }
+
 
 # end of component table
 /^PROGRAM SUMMARY:$/ {
@@ -452,7 +868,6 @@ BEGIN {
 3 == section && 1 == start {
 }
 
-
 ########################################################################
 # functions
 
@@ -493,6 +908,25 @@ function get_time(fulldate)
 }
 
 
+# extracts operating system name and version from the log file name
+function get_osname(fname)
+{
+    # strip directory prefix from filename
+    pos = match(fname, ".*/")
+    if (0 < pos)
+        fname = substr(fname, RLENGTH + 1)
+
+    # strip anything after the first dash
+    pos = match(fname, "-")
+    if (0 == pos)
+        return ""
+
+    osname = substr(fname, 1, pos - 1)
+    # TO DO: extract version here
+    return osname
+}
+
+
 # extracts the build type from the log file name
 function get_buildtype(fname)
 {
@@ -508,8 +942,7 @@ function get_buildtype(fname)
                     "-(8|11|12|15)[aAdDsS]-[a-z][a-z_0-9]*-[1-9][0-9]*-log*")
 
     buildtype = substr(fname, pos + 1)
-
-    pos = index(buildtype, "-")
+    pos       = index(buildtype, "-")
     buildtype = substr(buildtype, 1, pos - 1)
 
     return buildtype
@@ -787,6 +1220,10 @@ function print_section(section)
 
     colnos = ""
 
+    # the date of the last log
+    lastdate = ""
+    datespan = 0
+
     # iterate over the array of section counts for each log file
     # and compose the column headers for each log
     for (i = 1; i <= logcount; ++i) {
@@ -824,8 +1261,38 @@ function print_section(section)
             date     = "N/A"
         }
 
-        row2 = row2 "          <td title=\"" fulldate "\">" date "</td>\n"
+        if (0 == datespan) {
+            lastdate = date
+            datespan = 1
+        }
+        else if (date == lastdate)
+            ++datespan
+        else {
+            row2 = row2 "          <td"
+
+            # append the full date as a tooltip only for a date
+            # for a single log, otherwise the timestamps are most
+            # likely different for each log
+            if (1 < datespan)
+                row2 = row2 " colspan=" datespan ">" date "</td>\n"
+            else
+                row2 = row2 " title=\"" fulldate "\">" date "</td>\n"
+
+            lastdate = date
+            datespan = 1
+        }
     }
+
+    # append the date of last set of logs
+    row2 = row2 "          <td"
+
+    # as above, append the full date as a tooltip only for a date
+    # for a single log, otherwise the timestamps are most likely
+    # different for each log
+    if (1 < datespan)
+        row2 = row2 " colspan=" datespan ">" date "</td>\n"
+    else
+        row2 = row2 " title=\"" fulldate "\">" date "</td>\n"
 
     row0 = row0 colnos "\n        </tr>\n"
     row1 = row1 "        </tr>\n"
@@ -1235,6 +1702,333 @@ function print_section(section)
 }
 
 
+function format_size(size)
+{
+    if (1000000000 <= size)
+        return size / 1073741824.0 " GB"
+
+    if (1000000 <= size)
+        return size / 1048576.0 " MB "
+
+    if (1000 <= size)
+        return size / 1024 " kB"
+
+    if (0 < size)
+        return size " B"
+
+    return size
+}
+
+
+function print_logtable()
+{
+    thead =                                                             \
+        "      <thead>\n"                                               \
+        "        <tr>\n"                                                \
+        "          <th rowspan=3 title=\"column number and log\">"      \
+        "log</th>\n"                                                    \
+        "          <th rowspan=3>operating<br>system</th>\n"            \
+        "          <th rowspan=3 title=\"hardware architecture\">"      \
+        "arch</th>\n"                                                   \
+        "          <th rowspan=3>compiler</th>\n"                       \
+        "          <th rowspan=3>build<br>type</th>\n"                  \
+        "          <th rowspan=3>start date and time</th>\n"            \
+        "          <th rowspan=3 title=\"build age at the time "        \
+        "of this report\">"                                             \
+        "age</th>\n"                                                    \
+        "          <th rowspan=3>revision</th>\n"                       \
+        "          <th colspan=5>sizes</th>\n"                          \
+        "          <th colspan=3>diagnostics</th>\n"                    \
+        "          <!-- <th colspan=6>components</th> -->\n"            \
+        "        </tr>\n"                                               \
+        "        <tr>\n"                                                \
+        "          <th rowspan=2 title=\"size of the library binary\">" \
+        "library</th>\n"                                                \
+        "          <th colspan=2>log</th>\n"                            \
+        "          <th colspan=2>build</th>\n"                          \
+        "          <th rowspan=2 title=\"number of error messages\">"   \
+        "errors</th>\n"                                                 \
+        "          <th colspan=2 title=\"number of warning messages\">" \
+        "warnings</th>\n"                                               \
+        "          <!-- <th colspan=2>examples</th> -->\n"              \
+        "          <!-- <th colspan=2>locales</th> -->\n"               \
+        "          <!-- <th colspan=2>tests</th> -->\n"                 \
+        "        </tr>\n"                                               \
+        "        <tr>\n"                                                \
+        "          <th title=\"size of gzipped log\">gzip</th>\n"       \
+        "          <th title=\"size of expanded log\">text</th>\n"      \
+        "          <th title=\"size of full build\">full</th>\n"        \
+        "          <th title=\"size of clean build\">clean</th>\n"      \
+        "          <th title=\"library\">lib</th>\n"                    \
+        "          <th title=\"other components\">other</th>\n"         \
+        "          <!-- <th title=\"number of examples exercised\">"    \
+        "total</th> -->\n"                                              \
+        "          <!-- <th title=\"number of examples failed\">"       \
+        "failed</th> -->\n"                                             \
+        "          <!-- <th title=\"number of locales exercised\">"     \
+        "total</th> -->\n"                                              \
+        "          <!-- <th title=\"number of locales failed\">"        \
+        "failed</th> -->\n"                                             \
+        "          <!-- <th title=\"number of tests exercised\">"       \
+        "total</th> -->\n"                                              \
+        "          <!-- <th title=\"number of tests failed\">"          \
+        "failed</th> -->\n"                                             \
+        "        </tr>\n"                                               \
+        "      </thead>"
+    
+    print "    <h2>Logs and Columns</h2>"
+    print "    <table>"
+    print thead
+    print "    <tbody>"
+
+    for (i = 1; i <= logcount; ++i) {
+
+        fname = logfnames [i]
+
+        n = split(logos [fname], platfields, FSEP)
+        osname   = platfields [1]
+        osdesc   = platfields [2]
+        arch     = platfields [3]
+        archdesc = platfields [4]
+        cxxname  = platfields [5]
+        cxxdesc  = platfields [6]
+
+        if (fname in buildstatus)
+            print "        <tr class=\"" buildstatus [fname] "\">"
+        else
+            print "        <tr>"
+
+        print "          <td><a href=\"" fname "\">" i "</a></td>"
+
+        ################################################################
+        # extract and format the operating system name and version
+        oscell = "<td"
+
+        if ("" == osdesc) {
+            # extract osname from log filename
+            osname = get_osname(fname)
+        }
+        else {
+            oscell = oscell " title=\"" osdesc "\""
+        }
+
+        oscell = oscell ">" osname"</td>"
+
+        ################################################################
+        # extract and format the hardware architecture
+        archcell = "<td"
+
+        if ("" != archdesc)
+            archcell = archcell " title=\"" archdesc "\""
+
+        archcell = archcell ">" arch "</td>"
+
+        ################################################################
+        # extract and format the compiler and version
+        cxxcell = "<td"
+
+        if ("" != cxxdesc)
+            cxxcell = cxxcell " title=\"" cxxdesc "\""
+
+        cxxcell = cxxcell ">" cxxname "</td>"
+
+        print "          " oscell
+        print "          " archcell
+        print "          " cxxcell
+
+        ################################################################
+        # extract build type from log file name
+        buildtype = get_buildtype(fname)
+        buildmode = buildmodes [buildtype]
+
+        print "          <td>" buildtype "</td>"
+        print "          <td>" logdates [fname] "</td>"
+
+        # compute and format the age of the build
+        duration = "~/stdcxx/bin/duration -f \"" logdates [fname] \
+                                         "\" \"" todays_date "\""
+        duration | getline fullage
+
+        pos      = index(fullage, ", ")
+        buildage = substr(fullage, 1, pos - 1)
+        print "          <td title=\"" fullage "\">" buildage "</td>"
+
+        pos = match(fname, "-[1-9][0-9]*-log")
+        buildrev = substr(fname, pos + 1, RLENGTH - 5)
+
+        ################################################################
+        # format a ViewVC URL to the revision number/log
+        revurl = "http://svn.apache.org/viewvc?view=rev&rev=" buildrev
+        print "          <td><a href=\"" revurl "\">" buildrev "</a></td>"
+
+        ################################################################
+        # library size
+        fullsize = fname in libsizes ? libsizes [fname] : ""
+        size     = format_size(libsizes [fname])
+        print "          <td title=\"" fullsize " bytes\">" size "</td>"
+
+        print "          <td>" gzlogsize "</td>"
+
+        ################################################################
+        # format the size of the expanded log file
+        cmd = "du -k " fname
+        cmd | getline
+        fullsize = $1
+        size     = format_size(fullsize * 1024)
+
+        print "          <td title=\"" fullsize " kb\">" size "</td>"
+
+        ################################################################
+        # compute the full build size
+        fullsize = fname in buildsizes ? buildsizes [fname] : ""
+        size     = format_size(fullsize * 1024)
+        print "          <td title=\"" fullsize " kB\">" size "</td>"
+
+        ################################################################
+        # format the build size after the clean target has been run
+        fullsize = fname in cleansizes ? cleansizes [fname] : ""
+        size     = format_size(fullsize * 1024)
+        print "          <td title=\"" fullsize " kB\">" size "</td>"
+
+        print "          <td>" logerrors [fname] "</td>"
+        print "          <td>" libwarnings [fname] "</td>"
+        print "          <td>" logwarnings [fname] "</td>"
+        print "        </tr>"
+    }
+
+    print "      </tbody>"
+    print "      <tfooter>"
+    print "      </tfooter>"
+    print "    </table>"
+}
+
+
+# reformat time string argument in the original format of "NmN.NNNs"
+# (i.e., as produced by the times shell utility), as "M:SS" rounding
+# fractional seconds as necessary
+function format_time(timestr)
+{
+    pos  = index(timestr, "m")
+    mins = substr(timestr, 1, pos - 1)
+    secs = substr(timestr, pos + 1)
+    secs = substr(secs, 1, length(secs) - 1)
+
+    timestr = mins ":"
+    if (int(secs) < 10)
+        timestr = timestr "0"
+
+    timestr = timestr int(secs)
+
+    return timestr
+}
+
+
+function print_timingstable()
+{
+    thead =         \
+        "<table>\n"   \
+        "  <thead>\n" \
+        "    <tr>\n"                                                    \
+        "      <th rowspan=3 title=\"column number and log\">"          \
+        "log</th>\n"                                                    \
+        "      <th rowspan=3>build<br>type</th>\n"                      \
+        "      <th colspan=21>build and run times (M:SS)</th>\n"        \
+        "    </tr>\n"                                                   \
+        "    <tr>\n"                                                    \
+        "      <th colspan=3 title=\"library configuration times\">"    \
+        "config</th>\n"                                                 \
+        "      <th colspan=3 title=\"library build times\">"            \
+        "library</th>\n"                                                \
+        "      <th colspan=3 title=\"build times for all examples\">"   \
+        "examples</th>\n"                                               \
+        "      <th colspan=3 title=\"build times for all utilities\">"  \
+        "utilities</th>\n"                                              \
+        "      <th colspan=3 title=\"build times for all tests\">"      \
+        "tests</th>\n"                                                  \
+        "      <th colspan=3 title=\"run times for all components\">"   \
+        "run times</th>\n"                                              \
+        "      <th colspan=3 title=\"total build and run times\">"      \
+        "total</th>\n"                                                  \
+        "    </tr>\n"                                                   \
+        "    <tr>\n"                                                    \
+        "      <th>real</th>\n"                                         \
+        "      <th>user</th>\n"                                         \
+        "      <th>sys</th>\n"                                          \
+        "      <th>real</th>\n"                                         \
+        "      <th>user</th>\n"                                         \
+        "      <th>sys</th>\n"                                          \
+        "      <th>real</th>\n"                                         \
+        "      <th>user</th>\n"                                         \
+        "      <th>sys</th>\n"                                          \
+        "      <th>real</th>\n"                                         \
+        "      <th>user</th>\n"                                         \
+        "      <th>sys</th>\n"                                          \
+        "      <th>real</th>\n"                                         \
+        "      <th>user</th>\n"                                         \
+        "      <th>sys</th>\n"                                          \
+        "      <th>real</th>\n"                                         \
+        "      <th>user</th>\n"                                         \
+        "      <th>sys</th>\n"                                          \
+        "      <th>real</th>\n"                                         \
+        "      <th>user</th>\n"                                         \
+        "      <th>sys</th>\n"                                          \
+        "    </tr>\n"                                                   \
+        "  </thead>\n"
+
+    print "    <h2>Timings</h2>"
+    print "    <table>"
+    print thead
+    print "    <tbody>"
+
+    for (i = 1; i <= logcount; ++i) {
+
+        fname = logfnames [i]
+
+        if (fname in buildstatus)
+            print "        <tr class=\"" buildstatus [fname] "\">"
+        else
+            print "        <tr>"
+
+        print "          <td><a href=\"" fname "\">" i "</a></td>"
+
+        buildtype = get_buildtype(fname)
+        print "          <td>" buildtype "</td>"
+
+        timecells = ""
+
+        for (j = 1; j in buildstages; ++j) {
+
+            stage = buildstages [j];
+
+            if ((fname, stage) in logstagetimes) {
+
+                # format real, user, and system times for the stage
+                timestr = logstagetimes [fname, stage]
+                split(timestr, atimes, FSEP)
+
+                realtim = format_time(atimes [1])
+                usrtim  = format_time(atimes [2])
+                systim  = format_time(atimes [3])
+
+                timecells = timecells "<td>" realtim "</td>"
+                timecells = timecells "<td>" usrtim "</td>"
+                timecells = timecells "<td>" systim "</td>"
+            }
+            else {
+                timecells = timecells "<td></td><td></td><td></td>"
+            }
+        }
+
+        print timecells "</tr>"
+    }
+
+    print "      </tbody>"
+    print "      <tfooter>"
+    print "      </tfooter>"
+    print "    </table>"
+}
+
+
 END {
 
     if (0 == bodyonly) {
@@ -1244,6 +2038,10 @@ END {
         print "  </head>"
         print "  <body>"
     }
+
+    print_logtable()
+
+    print_timingstable()
 
     for (section = 1; section <= 3; ++section)
         print_section(section)
