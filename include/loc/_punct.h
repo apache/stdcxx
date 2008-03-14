@@ -139,14 +139,14 @@ _RWSTD_NAMESPACE (__rw) {
 
 #if _RWSTD_INSTANTIATE (_PUNCT, _CHAR)
 
-_RWSTD_INSTANTIATE_FUN_1 (_RWSTD_EXPORT _RW::__rw_istreambuf_iterator
+_RWSTD_INSTANTIATE_FUN_1 (_RWSTD_TI_EXPORT _RW::__rw_istreambuf_iterator
                           __rw_match_name (_RWSTD_ARG_LIST (char)));
 
 #endif   // _RWSTD_INSTANTIATE (_PUNCT, _CHAR)
 
 #if _RWSTD_INSTANTIATE (_PUNCT, _WCHAR_T)
 
-_RWSTD_INSTANTIATE_FUN_1 (_RWSTD_EXPORT _RW::__rw_wistreambuf_iterator
+_RWSTD_INSTANTIATE_FUN_1 (_RWSTD_TI_EXPORT _RW::__rw_wistreambuf_iterator
                           __rw_match_name (_RWSTD_ARG_LIST (wchar_t)));
 
 #endif   // _RWSTD_INSTANTIATE (_PUNCT, _WCHAR_T)

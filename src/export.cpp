@@ -114,6 +114,9 @@
 #include <rw/_basic_ios.h>
 #include <rw/_basic_ios.cc>
 
+#include <rw/_stringio.h>
+#include <rw/_stringio.cc>
+
 #include <rw/_heap.h>
 #include <rw/_heap.cc>
 

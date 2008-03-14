@@ -23,7 +23,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -198,7 +198,7 @@ str () const
         __last  = this->egptr ();
     }
 
-    return _C_string_type (__first, __last - __first);
+    return _C_string_type (__first, __last);
 }
 
 
@@ -465,13 +465,13 @@ _RWSTD_NAMESPACE (std) {
 
 #if _RWSTD_INSTANTIATE (_BASIC_STRINGBUF, _CHAR)
 
-_RWSTD_INSTANTIATE_1 (class _RWSTD_EXPORT basic_stringbuf<char>);
+_RWSTD_INSTANTIATE_1 (class _RWSTD_TI_EXPORT basic_stringbuf<char>);
 
 #endif   // _RWSTD_INSTANTIATE (_BASIC_STRINGBUF, _CHAR)
 
 #if _RWSTD_INSTANTIATE (_BASIC_STRINGBUF, _WCHAR_T)
 
-_RWSTD_INSTANTIATE_1 (class _RWSTD_EXPORT basic_stringbuf<wchar_t>);
+_RWSTD_INSTANTIATE_1 (class _RWSTD_TI_EXPORT basic_stringbuf<wchar_t>);
 
 #endif   // _RWSTD_INSTANTIATE (_BASIC_STRINGBUF, _WCHAR_T)
 
