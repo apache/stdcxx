@@ -28,6 +28,7 @@
 #include <cstdio>    // for printf()
 #include <cstring>   // for strcmp(), strrchr()
 #include <cstddef>   // for size_t
+#include <cassert>   // for assert()
 
 #include <string>
 
@@ -63,11 +64,16 @@ static void change_ext (std::string& str, const char* ext)
 
 int main (int argc, char *argv[])
 {
-    const char* exe_name = std::strrchr (argv [0], SLASH);
-    if (exe_name)
-        ++exe_name;
-    else
-        exe_name = argv [0];
+    const char* exe_name = "gencat";
+
+    if (argv [0]) {
+        if (const char* slash = std::strrchr (argv [0], SLASH))
+            exe_name = slash + 1;
+        else
+            exe_name = argv [0];
+    }
+
+    assert (exe_name);
 
     if (1 == argc) {
         std::printf (usage_text, exe_name);
