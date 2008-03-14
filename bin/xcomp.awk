@@ -149,7 +149,9 @@ BEGIN {
         "-" re_buildtype "-" "[1-9][0-9]*-log"
 
     # get today's date
-    "LC_ALL=C date" | getline todays_date
+    cmd = "LC_ALL=C date"
+    cmd | getline todays_date
+    close(cmd)
 
     # set the conversion format to two decimal places
     CONVFMT = "%.3g"
@@ -214,6 +216,7 @@ BEGIN {
     if (0 < index(pattern, "{")) {
         cmd = "echo " pattern
         cmd | getline pattern
+        close(cmd)
     }
 
     # split the (potentially expanded) pattern into an array
@@ -1848,6 +1851,7 @@ function print_logtable()
         duration = "~/stdcxx/bin/duration -f \"" logdates [fname] \
                                          "\" \"" todays_date "\""
         duration | getline fullage
+        close(duration)
 
         pos      = index(fullage, ", ")
         buildage = substr(fullage, 1, pos - 1)
@@ -1873,6 +1877,8 @@ function print_logtable()
         # format the size of the expanded log file
         cmd = "du -k " fname
         cmd | getline
+        close(cmd)
+
         fullsize = $1
         size     = format_size(fullsize * 1024)
 
