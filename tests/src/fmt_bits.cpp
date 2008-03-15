@@ -179,7 +179,7 @@ _rw_fmtflags (const FmtSpec &spec, Buffer &buf, int bits)
 
 #endif   // _RWSTD_NO_EXT_REENTRANT_IO
 
-        { "std::ios::iostate(0)", "iostate(0)", std::ios::iostate () }
+        { "std::ios::fmtflags(0)", "fmtflags(0)", std::ios::fmtflags () }
 
     };
 
@@ -204,7 +204,9 @@ _rw_fmtflags (const FmtSpec &spec, Buffer &buf, int bits)
 
 #endif   // _RWSTD_NO_EXT_BIN_IO
 
-        len = rw_asnprintf (buf.pbuf, buf.pbufsize, "%{+} | std::ios::base(%d)", base);
+        len = rw_asnprintf (buf.pbuf, buf.pbufsize,
+                            "%{+} | %{?}std::ios::%{;}base(%d)",
+                            spec.fl_pound, base);
     }
 
     return len;
@@ -293,7 +295,7 @@ _rw_fmtseekdir (const FmtSpec &spec, Buffer &buf, int bits)
 /********************************************************************/
 
 /* extern */ int
-_rw_fmtevent (const FmtSpec&, Buffer &buf, int event)
+_rw_fmtevent (const FmtSpec& spec, Buffer &buf, int event)
 {
     const char* const str =
           std::ios::copyfmt_event == event ? "copyfmt_event"
@@ -302,8 +304,8 @@ _rw_fmtevent (const FmtSpec&, Buffer &buf, int event)
         : 0;
 
     return rw_asnprintf (buf.pbuf, buf.pbufsize,
-                         "%{+}%{?}%s%{:}copyfmt_event(%d)%{;}",
-                         0 != str, str, event);
+                         "%{+}%{?}std::ios::%{;}%{?}%s%{:}event(%d)%{;}",
+                         spec.fl_pound, 0 != str, str, event);
 }
 
 /********************************************************************/
