@@ -1720,16 +1720,16 @@ void dbl_test (charT, const char *cname)
 
     Punct<charT>::decimal_point_ = '.';
 
-    TEST (T,  0.0, 0, 0, 0, ' ', "", "%g");
-    TEST (T, -0.0, 0, 0, 0, ' ', "", "%g");
-    TEST (T,  1.0, 0, 0, 0, ' ', "", "%g");
+    TEST (T,  0.0, 0, 0, 0, ' ', "", "%.0g");
+    TEST (T, -0.0, 0, 0, 0, ' ', "", "%.0g");
+    TEST (T,  1.0, 0, 0, 0, ' ', "", "%.0g");
     TEST (T,  1.0, 0, 0, 0, ' ', "", "1");
-    TEST (T, -1.0, 0, 0, 0, ' ', "", "%g");
+    TEST (T, -1.0, 0, 0, 0, ' ', "", "%.0g");
     TEST (T, -1.0, 0, 0, 0, ' ', "", "-1");
-    TEST (T,  1.1, 0, 0, 0, ' ', "", "%g");
-    TEST (T,  1.1, 0, 0, 0, ' ', "", "1.1");
-    TEST (T, -1.1, 0, 0, 0, ' ', "", "%g");
-    TEST (T, -1.1, 0, 0, 0, ' ', "", "-1.1");
+    TEST (T,  1.1, 0, 0, 0, ' ', "", "%.0g");
+    TEST (T,  1.1, 0, 0, 0, ' ', "", "1");
+    TEST (T, -1.1, 0, 0, 0, ' ', "", "%.0g");
+    TEST (T, -1.1, 0, 0, 0, ' ', "", "-1");
 
 
     // exercise formatting of very large numbers in a fixed notation
@@ -1812,25 +1812,25 @@ void ldbl_test (charT, const char *cname)
 
     Punct<charT>::decimal_point_ = '.';
 
-    TEST (T,     0.0L, 0, 0, 0, ' ', "", "%Lg");
-    TEST (T,     1.0L, 0, 0, 0, ' ', "", "%Lg");
-    TEST (T,     2.1L, 0, 0, 0, ' ', "", "%Lg");
-    TEST (T,    -3.2L, 0, 0, 0, ' ', "", "%Lg");
-    TEST (T,    -4.3L, 0, 0, 0, ' ', "", "%Lg");
+    TEST (T,     0.0L, 0, 0, 0, ' ', "", "%.0Lg");
+    TEST (T,     1.0L, 0, 0, 0, ' ', "", "%.0Lg");
+    TEST (T,     2.1L, 0, 0, 0, ' ', "", "%.0Lg");
+    TEST (T,    -3.2L, 0, 0, 0, ' ', "", "%.0Lg");
+    TEST (T,    -4.3L, 0, 0, 0, ' ', "", "%.0Lg");
 
-    TEST (T, 1.0e+10L, 0, 0, 0, ' ', "", "%Lg");
-    TEST (T, 2.0e+20L, 0, 0, 0, ' ', "", "%Lg");
-    TEST (T, 4.0e+30L, 0, 0, 0, ' ', "", "%Lg");
+    TEST (T, 1.0e+10L, 0, 0, 0, ' ', "", "%.0Lg");
+    TEST (T, 2.0e+20L, 0, 0, 0, ' ', "", "%.0Lg");
+    TEST (T, 4.0e+30L, 0, 0, 0, ' ', "", "%.0Lg");
 
-    TEST (T, 1.0e-10L, 0, 0, 0, ' ', "", "%Lg");
-    TEST (T, 2.0e-20L, 0, 0, 0, ' ', "", "%Lg");
-    TEST (T, 4.0e-30L, 0, 0, 0, ' ', "", "%Lg");
+    TEST (T, 1.0e-10L, 0, 0, 0, ' ', "", "%.0Lg");
+    TEST (T, 2.0e-20L, 0, 0, 0, ' ', "", "%.0Lg");
+    TEST (T, 4.0e-30L, 0, 0, 0, ' ', "", "%.0Lg");
 
-    TEST (T, LDbl (CHAR_MAX),  0, 0, 0, ' ', "", "%Lg");
-    TEST (T, LDbl (UCHAR_MAX), 0, 0, 0, ' ', "", "%Lg");
-    TEST (T, LDbl (SCHAR_MAX), 0, 0, 0, ' ', "", "%Lg");
-    TEST (T, LDbl (SHRT_MAX),  0, 0, 0, ' ', "", "%Lg");
-    TEST (T, LDbl (USHRT_MAX), 0, 0, 0, ' ', "", "%Lg");
+    TEST (T, LDbl (CHAR_MAX),  0, 0, 0, ' ', "", "%.0Lg");
+    TEST (T, LDbl (UCHAR_MAX), 0, 0, 0, ' ', "", "%.0Lg");
+    TEST (T, LDbl (SCHAR_MAX), 0, 0, 0, ' ', "", "%.0Lg");
+    TEST (T, LDbl (SHRT_MAX),  0, 0, 0, ' ', "", "%.0Lg");
+    TEST (T, LDbl (USHRT_MAX), 0, 0, 0, ' ', "", "%.0Lg");
 
     // specify greater precision than the default 6 for large numbers
     TEST (T, LDbl (INT_MAX),   0, 32, 0, ' ', "", "%.32Lg");
