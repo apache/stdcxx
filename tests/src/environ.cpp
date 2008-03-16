@@ -93,7 +93,8 @@ rw_putenv (const char* str, int sep /* = -1 */)
 
         const size_t varlen = pend - pvar;
 
-        char* const envvar = (char*)malloc (pend - pvar + 1);
+        // reserve the one more character for Windows mode
+        char* const envvar = (char*)malloc (varlen + 2);
         if (0 == envvar)
             return -1;
 
@@ -101,9 +102,12 @@ rw_putenv (const char* str, int sep /* = -1 */)
         envvar [varlen] = '\0';
 
         // look for the first equals sign
-        const char* const equals = strchr (envvar, '=');
+        char* const equals = strchr (envvar, '=');
 
         char *var = 0;
+
+        // putenv mode: 0 - POSIX; 1 - undefined; 2 - Windows
+        static int mode = 1;
 
         if (equals) {
             // add the variable to the environment or modify it if
@@ -112,20 +116,45 @@ rw_putenv (const char* str, int sep /* = -1 */)
             // Note: calling Solaris 7 putenv() during program startup
             // (i.e., from ctors of namespace-scope objects) prevents
             // getenv() from finding that variable at program runtime
-            ret = putenv (envvar);
+
+            char namebuf [256];
+            const size_t namelen = equals - envvar;
+            assert (namelen < sizeof (namebuf));
+
+            memcpy (namebuf, envvar, namelen);
+            namebuf [namelen] = '\0';
+
+            switch (!equals [1] * mode) {
+            case 0:
+                ret = putenv (envvar);
+                break;
+            case 1:
+                ret = putenv (envvar);
+                if (getenv (namebuf)) {
+                    mode = 0;
+                    break;
+                }
+                mode = 2;
+                // fall through
+            case 2:
+                // on Windows it's impossible to set empty environment variable
+                // append any character after '='
+                equals [1] = '1';
+                equals [2] = '\0';
+                ret = putenv (envvar);
+                equals [1] = '\0';
+                break;
+            }
 
             // determine wheteher putenv() made copy of the variable
             // or if it simply used the pointer passed to it; if the
             // former, deallocate the buffer dynamically allocated
             // above
-
-            char namebuf [256];
-            assert (size_t (equals - envvar) < sizeof namebuf);
-
-            memcpy (namebuf, envvar, equals - envvar);
-            namebuf [equals - envvar] = '\0';
-
             var = getenv (namebuf);
+
+            // empty the environment variable directly on Windows
+            if (!equals [1] && 2 == mode)
+                *var = '\0';
 
             if (equals + 1 != var)
                 free (envvar);
@@ -143,7 +172,27 @@ rw_putenv (const char* str, int sep /* = -1 */)
             ret = unsetenv (envvar);
 #  endif   // FreeBSD ...
 #else   // ifdef _RWSTD_NO_UNSETENV
-            ret = putenv (envvar);
+            switch (mode) {
+            case 0:
+                ret = putenv (envvar);
+                break;
+            case 1:
+                ret = putenv (envvar);
+                if (!getenv (envvar)) {
+                    mode = 0;
+                    break;
+                }
+                mode = 2;
+                // fall through
+            case 2:
+                // on Windows append '=' character to remove
+                // the environment variable
+                envvar [varlen] = '=';
+                envvar [varlen + 1] = '\0';
+                ret = putenv (envvar);
+                envvar [varlen] = '\0';
+                break;
+            }
 #endif   // _RWSTD_NO_UNSETENV
 
             if (0 == ret) {
