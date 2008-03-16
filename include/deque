@@ -277,10 +277,10 @@ inline _DiffT
 operator- (const _RWSTD_DEQUE_ITER(1) &__x, const _RWSTD_DEQUE_ITER(2) &__y)
 {
     // _RWSTD_ASSERT_RANGE (__x, __y);
-    typedef _TYPENAME _RWSTD_DEQUE_ITER(1)::pointer pointer1;
-    typedef _TYPENAME _RWSTD_DEQUE_ITER(2)::pointer pointer2;
+    typedef _TYPENAME _RWSTD_DEQUE_ITER(1)::pointer _Pointer1;
+    typedef _TYPENAME _RWSTD_DEQUE_ITER(2)::pointer _Pointer2;
 
-    if (pointer1 () == __x._C_cur || pointer2 () == __y._C_cur) {
+    if (_Pointer1 () == __x._C_cur || _Pointer2 () == __y._C_cur) {
         // __x and/or __y is end-iterator of the empty deque
         return _DiffT (__x._C_cur - __y._C_cur);
     }
