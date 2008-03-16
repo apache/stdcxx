@@ -190,6 +190,9 @@ rw_fnmatch (const char *pattern, const char *string, int arg)
                 esc = false;
             }
             else {
+                if ('\0' == *next)
+                    return 1;
+
                 pc = _rw_bracketmatch (pc + 1, UChar (*next), arg);
                 if (0 == pc)
                     return 1;
