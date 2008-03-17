@@ -648,35 +648,14 @@ __replace_aux (iterator __first1, iterator __last1,
         }
         else {
             // Current reference has enough room.
-            pointer __tmp = 0;
-
-            if (__n2) {
-                const const_pointer __ptr =
-                    &_RWSTD_STATIC_CAST (const_reference, *__first2);
-
-                if (__s.data () <= __ptr && __s.data () + __ssize > __ptr) {
-                    const _RWSTD_SIZE_T __tmp_size = __n2 * sizeof (value_type);
-                    __tmp = _RWSTD_STATIC_CAST (pointer,
-                                                ::operator new (__tmp_size));
-                    for (__d = 0; __d < __n2; __d++)
-                        traits_type::assign (*(__tmp + __d), *__first2++);
-                }
-            }
-
             if (__rem)
                 traits_type::move (__s._C_data + __pos + __n2,
                                    __s._C_data + __pos + __n, 
                                    __rem);
 
-            if (__tmp) {
-                traits_type::copy (__s._C_data + __pos, __tmp, __n2);
-                ::operator delete (__tmp);
-            }
-            else {
-                for (__d = 0; __d < __n2; __d++)
-                    traits_type::assign (*(__s._C_data + __pos + __d),
-                                         *__first2++);
-            }
+            for (__d = 0; __d < __n2; __d++)
+                traits_type::assign (*(__s._C_data + __pos + __d),
+                                     *__first2++);
 
             __s._C_pref ()->_C_size._C_size = __len;
             traits_type::assign (__s._C_data [__len], value_type ());
