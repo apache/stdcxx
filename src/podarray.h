@@ -198,7 +198,13 @@ public:
 private:
 
     static _RWSTD_SIZE_T _C_length (const _TypeT *__a) {
+#ifndef _RWSTD_NO_EXT_CHAR_TRAITS_PRIMARY
         return _STD::char_traits<_TypeT>::length (__a);
+#else    // #ifdef _RWSTD_NO_EXT_CHAR_TRAITS_PRIMARY
+        _RWSTD_SIZE_T __len = 0;
+        for (; _TypeT () != *__a; ++__a, ++__len) ;
+        return __len;
+#endif   // _RWSTD_NO_EXT_CHAR_TRAITS_PRIMARY
     }
 };
 
