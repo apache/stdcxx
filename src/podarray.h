@@ -90,7 +90,7 @@ public:
     }
 
     _EXPLICIT __rw_pod_array (const _TypeT *__a)
-        : _C_len (_STD::char_traits<_TypeT>::length (__a))
+        : _C_len (_C_length (__a))
         // , _C_pbuf (_C_len < _Size ? _C_buffer : new _TypeT [_C_len + 1])
         {
             // initialze _C_pbuf here in order to prevent HP aCC 3.70
@@ -147,7 +147,7 @@ public:
     }
 
     _TypeT* acquire (_TypeT *__a) {
-        return acquire (__a, _STD::char_traits<_TypeT>::length (__a));
+        return acquire (__a, _C_length (__a));
     }
 
     _TypeT* release () {
@@ -168,7 +168,7 @@ public:
 
     __rw_pod_array& append (const _TypeT *__a) {
         _RWSTD_ASSERT (__a);
-        return append (__a, _STD::char_traits<_TypeT>::length (__a));
+        return append (__a, _C_length (__a));
     }
 
     __rw_pod_array& operator+= (const _TypeT *__a) {
@@ -183,7 +183,7 @@ public:
 
     __rw_pod_array& assign (const _TypeT *__a) {
         _RWSTD_ASSERT (__a);
-        return assign (__a, _STD::char_traits<_TypeT>::length (__a));
+        return assign (__a, _C_length (__a));
     }
 
     __rw_pod_array& operator= (const _TypeT *__a) {
@@ -193,6 +193,12 @@ public:
 
     __rw_pod_array& operator= (const __rw_pod_array &__rhs) {
         return assign (__rhs._C_pbuf, __rhs._C_len);
+    }
+
+private:
+
+    static _RWSTD_SIZE_T _C_length (const _TypeT *__a) {
+        return _STD::char_traits<_TypeT>::length (__a);
     }
 };
 
