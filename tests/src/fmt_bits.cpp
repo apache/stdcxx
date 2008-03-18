@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2005-2006 Rogue Wave Software.
+ * Copyright 2005-2008 Rogue Wave Software. Inc.
  * 
  **************************************************************************/
 
@@ -134,10 +134,16 @@ _rw_bmpfmt (const FmtSpec &spec, Buffer &buf,
     // verify that buffer wasn't overflowed
     RW_ASSERT (buffersize <= sizeof buffer);
 
+    // NUL-terminate string so that it can be appended to using
+    // the %{+} directive, taking care not to make the NUL a part
+    // of the formatted string
     FmtSpec newspec (spec);
     newspec.fl_pound = 0;
 
-    return _rw_fmtstr (newspec, buf, buffer, buffersize);
+    const int len = _rw_fmtstr (newspec, buf, buffer, buffersize + 1);
+    --buf.endoff;
+
+    return 0 < len ? len - 1 : len;
 }
 
 /********************************************************************/
@@ -192,7 +198,7 @@ _rw_fmtflags (const FmtSpec &spec, Buffer &buf, int bits)
 
     int len = _rw_bmpfmt (spec, buf, names, count, bits);
 
-    if (base && base != 8 && base != 10 && base != 16) {
+    if (0 < len && base && base != 8 && base != 10 && base != 16) {
 
         // for numeric bases other than those required by the standard,
         // use the text "base (%d)" to show the extended numeric base
@@ -204,9 +210,19 @@ _rw_fmtflags (const FmtSpec &spec, Buffer &buf, int bits)
 
 #endif   // _RWSTD_NO_EXT_BIN_IO
 
-        len = rw_asnprintf (buf.pbuf, buf.pbufsize,
-                            "%{+} | %{?}std::ios::%{;}base(%d)",
-                            spec.fl_pound, base);
+        const int n = rw_asnprintf (buf.pbuf, buf.pbufsize,
+                                    "%{+} | %{?}std::ios::%{;}base(%d)",
+                                    spec.fl_pound, base);
+
+        if (0 < n) {
+            // adjust length and the end offset after appending above
+            len        += n;
+            buf.endoff += n;
+        }
+        else {
+            // error (most likely ENOMEM)
+            len = n;
+        }
     }
 
     return len;
@@ -303,9 +319,26 @@ _rw_fmtevent (const FmtSpec& spec, Buffer &buf, int event)
         : std::ios::erase_event   == event ? "erase_event"
         : 0;
 
-    return rw_asnprintf (buf.pbuf, buf.pbufsize,
-                         "%{+}%{?}std::ios::%{;}%{?}%s%{:}event(%d)%{;}",
-                         spec.fl_pound, 0 != str, str, event);
+    // NUL-terminate before appending below
+    FmtSpec newspec (spec);
+    newspec.fl_pound = 0;
+
+    int len = _rw_fmtstr (newspec, buf, "", 1);
+
+    if (1 == len) {
+        // back up before the terminating NUL
+        buf.endoff -= 1;
+
+        // append name of event
+        len = rw_asnprintf (buf.pbuf, buf.pbufsize,
+                            "%{+}%{?}std::ios::%{;}%{?}%s%{:}event(%d)%{;}",
+                            spec.fl_pound, 0 != str, str, event);
+
+        if (0 < len)
+            buf.endoff += len;
+    }
+
+    return len;
 }
 
 /********************************************************************/
@@ -329,8 +362,25 @@ _rw_fmtlc (const FmtSpec &spec, Buffer &buf, int val)
 
     }
 
-    if (str)
-        return rw_asnprintf (buf.pbuf, buf.pbufsize, "%{+}%s", str);
+    if (str) {
+        // NUL-terminate before appending below
+        FmtSpec newspec (spec);
+        newspec.fl_pound = 0;
+
+        int len = _rw_fmtstr (newspec, buf, "", 1);
+
+        if (1 == len) {
+            // back up before the terminating NUL
+            buf.endoff -= 1;
+
+            len = rw_asnprintf (buf.pbuf, buf.pbufsize, "%{+}%s", str);
+
+            if (0 < len)
+                buf.endoff += len;
+        }
+
+        return len;
+    }
 
     static const Bitnames names [] = {
         BITNAME (std::locale, all),
