@@ -76,34 +76,7 @@ get (iter_type __begin, iter_type __end, ios_base &__flags,
     long __tmp = __val;
 
     __begin = do_get (__begin, __end, __flags, __err, __tmp);
-
-    long __shrt_min;
-    long __shrt_max;
-
-    if (   __tmp < 0
-        || (__flags.flags () & _RWSTD_IOS_BASEFIELD) == _RWSTD_IOS_DEC) {
-        // decimal parsing overflows outside the range below
-        __shrt_max = long (_RWSTD_SHRT_MAX);
-        __shrt_min = long (_RWSTD_SHRT_MIN);
-    }
-    else {
-        // other than decimal parsing overflows outside the range below
-        // (unreliable if basefield is 0 and the sequence is decimal)
-        __shrt_max = long (_RWSTD_USHRT_MAX);
-        __shrt_min = long (_RWSTD_USHRT_MIN);
-    }
-
-    // lwg issue 23: check for overflow
-    if (__tmp < __shrt_min) {
-        __err |= _RW::__rw_failbit;
-        __val  = short (_RWSTD_SHRT_MIN);
-    }
-    else if (__tmp > __shrt_max) {
-        __err |= _RW::__rw_failbit;
-        __val  = short (_RWSTD_SHRT_MAX);
-    }
-    else
-        __val = _RWSTD_STATIC_CAST (short, __tmp);
+    __val = __rw_check_overflow_short (__tmp, __flags.flags (), __err);
 
     return __begin;
 }
@@ -122,39 +95,7 @@ get (iter_type __begin, iter_type __end, ios_base &__flags,
     long __tmp = long (__val);
 
     __begin = do_get (__begin, __end, __flags, __err, __tmp);
-
-#if _RWSTD_INT_MAX < _RWSTD_LONG_MAX
-
-    long __int_min;
-    long __int_max;
-
-    if (   __tmp < 0
-        || (__flags.flags () & _RWSTD_IOS_BASEFIELD) == _RWSTD_IOS_DEC) {
-        // decimal parsing overflows outside the range below
-        __int_max = long (_RWSTD_INT_MAX);
-        __int_min = long (_RWSTD_INT_MIN);
-    }
-    else {
-        // other than decimal parsing overflows outside the range below
-        // (unreliable if basefield is 0 and the sequence is decimal)
-        __int_max = long (_RWSTD_UINT_MAX);
-        __int_min = long (_RWSTD_UINT_MIN);
-    }
-
-    // lwg issue 23: check for overflow
-    if (__tmp < __int_min) {
-        __err |= _RW::__rw_failbit;
-        __val  = _RWSTD_INT_MIN;
-    }
-    else if (__tmp > __int_max) {
-        __err |= _RW::__rw_failbit;
-        __val  = _RWSTD_INT_MAX;
-    }
-    else
-
-#endif   // _RWSTD_INT_MAX < _RWSTD_LONG_MAX
-
-        __val = _RWSTD_STATIC_CAST (int, __tmp);
+    __val = __rw_check_overflow_int (__tmp, __flags.flags (), __err);
 
     return __begin;
 }
