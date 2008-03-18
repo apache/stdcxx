@@ -55,6 +55,45 @@ template <class _CharT, class _Traits, class _NativeType>
 _STD::basic_istream<_CharT, _Traits>&
 __rw_extract (_STD::basic_istream<_CharT, _Traits>&, _NativeType&);
 
+
+#ifdef _RWSTD_NO_EXT_NUM_GET
+
+template <class _CharT, class _Traits>
+inline _STD::basic_istream<_CharT, _Traits>&
+__rw_extract (_STD::basic_istream<_CharT, _Traits> &__strm,
+              short                                &__val)
+{
+    long __tmp = __val;
+    __rw_extract (__strm, __tmp);
+
+    _STD::ios_base::iostate __err = _STD::ios_base::goodbit;
+    __val = __rw_check_overflow_short (__tmp, __strm.flags (), __err);
+
+    if (_STD::ios_base::goodbit != __err)
+        __strm.setstate (__err);
+
+    return __strm;
+}
+
+template <class _CharT, class _Traits>
+inline _STD::basic_istream<_CharT, _Traits>&
+__rw_extract (_STD::basic_istream<_CharT, _Traits> &__strm,
+              int                                  &__val)
+{
+    long __tmp = __val;
+    __rw_extract (__strm, __tmp);
+
+    _STD::ios_base::iostate __err = _STD::ios_base::goodbit;
+    __val = __rw_check_overflow_int (__tmp, __strm.flags (), __err);
+
+    if (_STD::ios_base::goodbit != __err)
+        __strm.setstate (__err);
+
+    return __strm;
+}
+
+#endif   // _RWSTD_NO_EXT_NUM_GET
+
 }   // namespace __rw
 
 
