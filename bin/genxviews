@@ -467,6 +467,10 @@ process_results "Windows XP, SP2" "x86" "Intel C++ 9.1" \
                 "win_xp-2-x86-icl-9.1-*-*-log.gz.txt" \
                  win_xp_2-x86-icl-9.1.html
 
+process_results "Windows XP, SP1" "EM64T" "MSVC 9.0" \
+                "win_xp-1-em64t-msvc-9.0-*-*-log.gz.txt" \
+                 win_xp_1-em64t-msvc-9.0.html
+
 process_results "Windows XP, SP1" "EM64T" "MSVC 8.0" \
                 "win_xp-1-em64t-msvc-8.0-*-*-log.gz.txt" \
                  win_xp_1-em64t-msvc-8.0.html
@@ -474,6 +478,10 @@ process_results "Windows XP, SP1" "EM64T" "MSVC 8.0" \
 process_results "Windows XP, SP1" "EM64T" "Intel C++ 10.0" \
                 "win_xp-1-em64t-icl-10.0-*-*-log.gz.txt" \
                  win_xp_1-em64t-icl-10.0.html
+
+process_results "Windows 2003, SP1" "EM64T" "MSVC 9.0" \
+                "win_2003-1-em64t-msvc-9.0-*-*-log.gz.txt" \
+                 win_2003_1-em64t-msvc-9.0.html
 
 process_results "Windows 2003, SP1" "EM64T" "MSVC 8.0" \
                 "win_2003-1-em64t-msvc-8.0-*-*-log.gz.txt" \
