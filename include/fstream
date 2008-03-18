@@ -121,7 +121,7 @@ public:
 private:
 
     // g++ 2.95 error: `std::ios_base::Init' does not declare a template type
-    friend class ios_base::Init;
+    friend struct ios_base::Init;
 
 #endif   // _RWSTD_NO_EXT_FILEBUF && !_RWSTD_NO_STATIC_IOSTREAM_INIT
 
