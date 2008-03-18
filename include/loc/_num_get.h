@@ -292,11 +292,15 @@ __rw_check_overflow_short (long __lval, _RWSTD_FMTFLAGS __flags,
         __err |= _RW::__rw_failbit;
         return short (_RWSTD_SHRT_MAX);
     }
-    else
+
+#else   // if LONG_MAX <= SHRT_MAX
+
+    _RWSTD_UNUSED (__flags);
+    _RWSTD_UNUSED (__err);
 
 #endif   // _RWSTD_SHRT_MAX < _RWSTD_LONG_MAX
 
-        return _RWSTD_STATIC_CAST (short, __lval);
+    return _RWSTD_STATIC_CAST (short, __lval);
 }
 
 inline int
@@ -330,11 +334,15 @@ __rw_check_overflow_int (long __lval, _RWSTD_FMTFLAGS __flags,
         __err |= _RW::__rw_failbit;
         return int (_RWSTD_INT_MAX);
     }
-    else
+
+#else   // if LONG_MAX <= INT_MAX
+
+    _RWSTD_UNUSED (__flags);
+    _RWSTD_UNUSED (__err);
 
 #endif   // _RWSTD_INT_MAX < _RWSTD_LONG_MAX
 
-        return _RWSTD_STATIC_CAST (int, __lval);
+    return _RWSTD_STATIC_CAST (int, __lval);
 }
 
 }   // namespace __rw
