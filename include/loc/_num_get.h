@@ -328,7 +328,7 @@ __rw_check_overflow_int (long __lval, _RWSTD_FMTFLAGS __flags,
     }
     else if (__lval > __int_max) {
         __err |= _RW::__rw_failbit;
-        return = int (_RWSTD_INT_MAX);
+        return int (_RWSTD_INT_MAX);
     }
     else
 
