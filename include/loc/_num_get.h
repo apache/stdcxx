@@ -259,6 +259,87 @@ _RW::__rw_facet_id num_get<wchar_t, istreambuf_iterator<wchar_t> >::id;
 }   // namespace std
 
 
+_RWSTD_NAMESPACE (__rw) { 
+
+inline short
+__rw_check_overflow_short (long __lval, _RWSTD_FMTFLAGS __flags,
+                           _RWSTD_IOSTATE &__err)
+{
+#if _RWSTD_SHRT_MAX < _RWSTD_LONG_MAX
+
+    long __shrt_min;
+    long __shrt_max;
+
+    if (   __lval < 0
+        || (__flags & _RW::__rw_basefield) == _RW::__rw_dec) {
+        // decimal parsing overflows outside the range below
+        __shrt_max = long (_RWSTD_SHRT_MAX);
+        __shrt_min = long (_RWSTD_SHRT_MIN);
+    }
+    else {
+        // other than decimal parsing overflows outside the range below
+        // (unreliable if basefield is 0 and the sequence is decimal)
+        __shrt_max = long (_RWSTD_USHRT_MAX);
+        __shrt_min = long (_RWSTD_USHRT_MIN);
+    }
+
+    // lwg issue 23: check for overflow
+    if (__lval < __shrt_min) {
+        __err |= _RW::__rw_failbit;
+        return short (_RWSTD_SHRT_MIN);
+    }
+    else if (__lval > __shrt_max) {
+        __err |= _RW::__rw_failbit;
+        return short (_RWSTD_SHRT_MAX);
+    }
+    else
+
+#endif   // _RWSTD_SHRT_MAX < _RWSTD_LONG_MAX
+
+        return _RWSTD_STATIC_CAST (short, __lval);
+}
+
+inline int
+__rw_check_overflow_int (long __lval, _RWSTD_FMTFLAGS __flags,
+                         _RWSTD_IOSTATE &__err)
+{
+#if _RWSTD_INT_MAX < _RWSTD_LONG_MAX
+
+    long __int_min;
+    long __int_max;
+
+    if (   __lval < 0
+        || (__flags & _RW::__rw_basefield) == _RW::__rw_dec) {
+        // decimal parsing overflows outside the range below
+        __int_max = long (_RWSTD_INT_MAX);
+        __int_min = long (_RWSTD_INT_MIN);
+    }
+    else {
+        // other than decimal parsing overflows outside the range below
+        // (unreliable if basefield is 0 and the sequence is decimal)
+        __int_max = long (_RWSTD_UINT_MAX);
+        __int_min = long (_RWSTD_UINT_MIN);
+    }
+
+    // lwg issue 23: check for overflow
+    if (__lval < __int_min) {
+        __err |= _RW::__rw_failbit;
+        return int (_RWSTD_INT_MIN);
+    }
+    else if (__lval > __int_max) {
+        __err |= _RW::__rw_failbit;
+        return = int (_RWSTD_INT_MAX);
+    }
+    else
+
+#endif   // _RWSTD_INT_MAX < _RWSTD_LONG_MAX
+
+        return _RWSTD_STATIC_CAST (int, __lval);
+}
+
+}   // namespace __rw
+
+
 #if _RWSTD_DEFINE_TEMPLATE_FIRST (_NUM_GET)
 #  include <loc/_num_get.cc>
 #endif   // _RWSTD_DEFINE_TEMPLATE_FIRST (_NUM_GET)
