@@ -26,7 +26,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -78,6 +78,14 @@
 #  define _RWSTD_MUTEX_T                mutex_t
 
 #elif defined (_RWSTD_POSIX_THREADS)
+
+#  if    defined (_RWSTD_EDG_ECCP) && defined (_RWSTD_OS_LINUX) \
+      && defined (_RWSTD_NO_LONG_LONG)
+     // disable error #450-D: the type "long long" is nonstandard
+     // when using the vanilla EDG eccp in strict mode (i.e., w/o
+     // long long support)
+#    pragma diag_suppress 450
+#  endif   // EDG eccp on Linux
 
 // LinuxThreads man page:
 //   "Variables of type pthread_mutex_t can also be initialized
