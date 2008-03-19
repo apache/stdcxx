@@ -1560,7 +1560,7 @@ void Def::preprocess_collate ()
 {
     int nesting_level = 0;
 
-    while (true) {
+    do {
         // fetch next token
         next = scanner_.next_token();
         
@@ -1680,8 +1680,9 @@ void Def::preprocess_collate ()
             break;
         }
     }
-
+    while (Scanner::tok_end_tokens != next.token);
 }
+
 
 // The task of preprocess_order is to parse and model the content of the 
 // order sections in the input files
