@@ -22,23 +22,24 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
 #include <algorithm>   // for random_shuffle
-#include <iostream>    // for cout, endl
+#include <iostream>    // for cout
 #include <iterator>    // for ostream_iterator
 #include <string>      // for string
 
-#include <examples.h>
+// #include <examples.h>
 
 
 int main ()
 {
     // Create a string of doubles (unusual? maybe, but why not...)
-    typedef std::basic_string<double, std::char_traits<double>,
-                              std::allocator<double> > Bizarre;
+    typedef std::char_traits<double>                     Traits;
+    typedef std::allocator<double>                       Allocator;
+    typedef std::basic_string<double, Traits, Allocator> Bizarre;
 
     // Initialize a Bizarre with an array of values.
     const Bizarre::value_type a[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
@@ -50,6 +51,7 @@ int main ()
 
     // Suppress decimal point in output.
     std::cout.precision (0);
+    std::cout.setf (std::cout.fixed, std::cout.floatfield);
 
     // Print out elements in original (sorted) order.
     std::cout << "Elements before random_shuffle: \n     ";
@@ -61,7 +63,7 @@ int main ()
     // Print out the mixed up elements.
     std::cout << "\n\nElements after random_shuffle: \n     ";
     std::copy (b.begin (), b.end (), Iter (std::cout, " "));
-    std::cout << std::endl;
+    std::cout << '\n';
 
     return 0;
 }
