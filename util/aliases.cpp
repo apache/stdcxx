@@ -543,12 +543,12 @@ char* get_installed_locales (int loc_cat /* = LC_INVALID_CAT */)
 {
     static char* slocname = 0;
 
-    static int size       = 0;         // the number of elements in the array
-    static int total_size = 5120;      // the size of the array
+    static std::size_t size       = 0;      // number of elements in array
+    static std::size_t total_size = 5120;   // the size of the array
 
     // allocate first time through
     if (!slocname) {
-        slocname = (char*)std::malloc (16384);
+        slocname = new char [16384];
         *slocname = '\0';
     }
 
