@@ -1,4 +1,4 @@
-#!/usr/local/bin/bash
+#!/bin/sh
 #
 # $Id: genxviews 601595 2007-12-06 01:33:50Z sebor $
 #
@@ -22,13 +22,78 @@
 #
 ########################################################################
 
+if [ "$BASH_VERSION" = "" ]; then
+    # this is not Bash; try to invoke it
+    if [ -x /usr/local/bin/bash ]; then
+        exec /usr/local/bin/bash $*
+    fi
+fi
+
+
+# process command line options
+while getopts "dqvD:o:" opt_name; do
+    case $opt_name in
+        # options with no arguments
+
+        d)  # dry run (do not invoke xbuildgen)
+            dryrun=1
+            ;;
+
+        q) # quiet mode
+           quiet=1
+           ;;
+
+        v) # verbose mode
+           verbose=1
+           ;;
+
+        # options with arguments
+
+        D)  # output directory
+            outdir=$OPTARG
+            ;;
+
+        o)  # argument is the name of output file (stdout by default)
+            outfile=$OPTARG
+            ;;
+
+        V)  # specify stdcxx branch/version to generate cross-build
+            # result views for (trunk by default)
+            version=$OPTARG
+            ;;
+
+     esac;
+done
+
+
+# set the Subversion and output directories based on version
+if [ "$version" == "" ]; then
+
+    # Subversion (sub)directory under stdcxx/
+    svndir="trunk"
+
+    # set output directory unless already set on the command line
+    if [ "$outdir" = "" ]; then
+        outdir="$HOME/public_html/stdcxx/results"
+    fi
+else
+    # Subversion (sub)directory under stdcxx/
+    svndir="branches/$version"
+
+    # set output directory unless already set on the command line
+    if [ "$outdir" = "" ]; then
+        outdir="$HOME/public_html/stdcxx-$version/results"
+    fi
+fi
+
+
 # extract the script's revision number
 myrev='$Revision$'
 myrev=${myrev#'$Revision: '}   # strip leading text
 myrev=${myrev%' $'}            # strip trailing text
 
 # form the URL to this version of the script in the repository
-myurl='$HeadURL: https://svn.apache.org/repos/asf/stdcxx/trunk/bin/genxviews $'
+myurl='$HeadURL: http://svn.apache.org/repos/asf/stdcxx/$svndir/bin/genxviews $'
 myurl=${myurl#'$HeadURL: '}   # strip leading text
 myurl=${myurl##*asf/}         # strip svn prefix
 myurl=${myurl%' $'}           # strip trailing text
@@ -45,42 +110,40 @@ myurl="$myurl?view=markup&rev=$myrev"
 # program to invoke to process detailed results
 CROSS=$HOME/stdcxx/bin/xbuildgen
 
-# output directory
-outdir=$HOME/public_html/stdcxx/results
-
+# show the command line to invoke xbuildgen without actually
+# invoking the script
 dryrun=0
+
+# enable quiet mode?
 quiet=0
+
+# write verbose progress output to stdout?
+verbose=0
+
+######################################################################
+
+# write to output file when specified or to stdout otherwise
+output ()
+{
+    if [ $# -eq 0 ]; then
+        # no arguments provided, copy its own stdin to outfile
+        if [ -z $outfile ]; then
+            cat
+        else
+            cat >>$outfile
+        fi
+    elif [ -z $outfile ]; then
+        echo "$*"
+    else
+        echo "$*" >>$outfile
+    fi
+}
+
+######################################################################
 
 # start the clock measuring the amount of wall clock time to process
 # all logs and generate the page
 start_time=`LC_ALL=C date`
-
-
-# process command line options
-while getopts "dqD:o:" opt_name; do
-    case $opt_name in
-        # options with no arguments
-
-        d)  # dry run (do not invoke xbuildgen)
-            dryrun=1
-            ;;
-
-        q) # quiet mode
-           quiet=1
-           ;;
-
-        # options with arguments
-
-        D)  # output directory
-            outdir=$OPTARG
-            ;;
-
-        o)  # argument is the name of output file (stdout by default)
-            outfile=$OPTARG
-            ;;
-
-     esac;
-done
 
 
 cd $outdir
@@ -140,6 +203,10 @@ process_results ()
     alllogs="$4"
     outfile="$5"
 
+    if [ $verbose -ne 1 ]; then
+        echo "$myname: processing logs for $osname-$arch-$compiler: $alllogs"
+    fi
+
     if [ $quiet -eq 0 ]; then
         cat<<EOF
           <tr>
@@ -187,14 +254,14 @@ EOF
         echo "$myname: no logs for $compiler on $osname/$arch." >&2
 
         if [ $quiet -eq 0 ]; then
-            echo "            <td><i>$outfile</i></td>"
+            output "            <td><i>$outfile</i></td>"
         fi
     else
         if [ $dryrun -eq 1 ]; then
-            echo "$myname: $CROSS -o$outdir/$outfile -T\"$title\" $buildlogs   # $count logs"
+            output "$myname: $CROSS -o$outdir/$outfile -T\"$title\" $buildlogs"
         else
             if [ $quiet -eq 0 ]; then
-                echo "            <td><a href="$outfile">$outfile</a></td>"
+                output "            <td><a href="$outfile">$outfile</a></td>"
             fi
 
             $CROSS -o$outdir/$outfile -T"$title" $buildlogs
