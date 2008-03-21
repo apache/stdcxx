@@ -72,10 +72,11 @@
 #
 ########################################################################
 
-if [ "$BASH_VERSION" = "" ]; then
+if [ "$BASH" = "" ]; then
     # this is not Bash; try to invoke it
     if [ -x /usr/local/bin/bash ]; then
-        exec /usr/local/bin/bash $*
+        /usr/local/bin/bash $0 "$@"
+        exit $?
     fi
 fi
 
@@ -600,6 +601,7 @@ done
 # remove command line options and their arguments from the command line
 shift $(($OPTIND - 1))
 
+
 # take the remaining command line arguments as the names of logs
 # to process
 gzlogs=$*
@@ -878,9 +880,9 @@ EOF
 
 # the location of the logs
 if [ -z $version ]; then
-    logdir="http://people.apache.org/~sebor/stdcxx/results"
+    logdir="http://people.apache.org/~sebor/stdcxx/results/builds"
 else
-    logdir="http://people.apache.org/~sebor/stdcxx-$version/results"
+    logdir="http://people.apache.org/~sebor/stdcxx-$version/results/builds"
 fi
 
 # the name of a temporary file containing the build timings

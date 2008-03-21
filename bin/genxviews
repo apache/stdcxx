@@ -22,26 +22,31 @@
 #
 ########################################################################
 
-if [ "$BASH_VERSION" = "" ]; then
+if [ "$BASH" = "" ]; then
     # this is not Bash; try to invoke it
     if [ -x /usr/local/bin/bash ]; then
-        exec /usr/local/bin/bash $*
+        /usr/local/bin/bash $0 "$@"
+        exit $?
     fi
 fi
 
 
+# show the command line to invoke xbuildgen without actually
+# invoking the script
+dryrun=0
+
+# write verbose progress output to stdout?
+verbose=0
+
+
 # process command line options
-while getopts "dqvD:o:" opt_name; do
+while getopts "dvD:o:V:" opt_name; do
     case $opt_name in
         # options with no arguments
 
         d)  # dry run (do not invoke xbuildgen)
             dryrun=1
             ;;
-
-        q) # quiet mode
-           quiet=1
-           ;;
 
         v) # verbose mode
            verbose=1
@@ -74,7 +79,7 @@ if [ "$version" == "" ]; then
 
     # set output directory unless already set on the command line
     if [ "$outdir" = "" ]; then
-        outdir="$HOME/public_html/stdcxx/results"
+        outdir="$HOME/public_html/stdcxx/results/builds"
     fi
 else
     # Subversion (sub)directory under stdcxx/
@@ -82,9 +87,14 @@ else
 
     # set output directory unless already set on the command line
     if [ "$outdir" = "" ]; then
-        outdir="$HOME/public_html/stdcxx-$version/results"
+        outdir="$HOME/public_html/stdcxx-$version/results/builds"
     fi
+
+    verarg="-V$version"
 fi
+
+# program to invoke to process detailed results
+CROSS=$HOME/stdcxx/bin/xbuildgen
 
 
 # extract the script's revision number
@@ -107,18 +117,9 @@ readonly myname=${myurl##*/}
 myurl="$myurl?view=markup&rev=$myrev"
 
 
-# program to invoke to process detailed results
-CROSS=$HOME/stdcxx/bin/xbuildgen
-
-# show the command line to invoke xbuildgen without actually
-# invoking the script
-dryrun=0
-
-# enable quiet mode?
-quiet=0
-
-# write verbose progress output to stdout?
-verbose=0
+if [ $verbose -ne 0 ]; then
+    echo "$myname: using output directory: \"$outdir\""
+fi
 
 ######################################################################
 
@@ -146,14 +147,12 @@ output ()
 start_time=`LC_ALL=C date`
 
 
-cd $outdir
+cd $outdir/..
 
 
-if [ $quiet -eq 0 ]; then
+readonly scripturl="<a href=\"$myurl\"><code>$myname</code></a>"
 
-    readonly scripturl="<a href=\"$myurl\"><code>$myname</code></a>"
-
-    cat<<EOF
+cat<<EOF | output
 <html>
   <body>
     <style type="text/css">
@@ -192,8 +191,6 @@ if [ $quiet -eq 0 ]; then
         <tbody>
 EOF
 
-fi   # [ $quiet -eq 0  ]
-
 
 process_results ()
 {
@@ -201,20 +198,18 @@ process_results ()
     arch="$2"
     compiler="$3"
     alllogs="$4"
-    outfile="$5"
+    xfile="$5"
 
-    if [ $verbose -ne 1 ]; then
+    if [ $verbose -ne 0 ]; then
         echo "$myname: processing logs for $osname-$arch-$compiler: $alllogs"
     fi
 
-    if [ $quiet -eq 0 ]; then
-        cat<<EOF
+    cat<<EOF | output
           <tr>
             <td>$osname</td>
             <td>$arch</td>
             <td>$compiler</td>
 EOF
-    fi   # [ quiet -eq 0 ]
 
     # build types:
     #    8: not reentrant, optimized, no debugging info
@@ -253,18 +248,16 @@ EOF
     if [ "$buildlogs" = "" ]; then
         echo "$myname: no logs for $compiler on $osname/$arch." >&2
 
-        if [ $quiet -eq 0 ]; then
-            output "            <td><i>$outfile</i></td>"
-        fi
+        output "            <td><i>$xfile</i></td>"
     else
-        if [ $dryrun -eq 1 ]; then
-            output "$myname: $CROSS -o$outdir/$outfile -T\"$title\" $buildlogs"
-        else
-            if [ $quiet -eq 0 ]; then
-                output "            <td><a href="$outfile">$outfile</a></td>"
-            fi
+        if [ $verbose -ne 0 ]; then
+            echo "$myname: $CROSS $verarg -s -o$outdir/$xfile -T\"$title\" $buildlogs"
+        fi
 
-            $CROSS -o$outdir/$outfile -T"$title" $buildlogs
+        output "            <td><a href=\"$xfile\">$xfile</a></td>"
+
+        if [ $dryrun -eq 0 ]; then
+            $CROSS $verarg -s -o$outdir/$xfile -T"$title" $buildlogs
         fi
     fi
 
@@ -278,13 +271,11 @@ EOF
 
     duration=`expr $end - $duration`
 
-    if [ $quiet -eq 0 ]; then
-        cat<<EOF
-            <td>$count</td>
-            <td>$duration</td>
-          </tr>
+    cat<<EOF | output
+        <td>$count</td>
+        <td>$duration</td>
+    </tr>
 EOF
-    fi   # [ quiet -eq 0 ]
 }
 
 ########################################################################
