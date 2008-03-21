@@ -1,4 +1,4 @@
-#!/usr/local/bin/bash
+#!/bin/sh
 #
 # $Id: xbuildgen 601917 2007-12-06 23:46:48Z sebor $
 #
@@ -66,8 +66,18 @@
 #          Generate a report for the specified list of tests with
 #          tests listed in columns and builds in rows.
 #
+#     -V <version>
+#          Stdcxx version (branch) to generate results for.
+#          When omitted, trunk is assumed.
+#
 ########################################################################
 
+if [ "$BASH_VERSION" = "" ]; then
+    # this is not Bash; try to invoke it
+    if [ -x /usr/local/bin/bash ]; then
+        exec /usr/local/bin/bash $*
+    fi
+fi
 
 ######################################################################
 # global constants
@@ -529,7 +539,7 @@ get_compiler ()
 ######################################################################
 
 # process command line options
-while getopts ":hnsv:e:l:o:T:t:" opt_name; do
+while getopts ":hnsv:e:l:o:T:t:V:" opt_name; do
     case $opt_name in
         # options with no arguments 
 
@@ -573,6 +583,11 @@ while getopts ":hnsv:e:l:o:T:t:" opt_name; do
         t)  # argument is a list of tests to process
             test_list=$OPTARG
             components_in_rows=0
+            ;;
+
+        V)  # specify stdcxx branch/version to generate cross-build
+            # result views for (trunk by default)
+            version=$OPTARG
             ;;
 
         *) echo "$myname: unknown option : -$opt_name" >&2;
@@ -862,7 +877,11 @@ EOF
 ######################################################################
 
 # the location of the logs
-logdir="http://people.apache.org/~sebor/stdcxx/results"
+if [ -z $version ]; then
+    logdir="http://people.apache.org/~sebor/stdcxx/results"
+else
+    logdir="http://people.apache.org/~sebor/stdcxx-$version/results"
+fi
 
 # the name of a temporary file containing the build timings
 timings_file=$TMP/.stdcxx-timings.$$
