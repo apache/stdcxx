@@ -1240,8 +1240,10 @@ function print_section(section)
 
         # insert the .gz suffix before the final .txt suffix
         # to form the name of the original gzipped log file
+        # prepend "../" to the file name since the logs are
+        # in the parent directory
         loggzfname = substr(loggzfname, 1, index(loggzfname, ".txt") - 1)
-        loggzfname = loggzfname ".gz.txt"
+        loggzfname = "../" loggzfname ".gz.txt"
 
         colnos = colnos "          <td title=\"" loggzfname "\">"
         colnos = colnos "<a href=\"" loggzfname "\">" i "</a></td>"
