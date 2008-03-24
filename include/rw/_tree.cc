@@ -350,11 +350,15 @@ insert (iterator __it, const value_type &__v, bool __dup)
 
     const _C_link_t __hint = _ITER_NODE (__it);
 
-    // if __hint is the right most child and __key is greater,
-    // then insert on the right
+    // if __hint is the right most child, or tree is empty
     if (__hint == _C_end->_C_child [1]) {
-        if (_C_cmp (__hint->_C_key (), _KeyOf ()(__v)))
+
+        // if tree is not empty and __key is greater
+        // then insert on the right
+        if (_C_size && _C_cmp (__hint->_C_key (), _KeyOf ()(__v)))
             return _C_insert (0, __hint, __v);
+
+        // otherwise just insert
         return insert (__v, __dup).first;
     }
 
@@ -366,10 +370,10 @@ insert (iterator __it, const value_type &__v, bool __dup)
         return insert (__v, __dup).first;
     }
 
-    // if __hint is the leftmost child and __key is less
+    // if __hint is the left most child and __key is less
     // then insert on the left
     if (__hint == _C_end->_C_child [0]) {
-        if (size () && _C_cmp (_KeyOf ()(__v), __hint->_C_key ()))
+        if (_C_cmp (_KeyOf ()(__v), __hint->_C_key ()))
             return _C_insert (__hint, __hint, __v);
         return insert (__v, __dup).first;
     }
