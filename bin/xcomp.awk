@@ -1233,20 +1233,11 @@ function print_section(section)
 
         logname = logfnames [i]
 
-        # strip the leading directory prefix, if any
-        pos = match(logname, "/[^/]+$")
-        if (0 < pos)
-            loggzfname = substr(logname, pos + 1)
+        # strip directory prefix from file name
+        loghref = get_gzlogfname(logname)
 
-        # insert the .gz suffix before the final .txt suffix
-        # to form the name of the original gzipped log file
-        # prepend "../" to the file name since the logs are
-        # in the parent directory
-        loggzfname = substr(loggzfname, 1, index(loggzfname, ".txt") - 1)
-        loggzfname = "../" loggzfname ".gz.txt"
-
-        colnos = colnos "          <td title=\"" loggzfname "\">"
-        colnos = colnos "<a href=\"" loggzfname "\">" i "</a></td>"
+        colnos = colnos "          <td title=\"" loghref "\">"
+        colnos = colnos "<a href=\"" loghref "\">" i "</a></td>"
 
         buildtype = get_buildtype(logname)
         buildmode = buildmodes [buildtype]
@@ -1742,7 +1733,7 @@ function get_gzlogfname(fname)
     # replace the trailing .txt suffix with .gz.txt
     sub("\\.txt$", ".gz.txt", fref)
 
-    return fref
+    return "../" fref
 }
 
 
