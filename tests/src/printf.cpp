@@ -977,7 +977,7 @@ rw_vasnprintf (char **pbuf, size_t *pbufsize, const char *fmt, va_list varg)
         // over it
         fmt        += 4;
         buf.endoff  = *buf.pbuf ? strlen (*buf.pbuf) : 0;
-        RW_ASSERT (buf.endoff < *buf.pbufsize);
+        RW_ASSERT (buf.endoff < *buf.pbufsize || !*buf.pbuf);
     }
     else if (*buf.pbuf)
         **buf.pbuf = '\0';
