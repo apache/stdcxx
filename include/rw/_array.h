@@ -113,42 +113,44 @@ private:
 
 template <class _TypeT>
 inline __rw_array<_TypeT>::__rw_array (size_type __n)
-    : _C_size (__n)
 {
-    if (__n) {
+    if (__n)
         _C_data = _RWSTD_STATIC_CAST (pointer,
                                       ::operator new (__n * sizeof *_C_data));
-    }
     else
         _C_data = 0;
+
+    _C_size = __n;
 }
 
 
 template <class _TypeT>
 inline __rw_array<_TypeT>::__rw_array (const_reference __val, size_type __n)
-    : _C_size (__n)
 {
     if (__n) {
         _C_data = _RWSTD_STATIC_CAST (pointer,
                                       ::operator new (__n * sizeof *_C_data));
-        _STD::uninitialized_fill_n (begin (), size (), __val);
+        _STD::uninitialized_fill_n (_C_data, __n, __val);
     }
     else
         _C_data = 0;
+
+    _C_size = __n;
 }
 
 
 template <class _TypeT>
 inline __rw_array<_TypeT>::__rw_array (const_pointer __data, size_type __n)
-    : _C_size (__n)
 { 
     if (__n) {
         _C_data = _RWSTD_STATIC_CAST (pointer,
                                       ::operator new (__n * sizeof *_C_data));
-        _STD::uninitialized_copy (__data, __data + __n, begin ());
+        _STD::uninitialized_copy (__data, __data + __n, _C_data);
     }
     else
         _C_data = 0;
+
+    _C_size = __n;
 }
 
 
