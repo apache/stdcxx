@@ -880,9 +880,9 @@ EOF
 
 # the location of the logs
 if [ -z $version ]; then
-    logdir="http://people.apache.org/~sebor/stdcxx/results/builds"
+    logdir="http://people.apache.org/~sebor/stdcxx/results"
 else
-    logdir="http://people.apache.org/~sebor/stdcxx-$version/results/builds"
+    logdir="http://people.apache.org/~sebor/stdcxx-$version/results"
 fi
 
 # the name of a temporary file containing the build timings
