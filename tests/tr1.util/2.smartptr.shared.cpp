@@ -23,7 +23,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -322,13 +322,35 @@ test_copy_ctor ()
 
 #endif   // ILL_FORMED
 
+
     {   // template <class U> shared_ptr(const shared_ptr<U>&)
         Derived<int>* const pd = new Derived<int>;
 
-        std::tr1::shared_ptr<volatile Derived<int> > ptr_d (pd);
-        std::tr1::shared_ptr<volatile Base_0<int> >  ptr_0 (ptr_d);
-        std::tr1::shared_ptr<volatile Base_1<int> >  ptr_1 (ptr_d);
-        std::tr1::shared_ptr<volatile Base<int> >    ptr_b (ptr_d);
+#if    !defined (_RWSTD_HP_aCC_MAJOR) || 6 <= _RWSTD_HP_aCC_MAJOR \
+    || 3 == _RWSTD_HP_aCC_MAJOR && __hpxstd98
+
+        typedef volatile Derived<int> v_Derived_i;
+        typedef volatile Base_0<int>  v_Base_0_i;
+        typedef volatile Base_1<int>  v_Base_1_i;
+        typedef volatile Base<int>    v_Base_i;
+
+#else   // HP aCC
+
+        // volatile disabled for HP aCC 3 without the +hpxstd98
+        // option available starting with aCC 3.74 to work around
+        // a compiler bug (see STDCXX-615)
+
+        typedef /* volatile */ Derived<int> v_Derived_i;
+        typedef /* volatile */ Base_0<int>  v_Base_0_i;
+        typedef /* volatile */ Base_1<int>  v_Base_1_i;
+        typedef /* volatile */ Base<int>    v_Base_i;
+
+#endif   // HP aCC
+
+        std::tr1::shared_ptr<v_Derived_i> ptr_d (pd);
+        std::tr1::shared_ptr<v_Base_0_i>  ptr_0 (ptr_d);
+        std::tr1::shared_ptr<v_Base_1_i>  ptr_1 (ptr_d);
+        std::tr1::shared_ptr<v_Base_i>    ptr_b (ptr_d);
 
         rw_assert (pd == ptr_d.get (), 0, __LINE__,
                    "shared_ptr<Derived>(Derived* = %#p).get() == %#p, got %#p",
@@ -338,19 +360,19 @@ test_copy_ctor ()
                    "shared_ptr<Base_0>(const shared_ptr<Derived>(%#p))"
                    ".get() == %#p, got %#p",
                    ptr_d.get (),
-                   (volatile Base_0<int>*)ptr_d.get (), ptr_0.get ());
+                   (v_Base_0_i*)ptr_d.get (), ptr_0.get ());
                    
         rw_assert (ptr_d.get () == ptr_1.get (), 0, __LINE__,
                    "shared_ptr<Base_1>(const shared_ptr<Derived>(%#p))"
                    ".get() == %#p, got %#p",
                    ptr_d.get (),
-                   (volatile Base_1<int>*)ptr_d.get (), ptr_1.get ());
+                   (v_Base_1_i*)ptr_d.get (), ptr_1.get ());
 
         rw_assert (ptr_d.get () == ptr_b.get (), 0, __LINE__,
                    "shared_ptr<Base>(const shared_ptr<Derived>(%#p))"
                    ".get() == %#p, got %#p",
                    ptr_d.get (),
-                   (volatile Base<int>*)ptr_d.get (), ptr_b.get ());
+                   (v_Base_i*)ptr_d.get (), ptr_b.get ());
 
         rw_assert (4                  == ptr_d.use_count (), 0, __LINE__, "");
         rw_assert (ptr_d.use_count () == ptr_0.use_count (), 0, __LINE__, "");
