@@ -1045,8 +1045,8 @@ test_seekoff (VFun *pfid)
     // the implemented behavior considers end to be the "high
     // mark" mentioned in DR 432 rather than epptr()
 
-    // FIXME: add a reference to the LWG issue that fixes this
-    // as soon as one has been opened
+    // see LWG issue 563:
+    // http://www.open-std.org/jtc1/sc22/wg21/docs/lwg-defects.html#563
     TEST ("abc", out,            0,  0, end, out,    3, 0, 0, MAYBE_1);
     TEST ("abc", out,            0,  1, end, out, NPOS, 0, 0, MAYBE_1);
     TEST ("abc", out,            0, -1, end, out,    2, 0, 0, MAYBE_1);
