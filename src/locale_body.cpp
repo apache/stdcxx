@@ -805,9 +805,11 @@ _C_manage (__rw_locale *plocale, const char *locname)
 
         if (!global) {
 
-            static volatile long ginit /* = 0 */;
+            static volatile int ginit /* = 0 */;
 
-            if (!ginit && 1 == _RWSTD_ATOMIC_PREINCREMENT (ginit, false)) {
+            // cast ginit to int& (STDCXX-792)
+            // casting should be removed after fixing STDCXX-794
+            if (!ginit && 1 == _RWSTD_ATOMIC_PREINCREMENT ((int&)ginit, false)) {
                 global  = _C_manage (0, "C");
                 ginit  += 1000;
             }
