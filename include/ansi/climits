@@ -30,7 +30,6 @@
 #ifndef _RWSTD_CLIMITS_INCLUDED
 #define _RWSTD_CLIMITS_INCLUDED
 
-
 #include <rw/_defs.h>
 
 
@@ -104,6 +103,11 @@
 #else   // if defined (_RWSTD_NO_PURE_C_HEADERS)
 
 #  ifdef __GNUC__
+#    if __GNUC__ >= 3
+       // silence gcc warnings about #include_next below
+#      pragma GCC system_header
+#    endif   // gcc >= 3
+
      // use the gcc extension to #include the compiler's limits.h
 #    include_next <limits.h>
 #  else
