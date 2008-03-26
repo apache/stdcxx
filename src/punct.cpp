@@ -616,8 +616,6 @@ __rw_get_stdio_fmat (char buf [32], int type, unsigned fmtflags,
         if (fmtflags & _RWSTD_IOS_SHOWPOINT)
             *pbuf++ = '#';
 
-        const int fltfld = fmtflags & _RWSTD_IOS_FLOATFIELD;
-
         // follows resolution of lwg issue 231
         if (0 <= prec) {
 
