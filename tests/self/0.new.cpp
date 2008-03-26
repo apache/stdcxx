@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -469,6 +469,11 @@ int run_test (int, char**)
 {
 #ifndef _RWSTD_NO_REPLACEABLE_NEW_DELETE
 
+    // disable diagnostics issued by the replacement operator new
+    // and delete defined by the test driver in response to deliberate
+    // errors caused by this test
+    rw_enable (rw_error, false);
+
 #  define TEST(name)                                            \
     if (rw_opt_no_ ## name)                                     \
         rw_note (0, 0, __LINE__, "%s test disabled", #name);    \
@@ -493,12 +498,7 @@ int run_test (int, char**)
 }
 
 /**************************************************************************/
-/*
-void* operator new (size_t n) throw (std::bad_alloc)
-{
-    return 0;
-}
-*/
+
 int main (int argc, char** argv)
 {
     return rw_test (argc, argv, __FILE__,
