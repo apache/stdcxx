@@ -1540,7 +1540,7 @@ rw_info (int success, const char *file, int line, const char *fmt, ...)
 
 /************************************************************************/
 
-_TEST_EXPORT void
+_TEST_EXPORT bool
 rw_enable (int (*fun) (int, const char*, int, const char*, ...), bool enable)
 {
     diag_t diag;
@@ -1559,12 +1559,16 @@ rw_enable (int (*fun) (int, const char*, int, const char*, ...), bool enable)
         diag = diag_info;
     else {
         RW_ASSERT (!"Invalid function in rw_enable");
-        return;
+        return false;
     }
+
+    const bool enabled = 0 != (_rw_diag_ignore & (1 << diag));
 
     // if (enable)
     //     _rw_diag_ignore &= ~(1 << diag);
     // else
     //     _rw_diag_ignore |= 1 << diag;
     _rw_diag_ignore ^= ((enable - 1) ^ _rw_diag_ignore) & (1 << diag);
+
+    return enabled;
 }

@@ -159,13 +159,21 @@ _TEST_EXPORT int
 rw_info (int, const char*, int, const char*, ...);
 
 /**
-* Enable/disable the specified diagnostics
-*
-* Example:
-*   rw_enable (rw_error, false); // disable all rw_error diagnostics
-*   rw_enable (rw_error);        // enable all rw_error diagnostics
-*/
-_TEST_EXPORT void
-rw_enable (int (*) (int, const char*, int, const char*, ...), bool = true);
+ * Enable/disable the specified diagnostic.
+ *
+ * @param fun Diagnostic function to enable or disable. Must be one of
+ *        rw_fatal, rw_error, rw_assert, rw_warn, rw_note or rw_info.
+ * @param enable Flag to indicate that the diagnostic function should
+ *        be enabled or disabled.
+ * @return  Returns the previous state of the diagnostic. If the first
+ *        parameter is not an acceptable input, will return false.
+ *
+ * Example:
+ *   rw_enable (rw_error, false); // disable all rw_error diagnostics
+ *   rw_enable (rw_error);        // enable all rw_error diagnostics
+ */
+_TEST_EXPORT bool
+rw_enable (int (*fun) (int, const char*, int, const char*, ...),
+           bool enable = true);
 
 #endif   // RW_DRIVER_H_INCLUDED
