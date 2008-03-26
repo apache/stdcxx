@@ -133,6 +133,11 @@
      // disabe exporting timeplate instantations in shared builds
      // see STDCXX-507
 #    define _RWSTD_NO_EXTERN_TEMPLATE
+
+     // operator new and delete is not reliably replaceable across
+     // shared library boundaries, which includes the shared library
+     // version of the language support library
+#    define _RWSTD_NO_REPLACEABLE_NEW_DELETE
 #  endif
 #endif   // __CYGWIN__
 
