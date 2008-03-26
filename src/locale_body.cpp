@@ -805,15 +805,20 @@ _C_manage (__rw_locale *plocale, const char *locname)
 
         if (!global) {
 
+            // volatile to prevent optimizers from turning
+            // the while statement below into an infinite loop
             static volatile int ginit /* = 0 */;
 
             // cast ginit to int& (STDCXX-792)
             // casting should be removed after fixing STDCXX-794
-            if (!ginit && 1 == _RWSTD_ATOMIC_PREINCREMENT ((int&)ginit, false)) {
+            if (!ginit && 1 == _RWSTD_ATOMIC_PREINCREMENT (
+                    _RWSTD_CONST_CAST (int&, ginit), false)) {
                 global  = _C_manage (0, "C");
                 ginit  += 1000;
             }
             else {
+                // ginit must be volatile to prevent optimizers
+                // from turning this into an infinite loop
                 while (ginit < 1000);
             }
         }
