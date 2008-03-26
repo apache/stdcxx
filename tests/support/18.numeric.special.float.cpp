@@ -1183,9 +1183,9 @@ void test_limits (FloatT, const char *tname, const char *fmt)
 #elif defined (__sparc)
     rw_warn (big_endian, 0, __LINE__, "SPARC is big-endian");
 #elif defined (_WIN64)
-    rw_warn (!big_endian, "WIN64 is little-endian");
+    rw_warn (!big_endian, 0, __LINE__, "WIN64 is little-endian");
 #elif defined (_WIN32)
-    rw_warn (!big_endian, "WIN32 is little-endian");
+    rw_warn (!big_endian, 0, __LINE__, "WIN32 is little-endian");
 #endif
 
 #ifndef _RWSTD_NO_STATIC_CONST_MEMBER_INIT
