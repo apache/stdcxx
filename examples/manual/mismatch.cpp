@@ -52,7 +52,7 @@ int main ()
     // p1 will contain two iterators that point to the first pair of
     // elements that are different between the two vectors.
     std::pair<Iter, Iter> p1 =
-        std::mismatch (vi1.begin (), vi1.end (), vi2.begin ());	
+        std::mismatch (vi1.begin (), vi1.end (), vi2.begin ());
 
     // Find the first two elements such that an element in the
     // first vector is greater than the element in the second vector.

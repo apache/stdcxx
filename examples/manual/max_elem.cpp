@@ -37,9 +37,9 @@ int main ()
     typedef std::vector<int, std::allocator<int> > Vector;
     typedef Vector::iterator                       Iterator;
 
-    const Vector::value_type d1[] = { 1, 3, 5, 32, 64 }; 			 				
+    const Vector::value_type d1[] = { 1, 3, 5, 32, 64 };
     // Set up vector.
-    Vector v1(d1 + 0, d1 + sizeof d1 / sizeof *d1);	
+    Vector v1(d1 + 0, d1 + sizeof d1 / sizeof *d1);
 
     // Find the largest element in the vector.
     Iterator it1 = std::max_element (v1.begin (), v1.end ());

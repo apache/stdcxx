@@ -102,9 +102,9 @@ __rw_manage_cat_data (int &cat,  __rw_open_cat_data *pcat_data)
  
     if (0 == init) {
         for (size_t i = 0; i < catalog_bufsize; ++i) {
-	    catalogs [i].catd = _RWSTD_BAD_CATD;
-	}
-	init = 1;
+            catalogs [i].catd = _RWSTD_BAD_CATD;
+        }
+        init = 1;
     }
 
     if (-1 == cat) {
@@ -116,57 +116,57 @@ __rw_manage_cat_data (int &cat,  __rw_open_cat_data *pcat_data)
              if (n_catalogs == catalog_bufsize) {
 
                 // reallocate buffer of facet pointers
-	         __rw_open_cat_data* const tmp =
-		     new __rw_open_cat_data[n_catalogs * 2];
-		 
-		 memcpy (tmp, catalogs, n_catalogs * sizeof *tmp);
-		 
-		 if (catalogs != catalog_buf)
-		     delete[] catalogs;
-		 
-		 catalogs         = tmp;
-		 catalog_bufsize *= 2;
+                __rw_open_cat_data* const tmp =
+                    new __rw_open_cat_data[n_catalogs * 2];
 
-		 for (size_t i = n_catalogs; i < catalog_bufsize; ++i) {
-		      catalogs [i].catd = _RWSTD_BAD_CATD;
-		 }
+                memcpy (tmp, catalogs, n_catalogs * sizeof *tmp);
+                 
+                if (catalogs != catalog_buf)
+                    delete[] catalogs;
 
-		 cat = int (n_catalogs);
-                 memcpy (&catalogs [cat].loc, &pcat_data->loc,
-                         sizeof (_STD::locale));
+                catalogs         = tmp;
+                catalog_bufsize *= 2;
 
-		 catalogs [cat].catd = pcat_data->catd;
+                for (size_t i = n_catalogs; i < catalog_bufsize; ++i) {
+                    catalogs [i].catd = _RWSTD_BAD_CATD;
+                }
 
-		 if (size_t (cat) > largest_cat)
-		     largest_cat = size_t (cat);
+                cat = int (n_catalogs);
+                memcpy (&catalogs [cat].loc, &pcat_data->loc,
+                        sizeof (_STD::locale));
 
-		 ++n_catalogs;
-	     }
-	     else {
-                 // find the first open slot and use it.
-                 cat = 0;
-                 while (catalogs [cat].catd != _RWSTD_BAD_CATD) {
-                     ++cat;
-                 }
+                catalogs [cat].catd = pcat_data->catd;
 
-		 if (size_t (cat) > largest_cat)
-		     largest_cat = size_t (cat);
+                if (size_t (cat) > largest_cat)
+                    largest_cat = size_t (cat);
 
-                 memcpy (&catalogs [cat].loc, &pcat_data->loc,
-                         sizeof (_STD::locale));
+                ++n_catalogs;
+            }
+            else {
+                // find the first open slot and use it.
+                cat = 0;
+                while (catalogs [cat].catd != _RWSTD_BAD_CATD) {
+                    ++cat;
+                }
 
-                 catalogs [cat].catd = pcat_data->catd;
-                 ++n_catalogs;
-	     }
-	}
+                if (size_t (cat) > largest_cat)
+                    largest_cat = size_t (cat);
+
+                memcpy (&catalogs [cat].loc, &pcat_data->loc,
+                        sizeof (_STD::locale));
+
+                catalogs [cat].catd = pcat_data->catd;
+                ++n_catalogs;
+            }
+        }
     }
     else {
         if (0 == pcat_data) {
-	    // find struct and return it
-	    if (size_t (cat) < catalog_bufsize)
+            // find struct and return it
+            if (size_t (cat) < catalog_bufsize)
                 return catalogs + cat;
 
-	    return 0;
+            return 0;
         }
 
         // initialize the struct to an invalid state
@@ -191,7 +191,7 @@ __rw_manage_cat_data (int &cat,  __rw_open_cat_data *pcat_data)
                 // second half of the statically allocated repository, copy
                 // the open catalogs back into the statically allocated
                 // repository.
-		    
+
                 catalog_bufsize = bufsize;
 
                 memcpy (catalog_buf, catalogs,
@@ -246,7 +246,7 @@ const char* __rw_get_message (int cat, int set_num, int msg_num)
 
         const char dflt[] = "";
 
-	const nl_catd catd = pcat_data->catd;
+        const nl_catd catd = pcat_data->catd;
 
         const char* const text = catgets (catd, set_num, msg_num, dflt);
 

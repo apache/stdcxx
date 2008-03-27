@@ -59,7 +59,7 @@ typedef basic_string<char, char_traits<char>, allocator<char> > string;
 }  // namespace std
 
 _RWSTD_NAMESPACE (__rw) { 
-	
+
 // base exception class inherited by all other exceptions
 class _RWSTD_EXPORT __rw_exception: public _STD::exception
 {

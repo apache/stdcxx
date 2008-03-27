@@ -40,9 +40,9 @@ _RWSTD_NAMESPACE (std) {
 _RWSTD_SIZE_T gslice::next_ind ()
 {
     _RWSTD_SIZE_T __n = _C_length.size ();
-	 
+
     while (__n && _C_r_length [__n - 1] == _C_length [__n - 1] - 1)
-	--__n;
+        --__n;
 
     if (0 == __n) {
         _C_reset    = true;

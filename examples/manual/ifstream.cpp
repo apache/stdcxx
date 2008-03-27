@@ -69,8 +69,8 @@ int main ( )
 
         std::cout << '\n';
 
-	// clear stream state, failbit | eofbit set by last call to get ()
-	in.clear ();
+        // clear stream state, failbit | eofbit set by last call to get ()
+        in.clear ();
 
         // move back to the beginning of the file
         in.seekg (0); 
@@ -92,8 +92,8 @@ int main ( )
     
         std::cout << '\n';
 
-	// clear the stream state
-	in.clear (); 
+        // clear the stream state
+        in.clear (); 
 
         // output the base info before each integer
         out << std::showbase;
@@ -117,8 +117,8 @@ int main ( )
         // output the entire file
         std::cout << in.rdbuf () << '\n';
 
-	// clear the stream state
-	in.clear (); 
+        // clear the stream state
+        in.clear (); 
 
         // seek the input sequence to pos  
         in.seekg (pos);

@@ -191,7 +191,7 @@ public:
     virtual ~Scanner();
 
     // public interface
-    token_t next_token ();	
+    token_t next_token ();
 
     void open (std::string, char = '#', char = '\\');
 

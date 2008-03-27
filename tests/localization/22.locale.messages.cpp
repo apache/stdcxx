@@ -821,7 +821,7 @@ run_test (int, char*[])
 #ifdef _RWSTD_OS_AIX
 
     // must do this so that NLSPATH lookup works correctly for both
-	// the C and POSIX locales.
+    // the C and POSIX locales.
     const int p = rw_putenv ("LC__FASTMSG=false");
     rw_note (!p, 0, __LINE__, "failed to set LC__FASTMSG");
     

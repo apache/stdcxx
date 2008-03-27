@@ -97,35 +97,35 @@ static void print_linux_release ()
 {
     static const char* const files[] = {
         // Debian
- 	"/etc/debian_release",   // see also /etc/debian_version?
+        "/etc/debian_release",   // see also /etc/debian_version?
         // Fedora
- 	"/etc/fedora-release",
+        "/etc/fedora-release",
         // Gentoo
- 	"/etc/gentoo-release",
+        "/etc/gentoo-release",
         // Novell SUSE
-  	"/etc/SuSE-release",
+        "/etc/SuSE-release",
         // Red Hat
- 	"/etc/redhat-release",   // see also /etc/redhat_version?
+        "/etc/redhat-release",   // see also /etc/redhat_version?
         // Slackware
- 	"/etc/slackware-release",   // see also /etc/slackware-version?
+        "/etc/slackware-release",   // see also /etc/slackware-version?
         // Mandrake
- 	"/etc/mandrake-release",
+        "/etc/mandrake-release",
         // Mandriva
         "/etc/mandriva-release",
         // MEPIS Linux
         "/etc/mepis-release",
         // Sun JDS
- 	"/etc/sun-release",
+        "/etc/sun-release",
         // Solaris/SPARC
- 	"/etc/release",
+        "/etc/release",
         // Turbo Linux
         "/etc/turbolinux-release",
         // UnitedLinux
- 	"/etc/UnitedLinux-release",
+        "/etc/UnitedLinux-release",
         // Ubuntu
- 	"/etc/lsb-release",
+        "/etc/lsb-release",
         // Yellow Dog
- 	"/etc/yellowdog-release",
+        "/etc/yellowdog-release",
 
         ////////////////////////////////////////////////////
         // Last entry must be 0

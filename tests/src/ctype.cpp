@@ -43,10 +43,10 @@ rw_vasnprintf (char**, size_t*, const char*, va_list);
 static void
 _rw_throw (const char *file, int line, const char *fmt, ...)
 {
-	_RWSTD_UNUSED (file);
-	_RWSTD_UNUSED (line);
+    _RWSTD_UNUSED (file);
+    _RWSTD_UNUSED (line);
 
-	struct Exception: UserCtypeBase::Exception {
+    struct Exception: UserCtypeBase::Exception {
         char what_ [256];
 
         /* virtual */ const char* what () const {

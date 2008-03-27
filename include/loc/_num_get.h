@@ -239,7 +239,7 @@ private:
 
     iter_type
     _C_get (iter_type, iter_type, ios_base&,
-	    _RWSTD_IOSTATE&, int, void*) const;
+            _RWSTD_IOSTATE&, int, void*) const;
 };
 
 

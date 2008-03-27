@@ -428,7 +428,7 @@ void test_libstd (charT, const char *cname)
                 "(<U0063>,<U0043>);(<U1000>,<U1001>)\n"
         "tolower (<U0041>,<U0061>);(<U0042>,<U0062>);"
                 "(<U0043>,<U0063>);(<U1001>,<U1000>)\n"
-       	"END LC_CTYPE\n"
+        "END LC_CTYPE\n"
     };
 
     //invoke rw_create_locale to build a locale to test with

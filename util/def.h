@@ -92,12 +92,12 @@ public:
     // was the content of the locale definition file scanned ahead
     bool scan_ahead_;
 
-    typedef Scanner::token_t		    token_t;
+    typedef Scanner::token_t                token_t;
     typedef std::pair<token_t,token_t>      token_pair_t;
-    typedef std::list<token_t>		    token_list_t;
+    typedef std::list<token_t>              token_list_t;
     typedef std::pair<token_t,token_list_t> collate_entry_t;
     typedef std::pair<token_t,token_list_t> collate_elem_t;
-    typedef std::list<collate_entry_t>	    collate_entry_list_t;
+    typedef std::list<collate_entry_t>      collate_entry_list_t;
     struct collate_section_t;
 
     struct collate_section_t {
@@ -401,9 +401,9 @@ private:
     typedef std::map<wchar_t,std::list<std::string> >  xlit_map_t;
     typedef std::map<wchar_t, unsigned int>            xlit_data_offset_map_t;
     typedef std::map<unsigned int,xlit_offset_table_t> xlit_table_map_t;
-    xlit_map_t       		xlit_map_;
-    xlit_data_offset_map_t	xlit_data_offset_map_;
-    xlit_table_map_t 		xlit_table_map_;
+    xlit_map_t                    xlit_map_;
+    xlit_data_offset_map_t        xlit_data_offset_map_;
+    xlit_table_map_t              xlit_table_map_;
 
     // the collate_info_t struct contains information concerning the collation
     // of each character

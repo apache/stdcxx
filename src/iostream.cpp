@@ -226,7 +226,7 @@ static int __rw_ios_initcnt /* = 0 */;
 
 
 _RWSTD_NAMESPACE (std) {
-	
+
 ios_base::Init::Init ()
 {
     // only the first thread initializes
