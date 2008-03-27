@@ -307,7 +307,7 @@ _C_insert (const value_type &__v, _STD::pair<iterator, bool> &__ret,
 
     if (__dup) {
         // allow insertion of duplicate keys
-	__ret = _IterPair (_C_insert (__x, __y, __v), true);
+        __ret = _IterPair (_C_insert (__x, __y, __v), true);
         return;
     }
 
@@ -315,15 +315,15 @@ _C_insert (const value_type &__v, _STD::pair<iterator, bool> &__ret,
     if (__right) {
         if (__j == begin ()) {
             __ret = _IterPair (_C_insert (__x, __y, __v), true);
-	    return;
-	}
+            return;
+        }
         --__j;
     }
 
     if (_C_cmp (_ITER_NODE (__j)->_C_key (), _KeyOf ()(__v)))
         __ret = _IterPair (_C_insert (__x, __y, __v), true);
     else
-	__ret = _IterPair (__j, false);
+        __ret = _IterPair (__j, false);
 }
 
 

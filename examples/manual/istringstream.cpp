@@ -68,8 +68,8 @@ int main ( )
 
         std::wcout << std::endl;
 
-	// clear stream state, failbit | eofbit set by last call to get ()
-	in.clear ();
+        // clear stream state, failbit | eofbit set by last call to get ()
+        in.clear ();
 
         // move back to the beginning of the stream
         in.seekg (0); 
@@ -91,9 +91,9 @@ int main ( )
     
         std::wcout << std::endl;
 
-	// clear flags, last in >> buf set fail bit
+        // clear flags, last in >> buf set fail bit
         // because of a newline at end of string
-	in.clear (); 
+        in.clear (); 
 
         // output the base info before each integer
         out << std::showbase;
@@ -117,8 +117,8 @@ int main ( )
         // output the entire stream
         std::wcout << in.rdbuf () << std::endl;
 
-	// clear the flags 
-	in.clear (); 
+        // clear the flags 
+        in.clear (); 
 
         // seek the input sequence to pos  
         in.seekg (pos);

@@ -67,7 +67,7 @@ int main ()
     // convert the buffer
     cdcvt.in (state, ins.c_str (), ins.c_str () + ins.length (), const_in_next,
               &outs [0], &outs [0] + outs.length (), out_next);
-	
+
     std::cout << "After in:\n"
               << ins << '\n'
               << ins2 << '\n'
@@ -79,7 +79,7 @@ int main ()
     // Finally, convert back to the original codeset
     cdcvt.out (state, outs.c_str (), outs.c_str () + outs.length (),
                const_out_next, &ins [0], &ins [0] + ins.length (), in_next);
-	
+
     std::cout << "After out:\n"
               << ins << '\n'
               << ins2 << '\n'

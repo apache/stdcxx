@@ -39,7 +39,7 @@ int main()
 {
     typedef std::vector<int, std::allocator<int> > Vector;
 
-    const Vector::value_type d1[] = { 1, 3, 5, 32, 64 }; 		
+    const Vector::value_type d1[] = { 1, 3, 5, 32, 64 };
     const Vector::value_type d2[] = { 1, 3, 2, 43, 56 };
 
     // Create vectors.

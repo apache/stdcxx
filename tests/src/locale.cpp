@@ -641,7 +641,7 @@ rw_get_wchars (wchar_t *wbuf, size_t bufsize, int nbytes /* = 0 */)
         // determine whether the wide character is valid
         // and if so, the length of the multibyte character
         // that corresponds to it
-		const wchar_t wc = wchar_t (i);
+        const wchar_t wc = wchar_t (i);
         const int len = wctomb (tmp, wc);
 
         if (nbytes == 0 && 0 < len || nbytes != 0 && nbytes == len) {

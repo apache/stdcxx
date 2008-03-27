@@ -601,8 +601,8 @@ char* get_installed_locales (int loc_cat /* = LC_INVALID_CAT */)
     const int ret = std::system (cmd);
 
     if (ret)
-      issue_diag (W_NOTSUP, false, 0, "call to system(\"%s\") failed: %s\n",
-		  cmd, std::strerror (errno));
+        issue_diag (W_NOTSUP, false, 0, "call to system(\"%s\") failed: %s\n",
+                    cmd, std::strerror (errno));
 
     // open file containing the list of installed locales
     std::FILE *f = std::fopen (fname, "r");

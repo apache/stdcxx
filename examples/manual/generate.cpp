@@ -30,7 +30,7 @@
 #include <algorithm>    // for generate, generate_n
 #include <iostream>     // for cout, endl
 #include <iterator>     // for ostream_iterator
-#include <vector>	// for vector
+#include <vector>       // for vector
 
 #include <examples.h>
 

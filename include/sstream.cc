@@ -103,7 +103,7 @@ str (const char_type *__s, _RWSTD_SIZE_T __slen)
     if (this->_C_bufsize < __bufsize) {
         // requested capacity is greater than the current capacity
         // allocate a new buffer of sufficient size
-		const _RWSTD_STREAMSIZE __ratio =
+        const _RWSTD_STREAMSIZE __ratio =
             _RWSTD_STREAMSIZE (  (_RWSTD_NEW_CAPACITY_RATIO << 10)
                                / _RWSTD_RATIO_DIVIDER);
 

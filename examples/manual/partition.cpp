@@ -34,8 +34,8 @@
 
 #include <examples.h>
 
-typedef std::modulus<int>		int_modulus;
-typedef std::binder2nd<int_modulus>	bnd_modulus;
+typedef std::modulus<int>               int_modulus;
+typedef std::binder2nd<int_modulus>     bnd_modulus;
 typedef std::unary_negate<bnd_modulus>  is_even;
 
 int main ()
