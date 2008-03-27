@@ -93,6 +93,8 @@ _rw_enable_lines (int first, int last, int flags)
 static int
 _rw_enable_line (int argc, char *argv[], int flags)
 {
+	_RWSTD_UNUSED (argc);
+
     char *parg = strchr (argv [0], '=');
     assert (0 != parg);
 

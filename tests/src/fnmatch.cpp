@@ -34,7 +34,7 @@ typedef unsigned char UChar;
 
 // matches a character against a POSIX bracket expression
 static const char*
-_rw_bracketmatch (const char *pattern, unsigned ch, int)
+_rw_bracketmatch (const char *pattern, const unsigned char ch, int)
 {
     const char *pc = pattern;
 
@@ -52,7 +52,7 @@ _rw_bracketmatch (const char *pattern, unsigned ch, int)
         // the '-' and ']' lose their special meaning when they occur
         // first in the bracket expression, after the initial '!', if
         // any
-        if (ch == *pc) {
+        if (ch == UChar (*pc)) {
             if (neg)
                 return 0;
 
@@ -75,7 +75,7 @@ _rw_bracketmatch (const char *pattern, unsigned ch, int)
     for ( ; *pc; ++pc) {
         if ('\\' == *pc) {
             if (esc) {
-                if (*pc == ch) {
+                if (ch == UChar (*pc)) {
                     if (neg)
                         return 0;
 
@@ -108,7 +108,7 @@ _rw_bracketmatch (const char *pattern, unsigned ch, int)
 
             first = 0;
         }
-        else if (ch == *pc) {
+        else if (ch == UChar (*pc)) {
             if (neg)
                 return 0;
 
