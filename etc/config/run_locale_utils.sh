@@ -20,7 +20,7 @@
 # implied.   See  the License  for  the  specific language  governing
 # permissions and limitations under the License.
 #
-# Copyright 1999-2007 Rogue Wave Software, Inc.
+# Copyright 1999-2008 Rogue Wave Software, Inc.
 #
 ##############################################################################
 #
@@ -557,12 +557,12 @@ while getopts ":nsfdb:i:l:O:L:M:C:D:" opt_name; do
 done
 
 ## set temporary (working) directory
-if [ -z "$TMP" ]; then
-    TMP="/tmp";
-    export TMP;
+if [ -z "$TMPDIR" ]; then
+    TMPDIR="/tmp"
+    export TMPDIR
 fi
 
-tmpdir=$TMP/${locale_db:-unnamed-locale}.$$
+tmpdir=$TMPDIR/${locale_db:-unnamed-locale}.$$
 
 ## Actual test
 if [ "$chk_sanity" = "yes" ]; then

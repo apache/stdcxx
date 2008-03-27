@@ -607,8 +607,8 @@ shift $(($OPTIND - 1))
 gzlogs=$*
 
 
-# set the TMP variable to /tmp if not set
-[ -z $TMP ] && TMP=/tmp
+# set the TMPDIR variable to /tmp if not set
+[ -z $TMPDIR ] && TMPDIR=/tmp
 
 ######################################################################
 
@@ -886,7 +886,7 @@ else
 fi
 
 # the name of a temporary file containing the build timings
-timings_file=$TMP/.stdcxx-timings.$$
+timings_file=$TMPDIR/.stdcxx-timings.$$
 
 # remove the temporary file
 rm -f timings_file
@@ -915,7 +915,7 @@ for l in $gzlogs; do
     fi
 
     # set temporary variables (valid only within the loop)
-    txtlog=$TMP/`basename $l .gz.txt`.txt.$$
+    txtlog=$TMPDIR/`basename $l .gz.txt`.txt.$$
 
     # append the name of the log to the list
     textlogs="$textlogs $txtlog"
