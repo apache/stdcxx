@@ -2128,68 +2128,68 @@ test_memptr ()
 
         static size_t big_endian = size_t (0 == u.bytes [0]);
 
-        const size_t lo_inx = size_t (1 - big_endian);
-        const size_t hi_inx = size_t (big_endian);
+        const size_t lo_inx = size_t (big_endian);
+        const size_t hi_inx = size_t (1 - big_endian);
 
 #if 4 == _RWSTD_LONG_SIZE
 
         uval.lval [hi_inx] = 0UL;
 
         uval.lval [lo_inx] = 0UL;
-        TEST ("%{M}",  uval.mptr, 0, 0,   "00000000:00000000");
-        TEST ("%{#M}", uval.mptr, 0, 0, "0x00000000:00000000");
+        TEST ("%{M}",  uval.mptr, 0, 0,   "0000000000000000");
+        TEST ("%{#M}", uval.mptr, 0, 0, "0x0000000000000000");
 
         uval.lval [lo_inx] = 1UL;
-        TEST ("%{M}",  uval.mptr, 0, 0,   "00000000:00000001");
-        TEST ("%{#M}", uval.mptr, 0, 0, "0x00000000:00000001");
+        TEST ("%{M}",  uval.mptr, 0, 0,   "0000000000000001");
+        TEST ("%{#M}", uval.mptr, 0, 0, "0x0000000000000001");
 
         uval.lval [lo_inx] = 0xffffffffUL;
-        TEST ("%{M}",  uval.mptr, 0, 0,   "00000000:ffffffff");
-        TEST ("%{#M}", uval.mptr, 0, 0, "0x00000000:ffffffff");
+        TEST ("%{M}",  uval.mptr, 0, 0,   "00000000ffffffff");
+        TEST ("%{#M}", uval.mptr, 0, 0, "0x00000000ffffffff");
 
         uval.lval [hi_inx] = 0xdeadbeefUL;
         
         uval.lval [lo_inx] = 0UL;
-        TEST ("%{M}",  uval.mptr, 0, 0,   "deadbeef:00000000");
-        TEST ("%{#M}", uval.mptr, 0, 0, "0xdeadbeef:00000000");
+        TEST ("%{M}",  uval.mptr, 0, 0,   "deadbeef00000000");
+        TEST ("%{#M}", uval.mptr, 0, 0, "0xdeadbeef00000000");
 
         uval.lval [lo_inx] = 0x1aUL;
-        TEST ("%{M}",  uval.mptr, 0, 0,   "deadbeef:0000001a");
-        TEST ("%{#M}", uval.mptr, 0, 0, "0xdeadbeef:0000001a");
+        TEST ("%{M}",  uval.mptr, 0, 0,   "deadbeef0000001a");
+        TEST ("%{#M}", uval.mptr, 0, 0, "0xdeadbeef0000001a");
 
         uval.lval [lo_inx] = 0x0fff1fffUL;
-        TEST ("%{M}",  uval.mptr, 0, 0,   "deadbeef:0fff1fff");
-        TEST ("%{#M}", uval.mptr, 0, 0, "0xdeadbeef:0fff1fff");
+        TEST ("%{M}",  uval.mptr, 0, 0,   "deadbeef0fff1fff");
+        TEST ("%{#M}", uval.mptr, 0, 0, "0xdeadbeef0fff1fff");
 
 #elif 8 == _RWSTD_LONG_SIZE
 
         uval.lval [hi_inx] = 0UL;
 
         uval.lval [lo_inx] = 0UL;
-        TEST ("%{M}",  uval.mptr, 0, 0,   "0000000000000000:0000000000000000");
-        TEST ("%{#M}", uval.mptr, 0, 0, "0x0000000000000000:0000000000000000");
+        TEST ("%{M}",  uval.mptr, 0, 0,   "00000000000000000000000000000000");
+        TEST ("%{#M}", uval.mptr, 0, 0, "0x00000000000000000000000000000000");
 
         uval.lval [lo_inx] = 1UL;
-        TEST ("%{M}",  uval.mptr, 0, 0,   "0000000000000000:0000000000000001");
-        TEST ("%{#M}", uval.mptr, 0, 0, "0x0000000000000000:0000000000000001");
+        TEST ("%{M}",  uval.mptr, 0, 0,   "00000000000000000000000000000001");
+        TEST ("%{#M}", uval.mptr, 0, 0, "0x00000000000000000000000000000001");
 
         uval.lval [lo_inx] = 0xffffffffUL;
-        TEST ("%{M}",  uval.mptr, 0, 0,   "0000000000000000:00000000ffffffff");
-        TEST ("%{#M}", uval.mptr, 0, 0, "0x0000000000000000:00000000ffffffff");
+        TEST ("%{M}",  uval.mptr, 0, 0,   "000000000000000000000000ffffffff");
+        TEST ("%{#M}", uval.mptr, 0, 0, "0x000000000000000000000000ffffffff");
 
         uval.lval [hi_inx] = 0x0123456789abcdefUL;
         
         uval.lval [lo_inx] = 0UL;
-        TEST ("%{M}",  uval.mptr, 0, 0,   "0123456789abcdef:0000000000000000");
-        TEST ("%{#M}", uval.mptr, 0, 0, "0x0123456789abcdef:0000000000000000");
+        TEST ("%{M}",  uval.mptr, 0, 0,   "0123456789abcdef0000000000000000");
+        TEST ("%{#M}", uval.mptr, 0, 0, "0x0123456789abcdef0000000000000000");
 
         uval.lval [lo_inx] = 0x1aUL;
-        TEST ("%{M}",  uval.mptr, 0, 0,   "0123456789abcdef:000000000000001a");
-        TEST ("%{#M}", uval.mptr, 0, 0, "0x0123456789abcdef:000000000000001a");
+        TEST ("%{M}",  uval.mptr, 0, 0,   "0123456789abcdef000000000000001a");
+        TEST ("%{#M}", uval.mptr, 0, 0, "0x0123456789abcdef000000000000001a");
 
         uval.lval [lo_inx] = 0x0fff1fffUL;
-        TEST ("%{M}",  uval.mptr, 0, 0,   "0123456789abcdef:000000000fff1fff");
-        TEST ("%{#M}", uval.mptr, 0, 0, "0x0123456789abcdef:000000000fff1fff");
+        TEST ("%{M}",  uval.mptr, 0, 0,   "0123456789abcdef000000000fff1fff");
+        TEST ("%{#M}", uval.mptr, 0, 0, "0x0123456789abcdef000000000fff1fff");
 
 #else
 
