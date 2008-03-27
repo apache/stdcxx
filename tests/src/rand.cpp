@@ -48,18 +48,17 @@ rw_seed32 (_RWSTD_UINT32_T seed)
 
     table32 [TABLE_SIZE - 1] = seed;
 
-    _RWSTD_SIZE_T i;
-    _RWSTD_SIZE_T k = 1;
+    _RWSTD_UINT32_T k = 1;
 
-    for (i = 0; i != TABLE_SIZE - 1U; ++i) {
+    for (_RWSTD_SIZE_T i = 0; i != TABLE_SIZE - 1U; ++i) {
 
         const _RWSTD_SIZE_T ii = 21U * i % TABLE_SIZE;
         table32 [ii] =  k;
         k            = seed - k;
-        seed         = _RWSTD_STATIC_CAST (_RWSTD_SIZE_T, table32 [ii]);
+        seed         = table32 [ii];
     }
 
-    for (i = 0; i != 4U; ++i) {
+    for (_RWSTD_SIZE_T i = 0; i != 4U; ++i) {
         for (_RWSTD_SIZE_T ii = 0; ii != TABLE_SIZE; ++ii)
             table32 [i] = table32 [i] - table32 [(i + 31U) % TABLE_SIZE];
     }
@@ -99,18 +98,17 @@ rw_seed64 (_RWSTD_UINT64_T seed)
 
     table64 [TABLE_SIZE - 1] = seed;
 
-    _RWSTD_SIZE_T i;
-    _RWSTD_SIZE_T k = 1;
+    _RWSTD_UINT64_T k = 1;
 
-    for (i = 0; i != TABLE_SIZE - 1U; ++i) {
+    for (_RWSTD_SIZE_T i = 0; i != TABLE_SIZE - 1U; ++i) {
 
         const _RWSTD_SIZE_T ii = 21U * i % TABLE_SIZE;
         table64 [ii] =  k;
         k            = seed - k;
-        seed         = _RWSTD_STATIC_CAST (_RWSTD_SIZE_T, table64 [ii]);
+        seed         = table64 [ii];
     }
 
-    for (i = 0; i != 4U; ++i) {
+    for (_RWSTD_SIZE_T i = 0; i != 4U; ++i) {
         for (_RWSTD_SIZE_T ii = 0; ii != TABLE_SIZE; ++ii)
             table64 [i] = table64 [i] - table64 [(i + 31U) % TABLE_SIZE];
     }

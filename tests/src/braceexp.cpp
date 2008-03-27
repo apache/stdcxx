@@ -220,7 +220,7 @@ static const char* _rw_find_next_comma (const char* beg,
 
 struct _rw_string_buffer
 {
-    _rw_string_buffer (char* s, int n)
+    _rw_string_buffer (char* s, _RWSTD_SIZE_T n)
         : capacity_ (n)
         , length_ (0)
         , buffer_ (s)

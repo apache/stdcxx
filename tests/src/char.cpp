@@ -1284,7 +1284,7 @@ _rw_fmtstringv (char **pbuf, size_t *pbufsize, const char *fmt, va_list va)
 
     if (-1 == elemsize || 1 == elemsize) {
         if (nelems < 0)
-            nelems = beg.pc ? strlen (beg.pc) : 0;
+            nelems = beg.pc ? int (strlen (beg.pc)) : 0;
 
         nbytes = rw_asnprintf (pbuf, pbufsize, "%{+}%{#*s}", nelems, beg.pc);
     }
