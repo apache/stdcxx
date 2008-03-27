@@ -1588,19 +1588,17 @@ _rw_fmtpointer (const FmtSpec &spec, Buffer &buf,
     for (size_t i = 0; i != nelems; ++i) {
         const size_t inx = _rw_big_endian ? nelems - i - 1 : i;
 
-        len += _rw_fmtlong (newspec, buf, uptr.lptr [inx]);
+        int n = _rw_fmtlong (newspec, buf, uptr.lptr [inx]);
+        if (n < 0) 
+			return -1;
 
-        if (len < 0) {
-            break;
-        }
+        len += n;
 
         // separate pointer components with colons
-        int n = 0;
+        n = 0;
         if (i + 1 < nelems) {
-            if (0 == _rw_bufcat (buf, ":", size_t (n = 1))) {
-                len = -1;
-                break;
-            }
+            if (0 == _rw_bufcat (buf, ":", size_t (n = 1)))
+				return -1;
         }
 
         len += n;
