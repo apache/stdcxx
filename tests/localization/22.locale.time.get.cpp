@@ -1282,7 +1282,7 @@ make_LC_TIME (const time_data *td)
     const char* const locname =
         rw_localedef ("-w ", srcfname, cmfname, "test-locale");
 
-    if (locname && (strlen(locname) < sizeof locnamebuf))
+    if (locname && (std::strlen(locname) < sizeof locnamebuf))
         std::strcpy (locnamebuf, locname);
 
     return locname;
