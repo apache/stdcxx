@@ -53,14 +53,11 @@
 #  include <wctype.h>   // for iswalpha(), ...
 #endif   // _RWSTD_NO_WCTYPE_H
 
-#if defined (_WIN32) || defined (_WIN64)
-   // define macros to enable Win98 + WinNT support in <windows.h>
-#  define _WIN32_WINNT 0x0410
-#  define WINVER       0x400
-#  include <windows.h>   // for GetLastError(), IsDebuggerPresent()
+#if defined (_WIN32)
+#  include <windows.h>   // for GetLastError(), OutputDebugString()
 #else
 #  include <dlfcn.h>
-#endif   // _WIN{32,64}
+#endif   // _WIN32
 
 #include <ios>
 #include <iostream>
@@ -625,7 +622,7 @@ _rw_vasnprintf_c99 (FmtSpec *pspec,      // array of processed parameters
         RW_ASSERT (0 != *buf.pbuf);
 
         // len = int (strlen (*buf.pbuf));
-        len = buf.endoff;
+        len = int (buf.endoff);
 
         spec.param.ptr_ = PARAM (ptr_, pva);
 
@@ -1650,7 +1647,7 @@ _rw_fmtbadaddr (const FmtSpec &spec, Buffer &buf,
     if (0 == _rw_bufcat (buf, ")", 1))
         return -1;
 
-    return buf.endoff - off;
+    return int (buf.endoff - off);
 }
 
 /********************************************************************/
@@ -2031,7 +2028,7 @@ int _rw_fmtarray (const FmtSpec &spec,
             // repeated occurrences of the element to conserve
             // space and make the string more readable
 
-            const long repeat = pelem - last;
+            const long repeat = long (pelem - last);
 
             if (flags & (A_CHAR | A_WCHAR)) {
                 // format element into elemstr as a character
@@ -3430,25 +3427,17 @@ _rw_vfprintf (rw_file *file, const char *fmt, va_list va)
             //        for async-signal safety
             FILE* const stdio_file = _RWSTD_REINTERPRET_CAST (FILE*, file);
 
-            nwrote = fwrite (buf, 1, size_t (nchars), stdio_file);
+            nwrote = int (fwrite (buf, 1, size_t (nchars), stdio_file));
 
             // flush in case stderr isn't line-buffered (e.g., when
             // it's determined not to refer to a terminal device,
             // for example after it has been redirected to a file)
             fflush (stdio_file);
 
-#ifdef _MSC_VER
-
-            // IsDebuggerPresent() depends on the macros _WIN32_WINNT
-            // and WINVER being appropriately #defined prior to the
-            // #inclusion of <windows.h>
-            if (IsDebuggerPresent ()) {
-
-                // write string to the attached debugger (if any)
-                OutputDebugString (buf);
-            }
-
-#endif   // _MSC_VER
+#ifdef _WIN32
+            // write string to the attached debugger (if any)
+            OutputDebugString (buf);
+#endif   // _WIN32
 
         }
     }

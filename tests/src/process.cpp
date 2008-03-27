@@ -695,11 +695,11 @@ rw_process_kill (rw_pid_t pid, int signo)
     }
 
     // wait for process termination
-    int ret = rw_waitpid (pid, 0, timeout);
-    if (pid == ret)
+    rw_pid_t res = rw_waitpid (pid, 0, timeout);
+    if (pid == res)
         return 0;
 
-    if (-1 == ret)
+    if (-1 == res)
         rw_error (0, __FILE__, __LINE__,
                   "rw_waitpid (%{P}, 0, %i) failed: errno = %{#m} (%{m})",
                   pid, timeout);
@@ -733,11 +733,11 @@ rw_process_kill (rw_pid_t pid, int signo)
         }
 
         // wait for process termination
-        ret = rw_waitpid (pid, 0, timeout);
-        if (pid == ret)
+        rw_pid_t res = rw_waitpid (pid, 0, timeout);
+        if (pid == res)
             return 0;
 
-        if (-1 == ret)
+        if (-1 == res)
             rw_error (0, __FILE__, __LINE__,
                       "rw_waitpid (%{P}, 0, %i) failed: errno = %{#m} (%{m})",
                       pid, timeout);
