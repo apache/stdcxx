@@ -1562,7 +1562,7 @@ rw_enable (int (*fun) (int, const char*, int, const char*, ...), bool enable)
         return false;
     }
 
-    const bool enabled = 0 != (_rw_diag_ignore & (1 << diag));
+    const bool enabled = 0 == (_rw_diag_ignore & (1 << diag));
 
     // if (enable)
     //     _rw_diag_ignore &= ~(1 << diag);
