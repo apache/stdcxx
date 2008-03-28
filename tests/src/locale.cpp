@@ -951,59 +951,6 @@ struct _rw_locale_entry {
     struct _rw_locale_entry* next;
 };
 
-static int
-_rw_toupper (int chr)
-{
-    //if (chr < 'a' || 'z' < chr)
-    //    return chr;
-    //return chr - 'a' + 'A';
-    switch (chr)
-    {
-    case 'a': case 'b': case 'c': case 'd': case 'e': case 'f':
-    case 'g': case 'h': case 'i': case 'j': case 'k': case 'l':
-    case 'm': case 'n': case 'o': case 'p': case 'q': case 'r':
-    case 's': case 't': case 'u': case 'v': case 'w': case 'x':
-    case 'y': case 'z':
-        return chr - 'a' + 'A';
-    }
-
-    return chr;
-}
-
-static int
-_rw_tolower (int chr)
-{
-    //if (chr < 'A' || 'Z' < chr)
-    //    return chr;
-    //return chr - 'A' + 'a';
-    switch (chr)
-    {
-    case 'A': case 'B': case 'C': case 'D': case 'E': case 'F':
-    case 'G': case 'H': case 'I': case 'J': case 'K': case 'L':
-    case 'M': case 'N': case 'O': case 'P': case 'Q': case 'R':
-    case 'S': case 'T': case 'U': case 'V': case 'W': case 'X':
-    case 'Y': case 'Z':
-        return chr - 'A' + 'a';
-    }
-
-    return chr;
-}
-
-static int
-_rw_isspace (int chr)
-{
-    switch (chr)
-    {
-        case '\r':
-        case '\n':
-        case '\t':
-        case ' ':
-            return 1;
-    }
-
-    return 0;
-}
-
 struct _rw_locale_array {
     _rw_locale_entry* entries;
     _RWSTD_SIZE_T count;
@@ -1205,7 +1152,7 @@ _rw_all_locales ()
             for (const char* charset = nl_langinfo (CODESET);
                  *charset;
                  ++charset) {
-                codeset [i++] = _rw_toupper (*charset);
+                codeset [i++] = toupper (*charset);
             }
 
             codeset [i] = '\0';
@@ -1225,7 +1172,7 @@ _rw_all_locales ()
                 *encoding++ = '\0';
 
                 for (int n = 0; encoding [n]; ++n)
-                    encoding [n] = _rw_toupper (encoding [n]);
+                    encoding [n] = toupper (encoding [n]);
             }
 
             char* country = strrchr (locale, '_');
@@ -1233,13 +1180,13 @@ _rw_all_locales ()
                 *country++ = '\0';
 
                 for (int n = 0; country [n]; ++n)
-                    country [n] = _rw_toupper (country [n]);
+                    country [n] = toupper (country [n]);
             }
             
             char* language = locale;
 
             for (int n = 0; language [n]; ++n)
-                language [n] = _rw_tolower (language [n]);
+                language [n] = tolower (language [n]);
 
             // use mapping databases to find the canonical
             // names for each part of the locale name
@@ -1296,7 +1243,7 @@ _rw_all_locales ()
 
             // the canonical name for lookup
             sprintf (entry->canonical_name, "%s-%s-%d-%s",
-                     planguage, pcountry, MB_CUR_MAX, pencoding);
+                     planguage, pcountry, int (MB_CUR_MAX), pencoding);
 
             size += 1;
         }
@@ -1527,7 +1474,7 @@ _rw_lookup_table_t::load_from_file (const char* path, const char* name, int uppe
 
             char* key = table_data + offset;
 
-            const int len = strcspn (key, "\r\n");
+            const size_t len = strcspn (key, "\r\n");
             key [len] = '\0';
 
             // skip the newline if it is there
@@ -1541,27 +1488,27 @@ _rw_lookup_table_t::load_from_file (const char* path, const char* name, int uppe
             // make upper or lower case as requested
             if (upper_or_lower < 0) {
                 for (char* s = key; *s; ++s)
-                    *s = _rw_tolower (*s);
+                    *s = tolower (*s);
             }
             else if (0 < upper_or_lower) {
                 for (char* s = key; *s; ++s)
-                    *s = _rw_toupper (*s);
+                    *s = toupper (*s);
             }
 
             // if first character of new line is not whitespace, then we have a new
             // canonical name token
-            if (!_rw_isspace (*key)) {
+            if (!isspace (*key)) {
 
                 canonical_name = key;
 
                 // increment key past cannonical name
                 for (/**/; *key; ++key)
-                    if (_rw_isspace (*key))
+                    if (isspace (*key))
                         break;
             }
 
             // kill whitespace
-            while (_rw_isspace (*key))
+            while (isspace (*key))
                 *key++ = '\0';
 
             // key points to first non-whitespace after canonical name
@@ -1582,11 +1529,11 @@ _rw_lookup_table_t::load_from_file (const char* path, const char* name, int uppe
                     *key++ = '\0';
 
                 // kill any whitespace before comma
-                for (char* bey = key - 1; _rw_isspace (*bey); --bey)
+                for (char* bey = key - 1; isspace (*bey); --bey)
                     *bey = '\0';
 
                 // kill whitespace after comma
-                while (_rw_isspace (*key))
+                while (isspace (*key))
                     *key++ = '\0';
 
                 // ensure we have enough entries
