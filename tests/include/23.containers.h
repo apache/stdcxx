@@ -259,9 +259,22 @@ public:
     SizeType off2_;
     SizeType ext2_;
 
+#if    !defined (_RWSTD_HP_aCC_MAJOR)  \
+    || 6 == _RWSTD_HP_aCC_MAJOR && 1600 < _RWSTD_HP_aCC_MINOR
+
     const T* str_;   // pointer to the expanded string
     const T* arg_;   // pointer to the expanded argument
     const T* res_;   // pointer to the expanded result
+
+#else   // 6.0 <= HP aCC <= 6.16
+
+    // non-const to work around an HP aCC 6.16 and prior bug
+    // described in STDCXX-802
+    T* str_;
+    T* arg_;
+    T* res_;
+
+#endif   // HP aCC
 
     const ContainerFunc     &func_;
     const ContainerTestCase &tcase_;
@@ -269,55 +282,67 @@ public:
     // converts the narrow (and possibly) condensed strings to fully
     // expanded wide character arrays that can be used to construct
     // container objects
-    ContainerTestCaseData (const ContainerFunc &func,
-                           const ContainerTestCase &tcase)
-        : func_ (func), tcase_ (tcase) {
+    ContainerTestCaseData (const ContainerFunc&,
+                           const ContainerTestCase&);
 
-        char buf [256];
-
-        strlen_ = sizeof (buf);
-        char* str = rw_expand (buf, tcase.str, tcase.str_len, &strlen_);
-        str_ = T::from_char (str, strlen_);
-        if (str != buf)
-            delete[] str;
-
-        arglen_ = sizeof (buf);
-        str = rw_expand (buf, tcase.arg, tcase.arg_len, &arglen_);
-        arg_ = T::from_char (str, arglen_);
-        if (str != buf)
-            delete[] str;
-
-        reslen_ = sizeof (buf);
-        str = rw_expand (buf, tcase.res, tcase.nres, &reslen_);
-        res_ = T::from_char (str, reslen_);
-        if (str != buf)
-            delete[] str;
-
-        // compute the offset and extent of the container object
-        // representing the controlled sequence and the offset
-        // and extent of the argument of the function call
-        const SizeType argl = tcase_.arg ? arglen_ : strlen_;
-
-        off1_ = SizeType (tcase_.off) < strlen_ ?
-            SizeType (tcase_.off) : strlen_;
-
-        ext1_ = off1_ + tcase_.size < strlen_ ?
-            SizeType (tcase_.size) : strlen_ - off1_;
-
-        off2_ = SizeType (tcase_.off2) < argl ?
-            SizeType (tcase_.off2) : argl;
-
-        ext2_ = off2_ + tcase_.size2 < argl ?
-            SizeType (tcase_.size2) : argl - off2_;
-    }
-
-    ~ContainerTestCaseData () {
-        // clean up dynamically allocated memory
-        delete[] str_;
-        delete[] arg_;
-        delete[] res_;
-    }
+    ~ContainerTestCaseData ();
 };
+
+
+template <class T>
+ContainerTestCaseData<T>::
+ContainerTestCaseData (const ContainerFunc     &func,
+                       const ContainerTestCase &tcase)
+    : func_ (func), tcase_ (tcase)
+{
+    char buf [256];
+
+    strlen_ = sizeof (buf);
+    char* str = rw_expand (buf, tcase.str, tcase.str_len, &strlen_);
+    str_ = T::from_char (str, strlen_);
+    if (str != buf)
+        delete[] str;
+
+    arglen_ = sizeof (buf);
+    str = rw_expand (buf, tcase.arg, tcase.arg_len, &arglen_);
+    arg_ = T::from_char (str, arglen_);
+    if (str != buf)
+        delete[] str;
+
+    reslen_ = sizeof (buf);
+    str = rw_expand (buf, tcase.res, tcase.nres, &reslen_);
+    res_ = T::from_char (str, reslen_);
+    if (str != buf)
+        delete[] str;
+
+    // compute the offset and extent of the container object
+    // representing the controlled sequence and the offset
+    // and extent of the argument of the function call
+    const SizeType argl = tcase_.arg ? arglen_ : strlen_;
+
+    off1_ = SizeType (tcase_.off) < strlen_ ?
+        SizeType (tcase_.off) : strlen_;
+
+    ext1_ = off1_ + tcase_.size < strlen_ ?
+        SizeType (tcase_.size) : strlen_ - off1_;
+
+    off2_ = SizeType (tcase_.off2) < argl ?
+        SizeType (tcase_.off2) : argl;
+
+    ext2_ = off2_ + tcase_.size2 < argl ?
+        SizeType (tcase_.size2) : argl - off2_;
+}
+
+
+template <class T>
+ContainerTestCaseData<T>::
+~ContainerTestCaseData ()
+{
+    // clean up dynamically allocated memory
+    delete[] str_;
+    delete[] arg_;
+    delete[] res_;
+}
 
 /**************************************************************************/
 
