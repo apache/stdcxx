@@ -3,55 +3,14 @@
 
 #include <stdlib.h> // for malloc(), free()
 #include <string.h> // for memcpy()
+#include <ctype.h>  // for isspace()
 #include <assert.h> // for assert()
 
 #include <rw_braceexp.h>
 
-inline int _rw_is_lower (int ch)
-{
-    switch (ch) {
-    case 'a': case 'b': case 'c': case 'd': case 'e': case 'f':
-    case 'g': case 'h': case 'i': case 'j': case 'k': case 'l':
-    case 'm': case 'n': case 'o': case 'p': case 'q': case 'r':
-    case 's': case 't': case 'u': case 'v': case 'w': case 'x':
-    case 'y': case 'z':
-        return 1;
-    }
-
-    return 0;
-}
-
-inline int _rw_is_upper (int ch)
-{
-    switch (ch) {
-    case 'A': case 'B': case 'C': case 'D': case 'E': case 'F':
-    case 'G': case 'H': case 'I': case 'J': case 'K': case 'L':
-    case 'M': case 'N': case 'O': case 'P': case 'Q': case 'R':
-    case 'S': case 'T': case 'U': case 'V': case 'W': case 'X':
-    case 'Y': case 'Z':
-        return 1;
-    }
-
-    return 0;
-}
-
-inline int _rw_is_space (int ch)
-{
-    switch (ch)
-    {
-    case '\n':
-    case '\r':
-    case '\t':
-    case ' ':
-        return 1;
-    }
-
-    return 0;
-}
-
 inline int _rw_is_not_space (int ch)
 {
-    return !_rw_is_space (ch);
+    return !isspace (ch);
 }
 
 // search `beg' to `end' for a character that `fn'
@@ -696,8 +655,8 @@ _rw_brace_graph::build_character_sequence (const char* beg, const char* end)
     char cend = beg [4];
 
     // only works if sequence characters are both lowercase or uppercase.
-    const int both_are_lower = _rw_is_lower (cbeg) && _rw_is_lower (cend);
-    const int both_are_upper = _rw_is_upper (cbeg) && _rw_is_upper (cend);
+    const int both_are_lower = islower (cbeg) && islower (cend);
+    const int both_are_upper = isupper (cbeg) && isupper (cend);
 
     if (! (both_are_lower || both_are_upper))
         return 0;
@@ -1050,7 +1009,7 @@ char* rw_shell_expand (const char* shell_expr, _RWSTD_SIZE_T sz,
 
     while (tok_beg)
     {
-        const char* tok_end = _rw_find_match (tok_beg, end, _rw_is_space);
+        const char* tok_end = _rw_find_match (tok_beg, end, isspace);
         if (!tok_end)
             tok_end = end;
 
