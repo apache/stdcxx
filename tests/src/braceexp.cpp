@@ -262,11 +262,11 @@ struct _rw_brace_graph
                             char* buf, _RWSTD_SIZE_T len, char sep);
 
 
-#  if defined(__SUNPRO_CC) && (__SUNPRO_CC < 0x570)
-public:
-#  else
 private:
-#  endif   // __SUNPRO_CC && 0x560 < __SUNPRO_CC
+
+    // not implemented
+    _rw_brace_graph (const _rw_brace_graph&);
+    _rw_brace_graph& operator= (const _rw_brace_graph&);
 
     // node for a directed-acyclic-graph that we build from the original
     // brace expression
@@ -278,15 +278,6 @@ private:
         _rw_brace_node* sibling_;
         _rw_brace_node* child_;
     };
-
-    // the number of nodes held by each brace buffer [see below]
-    enum { size = 64 };
-
-private:
-
-    // not implemented
-    _rw_brace_graph (const _rw_brace_graph&);
-    _rw_brace_graph& operator= (const _rw_brace_graph&);
 
     // retrieve a new node. nodes are allocated in large blocks. those
     // blocks are deallocated when this graph instance is destroyed.
@@ -315,6 +306,23 @@ private:
     // format is `{a,b[,c]}suffix', where `a', `b' and `c' are full
     // brace expansions that would be processed by build_anything.
     _rw_brace_node* build_list     (const char* beg, const char* end);
+
+    // the number of nodes held by each brace buffer [see below]
+    enum { size = 64 };
+
+#ifdef _RWSTD_NO_NESTED_CLASS_ACCESS
+
+    // allow _rw_brace_node_buffer access to _rw_brace_graph's private
+    // type(s) if the resolution of cwg issue 45 is not yet implemented
+    struct _rw_brace_node_buffer;
+    friend struct _rw_brace_node_buffer;
+
+    // allow _rw_recursion_context access to _rw_brace_graph's private
+    // type(s) if the resolution of cwg issue 45 is not yet implemented
+    struct _rw_recursion_context;
+    friend struct _rw_recursion_context;
+
+#endif    // _RWSTD_NO_NESTED_CLASS_ACCESS
 
     // this is essentially a rope with a fixed length payload of
     // brace nodes
