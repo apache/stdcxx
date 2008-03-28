@@ -33,6 +33,7 @@
 #include <23.list.h>
 
 #include <cmdopt.h>         // for rw_enabled()
+#include <driver.h>         // for rw_note()
 #include <rw_allocator.h>   // for UserAlloc
 #include <rw_printf.h>      // for rw_asnprintf()
 
