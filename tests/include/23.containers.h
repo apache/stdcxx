@@ -2,7 +2,7 @@
 *
 * 23.containers.h - definitions of helpers used in clause 23 tests
 *
-* $Id: 23.containers.h
+* $Id: 23.containers.h$
 *
 ***************************************************************************
 *
@@ -30,7 +30,6 @@
 #include <testdefs.h>
 #include <rw_value.h>       // for UserClass, UserPOD
 #include <rw_char.h>        // for rw_expand ()
-#include <driver.h>         // for rw_assert ()
 
 /**************************************************************************/
 
