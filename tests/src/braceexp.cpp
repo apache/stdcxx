@@ -1,3 +1,29 @@
+/************************************************************************
+ *
+ * braceexp.cpp - definitions of rw_brace_expand and rw_shell_expand
+ *
+ * $Id$
+ *
+ ***************************************************************************
+ *
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ * 
+ **************************************************************************/
+
 // expand _TEST_EXPORT macros
 #define _RWSTD_TEST_SRC
 
@@ -8,23 +34,21 @@
 
 #include <rw_braceexp.h>
 
-inline int _rw_is_not_space (int ch)
-{
-    return !isspace (ch);
-}
 
 // search `beg' to `end' for a character that `fn'
 // returns non-zero.
-static const char* _rw_find_match (const char* beg,
-                                   const char* end,
-                                   int (*fn)(int))
+static const char*
+_rw_find_match (const char* beg,
+                const char* end,
+                bool match_space)
 {
     bool is_escaped = false;
 
     for (/**/; beg < end; ++beg) {
 
-        const bool is_match = fn (*beg) != 0;
-        if (!is_escaped && is_match) {
+        const bool is_space = 0 != isspace (*beg);
+
+        if (!is_escaped && match_space == is_space) {
             return beg;
         }
 
@@ -996,7 +1020,7 @@ char* rw_shell_expand (const char* shell_expr, _RWSTD_SIZE_T sz,
     _rw_brace_graph graph;
 
     // first non-whitespace character
-    const char* tok_beg = _rw_find_match (beg, end, _rw_is_not_space);
+    const char* tok_beg = _rw_find_match (beg, end, false);
     if (!tok_beg) {
 
         if (!result.append ("\0", 1))
@@ -1009,7 +1033,8 @@ char* rw_shell_expand (const char* shell_expr, _RWSTD_SIZE_T sz,
 
     while (tok_beg)
     {
-        const char* tok_end = _rw_find_match (tok_beg, end, isspace);
+        // first whitespace character
+        const char* tok_end = _rw_find_match (tok_beg, end, true);
         if (!tok_end)
             tok_end = end;
 
@@ -1058,7 +1083,7 @@ char* rw_shell_expand (const char* shell_expr, _RWSTD_SIZE_T sz,
             break;
 
         // fid next nonwhitespace, which is the start of the next token
-        tok_beg = _rw_find_match (tok_end, end, _rw_is_not_space);
+        tok_beg = _rw_find_match (tok_end, end, false);
     }
 
     return result.buffer_;
