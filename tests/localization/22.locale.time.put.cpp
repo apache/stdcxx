@@ -636,7 +636,10 @@ const char* make_LC_TIME (const time_data *td)
     const char* const locname =
         rw_localedef ("", srcfname, cmfname, "test-locale");
 
-    if (locname && (strlen(locname) < sizeof locnamebuf))
+    // avoid copying into buffer if it's not big enough: this
+    // this affect the efficiency of the function but not its
+    // behavior
+    if (locname && std::strlen (locname) < sizeof locnamebuf)
         std::strcpy (locnamebuf, locname);
 
     // remove temporary files
