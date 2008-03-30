@@ -1,6 +1,7 @@
 /************************************************************************
  *
- * 0.braceexp.cpp - tests exercising the rw_brace_expand() helper
+ * 0.braceexp.cpp - tests exercising the rw_brace_expand()
+ *                  and rw_shell_expand() helper functions
  *
  * $Id$
  *
@@ -27,7 +28,7 @@
 #include <rw_braceexp.h>
 #include <environ.h>      // for rw_putenv()
 
-#include <stdio.h>        // for fprintf(), stderr
+#include <stdio.h>        // for fprintf(), size_t, stderr
 #include <stdlib.h>       // for free()
 #include <string.h>       // for strcmp()
 
@@ -35,9 +36,9 @@
 static int nerrors;
 
 static void
-test (int line, const char* brace_expr, _RWSTD_SIZE_T n, const char* expect,
+test (int line, const char* brace_expr, size_t n, const char* expect,
       const char* fname,
-      char* (fn)(const char*, _RWSTD_SIZE_T, char*, _RWSTD_SIZE_T, char))
+      char* (fn)(const char*, size_t, char*, size_t, char))
 {
     char buf [128];
 
@@ -69,13 +70,20 @@ test (int line, const char* brace_expr, _RWSTD_SIZE_T n, const char* expect,
 
 static void
 run_tests (const char* fname,
-    char* (fn)(const char*, _RWSTD_SIZE_T, char*, _RWSTD_SIZE_T, char))
+           char* (fn)(const char*, size_t, char*, size_t, char))
 {
 #undef TEST
 #define TEST(s,e) test (__LINE__, s, strlen (s), e, fname, fn)
 
     // run our tests
     TEST ("", "");
+
+    // test plain and escaped whitespace
+    TEST ("\\ ",             " ");
+    TEST ("\\ \\ ",          "  ");
+    TEST ("\\ \\\t\\ ",      " \t ");
+    TEST ("a\\ b",           "a b");
+    TEST ("a b",             "a b");
 
     TEST ("a", "a");
     TEST ("a\\b", "ab");
@@ -165,6 +173,10 @@ run_tests (const char* fname,
     TEST ("{abc,{,d,e,f,}}",      "abc d e f");
     TEST ("{abc,{,d,e,f,}}{x,y}", "abcx abcy x y dx dy ex ey fx fy x y");
     TEST ("{abc,{,d\\,e\\,f,}}",  "abc d,e,f");
+
+    // list expansion with embedded whitespace
+    TEST ("a{b\\ ,c}",       "ab  ac");
+    TEST ("a{b\\ \\ ,c\\ }", "ab   ac ");
 
     // series of list and sequence expansions
     TEST ("A{0..3}",         "A0 A1 A2 A3");
@@ -274,6 +286,20 @@ run_brace_expand_tests ()
     TEST ("a {1,2} b",       "a 1 b a 2 b");
     TEST ("a\t\t{1,2}\t\tb", "a\t\t1\t\tb a\t\t2\t\tb");
 
+    // test whitespace
+    TEST (" ",               " ");
+    TEST ("  ",              "  ");
+    TEST ("  \t",            "  \t");
+    TEST ("a  b",            "a  b");
+    TEST (" a   b ",         " a   b ");
+    TEST (" a{b,c}",        " ab  ac");
+    TEST ("a {b,c}",        "a b a c");
+    TEST ("a{ b,c}",        "a b ac");
+    TEST ("a{b ,c}",         "ab  ac");
+    TEST ("a{b, c}",         "ab a c");
+    TEST ("a{b,c }",         "ab ac ");
+    TEST ("a{b,c} ",         "ab  ac ");
+
     TEST ("{ }",   " ");
     TEST ("{{ }}", " ");
     TEST ("{{ }",  0); // brace mismatch
@@ -290,6 +316,20 @@ run_shell_expand_tests ()
     // rw_shell_expand does whitespace collapse
     TEST ("a {1,2} b",       "a 1 2 b");
     TEST ("a\t\t{1,2}\t\tb", "a 1 2 b");
+
+    // test whitespace
+    TEST (" ",               "");
+    TEST ("  ",              "");
+    TEST ("  \t",            "");
+    TEST ("a  b",            "a b");
+    TEST (" a   b ",         "a b");
+    TEST (" a{b,c}",         "ab ac");
+    TEST ("a {b,c}",         "a b c");
+    TEST ("a{ b,c}",         0);
+    TEST ("a{b ,c}",         0);
+    TEST ("a{b, c}",         0);
+    TEST ("a{b,c }",         0);
+    TEST ("a{b,c} ",         "ab ac");
 
     TEST ("{ }",   0); // brace mismatch
     TEST ("{{ }}", 0); // brace mismatch
