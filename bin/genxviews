@@ -246,8 +246,7 @@ EOF
     duration=`expr \( $(date +%M) \* 60 \) + $(date +%S)`
 
     if [ "$buildlogs" = "" ]; then
-        echo "$myname: no logs for $compiler on $osname/$arch." >&2
-
+        # format missing logs in italics
         output "            <td><i>$xfile</i></td>"
     else
         if [ $verbose -ne 0 ]; then
