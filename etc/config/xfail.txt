@@ -24,12 +24,17 @@
 #                  | msvc | vacpp
 #
 ########################################################################
+
+########################################################################
 # Known example failures
 #
 # EXAMPLE                                           EXPECTED  ISSUE
 # NAME              PLATFORM AND BUILD TYPE         STATUS    NUMBER
 # ---------------   ------------------------------  --------  ----------
+codecvt             *-*-eccp-*-*                    LINK      STDCXX-592
 codecvt1            *-*-*-*-*                       1         STDCXX-520
+collate             *-*-eccp-*-*                    LINK      STDCXX-592
+ctype               *-*-eccp-*-*                    LINK      STDCXX-592
 limits              aix-*-*-*-*                     DIFF      STDCXX-458
 time_get            *-*-*-*-*                       DIFF      STDCXX-460
 
