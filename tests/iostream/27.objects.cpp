@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 2000-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -363,8 +363,16 @@ void* operator new (std::size_t n) _THROWS ((_RWSTD_BAD_ALLOC))
         rw_note (noted++, 0, __LINE__,
                  "test of replacement operator new disabled");
     }
-    else if (rw_warn (1 == recursion, 0, __LINE__,
-                      "recursive call to replacement operator new()")) {
+    else if (1 != recursion) {
+        // avoid calling rw_warn() except when it has something
+        // to warn about in case operator new() is being called
+        // by the compiler's C++ runtime (e.g., HP aCC 6.16)
+        // when the driver hasn't been initialized yet (otherwise
+        // the driver aborts)
+        rw_warn (1 == recursion, 0, __LINE__,
+                 "recursive call to replacement operator new()");
+    }
+    else {
         // initialize iostreams (verifies that initialization
         // succeeds and is complete even if it occurs recursively)
         static std::ios_base::Init io_initializer;
