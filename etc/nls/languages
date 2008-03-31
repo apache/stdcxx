@@ -214,6 +214,8 @@ zu    zul, Zulu
 
 
 # this is just so we have a mapping. it is not accurate without an ISO-639-2 mapping
-st    Northern, Sotho
+st    Northern Sotho
 se    Sami (Inari), Sami (Lule), Sami (Northern), Sami (Skolt), Sami (Southern)
 sr    Serbian (Cyrillic), Serbian (Latin)
+uz    Uzbek (Latin), Uzbek (Cyrillic)
+az    Azeri (Latin), Azeri (Cyrillic)
