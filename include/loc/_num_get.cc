@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2001-2006 Rogue Wave Software.
+ * Copyright 2001-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -490,7 +490,8 @@ _C_get (iter_type __begin, iter_type __end, ios_base &__flags,
     // set the base determined above
     const unsigned __fl2 =
           __fl & ~_RWSTD_IOS_BASEFIELD
-        & ~(_RWSTD_IOS_BASEMASK << _RWSTD_IOS_BASEOFF)
+        & ~(   _RWSTD_STATIC_CAST (unsigned, _RWSTD_IOS_BASEMASK)
+            << _RWSTD_IOS_BASEOFF)
         | __base << _RWSTD_IOS_BASEOFF;
 
     // 22.2.2.1.2, p11: Stage 3
