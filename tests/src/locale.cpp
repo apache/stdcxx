@@ -943,6 +943,23 @@ rw_create_catalog (const char * catname, const char * catalog)
     return ret;
 }
 
+inline bool
+_rw_isspace (char ch)
+{
+    return 0 != isspace ((unsigned char)ch);
+}
+
+inline char
+_rw_toupper (char ch)
+{
+    return toupper ((unsigned char)ch);
+}
+
+inline char
+_rw_tolower (char ch)
+{
+    return tolower ((unsigned char)ch);
+}
 
 // our locale database is a big array of these
 struct _rw_locale_entry {
@@ -1125,25 +1142,30 @@ _rw_all_locales ()
             const size_t len = strlen (locale);
             locale [len ? len - 1 : 0] = '\0';
 
-            // we need MB_CUR_MAX and CODESET
+            // make sure that the named locale is one that we can use
             if (!setlocale (LC_CTYPE, locale)) {
                 
                 rw_note (0, __FILE__, __LINE__,
-                    "setlocale() failed for '%s'",
-                    entry->locale_name);
+                         "setlocale() failed for '%s'", locale);
 
                 continue;
 
-            } else if (sizeof (entry->locale_name) < len) {
+            }
+
+            // is not an alias for the C or POSIX locale
+            else if (!strcmp (locale, "C") || !strcmp (locale, "POSIX")) {
+                continue; // we don't do C/POSIX locale
+            }
+
+            // has a name that is short enough for our buffer
+            else if (sizeof (entry->locale_name) < len) {
 
                 rw_note (0, __FILE__, __LINE__,
-                    "locale name '%s' was to long for fixed buffer",
-                    entry->locale_name);
+                         "locale name '%s' was to long for fixed buffer",
+                         locale);
 
                 continue; // locale name didn't fit, so we skip it
             }
-            else if (!strcmp (locale, "C") || !strcmp (locale, "POSIX"))
-                continue; // we don't do C/POSIX locale
 
 #ifndef _RWSTD_NO_LANGINFO
             char codeset [40];
@@ -1152,7 +1174,7 @@ _rw_all_locales ()
             for (const char* charset = nl_langinfo (CODESET);
                  *charset;
                  ++charset) {
-                codeset [i++] = toupper (*charset);
+                codeset [i++] = _rw_toupper (*charset);
             }
 
             codeset [i] = '\0';
@@ -1172,7 +1194,7 @@ _rw_all_locales ()
                 *encoding++ = '\0';
 
                 for (int n = 0; encoding [n]; ++n)
-                    encoding [n] = toupper (encoding [n]);
+                    encoding [n] = _rw_toupper (encoding [n]);
             }
 
             char* country = strrchr (locale, '_');
@@ -1180,13 +1202,13 @@ _rw_all_locales ()
                 *country++ = '\0';
 
                 for (int n = 0; country [n]; ++n)
-                    country [n] = toupper (country [n]);
+                    country [n] = _rw_toupper (country [n]);
             }
             
             char* language = locale;
 
             for (int n = 0; language [n]; ++n)
-                language [n] = tolower (language [n]);
+                language [n] = _rw_tolower (language [n]);
 
             // use mapping databases to find the canonical
             // names for each part of the locale name
@@ -1218,25 +1240,25 @@ _rw_all_locales ()
             // require all three mappings are valid
             if (!planguage || !*planguage) {
 
-                rw_note (0, __FILE__, __LINE__,
-                    "failed to get language for locale %s",
-                    entry->locale_name);
+                //rw_note (0, __FILE__, __LINE__,
+                //    "failed to get language for locale '%s'",
+                //    entry->locale_name);
 
                 continue;
             }
             else if (!pcountry || !*pcountry) {
 
-                rw_note (0, __FILE__, __LINE__,
-                    "failed to get country for locale %s",
-                    entry->locale_name);
+                //rw_note (0, __FILE__, __LINE__,
+                //    "failed to get country for locale '%s'",
+                //    entry->locale_name);
 
                 continue;
             }
             else if (!pencoding || !*pencoding) {
 
-                rw_note (0, __FILE__, __LINE__,
-                    "failed to get codeset for locale %s",
-                    entry->locale_name);
+                //rw_note (0, __FILE__, __LINE__,
+                //    "failed to get codeset for locale '%s'",
+                //    entry->locale_name);
 
                 continue;
             }
@@ -1245,7 +1267,33 @@ _rw_all_locales ()
             sprintf (entry->canonical_name, "%s-%s-%d-%s",
                      planguage, pcountry, int (MB_CUR_MAX), pencoding);
 
-            size += 1;
+            //
+            // eliminate locales that are duplicates according to
+            // canonical name. we do this because the setlocale()
+			// doesn't seem to tell us about aliases.
+            //
+
+            bool duplicate = false;
+
+            // search backward as matches are more likely to be near
+            // the back
+            for (size_t e = size; 0 != e; --e) {
+
+                if (!strcmp (entries [e-1].canonical_name,
+                             entry->canonical_name)) {
+
+                    //rw_note (0, __FILE__, __LINE__,
+                    //         "ignoring duplicate locale '%s'",
+                    //         entry->locale_name);
+
+                    duplicate = true;
+
+                    break;
+                }
+            }
+
+            if (!duplicate)
+               size += 1;
         }
 
         fclose (file);
@@ -1282,14 +1330,14 @@ rw_locale_query (int loc_cat, const char* query, size_t wanted)
     // get a brace expanded representation of query, each expansion
     // is a null terminated string. the entire buffer is also null 
     // terminated
-    char* res = rw_brace_expand (query, 0, buf, sizeof (buf), '\0');
+    char* res = rw_shell_expand (query, 0, buf, sizeof (buf), '\0');
     if (!res)
         return 0;
 
     // cache the locale name so we can restore later, this must happen
     // before _rw_all_locales() because that function just changes the
     // locale without restoring it
-    char save_locale [128];
+    char save_locale [PATH_MAX];
     strcpy (save_locale, setlocale (LC_ALL, 0));
 
     const _rw_locale_array all = _rw_all_locales ();
@@ -1445,9 +1493,11 @@ _rw_lookup_table_t::load_from_file (const char* path, const char* name, int uppe
         const size_t table_data_size = ftell (file);
         fseek (file, 0, SEEK_SET);
 
-        char* table_data = (char*)malloc (table_data_size + 1);
+        char* table_data =
+            (char*)malloc (table_data_size + 1);
         
         if (!table_data) {
+            fclose (file);
             return false;
         }
 
@@ -1456,6 +1506,7 @@ _rw_lookup_table_t::load_from_file (const char* path, const char* name, int uppe
             fread (table_data, 1, table_data_size, file);
         if (bytes_read != table_data_size) {
             free (table_data);
+            fclose (file);
             return false;
         }
 
@@ -1488,27 +1539,27 @@ _rw_lookup_table_t::load_from_file (const char* path, const char* name, int uppe
             // make upper or lower case as requested
             if (upper_or_lower < 0) {
                 for (char* s = key; *s; ++s)
-                    *s = tolower (*s);
+                    *s = _rw_tolower (*s);
             }
             else if (0 < upper_or_lower) {
                 for (char* s = key; *s; ++s)
-                    *s = toupper (*s);
+                    *s = _rw_toupper (*s);
             }
 
             // if first character of new line is not whitespace, then we have a new
             // canonical name token
-            if (!isspace (*key)) {
+            if (!_rw_isspace (*key)) {
 
                 canonical_name = key;
 
                 // increment key past cannonical name
                 for (/**/; *key; ++key)
-                    if (isspace (*key))
+                    if (_rw_isspace (*key))
                         break;
             }
 
             // kill whitespace
-            while (isspace (*key))
+            while (_rw_isspace (*key))
                 *key++ = '\0';
 
             // key points to first non-whitespace after canonical name
@@ -1529,11 +1580,11 @@ _rw_lookup_table_t::load_from_file (const char* path, const char* name, int uppe
                     *key++ = '\0';
 
                 // kill any whitespace before comma
-                for (char* bey = key - 1; isspace (*bey); --bey)
+                for (char* bey = key - 1; _rw_isspace (*bey); --bey)
                     *bey = '\0';
 
                 // kill whitespace after comma
-                while (isspace (*key))
+                while (_rw_isspace (*key))
                     *key++ = '\0';
 
                 // ensure we have enough entries
@@ -1548,6 +1599,8 @@ _rw_lookup_table_t::load_from_file (const char* path, const char* name, int uppe
                         free (entries);
 
                         free (table_data);
+
+                        fclose (file);
 
                         return false;
                     }

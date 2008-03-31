@@ -67,7 +67,7 @@
 
 #include <driver.h>
 #include <file.h>        // for SLASH
-#include <rw_locale.h>   // for rw_locales()
+#include <rw_locale.h>   // for rw_locale_query()
 
 /**************************************************************************/
 
@@ -78,8 +78,13 @@ const char* locale_root;
 #define NLOOPS         25
 #define MAX_STR_SIZE   16
 
+#define LOCALES "{{en-US,de-DE,fr-FR,es-ES}-*-{ISO-8859-*,UTF-8,CP125?},"  \
+                 "{ja-JP-*-{EUC-JP,SHIFT_JIS,UTF-8,CP125?}},"              \
+                 "{zh-CN-*-{GB*,UTF-8,CP125?}},"                           \
+                 "{ru-RU-*-{KOI*,UTF-8,CP125?}}}"
+
 #define BEGIN_LOCALE_LOOP(num, locname, loop_cntrl)                        \
-   for (const char* locname = rw_locales (LC_CTYPE, 0);                    \
+   for (const char* locname = rw_locale_query (LC_CTYPE, LOCALES);         \
         locname && *locname; locname += std::strlen (locname) + 1) {       \
        _TRY {                                                              \
            const std::locale loc (locname);                                \
@@ -460,8 +465,8 @@ void run_test (charT, const char *cname)
         _STD_USE_FACET (std::ctype_byname<charT>, std::locale ());
     }
 
-    test_libstd (charT (), cname);
     test_libc (charT (), cname);
+    test_libstd (charT (), cname);
 }
 
 /**************************************************************************/
