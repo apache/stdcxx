@@ -280,8 +280,8 @@ operator- (const _RWSTD_DEQUE_ITER(1) &__x, const _RWSTD_DEQUE_ITER(2) &__y)
     typedef _TYPENAME _RWSTD_DEQUE_ITER(1)::pointer _Pointer1;
     typedef _TYPENAME _RWSTD_DEQUE_ITER(2)::pointer _Pointer2;
 
-    if (_Pointer1 () == __x._C_cur || _Pointer2 () == __y._C_cur) {
-        // __x and/or __y is end-iterator of the empty deque
+    if (_Pointer1 () == __x._C_cur && _Pointer2 () == __y._C_cur) {
+        // __x and __y are end-iterator's of the empty deque's
         return _DiffT (__x._C_cur - __y._C_cur);
     }
 
