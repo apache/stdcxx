@@ -38,7 +38,7 @@
 
 #include <driver.h>      // for rw_test()
 #include <file.h>        // for rw_nextfd()
-#include <rw_locale.h>   // for rw_locales()
+#include <rw_locale.h>   // for rw_locale_query()
 #include <rw_printf.h>   // for rw_snprintf()
 
 /**************************************************************************/
@@ -1584,33 +1584,6 @@ void test_user (charT, const char *cname, const char *locname)
 
 /**************************************************************************/
 
-
-// try to find a named locale (use a grep expression if available)
-static const char*
-find_locale (const char *name)
-{
-#if !defined (_WIN32) && !defined (_WIN64)
-
-    rw_locales (_UNUSED_CAT, name);
-    return rw_locales (LC_ALL, name);
-
-#else   // _WIN{32,64}
-
-    // FIXME: handle non-UNIX systems
-    for (const char *loc = rw_locales (); loc && *loc;
-         loc += std::strlen (loc) + 1) {
-
-        if (!std::strcmp (loc, name))
-            return loc;
-    }
-
-    return 0;
-
-#endif   // _WIN{32,64}
-}
-
-/**************************************************************************/
-
 static int
 run_test (int, char**)
 {
@@ -1627,36 +1600,26 @@ run_test (int, char**)
 
     const char *locname;
 
-#if !defined (_WIN32) && !defined (_WIN64)
-
-    const char en_US[] = "en_US";
-    const char de[]    = "^de[^a-z1-9]*";
-    const char da[]    = "^da[^a-z1-9]*";
-
-#else   // dumbass Windows
-
-    const char en_US[] = "ENU";
-    const char de[]    = "DEU";
-    const char da[]    = "DAN";
-
-#endif
+    const char en[] = "en-*-*-*";
+    const char de[] = "de-*-*-*";
+    const char da[] = "da-*-*-*";
 
     int nnamed = 0;
 
     // try to find and exercise the english locale
-    if ((locname = find_locale (en_US)) && *locname) {
+    if ((locname = rw_locale_query (LC_ALL, en, 1)) && *locname) {
         test_english (char (), "char", locname);
         ++nnamed;
     }
 
     // try to find and exercise the german locale
-    if ((locname = find_locale (de)) && *locname) {
+    if ((locname = rw_locale_query (LC_ALL, de, 1)) && *locname) {
         test_german (char (), "char", locname);
         ++nnamed;
     }
 
     // try to find and exercise the danish locale
-    if ((locname = find_locale (da)) && *locname) {
+    if ((locname = rw_locale_query (LC_ALL, da, 1)) && *locname) {
         test_danish (char (), "char", locname);
         ++nnamed;
     }
