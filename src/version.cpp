@@ -35,7 +35,7 @@ _RWSTD_NAMESPACE (__rw) {
 #ifdef _RWSTD_VER_STR
 
 extern const char __rw_ident[] = {
-    "@(#) Rogue Wave C++ Standard Library version " _RWSTD_VER_STR
+    "@(#) Apache C++ Standard Library version " _RWSTD_VER_STR
 };
 
 #endif   // _RWSTD_VER_STR
