@@ -44,6 +44,239 @@
 #  define ENOENT 2
 #endif   /* ENOENT */
 
+/**
+   Arbitrary constant controling static read buffer size.
+
+   @see check_example ()
+   @see rbread ()
+*/
+#define DELTA_BUF_LEN 64
+
+/** 
+    This structure is used to encapsulate the data involved in a backwards
+    file read.
+*/
+struct readback {
+    FILE* src;
+    char buf[DELTA_BUF_LEN];
+    long bpos;
+};
+
+/**
+   Initializes the provided readback structure, with the provided file
+   handle.
+
+   @param rb pointer to readback structure to initialize
+   @param src file handle to initialize rb with.
+   @returns true if successfully initialized, false otherwise.
+*/
+static bool
+rbinit (struct readback* rb, FILE* const src)
+{
+    const size_t buflen = sizeof rb->buf;
+    long fpos;
+    assert (0 != rb);
+    assert (0 != src);
+
+    rb->src = src;
+    if (-1 == fseek (rb->src, 0, SEEK_END))
+        return false;
+    fpos = ftell (rb->src);
+    if (-1 == fpos)
+        return false;
+
+    if (fpos <= buflen)
+        rb->bpos = fpos;
+    else
+        rb->bpos = buflen;
+
+    if (-1 == fseek (rb->src, fpos - rb->bpos, SEEK_SET))
+        return false;
+
+    return rb->bpos == fread (rb->buf, 1, rb->bpos, rb->src);
+}
+
+/** 
+   This method is semi-analagous to feof.
+   
+   @param rb pointer to readback structure to check begin-of-file state for
+   @returns true if structure points to the begining of the file, false 
+   otherwise
+*/
+static bool
+rbbof (const struct readback* const rb)
+{
+    assert (0 != rb);
+    assert (0 != rb->src);
+    return (0 == rb->bpos) && (0 == ftell (rb->src));
+}
+
+/**
+   Syncronizes the file handle underlying a readback structure to the
+   pointer in the structure.  This method is called if you wish to start
+   reading forward from the current point in the readback structure.
+
+   @param rb pointer to the readback structure to syncronize.
+   @return true if the structure was successfully syncronized, false 
+   otherwise.
+*/
+static bool
+rbsync (struct readback* const rb)
+{
+    assert (0 != rb);
+    assert (0 != rb->src);
+    const size_t buflen = sizeof rb->buf;
+    long fpos = ftell (rb->src) - buflen;
+    if (0 > fpos)
+        fpos=0;
+    fpos += rb->bpos;
+    rb->bpos=0;
+
+    return -1 != fseek (rb->src, fpos, SEEK_SET);
+}
+
+/**
+   Updates the provided readback structure, returning the last unread 
+   character in the file.  This method is semi-analagous to fgetc.
+   
+   @param rb pointer to readback structure to read from.
+   @return EOF if beginning of file or I/O error, read character
+   otherwise.
+*/
+static char
+rbgetc (struct readback* rb)
+{
+    const size_t buflen = sizeof rb->buf;
+    assert (0 != rb);
+    assert (0 != rb->src);
+    if (!rb->bpos) {
+        const size_t bufdelta = buflen << 1;
+        long fpos = ftell (rb->src);
+        long seek;
+
+        if (-1 == fpos)
+            return EOF;
+
+        if (bufdelta <= fpos) {
+            seek = fpos - bufdelta;
+            rb->bpos = buflen;
+        }
+        else if (buflen < fpos) {
+            seek = 0;
+            rb->bpos = fpos - buflen;
+        }
+        else {
+            fseek (rb->src, 0, SEEK_SET);
+            return EOF;
+        }
+
+        if (-1 == fseek (rb->src, seek, SEEK_SET))
+            return EOF;
+
+        if (rb->bpos != fread (rb->buf, 1, rb->bpos, rb->src))
+            return EOF;
+    }
+    assert (0 < rb->bpos && rb->bpos <= buflen);
+
+    return rb->buf [--rb->bpos];
+}
+
+/**
+   This method is semi-analagous to fscanf, with some key differences.
+   First, it opperates on a readback structure.  Second, it scans until
+   either the search pattern is matched, or until the begining of the file
+   is reached.  Third, it reads backwards from the end of the file.
+
+   Limitations: string to match can't end in a repeated set of characters
+   (ie: 'singing' has the repeated characters 'ing')
+
+   @param rb pointer to readback structure to operate on
+   @param match string to search for
+   @return true if match is found, false if begining of file is reached
+*/
+static bool
+rbscanf (struct readback* rb, const char* const match)
+{
+    char tok;
+    size_t matched;
+    size_t count;
+    assert (0 != rb);
+    assert (0 != match);
+
+    matched = count = strlen (match) - 1;
+    
+    for(tok = rbgetc(rb); matched && !rbbof (rb); tok = rbgetc (rb)) {
+        if (tok == match [matched])
+            --matched;
+        else
+            matched = count;
+    }
+    return !matched;
+}
+
+/**
+   This method is semi-analagous to fscanf, reading backwards on a readback
+   structure, starting from the end of the file.
+
+   This method searches backwards for the first (last) number and captures
+   it.  It then checks if the match string exists directly after (before)
+   the captured value.  If this is the case, a match is considered to have
+   been found, and the captured value is copied to val.  Otherwise, the 
+   search process is restarted.  If the search hits the beginning of the 
+   file, matching is considered to have failed, and val is unaltered.
+
+   Limitations: string to match can't end in a repeated set of characters
+   (ie: 'singing' has the repeated characters 'ing'.) or a repeated set
+   of characters, bordering on either side of one or more numbers (ie: 
+   'xyzzy9zzy' has the repeated characters 'zzy')
+
+   @param rb pointer to readback structure to operate on.
+   @param match string to search for.
+   @param val reference to variable to store captured value in.
+   @return true if match is found, false if begining of file is reached.
+*/
+static bool
+rbscanf (struct readback* rb, const char* const match, unsigned& val)
+{
+    size_t count;
+    unsigned tval =0;
+    unsigned radix;
+    assert (0 != rb);
+    assert (0 != match);
+
+    count = strlen (match) - 1;
+    
+    while (!rbbof(rb)) {
+        char tok;
+        size_t matched = count;
+
+        tval=0;
+        radix=1;
+
+        /* Search for a numeric digit */
+        for (tok = rbgetc (rb); 
+            (tok < '0' || tok > '9') && !rbbof (rb); 
+             tok = rbgetc (rb)) /* Do nothing */;
+
+        /* Read in the number. */
+        for ( ; tok >= '0' && tok <= '9' && !rbbof (rb); 
+            tok = rbgetc (rb)) {
+            tval += (tok-'0') * radix;
+            radix *= 10;
+        }
+
+        /* Make certain the content prior to the number in the file 
+           matches the search pattern. */
+        for( ; matched && tok == match [matched] && !rbbof (rb); 
+            tok = rbgetc (rb), --matched) /* Do nothing */;
+
+        if (tok == match [matched]) {
+            val = tval;
+            return true;
+        }
+    }
+    return false;
+}
 
 /**
    Parses contents of the open file handle data for test target_name.
@@ -58,6 +291,7 @@
 static void
 check_test (FILE* data, struct target_status* status)
 {
+    struct readback buf;
     unsigned r_lvl    = 0;   /* diagnostic severity level */
     unsigned r_active = 0;   /* number of active diagnostics */
     unsigned r_total  = 0;   /* total number of diagnostics */
@@ -73,15 +307,28 @@ check_test (FILE* data, struct target_status* status)
     assert (0 != data);
     assert (0 != status);
 
-    tok = fgetc (data);
+    if (!rbinit (&buf, data)) {
+        status->status = ST_SYSTEM_ERROR;
+        return;
+    }
 
-    if (feof (data)) {
+    if (rbbof (&buf)) {
         /* target produced no output (regression test?) */
         status->status = ST_NO_OUTPUT;
         return;
     }
 
-    for ( ; fsm < 6 && !feof (data); tok = fgetc (data)) {
+    if (!rbscanf (&buf, "| INACTIVE |\n# +")) {
+        status->status = ST_FORMAT;
+        return;
+    }
+
+    rbsync(&buf);
+
+    /* While it'd probably be (slightly) faster to seek to a fixed position 
+       after the file pointer has been synced, this should be more reliable 
+    */
+    for (tok = fgetc (data); fsm < 6 && !feof (data); tok = fgetc (data)) {
         switch (tok) {
         case '\n':
             fsm = 1;
@@ -150,58 +397,25 @@ check_test (FILE* data, struct target_status* status)
 static void
 check_compat_test (FILE* data, struct target_status* status)
 {
-    int read = 0;
-    unsigned fsm = 0;
-    char tok;
+    struct readback buf;
 
     assert (0 != data);
     assert (0 != status);
 
-    tok = fgetc (data);
-
-    if (feof (data)) {
+    if (!rbinit (&buf, data)) {
+        status->status = ST_SYSTEM_ERROR;
+    } 
+    else if (rbbof (&buf)) {
         /* target produced no output (regression test?) */
         status->status = ST_NO_OUTPUT;
-        return;
     }
-
-    for ( ; !feof (data); tok = fgetc (data)) {
-        switch (tok) {
-        case '\n':
-            fsm = 1;
-            break;
-        case '#':
-            if (1 == fsm || 2 == fsm)
-                ++fsm;
-            else
-                fsm = 0;
-            break;
-        case ' ':
-            if (3 == fsm) 
-                ++fsm;
-            else
-                fsm = 0;
-            break;
-        case 'W':
-            if (4 == fsm && !feof (data)) /* leading "## W" eaten */
-                read = fscanf (data, "arnings = %u\n## Assertions = %u\n"
-                       "## FailedAssertions = %u",
-                       &status->t_warn, &status->assert, &status->failed);
-        default:
-            fsm = 0;
-        }
-    }
-    if (3 != read) {
+    else if (   !rbscanf (&buf, "## FailedAssertions = ", status->failed)
+             || !rbscanf (&buf, "## Assertions = ", status->assert)
+	     || !rbscanf (&buf, "## Warnings = ", status->t_warn)) {
         status->status = ST_FORMAT;
     }
 }
 
-/**
-   Arbitrary constant controling static read buffer size.
-
-   @see check_example ()
-*/
-#define DELTA_BUF_LEN 64
 
 /**
    Parses output file out_name for the example target_name.
