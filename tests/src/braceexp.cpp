@@ -484,6 +484,9 @@ _rw_brace_graph::build_anything (const char* beg, const char* end)
 
         // build a node for the prefix if there is one
         _rw_brace_node* prefix = get_new_node ();
+        if (!prefix)
+            return 0;
+              
         prefix->str_ = beg;
         prefix->len_ = (open_brace - beg);
 
