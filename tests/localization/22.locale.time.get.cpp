@@ -1138,6 +1138,8 @@ make_LC_TIME (const time_data *td)
         return 0;
 
     std::FILE *fout = std::fopen (srcfname, "w");
+    rw_fatal (0 != fout, 0, __LINE__,
+              "fopen(%#s, \"w\") failed: %{#m} - %m", srcfname);
 
     std::fprintf (fout, "LC_TIME\n");
 
@@ -1274,6 +1276,9 @@ make_LC_TIME (const time_data *td)
         return 0;
 
     fout = std::fopen (cmfname, "w");
+    rw_fatal (0 != fout, 0, __LINE__,
+              "fopen(%#s, \"w\") failed: %{#m} - %m", cmfname);
+
     pcs_write (fout, 0);
 
     std::fclose (fout);
