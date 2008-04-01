@@ -451,11 +451,9 @@ struct limits_values<float>
 
     static std::float_denorm_style has_denorm () {
 
-#if defined (_AIX)
-        return std::denorm_present;
-#elif defined (__hpux)
-        return std::denorm_indeterminate;
-#elif defined (__osf__)
+#if defined (_AIX) \
+    || defined (__hpux) \
+    || defined (__osf__)
         return std::denorm_present;
 #else
         return std::denorm_indeterminate;
@@ -720,11 +718,9 @@ struct limits_values<double>
 
 
     static std::float_denorm_style has_denorm () {
-#if defined (_AIX)
-        return std::denorm_present;
-#elif defined (__hpux)
-        return std::denorm_indeterminate;
-#elif defined (__osf__)
+#if defined (_AIX) \
+    || defined (__hpux) \
+    || defined (__osf__)
         return std::denorm_present;
 #else
         return std::denorm_indeterminate;
@@ -982,11 +978,9 @@ struct limits_values<long double>
 
 
     static std::float_denorm_style has_denorm () {
-#if defined (_AIX)
-        return std::denorm_present;
-#elif defined (__hpux)
-        return std::denorm_indeterminate;
-#elif defined (__osf__)
+#if defined (_AIX) \
+    || defined (__hpux) \
+    || defined (__osf__)
         return std::denorm_present;
 #else
         return std::denorm_indeterminate;
