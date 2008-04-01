@@ -827,6 +827,18 @@ run_test (int, char*[])
     
 #endif    // _RWSTD_OS_AIX
 
+#ifdef _RWSTD_NO_DYNAMIC_CAST
+
+    // if dynamic_cast isn't supported then has_facet() can't
+    // reliably detect if a facet is installed or not.
+    rw_warn (0 != opt_has_facet, 0, __LINE__,
+             "dynamic_cast not supported, disabling has_facet tests");
+
+    opt_has_facet = -1;
+
+#endif    // _RWSTD_NO_DYNAMIC_CAST
+
+
     for (int i = 0; i < MAX_SETS; ++i) {
         for (int j = 0; j < MAX_MESSAGES; ++j)
             catalog.append (messages [i][j], std::strlen (messages [i][j]) + 1);
