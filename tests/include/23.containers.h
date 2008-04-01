@@ -258,22 +258,9 @@ public:
     SizeType off2_;
     SizeType ext2_;
 
-#if    !defined (_RWSTD_HP_aCC_MAJOR)  \
-    || 6 == _RWSTD_HP_aCC_MAJOR && 1600 < _RWSTD_HP_aCC_MINOR
-
     const T* str_;   // pointer to the expanded string
     const T* arg_;   // pointer to the expanded argument
     const T* res_;   // pointer to the expanded result
-
-#else   // 6.0 <= HP aCC <= 6.16
-
-    // non-const to work around an HP aCC 6.16 and prior bug
-    // described in STDCXX-802
-    T* str_;
-    T* arg_;
-    T* res_;
-
-#endif   // HP aCC
 
     const ContainerFunc     &func_;
     const ContainerTestCase &tcase_;
@@ -338,9 +325,12 @@ ContainerTestCaseData<T>::
 ~ContainerTestCaseData ()
 {
     // clean up dynamically allocated memory
-    delete[] str_;
-    delete[] arg_;
-    delete[] res_;
+
+    // cast away the constness of the pointers to work around
+    // an HP aCC 6.16 and prior bug described in STDCXX-802
+    delete[] _RWSTD_CONST_CAST (T*, str_);
+    delete[] _RWSTD_CONST_CAST (T*, arg_);
+    delete[] _RWSTD_CONST_CAST (T*, res_);
 }
 
 /**************************************************************************/
