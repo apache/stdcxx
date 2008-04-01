@@ -711,14 +711,15 @@ function run_locale_utils()
     {
         var pcnt = 100 * (assertions - failedassertions) / assertions;
         pcnt = Math.floor(pcnt + 0.5);
-        outstrm.WriteLine("# +-----------------------+--------+--------+--------+");
-        outstrm.WriteLine("# | DIAGNOSTIC            | ACTIVE |  TOTAL |INACTIVE|");
-        outstrm.WriteLine("# +-----------------------+--------+--------+--------+");
-        outstrm.WriteLine("# | (S7) ASSERTION        | " + FormatNumber(failedassertions, 6)
-            + " | " + FormatNumber(assertions, 6) + " | " + FormatNumber(pcnt, 5) + "% |");
-        outstrm.WriteLine("# +-----------------------+--------+--------+--------+");
+        outstrm.WriteLine("# +-----------------------+----------+----------+----------+");
+        outstrm.WriteLine("# | DIAGNOSTIC            |  ACTIVE  |   TOTAL  | INACTIVE |");
+        outstrm.WriteLine("# +-----------------------+----------+----------+----------+");
+        outstrm.WriteLine("# | (S7) ASSERTION        | " + FormatNumber(failedassertions, 8)
+            + " | " + FormatNumber(assertions, 8) + " | " + FormatNumber(pcnt, 7) + "% |");
+        outstrm.WriteLine("# +-----------------------+----------+----------+----------+");
         outstrm.WriteLine();
     }
+    outstrm.WriteLine("## Warnings = 0");
     outstrm.WriteLine("## Assertions = " + assertions);
     outstrm.WriteLine("## FailedAssertions = " + failedassertions);
     outstrm.WriteLine();
