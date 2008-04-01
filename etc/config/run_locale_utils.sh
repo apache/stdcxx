@@ -597,20 +597,21 @@ else
 fi
 
 pcnt=`expr 100 \* \( $assertions - $failedassertions \) / $assertions`
-output "# +-----------------------+--------+--------+--------+"
-output "# | DIAGNOSTIC            | ACTIVE |  TOTAL |INACTIVE|"
-output "# +-----------------------+--------+--------+--------+"
+output "# +-----------------------+----------+----------+----------+"
+output "# | DIAGNOSTIC            |  ACTIVE  |   TOTAL  | INACTIVE |"
+output "# +-----------------------+----------+----------+----------+"
 
 if test -z "$outfile"; then
-    printf "# | (S7) ASSERTION        | %6d | %6d | %5d%% |\n" \
+    printf "# | (S7) ASSERTION        | %8d | %8d | %7d%% |\n" \
             $failedassertions $assertions $pcnt
 else
-    printf "# | (S7) ASSERTION        | %6d | %6d | %5d%% |\n" \
+    printf "# | (S7) ASSERTION        | %8d | %8d | %7d%% |\n" \
             $failedassertions $assertions $pcnt >> $outfile
 fi
 
-output "# +-----------------------+--------+--------+--------+"
+output "# +-----------------------+----------+----------+----------+"
 output
+output "## Warnings = 0"
 output "## Assertions = "$assertions
 output "## FailedAssertions = "$failedassertions
 output
