@@ -27,7 +27,11 @@
 #ifndef _RWSTD_NO_FLOAT_H
 #  include <float.h>
 
-#  if defined (__EDG__) && !defined (__INTEL_COMPILER)
+#  if defined (__EDG__) \
+      && !defined (__DECCXX) \
+      && !defined (__HP_aCC) \
+      && !defined (__INTEL_COMPILER) \
+      && !defined (_SGI_COMPILER_VERSION)
      // define gcc 4 intrinsics otherwise not recognized
      // by the front end
 #    define __FLT_DIG__              6
@@ -64,7 +68,7 @@
      // Linux value
 #    define _RWSTD_FLT_ROUNDS     1   /* round to nearest */
 
-#    if __GNUC__ < 4
+#    if defined (__GNUC__) && __GNUC__ < 4
 
       // prevent the propriterary gcc __extension__ from
       // throwing the vanilla EDG demo for a loop
