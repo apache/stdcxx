@@ -46,12 +46,23 @@
 // of processors/cores later)
 int rw_opt_nthreads = 1;
 
+#if !defined (_RWSTD_OS_HP_UX) || defined (_ILP32)
+
 // the number of times each thread should iterate (unless specified
 // otherwise on the command line)
 int rw_opt_nloops = 100000;
 
 // number of locales to use
-int rw_opt_nlocales = MAX_THREADS;
+int opt_nlocales = MAX_THREADS;
+
+#else   // HP-UX in LP64 mode
+
+// work around a small cache size on HP-UX in LP64 mode
+// in LP64 mode (see STDCXX-812)
+int opt_nloops   = 100000;
+int opt_nlocales = 9;
+
+#endif   // HP-UX 32/64 bit mode
 
 // should all threads share the same set of locale objects instead
 // of creating their own?
@@ -164,7 +175,7 @@ thread_func (void*)
     long double ldbl = 0.;
 #endif  // _RWSTD_NO_LONG_DOUBLE
 
-    for (int i = 0; i != rw_opt_nloops; ++i) {
+    for (int i = 0; i != opt_nloops; ++i) {
 
         // save the name of the locale
         const MyMoneyData& data = my_money_data [i % nlocales];
@@ -371,7 +382,7 @@ run_test (int, char**)
                      "failed to create locale(%#s)", name);
         }
 
-        if (nlocales == maxinx || nlocales == std::size_t (rw_opt_nlocales))
+        if (nlocales == maxinx || nlocales == std::size_t (opt_nlocales))
             break;
     }
 
@@ -383,7 +394,7 @@ run_test (int, char**)
              "testing std::money_get<charT> with %d thread%{?}s%{;}, "
              "%zu iteration%{?}s%{;} each, in %zu locales { %{ .*A@} }",
              rw_opt_nthreads, 1 != rw_opt_nthreads,
-             rw_opt_nloops, 1 != rw_opt_nloops,
+             opt_nloops, 1 != opt_nloops,
              nlocales, int (nlocales), "%#s", locales);
 
     rw_info (0, 0, 0, "exercising std::money_get<char>");
@@ -459,10 +470,10 @@ int main (int argc, char *argv[])
                     "|-nlocales#0 "      // arg must be non-negative
                     "|-locales= "        // must be provided
                     "|-shared-locale# ",
-                    &rw_opt_nloops,
+                    &opt_nloops,
                     int (MAX_THREADS),
                     &rw_opt_nthreads,
-                    &rw_opt_nlocales,
+                    &opt_nlocales,
                     &rw_opt_setlocales,
                     &rw_opt_shared_locale);
 }
