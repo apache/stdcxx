@@ -42,10 +42,10 @@
 
 // default number of threads (will be adjusted to the number
 // of processors/cores later)
-int rw_opt_nthreads = 1;
+int opt_nthreads = 1;
 
 // the number of times each thread should iterate
-int rw_opt_nloops = MAX_LOOPS;
+int opt_nloops = MAX_LOOPS;
 
 #if !defined (_RWSTD_OS_HP_UX) || defined (_ILP32)
 
@@ -62,7 +62,7 @@ int opt_nlocales = 10;
 
 // should all threads share the same set of locale objects instead
 // of creating their own?
-int rw_opt_shared_locale;
+int opt_shared_locale;
 
 /**************************************************************************/
 
@@ -236,7 +236,7 @@ thread_func (void*)
     wio.rdbuf (&wsb);
 #endif // _RWSTD_NO_WCHAR_T
 
-    for (int i = 0; i != rw_opt_nloops; ++i) {
+    for (int i = 0; i != opt_nloops; ++i) {
 
         // fill in the value and results for this locale
         const MyNumData& data = my_num_data [i % nlocales];
@@ -244,7 +244,7 @@ thread_func (void*)
         // construct a named locale and imbue it in the ios object
         // so that the locale is used not only by the num_put facet
         const std::locale loc =
-            rw_opt_shared_locale ? data.locale_
+            opt_shared_locale ? data.locale_
                                  : std::locale (data.locale_name_);
 
         if (test_char) {
@@ -362,7 +362,7 @@ run_test (int, char**)
 
 #endif // _RWSTD_NO_WCHAR_T
 
-            if (rw_opt_shared_locale)
+            if (opt_shared_locale)
                 data.locale_ = loc;
 
             nlocales += 1;
@@ -383,8 +383,8 @@ run_test (int, char**)
     rw_info (0, 0, 0,
              "testing std::num_put<charT> with %d thread%{?}s%{;}, "
              "%zu iteration%{?}s%{;} each, in %zu locales { %{ .*A@} }",
-             rw_opt_nthreads, 1 != rw_opt_nthreads,
-             rw_opt_nloops, 1 != rw_opt_nloops,
+             opt_nthreads, 1 != opt_nthreads,
+             opt_nloops, 1 != opt_nloops,
              nlocales, int (nlocales), "%#s", locales);
 
     rw_info (0, 0, 0, "exercising std::num_put<char>");
@@ -394,11 +394,11 @@ run_test (int, char**)
 
     // create and start a pool of threads and wait for them to finish
     int result =
-        rw_thread_pool (0, std::size_t (rw_opt_nthreads), 0, thread_func, 0);
+        rw_thread_pool (0, std::size_t (opt_nthreads), 0, thread_func, 0);
 
     rw_error (result == 0, 0, __LINE__,
               "rw_thread_pool(0, %d, 0, %{#f}, 0) failed",
-              rw_opt_nthreads, thread_func);
+              opt_nthreads, thread_func);
 
 #ifndef _RWSTD_NO_WCHAR_T
 
@@ -409,11 +409,11 @@ run_test (int, char**)
 
     // start a pool of threads to exercise wstring thread safety
     result =
-        rw_thread_pool (0, std::size_t (rw_opt_nthreads), 0, thread_func, 0);
+        rw_thread_pool (0, std::size_t (opt_nthreads), 0, thread_func, 0);
 
     rw_error (result == 0, 0, __LINE__,
               "rw_thread_pool(0, %d, 0, %{#f}, 0) failed",
-              rw_opt_nthreads, thread_func);
+              opt_nthreads, thread_func);
 
     // exercise both the char and the wchar_t specializations
     // at the same time
@@ -426,11 +426,11 @@ run_test (int, char**)
 
     // start a pool of threads to exercise wstring thread safety
     result =
-        rw_thread_pool (0, std::size_t (rw_opt_nthreads), 0, thread_func, 0);
+        rw_thread_pool (0, std::size_t (opt_nthreads), 0, thread_func, 0);
 
     rw_error (result == 0, 0, __LINE__,
               "rw_thread_pool(0, %d, 0, %{#f}, 0) failed",
-              rw_opt_nthreads, thread_func);
+              opt_nthreads, thread_func);
 
 #endif   // _RWSTD_NO_WCHAR_T
 
@@ -445,9 +445,9 @@ int main (int argc, char *argv[])
 
     // set nthreads to the greater of the number of processors
     // and 2 (for uniprocessor systems) by default
-    rw_opt_nthreads = rw_get_cpus ();
-    if (rw_opt_nthreads < 2)
-        rw_opt_nthreads = 2;
+    opt_nthreads = rw_get_cpus ();
+    if (opt_nthreads < 2)
+        opt_nthreads = 2;
 
 #endif   // _RWSTD_REENTRANT
 
@@ -459,10 +459,10 @@ int main (int argc, char *argv[])
                     "|-nlocales#0 "     // arg must be non-negative
                     "|-locales= "       // must be provided
                     "|-shared-locale# ",
-                    &rw_opt_nloops,
+                    &opt_nloops,
                     int (MAX_THREADS),
-                    &rw_opt_nthreads,
+                    &opt_nthreads,
                     &opt_nlocales,
                     &rw_opt_setlocales,
-                    &rw_opt_shared_locale);
+                    &opt_shared_locale);
 }
