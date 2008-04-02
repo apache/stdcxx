@@ -85,7 +85,7 @@ _RWSTD_EXPORT _RWSTD_SIZE_T __rw_wcslen (const wchar_t*);
 #  define _RWSTD_WCSLEN    _RW::__rw_wcslen
 #else   // if !defined (_RWSTDDEBUG) && !defined (_RWSTD_EDG_ECCP)
 
-#  if 4 <= __GNUG__
+#  if 4 <= __GNUG__ && !defined (__INTEL_COMPILER)
      // use gcc 4.x intrinsic functions
 #    define _RWSTD_MEMCPY    __builtin_memcpy
 #    define _RWSTD_MEMCMP    __builtin_memcmp
