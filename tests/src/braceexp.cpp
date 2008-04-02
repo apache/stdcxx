@@ -35,6 +35,10 @@
 #include <rw_braceexp.h>
 
 
+// for convenience
+typedef unsigned char UChar;
+
+
 // search `beg' to `end' for a character that `fn'
 // returns non-zero.
 static const char*
@@ -46,7 +50,7 @@ _rw_find_match (const char* beg,
 
     for (/**/; beg < end; ++beg) {
 
-        const bool is_space = 0 != isspace (*beg);
+        const bool is_space = 0 != isspace (UChar (*beg));
 
         if (!is_escaped && match_space == is_space) {
             return beg;
@@ -203,7 +207,7 @@ static const char* _rw_find_next_comma (const char* beg,
 
 struct _rw_string_buffer
 {
-    _rw_string_buffer (char* s, _RWSTD_SIZE_T n)
+    _rw_string_buffer (char* s, size_t n)
         : capacity_ (n)
         , length_ (0)
         , buffer_ (s)
@@ -214,12 +218,12 @@ struct _rw_string_buffer
     // destructor does not deallocate memory
     // user expected to do that
 
-    _RWSTD_SIZE_T capacity_;
-    _RWSTD_SIZE_T length_;
+    size_t capacity_;
+    size_t length_;
     char* buffer_;
     bool  owned_;
 
-    bool append (const char* s, _RWSTD_SIZE_T n);
+    bool append (const char* s, size_t n);
 
 private:
     // not implemented
@@ -242,7 +246,7 @@ struct _rw_brace_graph
     // it is not equal to `buf'.
     char* build_and_expand (const char* beg,
                             const char* end,
-                            char* buf, _RWSTD_SIZE_T len, char sep);
+                            char* buf, size_t len, char sep);
 
 
 private:
@@ -256,7 +260,7 @@ private:
     struct _rw_brace_node
     {
         const char* str_;
-        _RWSTD_SIZE_T len_;
+        size_t      len_;
 
         _rw_brace_node* sibling_;
         _rw_brace_node* child_;
@@ -312,7 +316,7 @@ private:
     struct _rw_brace_node_buffer
     {
         _rw_brace_node nodes_ [size];
-        _RWSTD_SIZE_T used_; // number of nodes_ used in this buffer
+        size_t         used_; // number of nodes_ used in this buffer
         _rw_brace_node_buffer* next_;
     };
 
@@ -324,7 +328,7 @@ private:
 
     // code for handling integer ranges
 
-    void reset_for_reuse (char* buf, _RWSTD_SIZE_T len);
+    void reset_for_reuse (char* buf, size_t len);
     void free_range_buffers ();
 
     // this is essentially a rope with a variable length payload
@@ -400,7 +404,7 @@ _rw_brace_graph::~_rw_brace_graph ()
 char*
 _rw_brace_graph::build_and_expand (const char* beg,
                                    const char* end,
-                                   char* buf, _RWSTD_SIZE_T len, char sep)
+                                   char* buf, size_t len, char sep)
 {
     assert (beg != 0);
     assert (end != 0);
@@ -428,8 +432,7 @@ _rw_brace_graph::build_and_expand (const char* beg,
 
     // kill the last seperator with a null terminator
     else if (string_.buffer_) {
-        const _RWSTD_SIZE_T pos
-            = string_.length_ < 1 ? 0 : string_.length_ - 1;
+        const size_t pos = string_.length_ < 1 ? 0 : string_.length_ - 1;
         string_.buffer_ [pos] = '\0';
     }
 
@@ -453,7 +456,7 @@ _rw_brace_graph::get_new_node ()
         // otherwise we allocate one
         else {
 
-            const _RWSTD_SIZE_T sz = sizeof (_rw_brace_node_buffer);
+            const size_t sz = sizeof (_rw_brace_node_buffer);
 
             nodes_->next_ = (_rw_brace_node_buffer*)malloc (sz);
             if (!nodes_->next_)
@@ -545,7 +548,7 @@ _rw_brace_graph::build_integer_sequence (const char* beg, const char* end)
         return 0; // failed to parse an integer value
 
     // number of characters needed to represent ibeg
-    const _RWSTD_SIZE_T ibeg_dig = (pend - beg);
+    const size_t ibeg_dig = (pend - beg);
 
     // make sure we have two dots
     beg = pend;
@@ -561,7 +564,7 @@ _rw_brace_graph::build_integer_sequence (const char* beg, const char* end)
         return 0; // failed to parse an integer value
 
     // number of characters needed to represent iend
-    const _RWSTD_SIZE_T iend_dig = (pend - beg);
+    const size_t iend_dig = (pend - beg);
 
     // make sure we have an end brace
     beg = pend;
@@ -579,18 +582,18 @@ _rw_brace_graph::build_integer_sequence (const char* beg, const char* end)
 
     // maximum length of the string representation of a single
     // integer in the range
-    const _RWSTD_SIZE_T len = (ibeg_dig < iend_dig ? iend_dig : ibeg_dig);
+    const size_t len = (ibeg_dig < iend_dig ? iend_dig : ibeg_dig);
 
     // number of integers in the range [ibeg, iend]
-    const _RWSTD_SIZE_T num = 1 + (iend - ibeg) * dir;
+    const size_t num = 1 + (iend - ibeg) * dir;
 
     // maximum number of bytes needed to represent all of the numbers
     // and a single null
-    const _RWSTD_SIZE_T cnt = 1 + (num * len);
+    const size_t cnt = 1 + (num * len);
 
     // number of bytes we have to allocate, cnt of which is data
     // and the rest is to allow us to chain these buffers together
-    const _RWSTD_SIZE_T bsz = cnt + sizeof (_rw_range_buffer);
+    const size_t bsz = cnt + sizeof (_rw_range_buffer);
 
     // allocate a rope segment big enough for all of the strings
     // we need to keep.
@@ -682,8 +685,10 @@ _rw_brace_graph::build_character_sequence (const char* beg, const char* end)
     char cend = beg [4];
 
     // only works if sequence characters are both lowercase or uppercase.
-    const int both_are_lower = islower (cbeg) && islower (cend);
-    const int both_are_upper = isupper (cbeg) && isupper (cend);
+    const int both_are_lower =
+        islower (UChar (cbeg)) && islower (UChar (cend));
+    const int both_are_upper =
+        isupper (UChar (cbeg)) && isupper (UChar (cend));
 
     if (! (both_are_lower || both_are_upper))
         return 0;
@@ -841,7 +846,7 @@ _rw_brace_graph::build_list (const char* beg, const char* end)
     return first_child;
 }
 
-void _rw_brace_graph::reset_for_reuse (char* buf, _RWSTD_SIZE_T len)
+void _rw_brace_graph::reset_for_reuse (char* buf, size_t len)
 {
     node_cache_.used_ = 0;
     nodes_ = &node_cache_;
@@ -882,9 +887,9 @@ bool _rw_brace_graph::brace_expand_write (_rw_recursion_context* context)
     bool is_escaped = false;
 
     const char* beg = context->node_->str_;
-    const _RWSTD_SIZE_T len = context->node_->len_;
+    const size_t len = context->node_->len_;
 
-    for (_RWSTD_SIZE_T n = 0; n < len; ++n, ++beg) {
+    for (size_t n = 0; n < len; ++n, ++beg) {
 
         is_escaped = !is_escaped && (*beg == '\\');
         if (!is_escaped) {
@@ -903,14 +908,14 @@ bool _rw_brace_graph::brace_expand (_rw_recursion_context* self, char sep)
     if (!self->node_ ||
         !self->node_->sibling_ && !self->node_->child_) {
 
-        const _RWSTD_SIZE_T length_before = string_.length_;
+        const size_t length_before = string_.length_;
 
         // use recursion again to walk back to the root the graph and
         // write each contexts data as we unwind back toward the leaf
         if (!brace_expand_write (self))
             return false;
 
-        const _RWSTD_SIZE_T length_after = string_.length_;
+        const size_t length_after = string_.length_;
 
         // don't write a seperator if we wrote no data
         if (length_before != length_after && !string_.append (&sep, 1))
@@ -933,15 +938,15 @@ bool _rw_brace_graph::brace_expand (_rw_recursion_context* self, char sep)
     return true;
 }
 
-bool _rw_string_buffer::append (const char* s, _RWSTD_SIZE_T n)
+bool _rw_string_buffer::append (const char* s, size_t n)
 {
-    const _RWSTD_SIZE_T new_len = length_ + n;
+    const size_t new_len = length_ + n;
 
     // not enough space, grow buf
     if (! (new_len < capacity_)) {
 
         // buf grows in 256 byte blocks
-        _RWSTD_SIZE_T new_cap = capacity_;
+        size_t new_cap = capacity_;
         while (! (new_len < new_cap))
             new_cap += 256;
 
@@ -979,8 +984,8 @@ bool _rw_string_buffer::append (const char* s, _RWSTD_SIZE_T n)
 
 //
 char* rw_brace_expand (const char* brace_expr,
-                       _RWSTD_SIZE_T sz,
-                       char* s, _RWSTD_SIZE_T n, char sep)
+                       size_t sz,
+                       char* s, size_t n, char sep)
 {
     if (!brace_expr)
         return 0;
@@ -1002,8 +1007,8 @@ char* rw_brace_expand (const char* brace_expr,
 
 
 //
-char* rw_shell_expand (const char* shell_expr, _RWSTD_SIZE_T sz,
-                       char* s, _RWSTD_SIZE_T n, char sep)
+char* rw_shell_expand (const char* shell_expr, size_t sz,
+                       char* s, size_t n, char sep)
 {
     if (!shell_expr)
         return 0;
@@ -1058,7 +1063,7 @@ char* rw_shell_expand (const char* shell_expr, _RWSTD_SIZE_T sz,
             for (/**/; *term; term += strlen (term) + 1)
                 ;
 
-            const _RWSTD_SIZE_T len = exp < term ? (term - exp) - 1 : 0;
+            const size_t len = exp < term ? (term - exp) - 1 : 0;
         
             if (is_first_expand)
                 app = result.append (exp, len);
