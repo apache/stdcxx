@@ -23,6 +23,7 @@
  **************************************************************************/
 
 #include <stdio.h>    // for printf()
+#include <string.h>   // for memset()
 
 #include "config.h"
 #include "float_defs.h"  // for FLT_MIN, DBL_MIN, LDBL_MIN
@@ -106,6 +107,8 @@ union flt_bits
 {
     char bits [sizeof (float)];
     float val;
+    
+    flt_bits () { memset (bits, 0, sizeof (bits)); }
 };
 
 static float flt_zero ()
@@ -286,6 +289,8 @@ union dbl_bits
 {
     char bits [sizeof (double)];
     double val;
+    
+    dbl_bits () { memset (bits, 0, sizeof (bits)); }
 };
 
 static float dbl_zero ()
@@ -500,6 +505,8 @@ union ldbl_bits
 {
     char bits [sizeof (long double)];
     long double val;
+    
+    ldbl_bits () { memset (bits, 0, sizeof (bits)); }
 };
 
 static long double ldbl_zero ()
