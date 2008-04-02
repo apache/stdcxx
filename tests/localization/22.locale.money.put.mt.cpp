@@ -50,8 +50,18 @@ int rw_opt_nthreads = 1;
 // otherwise on the command line)
 int rw_opt_nloops = 100000;
 
+#if !defined (_RWSTD_OS_HP_UX) || defined (_ILP32)
+
 // number of locales to use
-int rw_opt_nlocales = MAX_THREADS;
+int opt_nlocales = MAX_THREADS;
+
+#else   // HP-UX in LP64 mode
+
+// work around a small locale cache on HP-UX in LP64 mode
+// (see STDCXX-812)
+int opt_nlocales = 9;
+
+#endif   // HP-UX 32/64 bit mode
 
 // should all threads share the same set of locale objects instead
 // of creating their own?
@@ -377,7 +387,7 @@ run_test (int, char**)
                      "failed to create locale(%#s)", name);
         }
 
-        if (nlocales == maxinx || nlocales == std::size_t (rw_opt_nlocales))
+        if (nlocales == maxinx || nlocales == std::size_t (opt_nlocales))
             break;
     }
 
@@ -468,7 +478,7 @@ int main (int argc, char *argv[])
                     &rw_opt_nloops,
                     int (MAX_THREADS),
                     &rw_opt_nthreads,
-                    &rw_opt_nlocales,
+                    &opt_nlocales,
                     &rw_opt_setlocales,
                     &rw_opt_shared_locale);
 }
