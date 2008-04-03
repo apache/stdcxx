@@ -364,6 +364,15 @@ __rw_get_num (void *pval, const char *buf, int type, int flags,
         else if (type & __rw_facet::_C_signed || __rw_facet::_C_bool == type) {
             val.l = _RW::__rw_strtol (buf, &err, base);
         }
+        else if (__rw_facet::_C_pvoid == type) {
+
+#if defined (_RWSTD_LONG_LONG) && _RWSTD_PTR_SIZE > _RWSTD_LONG_SIZE
+            // assume pointers fit into long long
+            val.ull = _RW::__rw_strtoull (buf, &err, base);
+#else
+            val.ul = _RW::__rw_strtoul (buf, &err, base);
+#endif
+        }
         else {
             val.ul = _RW::__rw_strtoul (buf, &err, base);
         }
@@ -489,7 +498,11 @@ __rw_get_num (void *pval, const char *buf, int type, int flags,
 
         case __rw_facet::_C_pvoid:
             *_RWSTD_STATIC_CAST (void**, pval) =
+#if defined (_RWSTD_LONG_LONG) && _RWSTD_PTR_SIZE > _RWSTD_LONG_SIZE
+                _RWSTD_REINTERPRET_CAST (void*, val.ull);
+#else
                 _RWSTD_REINTERPRET_CAST (void*, val.ul);
+#endif
 
             // disable grouping
             grouping = "";
