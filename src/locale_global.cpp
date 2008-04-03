@@ -37,6 +37,7 @@
 #include <loc/_locale.h>
 
 #include "locale_body.h"
+#include "setlocale.h"
 
 
 
@@ -53,7 +54,8 @@ _RWSTD_NAMESPACE (std) {
 
         // assumes all locale names (i.e., including those of combined
         // locales) are in a format understandable by setlocale()
-        setlocale (_RWSTD_LC_ALL, rhs.name ().c_str ());
+        const _RW::__rw_setlocale clocale (rhs.name().c_str(), _RWSTD_LC_ALL);
+        _RWSTD_UNUSED(clocale);
 
         // FIXME:
         // handle unnamed locales (i.e., locales containing non-standard

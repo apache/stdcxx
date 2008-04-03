@@ -88,9 +88,9 @@ test_classic (void*)
 static void*
 test_global (void*)
 {
-    for (int i = 0; i != opt_nloops; ++i) {
+    for (std::size_t i = 0; i != opt_nloops; ++i) {
 
-        const int inx = i % nlocales;
+        const std::size_t inx = i % nlocales;
 
         const std::locale last (std::locale::global (locales [inx]));
 
