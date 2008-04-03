@@ -29,6 +29,7 @@
 #define _RWSTD_LIB_SRC
 
 #include <rw/_defs.h>
+#include <rw/_mutex.h>
 
 #include <locale.h>
 #include <string.h>
@@ -37,9 +38,13 @@
 #include <loc/_locale.h>
 
 #include "locale_body.h"
-#include "setlocale.h"
 
 
+_RWSTD_NAMESPACE (__rw) {
+
+extern __rw_mutex __rw_setlocale_mutex;
+
+}   // namespace __rw
 
 _RWSTD_NAMESPACE (std) { 
 
@@ -52,10 +57,11 @@ _RWSTD_NAMESPACE (std) {
 
         // if the global locale has a name, call setlocale()
 
+        _RWSTD_MT_GUARD (_RW::__rw_setlocale_mutex);
+
         // assumes all locale names (i.e., including those of combined
         // locales) are in a format understandable by setlocale()
-        const _RW::__rw_setlocale clocale (rhs.name().c_str(), _RWSTD_LC_ALL);
-        _RWSTD_UNUSED(clocale);
+        setlocale (_RWSTD_LC_ALL, rhs.name ().c_str ());
 
         // FIXME:
         // handle unnamed locales (i.e., locales containing non-standard
