@@ -56,6 +56,7 @@
 
 /**************************************************************************/
 
+#include <cstddef>   // for std::size_t, std::ptrdiff_t
 #include <cfloat>    // FLT_MAX, FLT_MIN, etc.
 #include <climits>   // INT_MAX, INT_MIN, etc.
 #include <clocale>   // for localeconv(), setlocale()
@@ -221,7 +222,7 @@ struct Streambuf: std::basic_streambuf<charT, Traits>
                     _RWSTD_CONST_CAST (charT*, gend));
     }
 
-    int gptr_off () const {
+    std::ptrdiff_t gptr_off () const {
         return this->gptr () - this->eback ();
     }
 };
@@ -320,7 +321,7 @@ int do_test (int         lineno,          // line number
 
     const charT *plast = pnext + std::char_traits<charT>::length (pnext);
 
-    int consumed;
+    std::ptrdiff_t consumed;
 
     switch (itype) {
     case iter_pointer: {
@@ -2102,15 +2103,16 @@ test_pvoid (CharType ctype, const char *cname,
     TEST (T, PVoid (0x0000ffff), "FfFf", 4, 0, Eof);
 
     // exercise overflow conditions
-#if ULONG_MAX == 0xffffUL
+#if    defined (_RWSTD_LONG_LONG) && _RWSTD_PTR_SIZE > _RWSTD_LONG_SIZE \
+    || ULONG_MAX > 0xffffffffUL
+    const char pvmax[]        = "0xffffffffffffffff";
+    const char pvmax_plus_1[] = "0x10000000000000000";
+#elif ULONG_MAX == 0xffffUL
     const char pvmax[]        = "0xffff";
     const char pvmax_plus_1[] = "0x10000";
 #elif ULONG_MAX == 0xffffffffUL
     const char pvmax[]        = "0xffffffff";
     const char pvmax_plus_1[] = "0x100000000";
-#elif ULONG_MAX > 0xffffffffUL
-    const char pvmax[]        = "0xffffffffffffffff";
-    const char pvmax_plus_1[] = "0x10000000000000000";
 #else
     // working around a SunPro bug (PR #28279)
     const char pvmax[]        = "0";
@@ -2196,7 +2198,7 @@ void test_floating_point (CharType ctype, const char *cname,
     TEST (T, F (1.0e+28), "10000000000000000000000000000",  29, 0, Eof);
     TEST (T, F (1.0e+29), "100000000000000000000000000000", 30, 0, Eof);
 
-#define VALSTR(x)   floatT (x), #x, std::strlen (#x)
+#define VALSTR(x)   floatT (x), #x, int (std::strlen (#x))
 
     // exercise various forms of floating point 0
 
