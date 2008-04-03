@@ -548,7 +548,7 @@ parse_output (const struct target_opts* options, struct target_status* status)
     assert (0 != options->argv [0]);
     out_name = output_name (options->argv [0]);
 
-    data = fopen (out_name, "r");
+    data = fopen (out_name, "rb");
 
     if (0 == data) {
         if (ENOENT != errno)
