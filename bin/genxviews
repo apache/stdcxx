@@ -494,6 +494,12 @@ process_results "SuSE Enterprise Server 9.1" "AMD64" "Sun C++ 5.9" \
                 "linux_suse-9.1-amd64-sunpro-5.9-*-*-log.gz.txt" \
                 linux_suse-9.1-amd64-sunpro-5.9.html
 
+# Tru64 UNIX ###########################################################
+
+process_results "Tru64 UNIX 5.1" "Alpha" "HP C++ 7.1" \
+                "tru64-5.1-alpha-compaq-7.1-*-*-log.gz.txt" \
+                tru64-5.1-alpha-compaq-7.1.html
+
 # CygWin ###############################################################
 process_results "CygWin/Windows XP" "x86" "gcc 3.4.4" \
                 "win_xp-2-x86-gcc-3.4.4-*-*-log.gz.txt" \
