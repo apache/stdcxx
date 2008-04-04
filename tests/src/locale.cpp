@@ -373,6 +373,10 @@ rw_locales (int loc_cat, const char* grep_exp, bool prepend_c_loc)
     // allocate first time through
     if (!slocname) {
         slocname = _RWSTD_STATIC_CAST (char*, _QUIET_MALLOC (total_size));
+
+        if (!slocname)
+            return deflocname;
+
         *slocname = '\0';
     }
 
@@ -468,6 +472,8 @@ rw_locales (int loc_cat, const char* grep_exp, bool prepend_c_loc)
 
                 char* tmp =
                     _RWSTD_STATIC_CAST (char*, _QUIET_MALLOC (total_size));
+                if (!tmp)
+                    break;
 
                 memcpy (tmp, slocname, total_size - grow_size);
 
@@ -1124,7 +1130,7 @@ _rw_all_locales ()
                     _RWSTD_STATIC_CAST(_rw_locale_entry*,
                                     _QUIET_MALLOC (entry_size * capacity));
                 if (!new_entries) {
-                    return result; // allocation failed
+                    break;
                 }
 
                 memcpy (new_entries, entries, entry_size * size);
@@ -1639,3 +1645,5 @@ _rw_lookup_table_t::load_from_file (const char* path, const char* name, int uppe
 
     return true;
 }
+
+
