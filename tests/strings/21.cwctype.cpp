@@ -763,7 +763,6 @@ test_behavior ()
 {
     rw_info (0, 0, 0, "behavior of <cwctype> functions in the \"C\" locale");
 
-    char extra_str [80];
     char missing_str [80];
 
     for (int i = 0; i != 256; ++i) {
@@ -794,17 +793,13 @@ test_behavior ()
         SET_MASK_BIT (upper);
         SET_MASK_BIT (xdigit);
 
-        const int extra_bits   = mask & ~char_mask [i];
+        // C99 standard (7.25.2.1 p2) implicitly allows
+        // defining the extra bits in iswxxx()
         const int missing_bits = ~mask & char_mask [i];
 
-        rw_assert (mask == char_mask [i], 0, 0,
-                   "%#c mask%{?} missing bits %s (%#x)%{;}"
-                   "%{?} extra bits %s (%#x)%{;}",
-                   i,
-                   missing_bits,
-                   get_bitmask (missing_bits, missing_str), missing_bits,
-                   extra_bits,
-                   get_bitmask (extra_bits, extra_str), extra_bits);
+        rw_assert (0 == missing_bits, 0, 0,
+                   "%#c mask missing bits %s (%#x)",
+                   i, get_bitmask (missing_bits, missing_str), missing_bits);
     }
 }
 
@@ -815,14 +810,20 @@ static int rw_opt_no_behavior;   // for --no-behavior
 static int
 run_test (int, char**)
 {
+#ifdef _RWSTD_STRICT_ANSI
+#  define RW_DIAG rw_assert
+#else
+#  define RW_DIAG rw_warn
+#endif
+
     //////////////////////////////////////////////////////////////////
     rw_info (0, 0, 0, "checking for the absence of masking macros");
 
     // verify the shadow macros are not #defined (explicitly
     // disallowed by 17.4.1.2, p6 and Footnote 159 of C++ '03)
     for (unsigned i = 0; cwctype_macros [i]; ++i) {
-        rw_assert ('\0' == cwctype_macros [i][0], 0, 0,
-                   "macro %s unexpectedly #defined", cwctype_macros [i]);
+        RW_DIAG ('\0' == cwctype_macros [i][0], 0, 0,
+                 "macro %s unexpectedly #defined", cwctype_macros [i]);
     }
 
     //////////////////////////////////////////////////////////////////
@@ -845,9 +846,9 @@ run_test (int, char**)
         rw_info (0, 0, 0, "%s::%s (%s::wint_t) definition",             \
                  std_name, #function, std_name);                        \
         const int result = std::function (test_wint_t ('a'));           \
-        rw_assert (-1 != result && !(missing_set & bit_ ## function),   \
-                   0, __LINE__, "%s::%s (%s::wint_t) not defined",      \
-                   std_name, #function, std_name);                      \
+        RW_DIAG (-1 != result && !(missing_set & bit_ ## function),     \
+                 0, __LINE__, "%s::%s (%s::wint_t) not defined",        \
+                 std_name, #function, std_name);                        \
     } while (0)
 
     TEST (iswalnum);
@@ -870,8 +871,8 @@ run_test (int, char**)
 
     int result = std::wctype ("");
 
-    rw_assert (-1 != result && !(missing_set & bit_wctype), 0, __LINE__,
-               "%s::wctype (const char*) not defined", std_name);
+    RW_DIAG (-1 != result && !(missing_set & bit_wctype), 0, __LINE__,
+             "%s::wctype (const char*) not defined", std_name);
 
 
     // exercise std::iswctype(std::wint_t, std::wctype_t)
@@ -884,9 +885,9 @@ run_test (int, char**)
     
     result = std::iswctype (wc, desc);
 
-    rw_assert (-1 != result && !(missing_set & bit_iswctype), 0, __LINE__,
-               "%s::iswctype (%1$s::wint_t, %1$s::wctype_t) not defined",
-               std_name);
+    RW_DIAG (-1 != result && !(missing_set & bit_iswctype), 0, __LINE__,
+             "%s::iswctype (%1$s::wint_t, %1$s::wctype_t) not defined",
+             std_name);
 
     // exercise std::wctrans(const char*)
     rw_info (0, 0, 0,
@@ -896,8 +897,8 @@ run_test (int, char**)
     // such as in GNU glibc
     result = (int)(_RWSTD_PTRDIFF_T)std::wctrans ("");
 
-    rw_assert (-1 != result && !(missing_set & bit_wctrans), 0, __LINE__,
-               "%s::wctrans (const char*) not defined", std_name);
+    RW_DIAG (-1 != result && !(missing_set & bit_wctrans), 0, __LINE__,
+             "%s::wctrans (const char*) not defined", std_name);
 
     // exercise std::towctrans(wint_t, wctrans_t)
     rw_info (0, 0, 0,
@@ -906,8 +907,8 @@ run_test (int, char**)
     const test_wctrans_t category = 0;
     result = std::towctrans (wc, category);
 
-    rw_assert (-1 != result && !(missing_set & bit_towctrans), 0, __LINE__,
-        "%s::towctrans(wint_t, wctrans_t) not defined", std_name);
+    RW_DIAG (-1 != result && !(missing_set & bit_towctrans), 0, __LINE__,
+             "%s::towctrans(wint_t, wctrans_t) not defined", std_name);
 
     //////////////////////////////////////////////////////////////////
     if (rw_opt_no_behavior)
