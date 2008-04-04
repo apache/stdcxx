@@ -604,6 +604,17 @@ rwt_get_free_store (rwt_free_store *st)
     return ret;
 }
 
+static void
+rwt_checkpoint_compare (size_t* diffs, size_t n,
+                        const size_t* st0, const size_t* st1,
+                        bool& diff_0)
+{
+    for (size_t i = 0; i != n; ++i) {
+        diffs [i] = st1 [i] - st0 [i];
+        if (diffs [i])
+            diff_0 = false;
+    }
+}
 
 _TEST_EXPORT rwt_free_store*
 rwt_checkpoint (const rwt_free_store *st0, const rwt_free_store *st1)
@@ -616,20 +627,23 @@ rwt_checkpoint (const rwt_free_store *st0, const rwt_free_store *st1)
         // of the free_store specified by the arguments
 
         static rwt_free_store diff;
-
         memset (&diff, 0, sizeof diff);
-
-        size_t*       diffs    = diff.new_calls_;
-        const size_t* st0_args = st0->new_calls_;
-        const size_t* st1_args = st1->new_calls_;
 
         bool diff_0 = true;   // difference of 0 (i.e., none)
 
-        for (size_t i = 0; i != 16; ++i) {
-            diffs [i] = st1_args [i] - st0_args [i];
-            if (diffs [i])
-                diff_0 = false;
-        }
+#define EXTENT(array) (sizeof (array) / sizeof(*array))
+#define COMPARE(member) \
+        rwt_checkpoint_compare (diff.member, EXTENT(diff.member), \
+                                st0->member, st1->member, diff_0)
+
+        COMPARE (new_calls_);
+        COMPARE (delete_calls_);
+        COMPARE (delete_0_calls_);
+        COMPARE (blocks_);
+        COMPARE (bytes_);
+        COMPARE (max_blocks_);
+        COMPARE (max_bytes_);
+        COMPARE (max_block_size_);
 
         if (diff_0)
             return 0;
