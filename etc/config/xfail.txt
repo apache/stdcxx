@@ -21,7 +21,7 @@
 #   <arch>     ::= alpha | amd64 | em64t | ia64 | pa | ppc | sparc | x86
 #
 #   <compiler> ::=   acc | compaq | eccp | gcc | icc | icl | mipspro
-#                  | msvc | vacpp
+#                  | msvc | sunpro | vacpp
 #
 ########################################################################
 
@@ -62,3 +62,4 @@ hu_HU.ISO-8859-2    *.*.*.*.*                       1         STDCXX-372
 21.string.insert.stdcxx-632    *-*-*-*-*            ABRT      STDCXX-632
 21.string.replace.stdcxx-170   *-*-*-*-*            ABRT      STDCXX-170
 23.vector.modifiers.stdcxx-495 *-*-*-*-*            ABRT      STDCXX-495
+26.valarray.binary.stdcxx-237.cpp *-*-sunpro-*-*    COMP      STDCXX-807
