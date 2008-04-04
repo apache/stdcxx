@@ -120,7 +120,10 @@ __rw_once (__rw_once_t *once, void (*func)())
 
 restart:
 
-    if (init == 0 && 1 == _RWSTD_ATOMIC_PREINCREMENT (init, false)) {
+    // cast init to int& (see STDCXX-792)
+    // casting should be removed after fixing STDCXX-794
+    if (init == 0 && 1 == _RWSTD_ATOMIC_PREINCREMENT (
+            _RWSTD_CONST_CAST (int&, init), false)) {
 
         // entered by the first thread and only the first time around,
         // unless the initialization function throws
