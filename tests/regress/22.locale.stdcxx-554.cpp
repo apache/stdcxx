@@ -29,19 +29,24 @@
 
 #include <locale>    // for std::moneypunct, std::messages
 
+enum { fill = '\xdc' };
+
 template <class charT>
 void test_moneypunct (charT)
 {
     typedef std::moneypunct <charT> PunctT;
 
-    const char fill = '\xdc';
+    // Use a pointer to properly align buffer for placment new.
+    union {
+        void* ptr;
+        char buf [sizeof (PunctT) + 1];
+    } u;
 
-    char buf [sizeof (PunctT) + 1];
-    std::memset (buf, fill, sizeof (buf));
+    std::memset (u.buf, fill, sizeof (u.buf));
 
-    PunctT* p = new (buf) PunctT ();
+    PunctT* p = new (u.buf) PunctT ();
 
-    assert (fill == buf [sizeof (PunctT)]);
+    assert (fill == u.buf [sizeof (PunctT)]);
 
     p->~PunctT ();
 }
@@ -51,14 +56,16 @@ void test_messages (charT)
 {
     typedef std::messages <charT> MessagesT;
 
-    const char fill = '\xdc';
+    union {
+        void* ptr;
+        char buf [sizeof (MessagesT) + 1];
+    } u;
 
-    char buf [sizeof (MessagesT) + 1];
-    std::memset (buf, fill, sizeof (buf));
+    std::memset (u.buf, fill, sizeof (u.buf));
 
-    MessagesT* p = new (buf) MessagesT ();
+    MessagesT* p = new (u.buf) MessagesT ();
 
-    assert (fill == buf [sizeof (MessagesT)]);
+    assert (fill == u.buf [sizeof (MessagesT)]);
 
     p->~MessagesT ();
 }
