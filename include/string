@@ -23,7 +23,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2007 Rogue Wave Software, Inc.
+ * Copyright 1994-2008 Rogue Wave Software, Inc.
  *
  **************************************************************************/
 
@@ -838,8 +838,11 @@ public:
 
     void _C_clone (size_type);
 
-    _C_string_ref_type* _C_pref () const { 
-        return _RWSTD_REINTERPRET_CAST (_C_string_ref_type*, _C_data) - 1; 
+    _C_string_ref_type* _C_pref () const {
+        // use two static_casts in favor of reinterpret_cast
+        // to prevent "increased alignment" warnings
+        return _RWSTD_STATIC_CAST (_C_string_ref_type*,
+                   _RWSTD_STATIC_CAST (void*, _C_data)) - 1; 
     }
 
     void _C_unlink (pointer);   
