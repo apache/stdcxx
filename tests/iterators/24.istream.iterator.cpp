@@ -166,7 +166,7 @@ void test_ops (const TempParams<T, CharT, Traits, Dist> &params,
 
     const Iterator it (strm);
 
-    rw_assert (is_eos ^ it != eos, 0, line,
+    rw_assert (is_eos ^ (it != eos), 0, line,
                "line %d: %{$ITER}::operator() != %{$ITER}()", __LINE__);
 
     if (0 == (strm.rdstate () & (strm.badbit | strm.failbit))) {
