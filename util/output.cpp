@@ -318,7 +318,7 @@ check_test (FILE* data, struct target_status* status)
         return;
     }
 
-    if (!rbscanf (&buf, "| INACTIVE |\n# +")) {
+    if (!rbscanf (&buf, "| INACTIVE |")) {
         status->status = ST_FORMAT;
         return;
     }
@@ -483,7 +483,7 @@ check_example (const char* const data_dir, char* const out_name, FILE* fout,
         }
     }
 
-    fref = fopen (ref_name, "r");
+    fref = fopen (ref_name, "rb");
 
     if (0 == fref) {
         int cache = errno; /* caching errno, as puts could alter it */
@@ -548,7 +548,7 @@ parse_output (const struct target_opts* options, struct target_status* status)
     assert (0 != options->argv [0]);
     out_name = output_name (options->argv [0]);
 
-    data = fopen (out_name, "r");
+    data = fopen (out_name, "rb");
 
     if (0 == data) {
         if (ENOENT != errno)
