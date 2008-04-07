@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2001-2007 Rogue Wave Software, Inc.
+ * Copyright 2001-2008 Rogue Wave Software, Inc.
  *
  **************************************************************************/
 
@@ -31,6 +31,14 @@
 
 
 #include <rw/_defs.h>
+
+
+#if 6 <= _RWSTD_HP_aCC_MAJOR
+   // suppress HP aCC 6 remarks
+   // 4298: addition result truncated before cast to bigger sized type
+   // 4299: multiply result truncated before cast to bigger sized type
+#  pragma diag_suppress 4298, 4299
+#endif   // aCC >= 6.0
 
 
 _RWSTD_NAMESPACE (__rw) { 
@@ -678,6 +686,12 @@ struct __rw_time_t
         return _RWSTD_CHAR_ARRAY (time_ext_off);
     }
 };
+
+
+#if 6 <= _RWSTD_aCC_MAJOR
+   // restore HP aCC 6 remarks suppressed above to their default state
+#  pragma diag_default 4298, 4299
+#endif   // aCC >= 6
 
 
 static inline _RWSTD_SIZE_T
