@@ -36,13 +36,15 @@
 // implementation class of the fmtflags manipulator that saves
 // a stream object's fmtflags state before optionally setting
 // their new value and restores the saved state when destroyed
+// uses ios::basefield as an invalid flags value (it's a valid
+// mask but not a valid flags value)
 class fmtflags_manip
 {
     std::ios_base           *strm_;
     std::ios_base::fmtflags  saved_;
 
 public:
-    fmtflags_manip (): strm_ (), saved_ (std::ios_base::fmtflags (-1)) { }
+    fmtflags_manip (): strm_ (), saved_ (std::ios_base::basefield) { }
 
     void operator() (std::ios_base           &strm,
                      std::ios_base::fmtflags  flags) const {
@@ -50,7 +52,7 @@ public:
         const_cast<fmtflags_manip*>(this)->strm_  = &strm;
         const_cast<fmtflags_manip*>(this)->saved_ = strm.flags ();
 
-        if (flags != std::ios_base::fmtflags (-1))
+        if (flags != std::ios_base::basefield)
             strm.flags (flags);
     }
 
@@ -64,7 +66,7 @@ public:
 // saveflags manipulator to temporarily set formatting flags and
 // restore their initial value at the end of an insertion statement
 inline std::__rw_smanip<fmtflags_manip, std::ios_base::fmtflags>
-saveflags (std::ios_base::fmtflags flags = std::ios_base::fmtflags (-1))
+saveflags (std::ios_base::fmtflags flags = std::ios_base::basefield)
 {
     typedef std::__rw_smanip<fmtflags_manip, std::ios_base::fmtflags> Manip;
 
