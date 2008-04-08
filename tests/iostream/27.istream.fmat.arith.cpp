@@ -1247,7 +1247,7 @@ test_extractor (CharT*, Traits*,
 
 #undef TEST
 #define TEST(T)                                                          \
-    if (rw_note (0 == opt_ ## T, 0, __LINE__, "%s tests disabld", #T))   \
+    if (rw_note (0 == opt_ ## T, 0, __LINE__, "%s tests disabled", #T))   \
         test_ ## T ((CharT*)0, (Traits*)0, cname, tname)
 
     //////////////////////////////////////////////////////////////////
