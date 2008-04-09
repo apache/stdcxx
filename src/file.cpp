@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2002-2005, 2007 Rogue Wave Software, Inc.
+ * Copyright 2002-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -110,11 +110,6 @@ _RWSTD_NAMESPACE (__rw) {
 #else
 #  define _RWSTD_FILENO(f) fileno (f)
 #endif
-
-
-FILE* __rw_stderr = stderr;
-FILE* __rw_stdin  = stdin;
-FILE* __rw_stdout = stdout;
 
 
 static const int __rw_io_modes [] = {
@@ -572,5 +567,63 @@ __rw_fflush (void *file, int flags)
     return 0;
 }
 
+
+#ifdef _RWSTD_EDG_ECCP
+
+   // undefine macros that expand to __rw_stderr et al
+   // before initializing the globals to their values
+#  undef stderr
+#  undef stdin
+#  undef stdout
+
+extern "C" {
+
+#  ifdef _RWSTD_OS_LINUX
+
+// Linux glibc defines stdin, stdout, and stderr as global objects
+// of type _IO_FILE but we fake the type using FILEs (it doesn't
+// matter since the type isn't mangled into object names)
+extern FILE *stdin;
+extern FILE *stdout;
+extern FILE *stderr;
+
+#  elif defined (_RWSTD_OS_SUNOS)
+
+// define a type that's as big as SunOS __FILE
+typedef struct  _RW_Sun_FILE {
+
+#    if 8 == _RWSTD_LONG_SIZE
+
+    int fill [4];   // 16 bytes
+
+#    else   // if (ILP32)
+
+    long fill [16];   // 128 bytes
+
+#    endif   // LP64/ILP32
+
+} __FILE;
+
+
+// Solaris file array
+extern struct __FILE __iob [FOPEN_MAX];
+
+#    define stderr   (FILE*)(__iob + 0)
+#    define stdin    (FILE*)(__iob + 1)
+#    define stdout   (FILE*)(__iob + 2)
+
+#  elif defined (_RWSTD_OS_WINDOWS)
+#    error "need stderr, stdin, and stdout"
+#  elsr
+#    error "need stderr, stdin, and stdout"
+#  endif
+
+}   // extern "C"
+
+#endif   // vanilla EDG eccp
+
+FILE* __rw_stderr = stderr;
+FILE* __rw_stdin  = stdin;
+FILE* __rw_stdout = stdout;
 
 }   // namespace __rw
