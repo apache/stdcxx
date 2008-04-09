@@ -64,4 +64,4 @@ hu_HU.ISO-8859-2    *.*.*.*.*                       1         STDCXX-372
 21.string.replace.stdcxx-170   *-*-*-*-*            ABRT      STDCXX-170
 21.string.stdcxx-162  linux*-*-{amd64,em64t}-*-*-{12,15}{D,S} ABRT STDCXX-162
 23.vector.modifiers.stdcxx-495 *-*-*-*-*            ABRT      STDCXX-495
-26.valarray.binary.stdcxx-237.cpp *-*-sunpro-*-*    COMP      STDCXX-807
+26.valarray.binary.stdcxx-237.cpp *-*-*-sunpro-*-*  COMP      STDCXX-807
