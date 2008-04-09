@@ -314,11 +314,14 @@ void test_random_shuffle (const std::size_t line)
             break;
     }
 
-    rw_assert (success, 0, line, 
-               "randomly shuffled sequence failed to match "
-               "the expected result (data portability failure) "
-               "%d != %d at %zu",
-               array [i], result [i], i + 1);
+    if (!success) {
+        rw_assert (0, 0, line, 
+                   "randomly shuffled sequence failed to match "
+                   "the expected result (data portability failure) "
+                   "%d != %d at %zu",
+                   array [i], result [i], i + 1);
+    }
+
 
 #else
     rw_note (0, 0, 0,
