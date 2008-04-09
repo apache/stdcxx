@@ -367,10 +367,27 @@ run_test (int, char* [])
         ::operator delete (p);
         new_throws = 0;
 
+#ifdef _RWSTD_NO_REPLACEABLE_NEW_DELETE
+
+        // MSVC and VAC++ don't reliably replace operators
+        // new and delete across shared librray boundaries
+
+        rw_warn (false, 0, __LINE__,
+                 "replacement ::operator new(std::size_t = %u) failed "
+                 "to throw when called directly from a program: this "
+                 "is an expected failure on this platform",
+                 sizeof long_str);
+
+#else   // if !defined (_RWSTD_NO_REPLACEABLE_NEW_DELETE)
+
         rw_assert (false, 0, __LINE__,
-                   "replacement ::operator new(std::size_t = %u) failed "
-                   "to throw when called directly from a program",
+                   "replacement ::operator new(std::size_t = %u) "
+                   "unexpectdly failed to throw when called directly "
+                   "from a program",
                    sizeof long_str);
+
+#endif   // _RWSTD_NO_REPLACEABLE_NEW_DELETE
+
     }
     _CATCH (...) {
         new_throws = 1;
