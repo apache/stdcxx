@@ -54,6 +54,7 @@ hu_HU.ISO-8859-2    *.*.*.*.*                       1         STDCXX-372
 # TEST                                              EXPECTED  ISSUE
 # NAME              PLATFORM AND BUILD TYPE         STATUS    NUMBER
 # --------          ------------------------------  --------  ----------
+0.strncmp           solaris-*-amd64-sunpro-*-*{D,S} 2         STDCXX-844
 2.smartptr.shared   aix-*-*-vacpp-6.0-{11,15}?      COMP      STDCXX-360
 2.smartptr.shared   aix-*-*-vacpp-9.0-*             COMP      STDCXX-360
 2.smartptr.shared   hpux-*-*-acc-3.*-*              COMP      STDCXX-615
