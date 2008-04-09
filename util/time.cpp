@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2001-2006 Rogue Wave Software.
+ * Copyright 2001-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -67,12 +67,24 @@ parse_era (const token_t& tok)
 
     // now get the offset
     tokp = std::strtok (0, ":");
+    if (0 == tokp)
+        issue_diag (E_SYNTAX, true, &tok,
+                    "expected ':' in era definition\n");
+
+    assert (0 != tokp);
+
     std::sscanf (tokp, "%d", &tmp_era.era_out.offset);
     if (direction == '-')
         tmp_era.era_out.offset *= -1;
     
     // now get the start date
     tokp = std::strtok (0, ":");
+    if (0 == tokp)
+        issue_diag (E_SYNTAX, true, &tok,
+                    "expected ':' in era definition\n");
+
+    assert (0 != tokp);
+
     unsigned int tmp_mon, tmp_day;
     std::sscanf (tokp, "%d/%u/%u", &tmp_era.era_out.year[0], 
                  &tmp_mon, &tmp_day);
@@ -83,6 +95,12 @@ parse_era (const token_t& tok)
 
     // now get the end date (this may be the beginning or end of time
     tokp = std::strtok (0, ":");
+    if (0 == tokp)
+        issue_diag (E_SYNTAX, true, &tok,
+                    "expected ':' in era definition\n");
+
+    assert (0 != tokp);
+
     if (std::strcmp (tokp, "-*") == 0) {
         tmp_era.era_out.year[1] = _RWSTD_INT_MIN;
         tmp_era.era_out.month[1] = _RWSTD_CHAR_MIN;
