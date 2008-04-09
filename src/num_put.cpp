@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2001-2006 Rogue Wave Software.
+ * Copyright 2001-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -36,6 +36,10 @@
 
 #include <float.h>   // for _finite(), _fpclass(), _isnan(), _copysign()
 #include <math.h>    // for isfinite(), isnan(), isinf(), signbit()
+
+#ifdef _RWSTD_OS_SUNOS
+#  include <sunmath.h>   // for signbit() on Solaris
+#endif   // Solaris
 
 #ifndef _RWSTD_NO_IEEEFP_H
 #  include <ieeefp.h>   // for fpclass(), isnan()
