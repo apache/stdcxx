@@ -80,6 +80,15 @@ string="memchr((void*)0,0,0) memcmp memcpy memmove memset strcat             \
         strrchr((char*)0,0) strspn strstr((char*)0,(char*)0) strtok strxfrm"
 
 
+# time functions
+c90_funs="asctime clock ctime difftime gmtime localtime mktime strftime time"
+c99_funs="mkxtime strfxtime zonetime"
+posix_funs="tzset"
+
+# ignore C99 functions for now
+time="$c90_funs $posix_funs"
+
+
 # wchar functions
 wchar="btowc fgetwc fgetws fputwc fputws fwide fwprintf fwscanf getwc        \
        getwchar mbrlen mbrtowc mbsinit mbsrtowcs putwc putwchar swprintf     \
