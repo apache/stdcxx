@@ -1276,7 +1276,7 @@ _rw_all_locales ()
             //
             // eliminate locales that are duplicates according to
             // canonical name. we do this because the setlocale()
-			// doesn't seem to tell us about aliases.
+            // doesn't seem to tell us about aliases.
             //
 
             bool duplicate = false;
@@ -1308,8 +1308,12 @@ _rw_all_locales ()
         remove (fname);
 
         // link all of the nodes into result
-        result.entries = entries;
-        result.count   = size;
+        if (size) {
+            result.entries = entries;
+            result.count   = size;
+        }
+        else
+            _QUIET_FREE (entries);
     }
 
     // link each node to the next. if the array is sorted,
