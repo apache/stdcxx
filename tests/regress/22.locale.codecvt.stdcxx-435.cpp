@@ -48,7 +48,9 @@ int main ()
         "as-IN",  // Win Vista
         "bn-IN",  // Win XP SP2
         "zh-HK",
-        "zh-CN"
+        "zh-CN",
+
+        0
     };
 
     // try to find the first multibyte locale on this system
