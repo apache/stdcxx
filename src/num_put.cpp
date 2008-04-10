@@ -37,10 +37,6 @@
 #include <float.h>   // for _finite(), _fpclass(), _isnan(), _copysign()
 #include <math.h>    // for isfinite(), isnan(), isinf(), signbit()
 
-#ifdef _RWSTD_OS_SUNOS
-#  include <sunmath.h>   // for signbit() on Solaris
-#endif   // Solaris
-
 #ifndef _RWSTD_NO_IEEEFP_H
 #  include <ieeefp.h>   // for fpclass(), isnan()
 #endif   // _RWSTD_NO_IEEEFP_H
@@ -123,7 +119,11 @@ inline bool __rw_issnan (double val) {
 
 inline bool __rw_isfinite (double val) { return !!finite (val); }
 
-inline bool __rw_signbit (double val) { return !!signbit (val); }
+inline bool __rw_signbit (double val)
+{
+    // implement own signbit() to avoid dragging in libm or libsunmath
+    return _RWSTD_REINTERPRET_CAST (const _RWSTD_UINT64_T&, val) >> 63;
+}
 
 inline bool __rw_isinf (double val) {
     const int fpc = fpclass (val);
