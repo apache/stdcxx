@@ -29,10 +29,10 @@
 #include <ios>           // for basic_ios
 #include <locale>        // for locale, time_put
 
-#include <climits>       // for INT_MAX, INT_MIN
+#include <climits>       // for INT_MAX, INT_MIN, TZNAME_MAX
 #include <cstdio>        // for fprintf(), ...
 #include <cstdlib>       // for mbstowcs(), wcstombs()
-#include <cstring>       // for memcpy(), strlen()
+#include <cstring>       // for memset(), memcpy(), strlen(), strcat()
 #include <ctime>         // for tm, tzset()
 #include <cwchar>        // for wcsftime(), wcslen()
 #include <cassert>       // for assert()
@@ -56,10 +56,18 @@
 // set in main() instead of here to avoid Solaris 7 putenv() bug (PR #30017)
 const char* locale_root;
 
+#if defined (_RWSTD_NO_TZSET) && !defined (_RWSTD_NO_TZSET_IN_LIBC)
+#  undef _RWSTD_NO_TZSET
+extern "C" _RWSTD_DLLIMPORT void tzset () _LIBC_THROWS();
+#endif   // _RWSTD_NO_TZSET && !_RWSTD_NO_TZSET_IN_LIBC
+
 inline void set_TZ (const char* str)
 {
     rw_putenv (str);
+
+#ifndef _RWSTD_NO_TZSET
     tzset ();
+#endif
 }
 
 /**************************************************************************/
@@ -1678,6 +1686,31 @@ void test_POSIX (charT, const char *tname)
     set_TZ ("TZ=ABC01DEF02");
     TEST (T (0, 0, 0, 1, 0, 0, 0, 0,  0), "%Z", 0, 0, ' ', "ABC");
     TEST (T (0, 0, 0, 1, 0, 0, 0, 0,  1), "%Z", 0, 0, ' ', "DEF");
+
+    // exercise time zone name of maximum length
+#if defined (TZNAME_MAX) && !defined (_MSC_VER)
+    // MSVC may define TZNAME_MAX (if _POSIX_ is defined),
+    // but tzset() uses hardcoded value equal to 3 instead
+
+    char std_name [TZNAME_MAX + 1];
+    std::memset (std_name, 'A', TZNAME_MAX);
+    std_name [TZNAME_MAX] = '\0';
+
+    char dst_name [TZNAME_MAX + 1];
+    std::memset (dst_name, 'B', TZNAME_MAX);
+    dst_name [TZNAME_MAX] = '\0';
+
+    char tz_buf [2 * TZNAME_MAX + 8] = "TZ=";
+    std::strcat (tz_buf, std_name);
+    std::strcat (tz_buf, "01");
+    std::strcat (tz_buf, dst_name);
+    std::strcat (tz_buf, "02");
+
+    set_TZ (tz_buf);
+
+    TEST (T (0, 0, 0, 1, 0, 0, 0, 0,  0), "%Z", 0, 0, ' ', std_name);
+    TEST (T (0, 0, 0, 1, 0, 0, 0, 0,  1), "%Z", 0, 0, ' ', dst_name);
+#endif   // TZNAME_MAX && !_MSC_VER
 
     //////////////////////////////////////////////////////////////////
     // %%: replaced by %
