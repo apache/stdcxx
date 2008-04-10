@@ -371,36 +371,38 @@ void test_iterators (charT*, Traits*, Allocator*,
                           "line %d. %{$FUNCALL} expected non null, got null",
                           __LINE__);
 
-                // 21.3.6.1
-                // if size() is nonzero, the member returns a pointer to the
-                // initial element of an array whose first size() elements
-                // equal the corresponding elements of the string controlled
-                // by *this
-                // 21.3.6.3
-                // if size() is nonzero, the member returns a pointer to the
-                // initial element of an array whose first size() elements
-                // equal the corresponding elements of the string controlled
-                // by *this
-                const std::size_t match = 
-                    rw_match (tcase.res, ret_ptr, tdata.reslen_);
+                if (ret_ptr) {
+                    // 21.3.6.1
+                    // if size() is nonzero, the member returns a pointer to the
+                    // initial element of an array whose first size() elements
+                    // equal the corresponding elements of the string controlled
+                    // by *this
+                    // 21.3.6.3
+                    // if size() is nonzero, the member returns a pointer to the
+                    // initial element of an array whose first size() elements
+                    // equal the corresponding elements of the string controlled
+                    // by *this
+                    const std::size_t match = 
+                        rw_match (tcase.res, ret_ptr, tdata.reslen_);
 
-                rw_assert (match == tdata.reslen_, 0, tcase.line,
-                           "line %d. %{$FUNCALL} expected %{#*s}, "
-                           "got %{/*.*Gs}, differ at pos %zu",
-                           __LINE__, int (tdata.reslen_), tdata.res_, 
-                           cwidth, int (s_size), ret_ptr, match);
+                    rw_assert (match == tdata.reslen_, 0, tcase.line,
+                               "line %d. %{$FUNCALL} expected %{#*s}, "
+                               "got %{/*.*Gs}, differ at pos %zu",
+                               __LINE__, int (tdata.reslen_), tdata.res_, 
+                               cwidth, int (s_size), ret_ptr, match);
 
-                if (func.which_ == StringIds::c_str_void) {
+                    if (func.which_ == StringIds::c_str_void) {
 
-                    // check the last element is equal to char ()
-                    const char null = char ();
-                    const bool success = 
-                        (1 == rw_match (&null, &ret_ptr[s_size], 1));
+                        // check the last element is equal to char ()
+                        const char null = char ();
+                        const bool success = 
+                            (1 == rw_match (&null, &ret_ptr[s_size], 1));
 
-                    rw_assert(success, 0, tcase.line,
-                              "line %d. %{$FUNCALL} expected last element "
-                              "is a null character %{#c}, got %{#c}",
-                              __LINE__, null, ret_ptr[s_size]);
+                        rw_assert(success, 0, tcase.line,
+                                  "line %d. %{$FUNCALL} expected last element "
+                                  "is a null character %{#c}, got %{#c}",
+                                  __LINE__, null, ret_ptr[s_size]);
+                    }
                 }
             } 
 
