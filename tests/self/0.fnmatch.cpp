@@ -438,6 +438,16 @@ int main ()
     TEST (1, "*-aix[1-9].[0-9]-xlc7.0.0.[0-9]", "ppc-aix5.2-xlc6.0");
     TEST (0, "*-aix[1-9].[0-9]-xlc7.0.0.[0-9]", "ppc-aix4.3-xlc7.0.0.0");
 
+    // exercise incomplete patterns
+    TEST (1, "\\", "");
+    TEST (1, "\\", "a");
+    TEST (1, "\\", "\\");
+    TEST (1, "[",  "");
+    TEST (1, "[",  "a");
+    TEST (1, "[",  "[");
+    TEST (1, "[a", "");
+    TEST (1, "[a", "[a");
+
     // return 0 on success, 1 on failure
     return !(0 == nerrors);
 }
