@@ -69,7 +69,9 @@ test_classic (void*)
 {
     static volatile int nthreads;
 
-    _RWSTD_ATOMIC_PREINCREMENT (nthreads, false);
+    // cast nthreads to int& (see STDCXX-792)
+    // casting should be removed after fixing STDCXX-794
+    _RWSTD_ATOMIC_PREINCREMENT (_RWSTD_CONST_CAST (int&, nthreads), false);
 
     // spin until all threads have been created in order to icrease
     // the odds that at least two of them will hit the tested function
