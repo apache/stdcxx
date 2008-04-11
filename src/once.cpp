@@ -132,7 +132,8 @@ restart:
             func ();
         }
         _CATCH (...) {
-            _RWSTD_ATOMIC_PREDECREMENT (init, false);
+            _RWSTD_ATOMIC_PREDECREMENT (
+                _RWSTD_CONST_CAST (int&, init), false);
             _RETHROW;
         }
 
