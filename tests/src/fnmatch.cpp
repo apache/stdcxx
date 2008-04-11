@@ -126,32 +126,35 @@ _rw_bracketmatch (const char *pattern, const unsigned char ch, int)
 _TEST_EXPORT int
 rw_fnmatch (const char *pattern, const char *string, int arg)
 {
+    _RWSTD_ASSERT (pattern);
+    _RWSTD_ASSERT (string);
+
     const char *next = string;
 
     bool esc = false;
 
     for (const char *pc = pattern; ; ++pc) {
 
-        switch (*pc) {
+        switch (const char c = *pc) {
         case '\0':
-            return *pc == *next ? 0 : 1;
+            return !!*next;
 
         case '\\':
-            if (0 == pc - pattern || !esc)
-                esc = true;
-            else {
-                if (*pc != *next)
+            if (esc) {
+                if (c != *next)
                     return 1;
 
                 esc = false;
                 ++next;
             }
+            else
+                esc = true;
                 
             break;
 
         case '*':
             if (esc) {
-                if (*pc != *next)
+                if (c != *next)
                     return 1;
 
                 esc = false;
@@ -174,17 +177,22 @@ rw_fnmatch (const char *pattern, const char *string, int arg)
             break;
 
         case '?':
-            if (esc && *pc != *next)
-                return 1;
+            if (esc) {
+                if (c != *next)
+                    return 1;
 
-            esc = false;
+                esc = false;
+            }
+
+            if ('\0' == *next)
+                return 1;
 
             ++next;
             break;
 
         case '[':
             if (esc) {
-                if (*pc != *next)
+                if (c != *next)
                     return 1;
 
                 esc = false;
@@ -202,7 +210,7 @@ rw_fnmatch (const char *pattern, const char *string, int arg)
             break;
             
         default:
-            if (*pc != *next)
+            if (c != *next)
                 return 1;
 
             esc = false;
@@ -216,7 +224,7 @@ rw_fnmatch (const char *pattern, const char *string, int arg)
             // of the pattern in all asterisks
             if (!esc)
                 while ('*' == *++pc);
-            return *pc != '\0';
+            return !!*pc;
         }
     }
 
