@@ -306,22 +306,16 @@ void test_random_shuffle (const std::size_t line)
         0xfa, 0xbb, 0xdd, 0xa5, 0xa3, 0x73, 0x18, 0xd9
     };
 
-    bool success = true;
-    std::size_t i = 0;
-    for (; i != sizeof array / sizeof *array; ++i) {
-        success = array [i] == result [i];
-        if (!success)
-            break;
+    for (std::size_t i = 0; i != sizeof array / sizeof *array; ++i) {
+        const bool success = array [i] == result [i];
+        if (!success) {
+            rw_assert (0, 0, line, 
+                       "randomly shuffled sequence failed to match "
+                       "the expected result (data portability failure) "
+                       "%d != %d at %zu",
+                       array [i], result [i], i + 1);
+        }
     }
-
-    if (!success) {
-        rw_assert (0, 0, line, 
-                   "randomly shuffled sequence failed to match "
-                   "the expected result (data portability failure) "
-                   "%d != %d at %zu",
-                   array [i], result [i], i + 1);
-    }
-
 
 #else
     rw_note (0, 0, 0,
