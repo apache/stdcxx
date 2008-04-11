@@ -614,7 +614,7 @@ extern struct __FILE __iob [FOPEN_MAX];
 
 #  elif defined (_RWSTD_OS_WINDOWS)
 #    error "need stderr, stdin, and stdout"
-#  elsr
+#  else
 #    error "need stderr, stdin, and stdout"
 #  endif
 
