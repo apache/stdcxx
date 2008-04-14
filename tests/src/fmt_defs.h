@@ -59,6 +59,7 @@ struct Buffer {
     size_t  *pbufsize;   // pointer to the size of the buffer
     size_t   maxsize;    // maximum not-to-exceed size
     size_t   endoff;     // offset of the last character
+    size_t   owned;      // buffer is owned by caller, don't free it
 };
 
 /********************************************************************/
