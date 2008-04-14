@@ -541,20 +541,21 @@ private:
 inline char
 ctype<wchar_t>::narrow (char_type __c, char __dfault) const
 {
-    const _RWSTD_SIZE_T __inx = _RWSTD_STATIC_CAST (unsigned char, __c);
-
     // optimize away all but the first call to the virtual do_widen()
-    if (   __inx < sizeof _C_narrow_tab / sizeof *_C_narrow_tab
-        && _C_narrow_tab [__inx])
-        return _C_narrow_tab [__inx];
+    if (   0 <= __c
+        && __c < sizeof _C_narrow_tab / sizeof *_C_narrow_tab
+        && _C_narrow_tab [__c])
+        return _C_narrow_tab [__c];
 
     // template argument provided to work around an HP aCC bug (PR #27087)
     ctype<wchar_t>* const __self = _RWSTD_CONST_CAST (ctype<wchar_t>*, this);
 
     const char __ch = do_narrow (__c, __dfault);
 
-    if (__inx < sizeof _C_narrow_tab / sizeof *_C_narrow_tab && __ch != __dfault)
-        __self->_C_narrow_tab [__inx] = __ch;
+    if (   0 <= __c
+        && __c < sizeof _C_narrow_tab / sizeof *_C_narrow_tab
+        && __ch != __dfault)
+        __self->_C_narrow_tab [__c] = __ch;
 
     return __ch;
 }
