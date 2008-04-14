@@ -630,7 +630,6 @@ rw_setvars (const StringFunc     &func,
     case StringIds::find_last_not_of_cstr:
     case StringIds::compare_cstr:
     case StringIds::ctor_cstr:
-    case StringIds::ctor_cstr_alloc:
     case StringIds::op_set_cstr:
     case StringIds::swap_str:
         // format self-referential str argument as *this
