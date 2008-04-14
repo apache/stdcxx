@@ -450,26 +450,24 @@ _rw_bufcat (Buffer &buf, const char *str, size_t len)
 
         size_t guardsize = sizeof guard - 1;
 
-        size_t newbufsize = *buf.pbufsize * 2 + guardsize;
+        size_t newbufsize = *buf.pbufsize * 2;
 
-        if (newbufsize <= buflen + len + guardsize)
-            newbufsize = 2 * (buflen + len + 1) + guardsize;
+        const size_t required = buflen + len;
+        if (newbufsize < required)
+            newbufsize = required * 2;
 
         // prevent buffer size from exceeding the maximum
         if (buf.maxsize < newbufsize)
             newbufsize = buf.maxsize;
 
-        if (newbufsize < buflen + len + guardsize)
-            guardsize = 0;
-
-        if (newbufsize < buflen + len + guardsize) {
+        if (newbufsize < required) {
 #ifdef ENOMEM
             errno = ENOMEM;
 #endif   // ENOMEM
             return 0;
         }
 
-        char* const newbuf = (char*)malloc (newbufsize);
+        char* const newbuf = (char*)malloc (newbufsize + guardsize);
 
         // return 0 on failure to allocate, let caller deal with it
         if (0 == newbuf)
@@ -478,17 +476,21 @@ _rw_bufcat (Buffer &buf, const char *str, size_t len)
         memcpy (newbuf, *buf.pbuf, buflen);
 
         // append a guard block to the end of the buffer
-        memcpy (newbuf + newbufsize - guardsize, guard, guardsize);
+        memcpy (newbuf + newbufsize, guard, guardsize);
 
-        if (*buf.pbuf) {
+        if (*buf.pbuf && !buf.owned) {
             // verify that we didn't write past the end of the buffer
             RW_ASSERT (0 == memcmp (*buf.pbuf + *buf.pbufsize,
                                     guard, guardsize));
+
             free (*buf.pbuf);
         }
 
         *buf.pbuf     = newbuf;
-        *buf.pbufsize = newbufsize - guardsize;
+        *buf.pbufsize = newbufsize;
+
+        // we allocated the buffer, so we can free it
+        buf.owned = 0;
     }
 
     if (0 != str) {
@@ -958,7 +960,7 @@ rw_vasnprintf (char **pbuf, size_t *pbufsize, const char *fmt, va_list varg)
     if (0 == pbufsize)
         pbufsize = &default_bufsize;
 
-    Buffer buf = { pbuf, pbufsize, _RWSTD_SIZE_MAX, 0 };
+    Buffer buf = { pbuf, pbufsize, _RWSTD_SIZE_MAX, 0, 1 };
 
     // save the initial value of `pbuf'
     char* const pbuf_save = *buf.pbuf;
@@ -1995,7 +1997,7 @@ int _rw_fmtarray (const FmtSpec &spec,
                 size_t localbufsize = sizeof elemstr;
 
                 Buffer bufspec = {
-                    &localbuf, &localbufsize, sizeof elemstr, 0
+                    &localbuf, &localbufsize, sizeof elemstr, 0, 1
                 };
 
                 *localbuf = '\0';
@@ -2053,7 +2055,7 @@ int _rw_fmtarray (const FmtSpec &spec,
                 size_t localbufsize = sizeof elemstr;
 
                 Buffer bufspec = {
-                    &localbuf, &localbufsize, sizeof elemstr, 0
+                    &localbuf, &localbufsize, sizeof elemstr, 0, 1
                 };
 
                 *localbuf = '\0';
@@ -2983,7 +2985,7 @@ _rw_fmtexpr (FmtSpec &spec, Buffer &buf, VarArgs *pva)
         const char* const fmt = VA_ARG (*pva, char*);
 
         size_t dummy_size = 0;   // unused
-        Buffer tmpbuf = { &fmtword, &dummy_size, _RWSTD_SIZE_MAX, 0 };
+        Buffer tmpbuf = { &fmtword, &dummy_size, _RWSTD_SIZE_MAX, 0, 1 };
         const int len = _rw_pvasnprintf (tmpbuf, fmt, pva);
         if (len < 0)
             return -1;
