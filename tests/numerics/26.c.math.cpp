@@ -53,7 +53,7 @@
 #define FUN_1(name)                                                     \
     template <class T>                                                  \
     T name (T) {                                                        \
-        static const char* const tname = rw_any (T ()).type_name ();    \
+        static const char* const tname = rw_any_t (T ()).type_name ();  \
         rw_assert (0, 0, __LINE__, "std::%s(%s) not declared\n",        \
                    #name, tname);                                       \
         return T ();                                                    \
@@ -62,7 +62,7 @@
 #define FUN_2(name)                                                     \
     template <class T>                                                  \
     T name (T, T) {                                                     \
-        static const char* const tname = rw_any (T ()).type_name ();    \
+        static const char* const tname = rw_any_t (T ()).type_name ();  \
         rw_assert (0, 0, __LINE__, "std::%s (%s, %s) not declared\n",   \
                    #name, tname, tname);                                \
         return T ();                                                    \
@@ -71,7 +71,7 @@
 #define FUN_2_PTR(name)                                                 \
     template <class T>                                                  \
     T name (T, T*) {                                                    \
-        static const char* const tname = rw_any (T ()).type_name ();    \
+        static const char* const tname = rw_any_t (T ()).type_name ();  \
         rw_assert (0, 0, __LINE__, "std::%s (%s, %s*) not declared\n",  \
                    #name, tname, tname);                                \
         return T ();                                                    \
@@ -80,7 +80,7 @@
 #define FUN_2_INT(name)                                                 \
     template <class T>                                                  \
     T name (T, int) {                                                   \
-        static const char* const tname = rw_any (T ()).type_name ();    \
+        static const char* const tname = rw_any_t (T ()).type_name ();  \
         rw_assert (0, 0, __LINE__, "std::%s (%s, int) not declared\n",  \
                    #name, tname);                                       \
         return T ();                                                    \
@@ -89,7 +89,7 @@
 #define FUN_2_PINT(name)                                                \
     template <class T>                                                  \
     T name (T, int*) {                                                  \
-        static const char* const tname = rw_any (T ()).type_name ();    \
+        static const char* const tname = rw_any_t (T ()).type_name ();  \
         rw_assert (0, 0, __LINE__, "std::%s (%s, int*) not declared\n", \
                    #name, tname);                                       \
         return T ();                                                    \
