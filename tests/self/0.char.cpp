@@ -467,6 +467,8 @@ test_rw_widen ()
         { 0, '\0' }
     };
 
+    typedef UserTraits<UserChar> Traits;
+
     UserChar udst [nsrc + 1];
 
     for (size_t i = 0; i != nsrc + 1; ++i) {
@@ -480,7 +482,7 @@ test_rw_widen ()
                    "rw_widen(UserChar*, %{#s}%{?}, %zu%{;})",
                    src, i < nsrc, i);
 
-        rw_assert (   0 == memcmp (udst, usrc, i * sizeof *udst)
+        rw_assert (   0 == Traits::compare (udst, usrc, i)
                    && 0 == udst [i].f && 0 == udst [i].c,
                    0, __LINE__,
                    "rw_widen(UserChar*, %{#s}%{?}, %zu%{;})",
@@ -490,7 +492,7 @@ test_rw_widen ()
     memset (udst, 1, sizeof udst);
     rw_widen (udst, 0, sizeof udst / sizeof *udst);
 
-    rw_assert (0 == memcmp (udst, unull, sizeof udst), 0, __LINE__,
+    rw_assert (0 == Traits::compare (udst, unull, nsrc + 1), 0, __LINE__,
                "rw_widen(UserChar*, %{#s}, %zu)",
                0, sizeof udst, int (sizeof udst), wnull);
 }
