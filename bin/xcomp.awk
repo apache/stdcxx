@@ -763,8 +763,9 @@ BEGIN {
                 detail = asserts
             }
             else if (0 < runwarns) {
+                # runtime warnings
                 class = "RUNWARN"
-                value = runwarns
+                value = "(" runwarns ")"
             }
         }
 
