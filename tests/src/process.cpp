@@ -269,12 +269,9 @@ _rw_vsystem (const char *cmd, va_list va)
 {
     RW_ASSERT (0 != cmd);
 
-    char buffer [256];
-    char *buf = buffer;
+    char *buf = 0;
 
-    size_t bufsize = sizeof buffer;
-
-    rw_vasnprintf (&buf, &bufsize, cmd, va);
+    rw_vasnprintf (&buf, 0, cmd, va);
 
     rw_note (0, "file:" __FILE__, __LINE__, "executing \"%s\"", buf);
 
@@ -321,8 +318,7 @@ _rw_vsystem (const char *cmd, va_list va)
 
     }
 
-    if (buf != buffer)
-        free (buf);
+    free (buf);
 
     return ret;
 }
@@ -348,12 +344,9 @@ _rw_vprocess_create (const char* cmd, va_list va)
 {
     RW_ASSERT (0 != cmd);
 
-    char buffer [256];
-    char *buf = buffer;
+    char *buf = 0;
 
-    size_t bufsize = sizeof (buffer);
-
-    rw_vasnprintf (&buf, &bufsize, cmd, va);
+    rw_vasnprintf (&buf, 0, cmd, va);
 
     rw_pid_t ret = -1;
 
@@ -392,8 +385,7 @@ _rw_vprocess_create (const char* cmd, va_list va)
 
 #endif  // _WIN32
 
-    if (buf != buffer)
-        free (buf);
+    free (buf);
 
     return ret;
 }

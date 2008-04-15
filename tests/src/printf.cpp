@@ -448,28 +448,28 @@ _rw_bufcat (Buffer &buf, const char *str, size_t len)
         // for guard block
         static const char guard[] = "\xde\xad\xbe\xef";
 
-        size_t guardsize = sizeof guard - 1;
+        const size_t guardsize = sizeof guard - 1;
 
-        size_t newbufsize = *buf.pbufsize * 2 + guardsize;
+        size_t newbufsize = *buf.pbufsize * 2;
+        if (newbufsize < 16)
+            newbufsize = 16;
 
-        if (newbufsize <= buflen + len + guardsize)
-            newbufsize = 2 * (buflen + len + 1) + guardsize;
+        const size_t requiredsize = buflen + len + 1;
+        if (newbufsize < requiredsize)
+            newbufsize = requiredsize * 2;
 
         // prevent buffer size from exceeding the maximum
         if (buf.maxsize < newbufsize)
             newbufsize = buf.maxsize;
 
-        if (newbufsize < buflen + len + guardsize)
-            guardsize = 0;
-
-        if (newbufsize < buflen + len + guardsize) {
+        if (newbufsize < requiredsize) {
 #ifdef ENOMEM
             errno = ENOMEM;
 #endif   // ENOMEM
             return 0;
         }
 
-        char* const newbuf = (char*)malloc (newbufsize);
+        char* const newbuf = (char*)malloc (newbufsize + guardsize);
 
         // return 0 on failure to allocate, let caller deal with it
         if (0 == newbuf)
@@ -478,17 +478,19 @@ _rw_bufcat (Buffer &buf, const char *str, size_t len)
         memcpy (newbuf, *buf.pbuf, buflen);
 
         // append a guard block to the end of the buffer
-        memcpy (newbuf + newbufsize - guardsize, guard, guardsize);
+        memcpy (newbuf + newbufsize, guard, guardsize);
 
         if (*buf.pbuf) {
-            // verify that we didn't write past the end of the buffer
+            // verify that we didn't write past the end of the buffer and
+            // that the user didn't pass a local or static buffer without
+            // a maxsize format specifier.
             RW_ASSERT (0 == memcmp (*buf.pbuf + *buf.pbufsize,
                                     guard, guardsize));
             free (*buf.pbuf);
         }
 
         *buf.pbuf     = newbuf;
-        *buf.pbufsize = newbufsize - guardsize;
+        *buf.pbufsize = newbufsize;
     }
 
     if (0 != str) {
