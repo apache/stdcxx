@@ -20,7 +20,7 @@
 # implied.   See  the License  for  the  specific language  governing
 # permissions and limitations under the License.
 #
-# Copyright 2001-2007 Rogue Wave Software, Inc.
+# Copyright 2001-2008 Rogue Wave Software, Inc.
 #
 ##############################################################################
 #
@@ -221,6 +221,17 @@ union funptr_type {
 #    undef __THROW
 #    define __THROW
 #  endif   // gcc < 3 on Linux
+
+#  if    defined (__EDG__)                \
+      && !defined (__DECCXX)              \
+      && !defined (__HP_aCC)              \
+      && !defined (__INTEL_COMPILER)      \
+      && !defined (_SGI_COMPILER_VERSION)
+     // disable error #450-D: the type "long long" is nonstandard
+     // when using the vanilla EDG eccp in strict mode (i.e., w/o
+     // long long support)
+#    pragma diag_suppress 450
+#  endif   // EDG eccp on Linux
 
 #  include HDRNAME
 
