@@ -690,17 +690,21 @@ BEGIN {
 }
 
 
-# locale, example, or test section
+# component (locale, example, or test) section
 1 == start {
 
+    # store the name of the component
     compname = $1
 
     # trim suffix from component name
     sub("(\\.bat|\\.exe|\\.sh)$", "", compname)
 
+    # store the component status
     compstatus = $2
-    expect     = ""
-    comment    = ""
+
+    # the default expected status is empty (no record for it exists)
+    expect  = ""
+    comment = ""
 
     # append the component name to the list of component names
     # for the current section
@@ -715,18 +719,36 @@ BEGIN {
     # and log
     ++logcompcnts [section, FILENAME]
 
+    # if appropriate, increase the maximum number of components
+    # across all logs
     if (sectmaxcompcnts [section] < logcompcnts [section, FILENAME])
         sectmaxcompcnts [section] = logcompcnts [section, FILENAME]
+
+    # look up the component's name in the array of components each
+    # with a record of the platform(s) and the expecred status of
+    # the component on the platform(s), something like
+    #    "aix-.*-ppc-.*-.*-12{d,D} SEGV STDCXX-123"
+    #   ":linux.*-.*-gcc           ABRT STDCXX-345"
+    #     ^                        ^    ^
+    #     |                        |    |
+    #     |                        |    +-- required comment (issue)
+    #     |                        +-- expected component status
+    #     +-- platform matching ERE pattern
 
     if (compname in expected_statuses)
         expspec = expected_statuses [compname]
     else
         expspec = ""    
 
+    # split the list of platforms/expected statuses into an array
+    # with one element for each status and a pattern matching one
+    # or more platforms
     n = split(expspec, slist, ":")
 
     for (i = 1; i <= n; ++i) {
 
+        # get the platform matching pattern, expected status, and
+        # the required comment
         split(slist [i], fields, " ")
 
         # try to match the log file name against the specified pattern
@@ -739,7 +761,8 @@ BEGIN {
         }
     }
 
-    # class, value, and optional detail for the cell
+    # class (determins the color of the cell), value (the text displayed
+    # in the cell), and the optional detail for the cell
     class  = ""
     value  = ""
     detail = ""
@@ -748,22 +771,25 @@ BEGIN {
     # <class>:[<value>]:[<detail>]
 
     if (0 == compstatus) {
-        # successful exit status
+        # successful exit status: component built but may have failed
+        # assertions or runtime warnings
 
         class = "OK"
 
         if (3 != section) {
-            runwarns = $3
-            asserts  = $4
-            failed   = $5
+            # locales and tests but not examples
+            runwarns = $3   # number of runtime warnings
+            asserts  = $4   # number of assertions tried
+            failed   = $5   # number of failed assertions
 
             if (0 < failed) {
+                # non-zero number of assertions
                 class  = "ASSERT"
                 value  = failed
                 detail = asserts
             }
             else if (0 < runwarns) {
-                # runtime warnings
+                # non-zero runtime warnings
                 class = "RUNWARN"
                 value = "(" runwarns ")"
             }
@@ -840,13 +866,16 @@ BEGIN {
 
         if (expect != "") {
             if (expect == value) {
-                # signal matches the expected signal
+                # received signal matches the expected signal
                 ++xfailcounts [section, FILENAME]
 
-               class = "X" class
+                # prepend "X" to the class/value to indicate that
+                # the signal was expected
+                class = "X" class
+                value = "X" value
             }
             else {
-                # signal doesn't match expected status
+                # received signal doesn't match expected status
                 ++xmatchcounts [section, FILENAME]
 
                 value  = value "<br>(X" expect ")"
