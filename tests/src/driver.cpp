@@ -45,6 +45,10 @@
 #include <stdlib.h>    // for free
 #include <string.h>    // for strchr, strcpy
 
+#ifdef _MSC_VER
+#  include <crtdbg.h>  // for _CrtSetReportMode(), _CrtSetDbgFlag()
+#endif
+
 #if !defined (_WIN32) && !defined (_WIN64)
 #  include <unistd.h>         // for isatty()
 #  include <sys/resource.h>   // for setlimit()
@@ -488,6 +492,12 @@ _rw_opt_verbose (int argc, char *argv[])
     // set mode: enable the option
     opt_verbose = 1;
 
+#ifdef _MSC_VER
+    _CrtSetDbgFlag (  _CRTDBG_ALLOC_MEM_DF
+                    | _CRTDBG_CHECK_ALWAYS_DF
+                    | _CRTDBG_LEAK_CHECK_DF);
+#endif
+
     return 0;
 }
 
@@ -536,6 +546,12 @@ _rw_opt_compat (int argc, char *argv[])
 
     // set mode: enable the option
     opt_compat = 1;
+
+#ifdef _MSC_VER
+    _CrtSetReportMode (_CRT_WARN, _CRTDBG_MODE_DEBUG);
+    _CrtSetReportMode (_CRT_ERROR, _CRTDBG_MODE_DEBUG);
+    _CrtSetReportMode (_CRT_ASSERT, _CRTDBG_MODE_DEBUG);
+#endif
 
     return 0;
 }
