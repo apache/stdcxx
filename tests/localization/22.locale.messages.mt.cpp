@@ -246,7 +246,7 @@ run_test (int, char**)
 
     rw_info (0, 0, 0,
              "testing std::messages<charT> with %d thread%{?}s%{;}, "
-             "%zu iteration%{?}s%{;} each",
+             "%d iteration%{?}s%{;} each",
              rw_opt_nthreads, 1 != rw_opt_nthreads,
              rw_opt_nloops, 1 != rw_opt_nloops);
 
