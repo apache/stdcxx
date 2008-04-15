@@ -1902,6 +1902,36 @@ __rw_atomic_exchange (unsigned _RWSTD_LONG_LONG &__x,
 #  define _RWSTD_NO_ATOMIC_OPS
 #endif   // _RWSTD_NO_ATOMIC_OPS
 
+
+/********************** generic bool functions ************************/
+
+#ifndef _RWSTD_NO_BOOL
+
+#  if _RWSTD_BOOL_SIZE == _RWSTD_CHAR_SIZE
+#    define _RWSTD_BOOL_TYPE char
+#  elif _RWSTD_BOOL_SIZE == _RWSTD_SHORT_SIZE
+#    define _RWSTD_BOOL_TYPE short
+#  elif _RWSTD_BOOL_SIZE == _RWSTD_INT_SIZE
+#    define _RWSTD_BOOL_TYPE int
+#  endif
+
+#  ifdef _RWSTD_BOOL_TYPE
+
+inline bool
+__rw_atomic_exchange (bool &__x, bool __y, bool)
+{
+    return 0 != __rw_atomic_exchange (
+                    _RWSTD_REINTERPRET_CAST (_RWSTD_BOOL_TYPE&, __x),
+                    _RWSTD_STATIC_CAST (_RWSTD_BOOL_TYPE, __y),
+                    false);
+}
+
+#    undef _RWSTD_BOOL_TYPE
+#  endif   // _RWSTD_BOOL_TYPE
+
+#endif   // _RWSTD_NO_BOOL
+
+
 /********************** generic long functions ************************/
 
 #if _RWSTD_LONG_SIZE == _RWSTD_INT_SIZE
