@@ -3279,38 +3279,6 @@ stress_bufsize ()
 
 /***********************************************************************/
 
-static void
-test_reallocate ()
-{
-    static const char abc[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-
-    char buffer [4] = { 0 };
-    char *buf = buffer;
-
-    size_t bufsize = sizeof buffer;
-
-    const int n = rw_asnprintf (&buf, &bufsize, "%s", abc);
-
-    if (n != 26 || strcmp (abc, buf)) {
-        ++nfailures;
-
-        fprintf (stderr, "# Assertion failed on line %d: "
-                         "rw_asnprintf(...) == \"%s\", got \"%s\"\n",
-                         __LINE__, abc, buf);
-    }
-
-    if (buf != buffer)
-        free (buf);
-    else {
-        ++nfailures;
-
-        fprintf (stderr, "# Assertion failed on line %d: "
-                         "rw_asnprintf(...) failed to reallocate buffer\n",
-                         __LINE__);
-    }
-}
-
-
 int main ()
 {
     test_percent ();
@@ -3358,8 +3326,6 @@ int main ()
     test_nested_format ();
 
     test_malformed_directives ();
-
-    test_reallocate ();
 
     //////////////////////////////////////////////////////////////////
     if (nfailures) {
