@@ -56,12 +56,14 @@ _RWSTD_NAMESPACE (std) {
 #ifndef _RWSTD_NO_MEMBER_TEMPLATES
 #  ifdef _RWSTD_NO_STRING_OUTLINED_MEMBER_TEMPLATES
 
+_EXPORT
 template <class _CharT, class _Traits, class _Alloc,
           class _StringIter, class _InputIter>
 std::basic_string<_CharT, _Traits, _Alloc>& 
 __rw_replace (std::basic_string<_CharT, _Traits, _Alloc>&, 
               _StringIter, _StringIter, _InputIter, _InputIter);
 
+_EXPORT
 template <class _CharT, class _Traits, class _Alloc,
           class _StringIter, class _InputIter>
 std::basic_string<_CharT, _Traits, _Alloc>& 
