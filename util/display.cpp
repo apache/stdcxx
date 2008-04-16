@@ -118,8 +118,8 @@ print_header_plain (const char* const argv[])
 {
     (void)&argv;
 
-    puts ("NAME                           STATUS WARN ASSERTS FAILED PERCNT"
-          "    USER     SYS    REAL");
+    puts ("NAME                                     STATUS WARN ASSERTS "
+          "FAILED PERCNT    USER     SYS    REAL");
 }
 
 
@@ -144,7 +144,7 @@ print_target_plain (const struct target_opts *defaults)
 
     assert (0 == defaults->verbose);
 
-    printf ("%-30.30s ", target_name);
+    printf ("%-40.40s ", target_name);
 
     /* flush to prevent killing a signal from not displaying the text */
     fflush (stdout);

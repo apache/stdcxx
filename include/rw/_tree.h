@@ -566,8 +566,8 @@ public:
 
     _STD::pair<iterator, bool>
     insert (const value_type &__val, bool __dup) {
-	_STD::pair<iterator, bool> __ret;
-	return _C_insert (__val, __ret, __dup), __ret;
+        _STD::pair<iterator, bool> __ret;
+        return _C_insert (__val, __ret, __dup), __ret;
     }
 
     iterator insert (iterator, const value_type&, bool);

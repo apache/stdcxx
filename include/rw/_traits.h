@@ -25,7 +25,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -84,15 +84,34 @@ _RWSTD_EXPORT _RWSTD_SIZE_T __rw_wcslen (const wchar_t*);
 #  define _RWSTD_WMEMSET   _RW::__rw_wmemset
 #  define _RWSTD_WCSLEN    _RW::__rw_wcslen
 #else   // if !defined (_RWSTDDEBUG) && !defined (_RWSTD_EDG_ECCP)
-#  include _RWSTD_CSTRING   // for memcmp(), ...
-#  include _RWSTD_CWCHAR    // wmemcmp(), ...
 
-#  define _RWSTD_MEMCPY    _RWSTD_C::memcpy
-#  define _RWSTD_MEMCMP    _RWSTD_C::memcmp
-#  define _RWSTD_MEMMOVE   _RWSTD_C::memmove
-#  define _RWSTD_MEMSET    _RWSTD_C::memset
-#  define _RWSTD_STRLEN    _RWSTD_C::strlen
-#  define _RWSTD_MEMCHR    _RWSTD_C::memchr
+#  if 4 <= __GNUG__ && !defined (__INTEL_COMPILER)
+     // use gcc 4.x intrinsic functions
+#    define _RWSTD_MEMCPY    __builtin_memcpy
+#    define _RWSTD_MEMCMP    __builtin_memcmp
+#    define _RWSTD_MEMMOVE   __builtin_memmove
+#    define _RWSTD_MEMSET    __builtin_memset
+#    define _RWSTD_STRLEN    __builtin_strlen
+
+#    if 4 < __GNUG__ || 3 <= __GNUC_MINOR__
+       // __builtin_memchr() is only available in gcc 4.3 and beyond
+#      define _RWSTD_MEMCHR    __builtin_memchr
+#    else   // gcc < 4.3
+#      include _RWSTD_CSTRING   // for memchr()
+#      define _RWSTD_MEMCHR    _RWSTD_C::memchr
+#    endif   // gcc 4.3
+#  else   // gcc < 4.0
+#    include _RWSTD_CSTRING   // for memcmp(), ...
+
+#    define _RWSTD_MEMCPY    _RWSTD_C::memcpy
+#    define _RWSTD_MEMCMP    _RWSTD_C::memcmp
+#    define _RWSTD_MEMMOVE   _RWSTD_C::memmove
+#    define _RWSTD_MEMSET    _RWSTD_C::memset
+#    define _RWSTD_STRLEN    _RWSTD_C::strlen
+#    define _RWSTD_MEMCHR    _RWSTD_C::memchr
+#  endif   // gcc 4.0
+
+#  include _RWSTD_CWCHAR    // wmemcmp(), ...
 
 #  ifndef _RWSTD_NO_WMEMCPY
 #    define _RWSTD_WMEMCPY   _RWSTD_C::wmemcpy

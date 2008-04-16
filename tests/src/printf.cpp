@@ -53,14 +53,11 @@
 #  include <wctype.h>   // for iswalpha(), ...
 #endif   // _RWSTD_NO_WCTYPE_H
 
-#if defined (_WIN32) || defined (_WIN64)
-   // define macros to enable Win98 + WinNT support in <windows.h>
-#  define _WIN32_WINNT 0x0410
-#  define WINVER       0x400
-#  include <windows.h>   // for GetLastError(), IsDebuggerPresent()
+#if defined (_WIN32)
+#  include <windows.h>   // for GetLastError(), OutputDebugString()
 #else
 #  include <dlfcn.h>
-#endif   // _WIN{32,64}
+#endif   // _WIN32
 
 #include <ios>
 #include <iostream>
@@ -451,28 +448,28 @@ _rw_bufcat (Buffer &buf, const char *str, size_t len)
         // for guard block
         static const char guard[] = "\xde\xad\xbe\xef";
 
-        size_t guardsize = sizeof guard - 1;
+        const size_t guardsize = sizeof guard - 1;
 
-        size_t newbufsize = *buf.pbufsize * 2 + guardsize;
+        size_t newbufsize = *buf.pbufsize * 2;
+        if (newbufsize < 16)
+            newbufsize = 16;
 
-        if (newbufsize <= buflen + len + guardsize)
-            newbufsize = 2 * (buflen + len + 1) + guardsize;
+        const size_t requiredsize = buflen + len + 1;
+        if (newbufsize < requiredsize)
+            newbufsize = requiredsize * 2;
 
         // prevent buffer size from exceeding the maximum
         if (buf.maxsize < newbufsize)
             newbufsize = buf.maxsize;
 
-        if (newbufsize < buflen + len + guardsize)
-            guardsize = 0;
-
-        if (newbufsize < buflen + len + guardsize) {
+        if (newbufsize < requiredsize) {
 #ifdef ENOMEM
             errno = ENOMEM;
 #endif   // ENOMEM
             return 0;
         }
 
-        char* const newbuf = (char*)malloc (newbufsize);
+        char* const newbuf = (char*)malloc (newbufsize + guardsize);
 
         // return 0 on failure to allocate, let caller deal with it
         if (0 == newbuf)
@@ -481,17 +478,19 @@ _rw_bufcat (Buffer &buf, const char *str, size_t len)
         memcpy (newbuf, *buf.pbuf, buflen);
 
         // append a guard block to the end of the buffer
-        memcpy (newbuf + newbufsize - guardsize, guard, guardsize);
+        memcpy (newbuf + newbufsize, guard, guardsize);
 
         if (*buf.pbuf) {
-            // verify that we didn't write past the end of the buffer
+            // verify that we didn't write past the end of the buffer and
+            // that the user didn't pass a local or static buffer without
+            // a maxsize format specifier.
             RW_ASSERT (0 == memcmp (*buf.pbuf + *buf.pbufsize,
                                     guard, guardsize));
             free (*buf.pbuf);
         }
 
         *buf.pbuf     = newbuf;
-        *buf.pbufsize = newbufsize - guardsize;
+        *buf.pbufsize = newbufsize;
     }
 
     if (0 != str) {
@@ -625,7 +624,7 @@ _rw_vasnprintf_c99 (FmtSpec *pspec,      // array of processed parameters
         RW_ASSERT (0 != *buf.pbuf);
 
         // len = int (strlen (*buf.pbuf));
-        len = buf.endoff;
+        len = int (buf.endoff);
 
         spec.param.ptr_ = PARAM (ptr_, pva);
 
@@ -977,6 +976,7 @@ rw_vasnprintf (char **pbuf, size_t *pbufsize, const char *fmt, va_list varg)
         // over it
         fmt        += 4;
         buf.endoff  = *buf.pbuf ? strlen (*buf.pbuf) : 0;
+        RW_ASSERT (buf.endoff < *buf.pbufsize || !*buf.pbuf);
     }
     else if (*buf.pbuf)
         **buf.pbuf = '\0';
@@ -1056,73 +1056,51 @@ _rw_fmtlong (const FmtSpec &spec, Buffer &buf, long val)
     char buffer [130];   // big enough for a 128-bit long in base 2
     char *end = buffer;
 
-    long upoff = 0;
-    const char *pfx = 0;
+    // 7.19.6.1 of ISO/IEC 9899:1999:
+    //   The result of converting a zero value with a precision
+    //   of zero is no characters.
+    if (spec.prec || val) {
+        const long upoff = 'X' == spec.cvtspec ? 36 : 0;
+        const int base = 1 < spec.base && spec.base < 37 ? spec.base : 10;
+        const bool is_signed = 'd' == spec.cvtspec || 'i' == spec.cvtspec;
+        const bool neg = 0 > val && is_signed;
 
-    if ('X' == spec.cvtspec)
-        upoff  = 36;
+        ULong uval = ULong (neg ? -val : val);
 
-    if (spec.fl_pound) {
-        if (16 == spec.base)
-            pfx = upoff ? "0X" : "0x";
-        else if (8 == spec.base && val)
-            pfx = "0";
-    }
+        do {
+            *end++ = _rw_digits [upoff + uval % base];
+        } while (uval /= base);
 
-    const int base = 1 < spec.base && spec.base < 37 ? spec.base : 10;
-
-    ULong uval;
-
-    bool neg;
-
-    if (val < 0) {
-        neg  = 'd' == spec.cvtspec || 'i' == spec.cvtspec;
-        uval = ULong (neg ? -val : val);
-    }
-    else {
-        neg  = false;
-        uval = ULong (val);
-    }
-
-    do {
-        *end++ = _rw_digits [upoff + uval % base];
-    } while (uval /= base);
-
-    int size = int (end - buffer);
-
-    // insert as many zeros as specified by precision
-    if (-1 < spec.prec && size < spec.prec) {
+        // insert as many zeros as specified by precision
         // FIXME: prevent buffer overrun
-        for (int i = size; i != spec.prec; ++i)
+        for (int i = int (end - buffer); i < spec.prec; ++i)
             *end++ = '0';
-    }
 
-    // insert octal or hex prefix for non-zero values
-    if (pfx && val) {
-        if (pfx [1])
-            *end++ = pfx [1];
-        *end++ = pfx [0];
-    }
+        // insert octal or hex prefix for non-zero values
+        if (spec.fl_pound && val) {
+            switch (spec.base) {
+            case 16:
+                *end++ = upoff ? 'X' : 'x';
+                // fall through
+            case 8:
+                *end++ = '0';
+                break;
+            }
+        }
 
-    if (neg)
-        *end++ = '-';
-    else if (spec.fl_plus && ('d' == spec.cvtspec || 'i' == spec.cvtspec))
-        *end++ = '+';
-
-    if (0 == spec.prec && 0 == val) {
-        // 7.19.6.1 of ISO/IEC 9899:1999:
-        //   The result of converting a zero value with a precision
-        //   of zero is no characters.
-        end = buffer;
+        if (neg)
+            *end++ = '-';
+        else if (spec.fl_plus && is_signed)
+            *end++ = '+';
     }
 
     // not NUL-terminated
     RW_ASSERT (buffer <= end);
-    size = int (end - buffer);
+    const size_t size = size_t (end - buffer);
 
-    for (char *pc = buffer; pc < end; ++pc) {
+    for (char *pc = buffer; pc < --end; ++pc) {
         const char tmp = *pc;
-        *pc = *--end;
+        *pc = *end;
         *end = tmp;
     }
 
@@ -1132,7 +1110,7 @@ _rw_fmtlong (const FmtSpec &spec, Buffer &buf, long val)
     newspec.prec = -1;
 
     // handle justification by formatting the resulting string
-    return _rw_fmtstr (newspec, buf, buffer, size_t (size));
+    return _rw_fmtstr (newspec, buf, buffer, size);
 }
 
 /********************************************************************/
@@ -1145,79 +1123,62 @@ _rw_fmtllong (const FmtSpec &spec, Buffer &buf, _RWSTD_LONG_LONG val)
     char buffer [130];   // big enough for a 128-bit long long in base 2
     char *end = buffer;
 
-    long upoff = 0;
-    const char *pfx = 0;
+    // 7.19.6.1 of ISO/IEC 9899:1999:
+    //   The result of converting a zero value with a precision
+    //   of zero is no characters.
+    if (spec.prec || val) {
+        const long upoff = 'X' == spec.cvtspec ? 36 : 0;
+        const int base = 1 < spec.base && spec.base < 37 ? spec.base : 10;
+        const bool is_signed = 'd' == spec.cvtspec || 'i' == spec.cvtspec;
+        const bool neg = 0 > val && is_signed;
 
-    if ('X' == spec.cvtspec)
-        upoff  = 36;
+        typedef unsigned _RWSTD_LONG_LONG ULLong;
+        ULLong uval = ULLong (neg ? -val : val);
 
-    if (spec.fl_pound) {
-        if (16 == spec.base)
-            pfx = upoff ? "0X" : "0x";
-        else if (8 == spec.base && val)
-            pfx = "0";
-    }
+        do {
+            *end++ = _rw_digits [upoff + uval % base];
+        } while (uval /= base);
 
-    const int base = 1 < spec.base && spec.base < 37 ? spec.base : 10;
-
-    typedef unsigned _RWSTD_LONG_LONG ULLong;
-
-    ULLong uval;
-
-    bool neg;
-
-    if (val < 0) {
-        neg  = 'd' == spec.cvtspec || 'i' == spec.cvtspec;
-        uval = ULLong (neg ? -val : val);
-    }
-    else {
-        neg  = false;
-        uval = ULLong (val);
-    }
-
-    do {
-        *end++ = _rw_digits [upoff + uval % base];
-    } while (uval /= base);
-
-    if (pfx) {
-        if (pfx [1])
-            *end++ = pfx [1];
-        *end++ = pfx [0];
-    }
-
-    char sign;
-
-    if (neg)
-        sign = '-';
-    else if (spec.fl_plus && ('d' == spec.cvtspec || 'i' == spec.cvtspec))
-        sign= '+';
-    else
-        sign = '\0';
-
-    RW_ASSERT (buffer < end);
-    size_t size = size_t (end - buffer);
-
-    // FIXME: prevent buffer overrun
-    if (0 < spec.prec && size < size_t (spec.prec)) {
-        for (size_t i = size; i != size_t (spec.prec); ++i)
+        // insert as many zeros as specified by precision
+        // FIXME: prevent buffer overrun
+        for (int i = int (end - buffer); i < spec.prec; ++i)
             *end++ = '0';
-    }
 
-    if (sign)
-        *end++ = sign;
+        // insert octal or hex prefix for non-zero values
+        if (spec.fl_pound && val) {
+            switch (spec.base) {
+            case 16:
+                *end++ = upoff ? 'X' : 'x';
+                // fall through
+            case 8:
+                *end++ = '0';
+                break;
+            }
+        }
+
+        if (neg)
+            *end++ = '-';
+        else if (spec.fl_plus && is_signed)
+            *end++ = '+';
+    }
 
     // not NUL-terminated
-    RW_ASSERT (buffer < end);
-    size = size_t (end - buffer);
+    RW_ASSERT (buffer <= end);
+    const size_t size = size_t (end - buffer);
 
-    for (char *pc = buffer; pc < end; ++pc) {
+    for (char *pc = buffer; pc < --end; ++pc) {
         const char tmp = *pc;
-        *pc = *--end;
+        *pc = *end;
         *end = tmp;
     }
 
+    // reset precision to -1 (already handled above)
+    FmtSpec newspec (spec);
+    newspec.fl_pound = 0;
+    newspec.prec = -1;
+
     // handle justification by formatting the resulting string
-    return _rw_fmtstr (spec, buf, buffer, size);
+    return _rw_fmtstr (newspec, buf, buffer, size);
 }
 
 #endif   // _RWSTD_LONG_LONG
@@ -1569,11 +1530,6 @@ _rw_fmtpointer (const FmtSpec &spec, Buffer &buf,
     // set the number of digits
     newspec.prec = _RWSTD_LONG_SIZE * 2;
 
-    const union {
-        const void          *ptr;
-        const ULong *lptr;
-    } uptr = { pptr };
-
     int len = 0;
 
     if (newspec.fl_pound) {
@@ -1587,23 +1543,17 @@ _rw_fmtpointer (const FmtSpec &spec, Buffer &buf,
         newspec.fl_pound  = 0;
     }
 
+    const union {
+        const void          *ptr;
+        const ULong *lptr;
+    } uptr = { pptr };
+
     for (size_t i = 0; i != nelems; ++i) {
-        const size_t inx = _rw_big_endian ? nelems - i - 1 : i;
+        const size_t inx = _rw_big_endian ? i : nelems - i - 1;
 
-        len += _rw_fmtlong (newspec, buf, uptr.lptr [inx]);
-
-        if (len < 0) {
-            break;
-        }
-
-        // separate pointer components with colons
-        int n = 0;
-        if (i + 1 < nelems) {
-            if (0 == _rw_bufcat (buf, ":", size_t (n = 1))) {
-                len = -1;
-                break;
-            }
-        }
+        int n = _rw_fmtlong (newspec, buf, uptr.lptr [inx]);
+        if (n < 0) 
+            return -1;
 
         len += n;
     }
@@ -1649,7 +1599,7 @@ _rw_fmtbadaddr (const FmtSpec &spec, Buffer &buf,
     if (0 == _rw_bufcat (buf, ")", 1))
         return -1;
 
-    return buf.endoff - off;
+    return int (buf.endoff - off);
 }
 
 /********************************************************************/
@@ -2030,7 +1980,7 @@ int _rw_fmtarray (const FmtSpec &spec,
             // repeated occurrences of the element to conserve
             // space and make the string more readable
 
-            const long repeat = pelem - last;
+            const long repeat = long (pelem - last);
 
             if (flags & (A_CHAR | A_WCHAR)) {
                 // format element into elemstr as a character
@@ -3376,8 +3326,15 @@ rw_snprintf (char *buf, size_t bufsize, const char *fmt, ...)
 
     va_end (va);
 
-    if (size_t (nchars) <= bufsize)
-        memcpy (buf, tmpbuf, size_t (nchars));
+    if (size_t (nchars) < bufsize) {
+        memcpy (buf, tmpbuf, size_t (nchars + 1 /* NUL */));
+    }
+    else {
+        // buffer isn't big enough
+        memcpy (buf, tmpbuf, bufsize);
+        if (bufsize)
+            buf [bufsize - 1] = '\0';
+    }
 
     free (tmpbuf);
 
@@ -3422,25 +3379,17 @@ _rw_vfprintf (rw_file *file, const char *fmt, va_list va)
             //        for async-signal safety
             FILE* const stdio_file = _RWSTD_REINTERPRET_CAST (FILE*, file);
 
-            nwrote = fwrite (buf, 1, size_t (nchars), stdio_file);
+            nwrote = int (fwrite (buf, 1, size_t (nchars), stdio_file));
 
             // flush in case stderr isn't line-buffered (e.g., when
             // it's determined not to refer to a terminal device,
             // for example after it has been redirected to a file)
             fflush (stdio_file);
 
-#ifdef _MSC_VER
-
-            // IsDebuggerPresent() depends on the macros _WIN32_WINNT
-            // and WINVER being appropriately #defined prior to the
-            // #inclusion of <windows.h>
-            if (IsDebuggerPresent ()) {
-
-                // write string to the attached debugger (if any)
-                OutputDebugString (buf);
-            }
-
-#endif   // _MSC_VER
+#ifdef _WIN32
+            // write string to the attached debugger (if any)
+            OutputDebugString (buf);
+#endif   // _WIN32
 
         }
     }

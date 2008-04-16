@@ -42,10 +42,10 @@ _RWSTD_NAMESPACE (__rw) {
 enum encoding_type
 {
     stateless,
-    iso2022_jp, 	 /* stateful ISO-2022-JP encoding  */
+    iso2022_jp,          /* stateful ISO-2022-JP encoding  */
     iso2022_jp2,         /* stateful ISO-2022-JP2 encoding */
-    iso2022_kr, 	 /* stateful ISO-2022-KR encoding  */
-    iso2022_cn  	 /* stateful ISO-2022-CN encoding  */
+    iso2022_kr,          /* stateful ISO-2022-KR encoding  */
+    iso2022_cn           /* stateful ISO-2022-CN encoding  */
 };
 typedef enum encoding_type encoding_type_t;
 

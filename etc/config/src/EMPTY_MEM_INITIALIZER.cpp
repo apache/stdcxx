@@ -55,8 +55,8 @@ int bar ()
 
     // member must be default-initialized (zeroed out)
     for (int i = 0; i != sizeof s; ++i)
-	if (*p)
-	    return 0;
+        if (*p)
+            return 0;
     return 1;
 }
 

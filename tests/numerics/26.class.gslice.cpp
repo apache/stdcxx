@@ -93,7 +93,7 @@ next_index (const std::gslice &gsl, std::valarray<std::size_t> &factors)
     }
 
     while (inx && factors [inx - 1] == asizes [inx - 1] - 1)
-	--inx;
+        --inx;
 
     if (0 == inx) {
         factors = 0;

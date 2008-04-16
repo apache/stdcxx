@@ -28,6 +28,8 @@
 #define RW_23_LIST_H_INCLUDED
 
 #include <23.containers.h>
+#include <driver.h>         // for rw_assert()
+#include <rw_sigdefs.h>     // for helper macros
 
 /**************************************************************************/
 
@@ -36,9 +38,6 @@
 // of their signatures, and specific overloads of such member functions
 struct ListIds : ContainerIds
 {
-// define the helper macros
-#include <rw_sigdefs.h>
-
     // unique identifiers for all overloads of each member function
     //     6 bits for FuncId
     // 6 * 4 bits for ArgId (at most 6 arguments including this)

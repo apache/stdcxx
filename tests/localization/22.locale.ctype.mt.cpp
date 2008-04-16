@@ -49,8 +49,18 @@ int opt_nthreads = 1;
 // otherwise on the command line)
 int opt_nloops = 200000;
 
+#if !defined (_RWSTD_OS_HP_UX) || defined (_ILP32)
+
 // number of locales to use
 int opt_nlocales = MAX_THREADS;
+
+#else   // HP-UX in LP64 mode
+
+// work around an inefficiency (small cache size?) on HP-UX
+// in LP64 mode (see STDCXX-812)
+int opt_nlocales = 10;
+
+#endif   // HP-UX 32/64 bit mode
 
 // should all threads share the same set of locale objects instead
 // of creating their own?
@@ -238,7 +248,7 @@ run_test (int, char**)
 
     rw_info (0, 0, 0,
              "testing std::ctype<charT> with %d thread%{?}s%{;}, "
-             "%zu iteration%{?}s%{;} each, in %zu locales { %{ .*A@} }",
+             "%d iteration%{?}s%{;} each, in %zu locales { %{ .*A@} }",
              opt_nthreads, 1 != opt_nthreads,
              opt_nloops, 1 != opt_nloops,
              nlocales, int (nlocales), "%#s", locales);

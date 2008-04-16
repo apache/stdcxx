@@ -59,7 +59,10 @@ int main (int argc, char *argv[])
         slash = std::strrchr (cmdline, '\\');
     }
 
-    std::strcpy (slash ? slash + 1 : cmdline, localedef);
+    if (slash)
+        std::strcpy (slash + 1, localedef);
+    else
+        std::strcpy (cmdline, localedef);
 
     std::strcat (cmdline, " ");
     std::strcat (cmdline, argv_1);

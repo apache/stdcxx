@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2001-2006 Rogue Wave Software.
+ * Copyright 2001-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -33,6 +33,13 @@
 
 #include <stdio.h>    // for snprintf()
 #include <string.h>   // for memmove(), memset()
+
+#include <float.h>   // for _finite(), _fpclass(), _isnan(), _copysign()
+#include <math.h>    // for isfinite(), isnan(), isinf(), signbit()
+
+#ifndef _RWSTD_NO_IEEEFP_H
+#  include <ieeefp.h>   // for fpclass(), isnan()
+#endif   // _RWSTD_NO_IEEEFP_H
 
 #include <loc/_num_put.h>
 
@@ -65,11 +72,165 @@ snprintf (char*, _RWSTD_SIZE_T, const char*, ...) _LIBC_THROWS ();
 #  endif   // _RWSTD_NO_SNPRINTF_IN_LIBC
 #endif   // _RWSTD_NO_SNPRINTF
 
+
 _RWSTD_NAMESPACE (__rw) { 
 
 static const char __rw_digits[] =
     "0123456789abcdefghijklmnopqrstuvwxyz"
     "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+
+#if defined (_MSC_VER)
+
+inline bool __rw_isfinite (double val) { return !!_finite (val); }
+
+inline bool __rw_signbit (double val) { return 0 > _copysign (1., val); }
+
+inline bool __rw_isinf (double val) {
+    const int fpc = _fpclass (val);
+
+    if (_FPCLASS_NINF == fpc) {
+        // verify that __rw_signbit() correctly determines
+        // the sign of negative infinity
+        _RWSTD_ASSERT (__rw_signbit (val));
+        return true;
+    }
+    else if (_FPCLASS_PINF == fpc) {
+        // verify that __rw_signbit() correctly determines
+        // the sign of positive infinity
+        _RWSTD_ASSERT (!__rw_signbit (val));
+        return true;
+    }
+
+    return false;
+}
+
+inline bool __rw_isnan (double val) { return !!_isnan (val); }
+
+inline bool __rw_isqnan (double val) {
+    return _FPCLASS_QNAN == _fpclass (val);
+}
+
+inline bool __rw_issnan (double val) {
+    return _FPCLASS_SNAN == _fpclass (val);
+}
+
+#elif defined (_RWSTD_OS_SUNOS)
+
+inline bool __rw_isfinite (double val) { return !!finite (val); }
+
+inline bool __rw_signbit (double val)
+{
+    // implement own signbit() to avoid dragging in libm or libsunmath
+    return _RWSTD_REINTERPRET_CAST (const _RWSTD_UINT64_T&, val) >> 63;
+}
+
+inline bool __rw_isinf (double val) {
+    const int fpc = fpclass (val);
+
+    if (FP_NINF == fpc) {
+        // verify that __rw_signbit() correctly determines
+        // the sign of negative infinity
+        _RWSTD_ASSERT (__rw_signbit (val));
+        return true;
+    }
+    else if (FP_PINF == fpc) {
+        // verify that __rw_signbit() correctly determines
+        // the sign of positive infinity
+        _RWSTD_ASSERT (!__rw_signbit (val));
+        return true;
+    }
+
+    return false;
+}
+
+inline bool __rw_isnan (double val) { return 0 != isnan (val); }
+
+inline bool __rw_isqnan (double val) { return FP_QNAN == fpclass (val); }
+
+inline bool __rw_issnan (double val) { return FP_SNAN == fpclass (val); }
+
+#elif defined (fpclassify)
+
+inline bool __rw_isfinite (double val) { return !!isfinite (val); }
+
+inline bool __rw_signbit (double val) { return !!signbit (val); }
+
+inline bool __rw_isinf (double val) { return !!isinf (val); }
+
+inline bool __rw_isnan (double val) { return !!isnan (val); }
+
+inline bool __rw_isqnan (double val) { return false; }
+
+inline bool __rw_issnan (double val) { return false; }
+
+#else
+
+inline bool __rw_isfinite (double) { return true; }
+
+inline bool __rw_signbit (double) { return false; }
+
+inline bool __rw_isinf (double) { return false; }
+
+inline bool __rw_isnan (double) { return false; }
+
+inline bool __rw_isqnan (double) { return false; }
+
+inline bool __rw_issnan (double) { return false; }
+
+#endif
+
+
+static int
+__rw_fmat_infinite (char *buf, size_t bufsize, double val, unsigned flags)
+{
+    _RWSTD_ASSERT (!__rw_isfinite (val));
+    _RWSTD_ASSERT (5 <= bufsize);
+
+    char* end = buf;
+    const bool cap = !!(flags & _RWSTD_IOS_UPPERCASE);
+
+    if (__rw_isinf (val)) {
+        if (__rw_signbit (val)) {
+            *end++ = '-';
+        }
+        else if (flags & _RWSTD_IOS_SHOWPOS) {
+            *end++ = '+';
+        }
+
+        const char str [] = "iInNfF";
+        *end++ = str [cap + 0];
+        *end++ = str [cap + 2];
+        *end++ = str [cap + 4];
+    }
+    else {
+        _RWSTD_ASSERT (__rw_isnan (val));
+#if 0
+        // disabled since not all platforms correctly handling sign of NaN's
+        if (__rw_signbit (val)) {
+            *end++ = '-';
+        }
+        else if (flags & _RWSTD_IOS_SHOWPOS) {
+            *end++ = '+';
+        }
+#endif
+
+        const char str [] = "nNaAqQsS";
+        *end++ = str [cap + 0];
+        *end++ = str [cap + 2];
+        *end++ = str [cap + 0];
+#if 0
+        // disabled since not all platforms supporting 
+        // the quiet and signaling NaN's
+        if (__rw_isqnan (val))
+            *end++ = str [cap + 4];
+        else if (__rw_issnan (val))
+            *end++ = str [cap + 6];
+#endif
+    }
+
+    return int (end - buf);
+}
 
 
 #ifdef _RWSTD_LONG_LONG
@@ -778,88 +939,112 @@ __rw_put_num (char **pbuf, _RWSTD_SIZE_T bufsize,
 
 #endif   // _RWSTD_LONG_LONG
 
-    case __rw_facet::_C_float | __rw_facet::_C_ptr:
-        fpr = prec < 0 && flags & _RWSTD_IOS_FIXED ? 0 : prec;
-        fmt = __rw_get_stdio_fmat (fmtbuf, type & ~__rw_facet::_C_ptr,
-                                   flags, fpr);
-        for (; ;) {
-            len = SizeT (_SNPRINTF (*pbuf, bufsize, fmt,
-                                    *(const float*)pval));
-
-            if (len >= bufsize) {
-                if (*pbuf != buf)
-                    delete[] *pbuf;
-
-                *pbuf = new char [bufsize = len + 1 ? len + 1 : bufsize * 2];
+    case __rw_facet::_C_float | __rw_facet::_C_ptr: {
+            const float fval = *(const float*)pval;
+            if (!__rw_isfinite (fval)) {
+                len = __rw_fmat_infinite (*pbuf, bufsize, fval, flags);
+                end = *pbuf + len;
             }
             else {
-                _RWSTD_ASSERT (len > 0);
+                fpr = prec < 0 && flags & _RWSTD_IOS_FIXED ? 0 : prec;
+                fmt = __rw_get_stdio_fmat (fmtbuf, type & ~__rw_facet::_C_ptr,
+                                           flags, fpr);
+                for (; ;) {
+                    len = SizeT (_SNPRINTF (*pbuf, bufsize, fmt, fval));
 
-                break;
+                    if (len >= bufsize) {
+                        if (*pbuf != buf)
+                            delete[] *pbuf;
+
+                        bufsize = len + 1 ? len + 1 : bufsize * 2;
+                        *pbuf = new char [bufsize];
+                    }
+                    else {
+                        _RWSTD_ASSERT (len > 0);
+
+                        break;
+                    }
+                }
+
+                end = *pbuf + len;
+
+                // fix up output to conform to C99
+                __rw_fix_flt (end, len, flags, fpr);
             }
         }
-
-        end = *pbuf + len;
-
-        // fix up output to conform to C99
-        __rw_fix_flt (end, len, flags, fpr);
         break;
 
-    case __rw_facet::_C_double | __rw_facet::_C_ptr:
-        fpr = prec < 0 && flags & _RWSTD_IOS_FIXED ? 0 : prec;
-        fmt = __rw_get_stdio_fmat (fmtbuf, type & ~__rw_facet::_C_ptr,
-                                   flags, fpr);
-
-        for ( ; ; ) {
-            len = SizeT (_SNPRINTF (*pbuf, bufsize, fmt,
-                                    *(const double*)pval));
-
-            if (len >= bufsize) {
-                if (*pbuf != buf)
-                    delete[] *pbuf;
-
-                *pbuf = new char [bufsize = len + 1 ? len + 1 : bufsize * 2];
+    case __rw_facet::_C_double | __rw_facet::_C_ptr: {
+            const double dval = *(const double*)pval;
+            if (!__rw_isfinite (dval)) {
+                len = __rw_fmat_infinite (*pbuf, bufsize, dval, flags);
+                end = *pbuf + len;
             }
             else {
-                _RWSTD_ASSERT (len > 0);
+                fpr = prec < 0 && flags & _RWSTD_IOS_FIXED ? 0 : prec;
+                fmt = __rw_get_stdio_fmat (fmtbuf, type & ~__rw_facet::_C_ptr,
+                                           flags, fpr);
 
-                break;
+                for ( ; ; ) {
+                    len = SizeT (_SNPRINTF (*pbuf, bufsize, fmt, dval));
+
+                    if (len >= bufsize) {
+                        if (*pbuf != buf)
+                            delete[] *pbuf;
+
+                        bufsize = len + 1 ? len + 1 : bufsize * 2;
+                        *pbuf = new char [bufsize];
+                    }
+                    else {
+                        _RWSTD_ASSERT (len > 0);
+
+                        break;
+                    }
+                }
+
+                end = *pbuf + len;
+
+                // fix up output to conform to C99
+                __rw_fix_flt (end, len, flags, fpr);
             }
         }
-
-        end = *pbuf + len;
-
-        // fix up output to conform to C99
-        __rw_fix_flt (end, len, flags, fpr);
         break;
 
 #ifndef _RWSTD_NO_LONG_DOUBLE
 
-    case __rw_facet::_C_ldouble | __rw_facet::_C_ptr:
-        fpr = prec < 0 && flags & _RWSTD_IOS_FIXED ? 0 : prec;
-        fmt = __rw_get_stdio_fmat (fmtbuf, type & ~__rw_facet::_C_ptr,
-                                   flags, fpr);
-
-        for ( ; ; ) {
-            len = SizeT (_SNPRINTF (*pbuf, bufsize, fmt,
-                                    *(const long double*)pval));
-            if (len >= bufsize) {
-                if (*pbuf != buf)
-                    delete[] *pbuf;
-
-                *pbuf = new char [bufsize = len + 1 ? len + 1 : bufsize * 2];
+    case __rw_facet::_C_ldouble | __rw_facet::_C_ptr: {
+            const long double ldval = *(const long double*)pval;
+            if (!__rw_isfinite (ldval)) {
+                len = __rw_fmat_infinite (*pbuf, bufsize, ldval, flags);
+                end = *pbuf + len;
             }
             else {
-                _RWSTD_ASSERT (len > 0);
+                fpr = prec < 0 && flags & _RWSTD_IOS_FIXED ? 0 : prec;
+                fmt = __rw_get_stdio_fmat (fmtbuf, type & ~__rw_facet::_C_ptr,
+                                           flags, fpr);
 
-                break;
+                for ( ; ; ) {
+                    len = SizeT (_SNPRINTF (*pbuf, bufsize, fmt, ldval));
+                    if (len >= bufsize) {
+                        if (*pbuf != buf)
+                            delete[] *pbuf;
+
+                        bufsize = len + 1 ? len + 1 : bufsize * 2;
+                        *pbuf = new char [bufsize];
+                    }
+                    else {
+                        _RWSTD_ASSERT (len > 0);
+
+                        break;
+                    }
+                }
+
+                end = *pbuf + len;
+
+                // fix up output to conform to C99
+                __rw_fix_flt (end, len, flags, fpr);
             }
         }
-
-        end = *pbuf + len;
-
-        // fix up output to conform to C99
-        __rw_fix_flt (end, len, flags, fpr);
         break;
 
 #endif   // _RWSTD_NO_LONG_DOUBLE

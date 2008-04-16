@@ -72,8 +72,8 @@
 
 _RWSTD_NAMESPACE (__rw) { 
 
-// "setlocale" synchronization
-static __rw_mutex __rw_setlocale_mutex;
+// "setlocale" synchronization (internal, not exported)
+__rw_mutex __rw_setlocale_mutex;
 
 // ctor changes the C library locale, saving the old locale to be 
 // restored by the dtor

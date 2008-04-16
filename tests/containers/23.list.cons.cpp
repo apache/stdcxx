@@ -355,8 +355,8 @@ struct ConsRangePtrOverload: ContRangeBase<List> {
         const ListVal* const beg = tdata.arg_ + tdata.off2_;
         const ListVal* const end = beg + tdata.ext2_;
 
-        const Iterator first = _RWSTD_CONST_CAST (const Iterator, beg);
-        const Iterator last  = _RWSTD_CONST_CAST (const Iterator, end);
+        const Iterator first = _RWSTD_CONST_CAST (Iterator, beg);
+        const Iterator last  = _RWSTD_CONST_CAST (Iterator, end);
 
         if (Cons (range_alloc) == tdata.func_.which_) {
             ListAlloc alloc;
@@ -483,6 +483,7 @@ void test_cons (T*, Allocator*, const ContRangeBase<
         const bool is_class = ListIds::UserClass == func.elem_id_;
 
         const std::size_t x_count_save = UserClass::count_;
+        const std::size_t arg_count    = std::size_t (tcase.size);
 
         try {
             ListIds::OverloadId which =
@@ -507,15 +508,15 @@ void test_cons (T*, Allocator*, const ContRangeBase<
                 break;
 
             case Cons (size):
-                ret_ptr = new List (tcase.size);
+                ret_ptr = new List (arg_count);
                 break;
 
             case Cons (size_cref):
-                ret_ptr = new List (tcase.size, arg_val);
+                ret_ptr = new List (arg_count, arg_val);
                 break;
 
             case Cons (size_cref_alloc):
-                ret_ptr = new List (tcase.size, arg_val, arg_alc);
+                ret_ptr = new List (arg_count, arg_val, arg_alc);
                 break;
 
             case Cons (range):
@@ -959,7 +960,6 @@ DEFINE_CONTAINER_TEST_FUNCTIONS (test_cons);
 int main (int argc, char** argv)
 {
     std::list<int> lst;
-    std::list<int>::iterator it = lst.begin ();
 
     static const ContainerTest
     tests [] = {

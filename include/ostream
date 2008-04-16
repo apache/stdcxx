@@ -23,7 +23,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -294,12 +294,27 @@ template<class _CharT, class _Traits>
 inline basic_ostream<_CharT, _Traits>&
 basic_ostream<_CharT, _Traits>::_C_opfx ()
 {
-    basic_ostream* const __tie = this->tie ();
+    basic_ostream* __tie = this->tie ();
 
-    // flush tied stream only if its buffer is distinct from that
-    // of *this for greater efficiency and to to prevent a deadlock 
-    if (__tie && this->good () && __tie->rdbuf () != this->rdbuf ())
-        __tie->flush ();
+    if (__tie && this->good ()) {
+
+        // detect and avoid flushing streams that are tied together
+        // or that share the same buffer to prevent deadlock or
+        // infinite recursion
+        const basic_ostream *__p0, *__p1;
+
+        // traverse the list of tied streams looking for a cycle
+        for (__p0 = this, __p1 = this->tie (); __p0 && __p1;
+             __p0 = __p0->tie (),
+                 __p1 = __p1->tie () ? __p1->tie ()->tie () : 0)
+            if (__p0 == __p1 || __p0->rdbuf () == __p1->rdbuf ()) {
+                __tie = 0;
+                break;
+            }
+
+        if (__tie)
+            __tie->flush ();
+    }
 
     if (_C_is_sync ())
         _RW::__rw_fflush (_RWSTD_STATIC_CAST (ios_base*, this), 0);

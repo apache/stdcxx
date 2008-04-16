@@ -1,0 +1,221 @@
+########################################################################
+#
+# languages - defines mapping between canonical and native language
+#             names as per ISO-639-1
+#
+# $Id$
+#
+########################################################################
+#
+# Licensed to the Apache Software  Foundation (ASF) under one or more
+# contributor  license agreements.  See  the NOTICE  file distributed
+# with  this  work  for  additional information  regarding  copyright
+# ownership.   The ASF  licenses this  file to  you under  the Apache
+# License, Version  2.0 (the  "License"); you may  not use  this file
+# except in  compliance with the License.   You may obtain  a copy of
+# the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the  License is distributed on an  "AS IS" BASIS,
+# WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+# implied.   See  the License  for  the  specific language  governing
+# permissions and limitations under the License.
+#
+# Copyright 2001-2008 Rogue Wave Software, Inc.
+# 
+##########################################################################
+
+aa    aar, Afar
+ab    abk, Abkhazian
+ae    ave, Avestan
+af    afr, Afrikaans
+ak    aka, Akan
+am    amh, Amharic
+an    arg, Aragonese
+ar    ara, Arabic
+as    asm, Assamese
+av    ava, Avaric
+ay    aym, Aymara
+az    aze, Azerbaijani
+ba    bak, Bashkir
+be    bel, Belarusian
+bg    bul, Bulgarian
+bh    bih, Bihari
+bi    bis, Bislama
+bm    bam, Bambara
+bn    ben, Bengali
+bo    tib, bod, Tibetan
+br    bre, Breton
+bs    bos, Bosnian
+ca    cat, Catalan, Valencian
+ce    che, Chechen
+ch    cha, Chamorro
+co    cos, Corsican
+cr    cre, Cree
+cs    cze, ces, Czech
+cu    chu, Church Slavic, Old Slavonic, Church Slavonic, Old Bulgarian, Old Church Slavonic
+cv    chv, Chuvash
+cy    wel, cym, Welsh
+da    dan, Danish
+de    ger, deu, German
+dv    div, Divehi, Dhivehi, Maldivian
+dz    dzo, Dzongkha
+ee    ewe, Ewe
+el    gre, ell, Greek
+en    eng, English
+eo    epo, Esperanto
+es    spa, Spanish, Castilian
+et    est, Estonian
+eu    baq, eus, Basque
+fa    per, fas, Persian
+ff    ful, Fulah
+fi    fin, Finnish
+fj    fij, Fijian
+fo    fao, Faroese
+fr    fre, fra, French
+fy    fry, Western Frisian
+ga    gle, Irish
+gd    gla, Gaelic, Scottish Gaelic
+gl    glg, Galician
+gn    grn, Guarani
+gu    guj, Gujarati
+gv    glv, Manx
+ha    hau, Hausa
+he    heb, Hebrew
+hi    hin, Hindi
+ho    hmo, Hiri Motu
+hr    scr, hrv, Croatian
+ht    hat, Haitian, Haitian Creole
+hu    hun, Hungarian
+hy    arm, hye, Armenian
+hz    her, Herero
+id    ind, Indonesian
+ig    ibo, Igbo
+ii    iii, Sichuan Yi, Nuosu
+ik    ipk, Inupiaq
+io    ido, Ido
+is    ice, isl, Icelandic
+it    ita, Italian
+iu    iku, Inuktitut
+ja    jpn, Japanese
+jv    jav, Javanese
+ka    geo, kat, Georgian
+kg    kon, Kongo
+ki    kik, Kikuyu, Gikuyu
+kj    kua, Kuanyama, Kwanyama
+kk    kaz, Kazakh
+kl    kal, Kalaallisut, Greenlandic
+km    khm, Central Khmer
+kn    kan, Kannada
+ko    kor, Korean
+kr    kau, Kanuri
+ks    kas, Kashmiri
+ku    kur, Kurdish
+kv    kom, Komi
+kw    cor, Cornish
+ky    kir, Kirghiz, Kyrgyz
+la    lat, Latin
+lb    ltz, Luxembourgish, Letzeburgesch
+lg    lug, Ganda
+li    lim, Limburgan, Limburger, Limburgish
+ln    lin, Lingala
+lo    lao, Lao
+lt    lit, Lithuanian
+lu    lub, Luba-Katanga
+lv    lav, Latvian
+mg    mlg, Malagasy
+mh    mah, Marshallese
+mi    mao, mri, Maori
+mk    mac, mkd, Macedonian, FYRO Macedonian
+ml    mal, Malayalam
+mn    mon, Mongolian
+mo    mol, Moldavian
+mr    mar, Marathi
+ms    may, msa, Malay
+mt    mlt, Maltese
+my    bur, mya, Burmese
+na    nau, Nauru
+nb    nob, Norwegian Bokmål
+nd    nde, North Ndebele
+ne    nep, Nepali
+ng    ndo, Ndonga
+nl    dut, nld, Dutch, Flemish
+nn    nno, Norwegian Nynorsk, Norwegian-Nynorsk
+no    nor, Norwegian
+nr    nbl, South Ndebele
+nv    nav, Navajo, Navaho
+nv    nav, Navajo, Navaho
+ny    nya, Chichewa, Chewa, Nyanja
+oc    oci, Occitan, Provençal
+oj    oji, Ojibwa
+om    orm, Oromo
+or    ori, Oriya
+os    oss, Ossetian, Ossetic
+pa    pan, Panjabi, Punjabi
+pi    pli, Pali
+pl    pol, Polish
+ps    pus, Pushto, Pashto
+pt    por, Portuguese
+qu    que, Quechua
+rm    roh, Romansh
+rn    run, Rundi
+ro    rum, ron, Romanian
+ru    rus, Russian
+rw    kin, Kinyarwanda
+sa    san, Sanskrit
+sc    srd, Sardinian
+sd    snd, Sindhi
+se    sme, Northern Sami
+sg    sag, Sango
+si    sin, Sinhala, Sinhalese
+sk    slo, slk, Slovak
+sl    slv, Slovenian
+sm    smo, Samoan
+sn    sna, Shona
+so    som, Somali
+sq    alb, sqi, Albanian
+sr    scc, srp, Serbian
+ss    ssw, Swati
+st    sot, Southern Sotho
+su    sun, Sundanese
+sv    swe, Swedish
+sw    swa, Swahili
+ta    tam, Tamil
+te    tel, Telugu
+tg    tgk, Tajik
+th    tha, Thai
+ti    tir, Tigrinya
+tk    tuk, Turkmen
+tl    tgl, Tagalog
+tn    tsn, Tswana
+to    ton, Tonga
+tr    tur, Turkish
+ts    tso, Tsonga
+tt    tat, Tatar
+tw    twi, Twi
+ty    tah, Tahitian
+ug    uig, Uighur, Uyghur
+uk    ukr, Ukrainian
+ur    urd, Urdu
+uz    uzb, Uzbek
+ve    ven, Venda
+vi    vie, Vietnamese
+vo    vol, Volapük
+wa    wln, Walloon
+wo    wol, Wolof
+xh    xho, Xhosa
+yi    yid, Yiddish
+yo    yor, Yoruba
+za    zha, Zhuang, Chuang
+zh    chi, zho, Chinese
+zu    zul, Zulu
+
+
+# this is just so we have a mapping. it is not accurate without an ISO-639-2 mapping
+st    Northern Sotho
+se    Sami (Inari), Sami (Lule), Sami (Northern), Sami (Skolt), Sami (Southern)
+sr    Serbian (Cyrillic), Serbian (Latin)
+uz    Uzbek (Latin), Uzbek (Cyrillic)
+az    Azeri (Latin), Azeri (Cyrillic)

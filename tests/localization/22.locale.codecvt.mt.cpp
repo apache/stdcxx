@@ -481,7 +481,7 @@ run_test (int, char**)
 
     rw_info (0, 0, 0,
              "testing std::codecvt<charT> with %d thread%{?}s%{;}, "
-             "%zu iteration%{?}s%{;} each, in %zu locales { %{ .*A@} }",
+             "%d iteration%{?}s%{;} each, in %zu locales { %{ .*A@} }",
              rw_opt_nthreads, 1 != rw_opt_nthreads,
              rw_opt_nloops, 1 != rw_opt_nloops,
              nlocales, int (nlocales), "%#s", locales);

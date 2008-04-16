@@ -28,7 +28,7 @@
 
         .text
         //.pred.safe_across_calls p1-p5,p16-p63
-	.psr abi32 
+        .psr abi32 
         .psr msb
 
 ////////////////////////////////////////////////////////////////////////////
@@ -46,8 +46,8 @@ __rw_atomic_xchg8:
         .prologue
         .body
         // .mfb
-	addp4 r9 = 0, r32 // Needed to be able to dereference a 32 bit pointer
-	;;
+        addp4 r9 = 0, r32 // Needed to be able to dereference a 32 bit pointer
+        ;;
         xchg1 r8 = [r9], r33
         nop 0
         br.ret.sptk.many b0
@@ -70,8 +70,8 @@ __rw_atomic_add8:
         .body
          // .mmb
         mf
-	addp4 r9 = 0, r32 // Needed to be able to dereference a 32 bit pointer
-	;;
+        addp4 r9 = 0, r32 // Needed to be able to dereference a 32 bit pointer
+        ;;
         ld1.acq r15 = [r9]
         nop 0
         ;;
@@ -108,8 +108,8 @@ __rw_atomic_xchg16:
         .prologue
         .body
         // .mfb
-	addp4 r9 = 0, r32 // Needed to be able to dereference a 32 bit pointer
-	;;
+        addp4 r9 = 0, r32 // Needed to be able to dereference a 32 bit pointer
+        ;;
         xchg2 r8 = [r9], r33
         nop 0
         br.ret.sptk.many b0
@@ -132,8 +132,8 @@ __rw_atomic_add16:
         .body
          // .mmb
         mf
-	addp4 r9 = 0, r32 // Needed to be able to dereference a 32 bit pointer
-	;;
+        addp4 r9 = 0, r32 // Needed to be able to dereference a 32 bit pointer
+        ;;
         ld2.acq r15 = [r9]
         nop 0
         ;;
@@ -171,8 +171,8 @@ __rw_atomic_xchg32:
         .body
         // .mfb
 
-	addp4 r9 = 0, r32 // Needed to be able to dereference a 32 bit pointer
-	;;
+        addp4 r9 = 0, r32 // Needed to be able to dereference a 32 bit pointer
+        ;;
         xchg4 r8 = [r9], r33
         nop 0
         br.ret.sptk.many b0
@@ -195,8 +195,8 @@ __rw_atomic_add32:
         .body
          // .mmb
         mf
-	addp4 r9 = 0, r32 // Needed to be able to dereference a 32 bit pointer
-	;;
+        addp4 r9 = 0, r32 // Needed to be able to dereference a 32 bit pointer
+        ;;
         ld4.acq r15 = [r9]
         nop 0
         ;;
@@ -234,7 +234,7 @@ __rw_atomic_xchg64:
         .body
         // .mfb
 
-	addp4 r9 = 0, r32 // Needed to be able to dereference a 32 bit pointer
+        addp4 r9 = 0, r32 // Needed to be able to dereference a 32 bit pointer
         ;;
         xchg8 r8 = [r9], r33
         nop 0
@@ -258,7 +258,7 @@ __rw_atomic_add64:
         .body
          // .mmb
         mf
-	addp4 r9 = 0, r32 // Needed to be able to dereference a 32 bit pointer
+        addp4 r9 = 0, r32 // Needed to be able to dereference a 32 bit pointer
         ;;
         ld8.acq r15 = [r9]
         nop 0

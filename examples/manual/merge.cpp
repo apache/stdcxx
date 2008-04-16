@@ -71,7 +71,7 @@ int main ()
     // Now use a comparator on v6.
     mid = v6.begin ();
     std::advance (mid, 4);   // equivalent to mid += 4 but more generic
-    std::inplace_merge (v6.begin (), mid, v6.end (), std::less<int>());	  
+    std::inplace_merge (v6.begin (), mid, v6.end (), std::less<int>());
 
     // Merge v1 and v2 to empty vector using insert iterator.
     std::merge (v1.begin (), v1.end (),

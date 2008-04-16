@@ -26,7 +26,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -78,6 +78,14 @@
 #  define _RWSTD_MUTEX_T                mutex_t
 
 #elif defined (_RWSTD_POSIX_THREADS)
+
+#  if    defined (_RWSTD_EDG_ECCP) && defined (_RWSTD_OS_LINUX) \
+      && defined (_RWSTD_NO_LONG_LONG)
+     // disable error #450-D: the type "long long" is nonstandard
+     // when using the vanilla EDG eccp in strict mode (i.e., w/o
+     // long long support)
+#    pragma diag_suppress 450
+#  endif   // EDG eccp on Linux
 
 // LinuxThreads man page:
 //   "Variables of type pthread_mutex_t can also be initialized
@@ -1893,6 +1901,36 @@ __rw_atomic_exchange (unsigned _RWSTD_LONG_LONG &__x,
 #elif !defined (_RWSTD_NO_ATOMIC_OPS)
 #  define _RWSTD_NO_ATOMIC_OPS
 #endif   // _RWSTD_NO_ATOMIC_OPS
+
+
+/********************** generic bool functions ************************/
+
+#ifndef _RWSTD_NO_BOOL
+
+#  if _RWSTD_BOOL_SIZE == _RWSTD_CHAR_SIZE
+#    define _RWSTD_BOOL_TYPE char
+#  elif _RWSTD_BOOL_SIZE == _RWSTD_SHORT_SIZE
+#    define _RWSTD_BOOL_TYPE short
+#  elif _RWSTD_BOOL_SIZE == _RWSTD_INT_SIZE
+#    define _RWSTD_BOOL_TYPE int
+#  endif
+
+#  ifdef _RWSTD_BOOL_TYPE
+
+inline bool
+__rw_atomic_exchange (bool &__x, bool __y, bool)
+{
+    return 0 != __rw_atomic_exchange (
+                    _RWSTD_REINTERPRET_CAST (_RWSTD_BOOL_TYPE&, __x),
+                    _RWSTD_STATIC_CAST (_RWSTD_BOOL_TYPE, __y),
+                    false);
+}
+
+#    undef _RWSTD_BOOL_TYPE
+#  endif   // _RWSTD_BOOL_TYPE
+
+#endif   // _RWSTD_NO_BOOL
+
 
 /********************** generic long functions ************************/
 

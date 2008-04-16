@@ -36,6 +36,8 @@
 #include <file.h>         // for SHELL_RM_RF, rw_tmpnam
 #include <rw_process.h>   // for rw_system()
 #include <rw_printf.h>    // for rw_snprintf()
+#include <rw_fnmatch.h>   // for rw_fnmatch()
+#include <rw_braceexp.h>  // for rw_shell_expand()
 #include <driver.h>       // for rw_error()
 
 #ifdef _RWSTD_OS_LINUX
@@ -79,12 +81,15 @@
 #  ifndef LC_MESSAGES
 #    define LC_MESSAGES _RWSTD_LC_MESSAGES
 #  endif   // LC_MESSAGES
-#  include <langinfo.h>
 #  define EXE_SUFFIX    ""
 #else   // if MSVC
+#  define _RWSTD_NO_LANGINFO
 #  define EXE_SUFFIX    ".exe"
 #endif  // _MSC_VER
 
+#ifndef _RWSTD_NO_LANGINFO
+#  include <langinfo.h>
+#endif
 
 #if !defined (PATH_MAX) || PATH_MAX < 128 || 4096 < PATH_MAX
    // deal  with undefined, bogus, or excessive values
@@ -288,8 +293,14 @@ static char rw_locale_root [PATH_MAX];
 
 static void atexit_rm_locale_root ()
 {
+    const bool e = rw_enable (rw_error, false);
+    const bool n = rw_enable (rw_note , false);
+
     // remove temporary locale databases created by the test
     rw_system (SHELL_RM_RF "%s", rw_locale_root);
+
+    rw_enable (rw_note , n);
+    rw_enable (rw_error, e);
 }
 
 }
@@ -362,6 +373,10 @@ rw_locales (int loc_cat, const char* grep_exp, bool prepend_c_loc)
     // allocate first time through
     if (!slocname) {
         slocname = _RWSTD_STATIC_CAST (char*, _QUIET_MALLOC (total_size));
+
+        if (!slocname)
+            return deflocname;
+
         *slocname = '\0';
     }
 
@@ -388,16 +403,16 @@ rw_locales (int loc_cat, const char* grep_exp, bool prepend_c_loc)
         return deflocname;   // error
     }
 
-    // make sure that grep_exp is <= 80 
+    // make sure that grep_exp is <= 80
     if (grep_exp && 80 < strlen (grep_exp)) {
         abort ();
     }
 
     // execute a shell command and redirect its output into the file
     const int exit_status =
-          grep_exp && *grep_exp
-        ? rw_system ("locale -a | grep \"%s\" > %s", grep_exp, fname)
-        : rw_system ("locale -a > %s", fname);
+        grep_exp && *grep_exp
+      ? rw_system ("locale -a | grep \"%s\" > %s", grep_exp, fname)
+      : rw_system ("locale -a > %s", fname);
 
     if (exit_status) {
         return deflocname;   // error
@@ -457,6 +472,8 @@ rw_locales (int loc_cat, const char* grep_exp, bool prepend_c_loc)
 
                 char* tmp =
                     _RWSTD_STATIC_CAST (char*, _QUIET_MALLOC (total_size));
+                if (!tmp)
+                    break;
 
                 memcpy (tmp, slocname, total_size - grow_size);
 
@@ -641,7 +658,8 @@ rw_get_wchars (wchar_t *wbuf, size_t bufsize, int nbytes /* = 0 */)
         // determine whether the wide character is valid
         // and if so, the length of the multibyte character
         // that corresponds to it
-        const int len = wctomb (tmp, wchar_t (i));
+        const wchar_t wc = wchar_t (i);
+        const int len = wctomb (tmp, wc);
 
         if (nbytes == 0 && 0 < len || nbytes != 0 && nbytes == len) {
             // if the requested length is 0 (i.e., the caller doesn't
@@ -650,7 +668,7 @@ rw_get_wchars (wchar_t *wbuf, size_t bufsize, int nbytes /* = 0 */)
             // and the value returned from mblen() is the same, store
             // it (this makes it possible to find invalid characters
             // as well as valid ones)
-            wbuf [nchars++];
+            wbuf [nchars++] = wc;
             if (nchars == bufsize)
                 return nchars;
         }
@@ -671,10 +689,10 @@ rw_get_wchars (wchar_t *wbuf, size_t bufsize, int nbytes /* = 0 */)
             wc |= wchar_t (rand ());
         }
 
-        const int len = wctomb (tmp, wchar_t (i));
+        const int len = wctomb (tmp, wc);
 
         if (nbytes == 0 && 0 < len || nbytes != 0 && nbytes == len) {
-            wbuf [nchars++];
+            wbuf [nchars++] = wc;
             if (nchars == bufsize)
                 return nchars;
         }
@@ -930,3 +948,706 @@ rw_create_catalog (const char * catname, const char * catalog)
 
     return ret;
 }
+
+inline bool
+_rw_isspace (char ch)
+{
+    return 0 != isspace ((unsigned char)ch);
+}
+
+inline char
+_rw_toupper (char ch)
+{
+    return toupper ((unsigned char)ch);
+}
+
+inline char
+_rw_tolower (char ch)
+{
+    return tolower ((unsigned char)ch);
+}
+
+// our locale database is a big array of these
+struct _rw_locale_entry {
+    char locale_name    [64]; // English_United States.1252
+    char canonical_name [32]; // en-US-1-1252
+    struct _rw_locale_entry* next;
+};
+
+struct _rw_locale_array {
+    _rw_locale_entry* entries;
+    _RWSTD_SIZE_T count;
+};
+
+struct _rw_lookup_entry_t {
+    const char* native;
+    const char* canonical;
+};
+
+extern "C" {
+
+static int
+_rw_lookup_comparator (const void* _lhs, const void* _rhs)
+{
+    const _rw_lookup_entry_t* lhs = (const _rw_lookup_entry_t*)_lhs;
+    const _rw_lookup_entry_t* rhs = (const _rw_lookup_entry_t*)_rhs;
+
+    return strcmp (lhs->native, rhs->native);
+}
+
+}  // extern "C"
+
+struct _rw_lookup_table_t {
+
+    _rw_lookup_table_t ()
+        : entries_ (0), count_ (0), table_data_ (0) {
+    }
+
+    ~_rw_lookup_table_t () {
+        if (entries_)
+            free (entries_);
+        entries_ = 0;
+        count_   = 0;
+
+        if (table_data_)
+            free (table_data_);
+        table_data_ = 0;
+    }
+
+    bool load_from_file (const char* path, const char* file, int upper_or_lower);
+
+    const _rw_lookup_entry_t* get_entries () const {
+        return entries_;
+    }
+
+    size_t get_num_entries () const {
+        return count_;
+    }
+
+    const char* get_canonical_name (const char* name) const;
+
+private:
+
+    _rw_lookup_entry_t* entries_;
+    size_t              count_;
+    char*               table_data_;
+
+private:
+    // intentionally hidden
+    _rw_lookup_table_t (const _rw_lookup_table_t& rhs);
+    _rw_lookup_table_t& operator= (const _rw_lookup_table_t& rhs);
+};
+
+
+static void
+_rw_reset_locales (_rw_locale_array* a)
+{
+    // reset the next pointers so that all locales are included
+    for (size_t i = 0; i < a->count; ++i)
+        a->entries [i].next = &a->entries [i+1];
+    a->entries [a->count - 1].next = 0;
+}
+
+//
+// this function gets a list of all of the locales that are installed. it
+// only queries the system once and caches the result for use in future
+// requests.
+//
+static _rw_locale_array
+_rw_all_locales ()
+{
+    static _rw_locale_array result;
+
+    // if we have already collection, reuse it
+    if (result.entries && result.count != 0) {
+        _rw_reset_locales (&result);
+        return result;
+    }
+
+    static _rw_locale_entry fallback = {
+        "C", "C", 0
+    };
+
+    result.entries = &fallback;
+    result.count   = 1;
+
+    const char* const fname = rw_tmpnam (0);
+    if (!fname) {
+        return result;
+    }
+
+    const int status = rw_system ("locale -a > %s", fname);
+    if (status) {
+        return result;
+    }
+
+    FILE* file = fopen (fname, "r");
+    if (file) {
+
+        // looks to be the first time, get a list of all locales
+        const size_t entry_size = sizeof (_rw_locale_entry);
+        const size_t grow_size  = 64;
+        
+        _rw_locale_entry* entries = 0;
+        size_t capacity = 0;
+        size_t size     = 0;
+
+        // load the native to canonical lookup table
+        _rw_lookup_table_t languages_map;
+        _rw_lookup_table_t countries_map;
+        _rw_lookup_table_t encodings_map;
+
+        // use TOPDIR to determine the root of the source tree
+        const char* const topdir = getenv (TOPDIR);
+        if (!topdir || !*topdir) {
+            rw_error (0, __FILE__, __LINE__,
+                      "the environment variable %s is %s",
+                      TOPDIR, topdir ? "empty" : "undefined");
+        }
+        else {
+            // we should be loading this from some other well
+            // known path so we don't depend on $TOPDIR. sadly
+            // __FILE__ is not an absolute path on msvc
+
+            char path [PATH_MAX];
+            strcpy (path, topdir);
+            strcat (path, SLASH RELPATH SLASH);
+
+            // load mapping from local to canonical names
+            languages_map.load_from_file (path, "languages", -1);
+            countries_map.load_from_file (path, "countries",  1);
+            encodings_map.load_from_file (path, "encodings",  1);
+        }
+
+        char locale [128];
+        while (fgets (locale, sizeof (locale), file)) {
+
+            // ensure sufficient space in array
+            if (! (size < capacity)) {
+                capacity += grow_size;
+
+                _rw_locale_entry* new_entries =
+                    _RWSTD_STATIC_CAST(_rw_locale_entry*,
+                                    _QUIET_MALLOC (entry_size * capacity));
+                if (!new_entries) {
+                    break;
+                }
+
+                memcpy (new_entries, entries, entry_size * size);
+
+                // deallocate the old buffer
+                _QUIET_FREE (entries);
+
+                entries = new_entries;
+            }
+
+            // grab entry to update
+            _rw_locale_entry* const entry = &entries [size];
+            entry->next = 0;
+
+            const size_t len = strlen (locale);
+            locale [len ? len - 1 : 0] = '\0';
+
+            // make sure that the named locale is one that we can use
+            if (!setlocale (LC_CTYPE, locale)) {
+                
+                rw_note (0, __FILE__, __LINE__,
+                         "setlocale() failed for '%s'", locale);
+
+                continue;
+
+            }
+
+            // is not an alias for the C or POSIX locale
+            else if (!strcmp (locale, "C") || !strcmp (locale, "POSIX")) {
+                continue; // we don't do C/POSIX locale
+            }
+
+            // has a name that is short enough for our buffer
+            else if (sizeof (entry->locale_name) < len) {
+
+                rw_note (0, __FILE__, __LINE__,
+                         "locale name '%s' was to long for fixed buffer",
+                         locale);
+
+                continue; // locale name didn't fit, so we skip it
+            }
+
+#ifndef _RWSTD_NO_LANGINFO
+            char codeset [40];
+
+            int i = 0;
+            for (const char* charset = nl_langinfo (CODESET);
+                 *charset;
+                 ++charset) {
+                codeset [i++] = _rw_toupper (*charset);
+            }
+
+            codeset [i] = '\0';
+#endif
+
+            // copy the locale name
+            strcpy (entry->locale_name, locale);
+
+            // attempt to split line into parts
+            char* extension = strrchr (locale, '@');
+            if (extension) {
+                *extension++ = '\0';
+            }
+
+            char* encoding = strrchr (locale, '.');
+            if (encoding) {
+                *encoding++ = '\0';
+
+                for (int n = 0; encoding [n]; ++n)
+                    encoding [n] = _rw_toupper (encoding [n]);
+            }
+
+            char* country = strrchr (locale, '_');
+            if (country) {
+                *country++ = '\0';
+
+                for (int n = 0; country [n]; ++n)
+                    country [n] = _rw_toupper (country [n]);
+            }
+            
+            char* language = locale;
+
+            for (int n = 0; language [n]; ++n)
+                language [n] = _rw_tolower (language [n]);
+
+            // use mapping databases to find the canonical
+            // names for each part of the locale name
+
+            const char* planguage =
+                languages_map.get_canonical_name (language);
+            if (!planguage)
+                planguage = language;
+
+            // if country name was provided, then lookup in the country
+            // mapping. otherwise use language to guess country.
+            const char* pcountry =
+                  countries_map.get_canonical_name (country);
+            if (!pcountry)
+                pcountry = country;
+
+#ifndef _RWSTD_NO_LANGINFO
+            const char* pencoding =
+                encodings_map.get_canonical_name (codeset);
+            if (!pencoding)
+                pencoding = codeset;
+#else
+            const char* pencoding =
+                encodings_map.get_canonical_name (encoding);
+            if (!pencoding)
+                pencoding = encoding;
+#endif
+
+            // require all three mappings are valid
+            if (!planguage || !*planguage) {
+
+                //rw_note (0, __FILE__, __LINE__,
+                //    "failed to get language for locale '%s'",
+                //    entry->locale_name);
+
+                continue;
+            }
+            else if (!pcountry || !*pcountry) {
+
+                //rw_note (0, __FILE__, __LINE__,
+                //    "failed to get country for locale '%s'",
+                //    entry->locale_name);
+
+                continue;
+            }
+            else if (!pencoding || !*pencoding) {
+
+                //rw_note (0, __FILE__, __LINE__,
+                //    "failed to get codeset for locale '%s'",
+                //    entry->locale_name);
+
+                continue;
+            }
+
+            // the canonical name for lookup
+            sprintf (entry->canonical_name, "%s-%s-%d-%s",
+                     planguage, pcountry, int (MB_CUR_MAX), pencoding);
+
+            //
+            // eliminate locales that are duplicates according to
+            // canonical name. we do this because the setlocale()
+            // doesn't seem to tell us about aliases.
+            //
+
+            bool duplicate = false;
+
+            // search backward as matches are more likely to be near
+            // the back
+            for (size_t e = size; 0 != e; --e) {
+
+                if (!strcmp (entries [e-1].canonical_name,
+                             entry->canonical_name)) {
+
+                    //rw_note (0, __FILE__, __LINE__,
+                    //         "ignoring duplicate locale '%s'",
+                    //         entry->locale_name);
+
+                    duplicate = true;
+
+                    break;
+                }
+            }
+
+            if (!duplicate)
+               size += 1;
+        }
+
+        fclose (file);
+
+        // delete temp file
+        remove (fname);
+
+        // link all of the nodes into result
+        if (size) {
+            result.entries = entries;
+            result.count   = size;
+        }
+        else
+            _QUIET_FREE (entries);
+    }
+
+    // link each node to the next. if the array is sorted,
+    // the list will be sorted.
+    _rw_reset_locales (&result);
+
+    return result;
+}
+
+_TEST_EXPORT char*
+rw_locale_query (int loc_cat, const char* query, size_t wanted)
+{
+    // query format <language>-<COUNTRY>-<MB_CUR_LEN>-<CODESET>
+
+    // the null query string will return any locale
+    if (!query)
+        query = "*";
+
+    if (!wanted)
+        wanted = _RWSTD_SIZE_MAX;
+
+    char buf [256];
+
+    // get a brace expanded representation of query, each expansion
+    // is a null terminated string. the entire buffer is also null 
+    // terminated
+    char* res = rw_shell_expand (query, 0, buf, sizeof (buf), '\0');
+    if (!res)
+        return 0;
+
+    // cache the locale name so we can restore later, this must happen
+    // before _rw_all_locales() because that function just changes the
+    // locale without restoring it
+    char save_locale [PATH_MAX];
+    strcpy (save_locale, setlocale (LC_ALL, 0));
+
+    const _rw_locale_array all = _rw_all_locales ();
+
+    // make these local and require the user to deallocate
+    // with free?
+    static char*  string   = 0;
+    static size_t length   = 0;
+    static size_t capacity = 0;
+
+    _rw_locale_entry rejects;
+    rejects.canonical_name [0] = '\0';
+    rejects.locale_name    [0] = '\0';
+    rejects.next = all.entries;
+
+    // for each result locale name
+    size_t count = 0;
+    for (const char* name = res; *name; name += strlen (name) + 1)
+    {
+        _rw_locale_entry* dummy = &rejects;
+
+        // linear search for matches in the reject list
+        while (dummy->next)
+        {
+            // append name to the output buffer
+            const _rw_locale_entry* entry = dummy->next;
+
+            // see if we found a match
+            if (rw_fnmatch (name, entry->canonical_name, 0)) {
+
+                // not a match, advance past it leaving it in the
+                // rejects list
+                dummy = dummy->next;
+
+                // and move along to next one
+                continue;
+
+            }
+
+            // remove the accepted entry from the reject list
+            // so we will not include it again
+            dummy->next = entry->next;
+
+            // if the user requested locales from a specific category
+            if (loc_cat != _UNUSED_CAT) {
+
+                // make sure that the matching locale has the specified
+                // locale category and that we can use it.
+                if (!setlocale (loc_cat, entry->locale_name)) {
+
+                    // if we can't use it, then bail. this effectively
+                    // removes the locale from the rejects list and
+                    // doesn't add it to the accepted list.
+                    continue;
+                }
+            }
+
+            const size_t add_length = strlen (entry->locale_name) + 1;
+            const size_t new_length = length + add_length;
+
+            // grow buffer if necessary
+            if (! (new_length < capacity)) {
+
+                while (capacity < new_length)
+                    capacity += 256;
+
+                // one additional character for the second null
+                char* new_string =
+                    _RWSTD_STATIC_CAST(char*, _QUIET_MALLOC (capacity + 1));
+                if (!new_string) {
+
+                    // setup to get out of outer loop
+                    count = wanted;
+
+                    // get out of inner loop
+                    break;
+                }
+
+                memcpy (new_string, string, length);
+
+                _QUIET_FREE (string);
+
+                string = new_string;
+            }
+
+            // append the name, and update the length
+            memcpy (string + length, entry->locale_name, add_length);
+
+            length = new_length;
+
+            count += 1;
+            if (! (count < wanted))
+                break;
+        }
+
+        if (! (count < wanted))
+            break;
+    }
+
+    // restore the previous locale
+    setlocale (LC_ALL, save_locale);
+
+    // deallocate the shell expand buffer if needed
+    if (res != buf)
+        free (res);
+
+    // double null terminated
+    if (string) {
+        string [length+0] = '\0';
+        string [length+1] = '\0';
+    }
+
+    return string;
+}
+
+
+const char*
+_rw_lookup_table_t::get_canonical_name (const char* name) const
+{
+    if (!name)
+        return 0; // don't search for null string
+
+    const _rw_lookup_entry_t entry = { name, 0 };
+
+    const _rw_lookup_entry_t* found =
+        (const _rw_lookup_entry_t*)bsearch (&entry,
+                                            entries_,
+                                            count_,
+                                            sizeof (_rw_lookup_entry_t),
+                                            _rw_lookup_comparator);
+    if (found)
+        return found->canonical;
+
+    return 0;
+}
+
+bool
+_rw_lookup_table_t::load_from_file (const char* path, const char* name, int upper_or_lower)
+{
+    if (entries_)
+        return false; // should never happen
+
+    // buffer overflow!
+    char filename [PATH_MAX];
+    strcpy (filename, path);
+    strcat (filename, name);
+
+    FILE* file = fopen (filename, "rb");
+    if (file) {
+
+        // get the size of the file in bytes
+        fseek (file, 0, SEEK_END);
+        const size_t table_data_size = ftell (file);
+        fseek (file, 0, SEEK_SET);
+
+        char* table_data =
+            (char*)malloc (table_data_size + 1);
+        
+        if (!table_data) {
+            fclose (file);
+            return false;
+        }
+
+        // read the entire file into the data buffer
+        const size_t bytes_read =
+            fread (table_data, 1, table_data_size, file);
+        if (bytes_read != table_data_size) {
+            free (table_data);
+            fclose (file);
+            return false;
+        }
+
+        // null terminate
+        table_data [bytes_read] = '\0';
+
+        const size_t entry_size = sizeof (_rw_lookup_entry_t);
+        
+        _rw_lookup_entry_t* entries = 0;
+        size_t capacity = 0;
+        size_t size     = 0;
+
+        const char* canonical_name = 0;
+        
+        for (size_t offset = 0; offset < bytes_read; /**/) {
+
+            char* key = table_data + offset;
+
+            const size_t len = strcspn (key, "\r\n");
+            key [len] = '\0';
+
+            // skip the newline if it is there
+            offset += (len + 1);
+
+            // special handling for line ends and comments
+            if (!*key || *key == '\n'
+                      || *key == '#')
+                continue;
+
+            // make upper or lower case as requested
+            if (upper_or_lower < 0) {
+                for (char* s = key; *s; ++s)
+                    *s = _rw_tolower (*s);
+            }
+            else if (0 < upper_or_lower) {
+                for (char* s = key; *s; ++s)
+                    *s = _rw_toupper (*s);
+            }
+
+            // if first character of new line is not whitespace, then we have a new
+            // canonical name token
+            if (!_rw_isspace (*key)) {
+
+                canonical_name = key;
+
+                // increment key past cannonical name
+                for (/**/; *key; ++key)
+                    if (_rw_isspace (*key))
+                        break;
+            }
+
+            // kill whitespace
+            while (_rw_isspace (*key))
+                *key++ = '\0';
+
+            // key points to first non-whitespace after canonical name
+
+            while (*key) {
+
+                // key is first non-whitespace character, which is the
+                // next native name we should record
+                const char* native_name = key;
+
+                // find first comma character, that is the end of the
+                // native name
+                while (*key && *key != ',')
+                    ++key;
+
+                // if we found a comma, setup next name
+                if (*key)
+                    *key++ = '\0';
+
+                // kill any whitespace before comma
+                for (char* bey = key - 1; _rw_isspace (*bey); --bey)
+                    *bey = '\0';
+
+                // kill whitespace after comma
+                while (_rw_isspace (*key))
+                    *key++ = '\0';
+
+                // ensure we have enough entries
+                if (! (size < capacity)) {
+
+                    capacity += 64;
+
+                    _rw_lookup_entry_t* new_entries =
+                        (_rw_lookup_entry_t*)malloc (entry_size * capacity);
+                    if (!new_entries) {
+
+                        free (entries);
+
+                        free (table_data);
+
+                        fclose (file);
+
+                        return false;
+                    }
+
+                    memcpy (new_entries, entries, entry_size * size);
+
+                    free (entries);
+
+                    entries = new_entries;
+                }
+
+                // add the new mapping entry
+                _rw_lookup_entry_t* const entry = &entries [size];
+                entry->native = native_name;
+                entry->canonical = canonical_name;
+
+                // increment number of entries
+                size += 1;
+            }
+        }
+
+        fclose (file);
+
+        // sort the entries by native name for efficient searching
+        qsort (entries, size, entry_size, _rw_lookup_comparator);
+
+        // setup the table for return
+        entries_  = entries;
+        count_    = size;
+        table_data_ = table_data;
+    }
+    else {
+        rw_error (0, __FILE__, __LINE__,
+                  "failed to open the file %s", filename);
+    }
+
+    return true;
+}
+
+

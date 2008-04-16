@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2001-2006 Rogue Wave Software.
+ * Copyright 2001-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -66,6 +66,17 @@ extern "C" int mkstemp (char*) _LIBC_THROWS();
 #    define P_tmpdir   _P_tmpdir
 #  endif
 #endif   // P_tmpdir
+
+
+#if defined (_RWSTD_EDG_ECCP) && !defined (_WIN32)
+
+extern "C" {
+
+int getpagesize ();
+
+}   // extern "C"
+
+#endif   // vanilla EDG eccp demo on UNIX
 
 
 static int page_size ()

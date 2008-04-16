@@ -67,7 +67,7 @@
 
 #include <driver.h>
 #include <file.h>        // for SLASH
-#include <rw_locale.h>   // for rw_locales()
+#include <rw_locale.h>   // for rw_locale_query()
 
 /**************************************************************************/
 
@@ -78,8 +78,16 @@ const char* locale_root;
 #define NLOOPS         25
 #define MAX_STR_SIZE   16
 
+#define LOCALES "{{en-US,de-DE,fr-FR,es-ES}-*-{ISO-8859-*,UTF-8,CP125?},"  \
+                 "{ja-JP-*-{EUC-JP,SHIFT_JIS,UTF-8,CP125?}},"              \
+                 "{zh-CN-*-{GB*,UTF-8,CP125?}},"                           \
+                 "{ru-RU-*-{KOI*,UTF-8,CP125?}}}"
+
+const char* locale_list = 0;
+
 #define BEGIN_LOCALE_LOOP(num, locname, loop_cntrl)                        \
-   for (const char* locname = rw_locales (LC_CTYPE, 0);                    \
+   const char* locale_list = rw_locale_query (LC_CTYPE, LOCALES);          \
+   for (const char* locname = locale_list;                                 \
         locname && *locname; locname += std::strlen (locname) + 1) {       \
        _TRY {                                                              \
            const std::locale loc (locname);                                \
@@ -428,7 +436,7 @@ void test_libstd (charT, const char *cname)
                 "(<U0063>,<U0043>);(<U1000>,<U1001>)\n"
         "tolower (<U0041>,<U0061>);(<U0042>,<U0062>);"
                 "(<U0043>,<U0063>);(<U1001>,<U1000>)\n"
-       	"END LC_CTYPE\n"
+        "END LC_CTYPE\n"
     };
 
     //invoke rw_create_locale to build a locale to test with
@@ -460,8 +468,8 @@ void run_test (charT, const char *cname)
         _STD_USE_FACET (std::ctype_byname<charT>, std::locale ());
     }
 
-    test_libstd (charT (), cname);
     test_libc (charT (), cname);
+    test_libstd (charT (), cname);
 }
 
 /**************************************************************************/

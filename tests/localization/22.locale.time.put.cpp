@@ -22,18 +22,18 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2002-2006 Rogue Wave Software.
+ * Copyright 2002-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
 #include <ios>           // for basic_ios
 #include <locale>        // for locale, time_put
 
-#include <climits>       // for INT_MAX, INT_MIN
+#include <climits>       // for INT_MAX, INT_MIN, TZNAME_MAX
 #include <cstdio>        // for fprintf(), ...
 #include <cstdlib>       // for mbstowcs(), wcstombs()
-#include <cstring>       // for memcpy(), strlen()
-#include <ctime>         // for tm
+#include <cstring>       // for memset(), memcpy(), strlen(), strcat()
+#include <ctime>         // for tm, tzset()
 #include <cwchar>        // for wcsftime(), wcslen()
 #include <cassert>       // for assert()
 
@@ -55,6 +55,20 @@
 // the root of the locale directory (RWSTD_LOCALE_ROOT)
 // set in main() instead of here to avoid Solaris 7 putenv() bug (PR #30017)
 const char* locale_root;
+
+#if defined (_RWSTD_NO_TZSET) && !defined (_RWSTD_NO_TZSET_IN_LIBC)
+#  undef _RWSTD_NO_TZSET
+extern "C" _RWSTD_DLLIMPORT void tzset () _LIBC_THROWS();
+#endif   // _RWSTD_NO_TZSET && !_RWSTD_NO_TZSET_IN_LIBC
+
+inline void set_TZ (const char* str)
+{
+    rw_putenv (str);
+
+#ifndef _RWSTD_NO_TZSET
+    tzset ();
+#endif
+}
 
 /**************************************************************************/
 
@@ -583,7 +597,7 @@ const char* make_LC_TIME (const time_data *td)
 
         char segment [256];
 
-        std::sprintf (segment, "%c:%u:%04d/%02d/%02d:",
+        std::sprintf (segment, "%c:%d:%04d/%02d/%02d:",
                       td->era [i].offset < 0 ? '-' : '+',
                       td->era [i].offset < 0 ? -td->era [i].offset
                                              : td->era [i].offset,
@@ -636,7 +650,10 @@ const char* make_LC_TIME (const time_data *td)
     const char* const locname =
         rw_localedef ("", srcfname, cmfname, "test-locale");
 
-    if (locname && (strlen(locname) < sizeof locnamebuf))
+    // avoid copying into buffer if it's not big enough: this
+    // this affect the efficiency of the function but not its
+    // behavior
+    if (locname && std::strlen (locname) < sizeof locnamebuf)
         std::strcpy (locnamebuf, locname);
 
     // remove temporary files
@@ -1501,89 +1518,89 @@ void test_POSIX (charT, const char *tname)
     // the tznames global variable by tzset())
 
     // unset TZ -- expect no output
-    rw_putenv ("TZ=");
+    set_TZ ("TZ=");
     TEST (T (0, 0, 0, 1, 0, 0, 0, 0,  0), "%z", 0, 0, ' ', "");
     TEST (T (0, 0, 0, 1, 0, 0, 0, 0, +1), "%z", 0, 0, ' ', "");
     TEST (T (0, 0, 0, 1, 0, 0, 0, 0, -1), "%z", 0, 0, ' ', "");
 
     // set TZ to GMT (UTC) plus zero hours, no DST
-    rw_putenv ("TZ=std0");
+    set_TZ ("TZ=std0");
     TEST (T (0, 0, 0, 1, 0, 0, 0, 0,  0), "%z", 0, 0, ' ', "+0000");
     // no DST specified, zone info not applicable
     // TEST (T (0, 0, 1, 0, 0, 0, 0, 0, +1), "%z", 0, 0, ' ', "+0000");
     TEST (T (0, 0, 0, 1, 0, 0, 0, 0, -1), "%z", 0, 0, ' ', "");
 
     // set TZ to GMT+7 hours, no DST
-    rw_putenv ("TZ=foo+7");
+    set_TZ ("TZ=foo+7");
     TEST (T (0, 0, 0, 1, 0, 0, 0, 0,  0), "%z", 0, 0, ' ', "+0700");
     // no DST specified, zone info not applicable
     // TEST (T (0, 0, 1, 0, 0, 0, 0, 0,  1), "%z", 0, 0, ' ', "+0700");
     TEST (T (0, 0, 0, 1, 0, 0, 0, 0, -1), "%z", 0, 0, ' ', "");
 
     // set TZ to GMT+1 hours and DST to GMT+2 hours
-    rw_putenv ("TZ=abc1def2");
+    set_TZ ("TZ=abc1def2");
     TEST (T (0, 0, 0, 1, 0, 0, 0, 0,  0), "%z", 0, 0, ' ', "+0100");
     TEST (T (0, 0, 0, 1, 0, 0, 0, 0,  1), "%z", 0, 0, ' ', "+0200");
     TEST (T (0, 0, 0, 1, 0, 0, 0, 0, -1), "%z", 0, 0, ' ', "");
 
     // set TZ to GMT+2 hours and DST to GMT+4 hours
-    rw_putenv ("TZ=abc2def4");
+    set_TZ ("TZ=abc2def4");
     TEST (T (0, 0, 0, 1, 0, 0, 0, 0,  0), "%z", 0, 0, ' ', "+0200");
     TEST (T (0, 0, 0, 1, 0, 0, 0, 0,  1), "%z", 0, 0, ' ', "+0400");
     TEST (T (0, 0, 0, 1, 0, 0, 0, 0, -1), "%z", 0, 0, ' ', "");
 
     // set TZ to GMT+3 hours and DST to GMT+4 hours
-    rw_putenv ("TZ=abc3:00def4:00");
+    set_TZ ("TZ=abc3:00def4:00");
     TEST (T (0, 0, 0, 1, 0, 0, 0, 0,  0), "%z", 0, 0, ' ', "+0300");
     TEST (T (0, 0, 0, 1, 0, 0, 0, 0,  1), "%z", 0, 0, ' ', "+0400");
 
     // set TZ to GMT+11:30 hours and DST to GMT+11:45 hours
-    rw_putenv ("TZ=abc11:30:00def11:45");
+    set_TZ ("TZ=abc11:30:00def11:45");
     TEST (T (0, 0, 0, 1, 0, 0, 0, 0,  0), "%z", 0, 0, ' ', "+1130");
     TEST (T (0, 0, 0, 1, 0, 0, 0, 0,  1), "%z", 0, 0, ' ', "+1145");
 
     // TZ: STD=GMT+12:34, empty DST
     // According to POSIX, when no offset follows DST, the alternative
     // time is assumed to be one hour ahead of standard time.
-    rw_putenv ("TZ=bcd12:34efg");
+    set_TZ ("TZ=bcd12:34efg");
     TEST (T (0, 0, 0, 1, 0, 0, 0, 0,  0), "%z", 0, 0, ' ', "+1234");
     TEST (T (0, 0, 0, 1, 0, 0, 0, 0,  1), "%z", 0, 0, ' ', "+1334");
 
     // TZ: STD=GMT+23:01, empty DST
-    rw_putenv ("TZ=cde23:01fgh");
+    set_TZ ("TZ=cde23:01fgh");
     TEST (T (0, 0, 0, 1, 0, 0, 0, 0,  0), "%z", 0, 0, ' ', "+2301");
     TEST (T (0, 0, 0, 1, 0, 0, 0, 0,  1), "%z", 0, 0, ' ', "+0001");
 
     // TZ: STD=GMT+23:59, empty DST
-    rw_putenv ("TZ=def23:59ghi");
+    set_TZ ("TZ=def23:59ghi");
     TEST (T (0, 0, 0, 1, 0, 0, 0, 0,  0), "%z", 0, 0, ' ', "+2359");
     TEST (T (0, 0, 0, 1, 0, 0, 0, 0,  1), "%z", 0, 0, ' ', "+0059");
 
-    rw_putenv ("TZ=EST03:00<EDT1>04:00");
+    set_TZ ("TZ=EST03:00<EDT1>04:00");
     TEST (T (0, 0, 0, 1, 0, 0, 0, 0,  0), "%z", 0, 0, ' ', "+0300");
     TEST (T (0, 0, 0, 1, 0, 0, 0, 0,  1), "%z", 0, 0, ' ', "+0400");
 
 #  if 0   // disabled tests of funky std/dst strings
 
-    rw_putenv ("TZ=<EST+2>03:21EDT04:32");
+    set_TZ ("TZ=<EST+2>03:21EDT04:32");
     TEST (T (0, 0, 0, 1, 0, 0, 0, 0,  0), "%z", 0, 0, ' ', "+0321");
     TEST (T (0, 0, 0, 1, 0, 0, 0, 0,  1), "%z", 0, 0, ' ', "+0432");
 
-    rw_putenv ("TZ=EST04:32:10<EDT+03>05:43:21");
+    set_TZ ("TZ=EST04:32:10<EDT+03>05:43:21");
     TEST (T (0, 0, 0, 1, 0, 0, 0, 0,  0), "%z", 0, 0, ' ', "+0432");
     TEST (T (0, 0, 0, 1, 0, 0, 0, 0,  1), "%z", 0, 0, ' ', "+0543");
 
 #  endif   // 0/1
 
-    rw_putenv ("TZ=EST-4EDT-5");
+    set_TZ ("TZ=EST-4EDT-5");
     TEST (T (0, 0, 0, 1, 0, 0, 0, 0,  0), "%z", 0, 0, ' ', "-0400");
     TEST (T (0, 0, 0, 1, 0, 0, 0, 0,  1), "%z", 0, 0, ' ', "-0500");
 
-    rw_putenv ("TZ=EST-5:00EDT-6:00");
+    set_TZ ("TZ=EST-5:00EDT-6:00");
     TEST (T (0, 0, 0, 1, 0, 0, 0, 0,  0), "%z", 0, 0, ' ', "-0500");
     TEST (T (0, 0, 0, 1, 0, 0, 0, 0,  1), "%z", 0, 0, ' ', "-0600");
 
-    rw_putenv ("TZ=EST-5:43EDT-6:54");
+    set_TZ ("TZ=EST-5:43EDT-6:54");
     TEST (T (0, 0, 0, 1, 0, 0, 0, 0,  0), "%z", 0, 0, ' ', "-0543");
     TEST (T (0, 0, 0, 1, 0, 0, 0, 0,  1), "%z", 0, 0, ' ', "-0654");
 
@@ -1598,14 +1615,14 @@ void test_POSIX (charT, const char *tname)
     // likely expects it to take effect; otherwise POSIX-compliant
     // behavior is assumed to be expected
 
-    rw_putenv ("TZ");   // unset
+    set_TZ ("TZ");   // unset
     TEST (T (0, 0, 0, 1, 0, 0, 0, 0,  0,     60), "%z", 0, 0, ' ', "+0001");
     TEST (T (0, 0, 0, 1, 0, 0, 0, 0,  1,    120), "%z", 0, 0, ' ', "+0002");
     TEST (T (0, 0, 0, 1, 0, 0, 0, 0, -1,    180), "%z", 0, 0, ' ', "");
 
     // setting TZ to an arbitrary value should have no effect
     // regardless of the value of the tm_isdst flag
-    rw_putenv ("TZ=PST8");
+    set_TZ ("TZ=PST8");
     TEST (T (0, 0, 0, 1, 0, 0, 0, 0,  0,   3600), "%z", 0, 0, ' ', "+0100");
     TEST (T (0, 0, 0, 1, 0, 0, 0, 0,  1,  -7260), "%z", 0, 0, ' ', "-0201");
     TEST (T (0, 0, 0, 1, 0, 0, 0, 0, -1,   1234), "%z", 0, 0, ' ', "");
@@ -1625,19 +1642,19 @@ void test_POSIX (charT, const char *tname)
 
     rw_info (0, 0, __LINE__, "%%z: SunOS UZ/zone format [platform-specific]");
 
-    rw_putenv ("TZ=US/Eastern");
+    set_TZ ("TZ=US/Eastern");
     TEST (T (0, 0, 0, 1, 0, 0, 0, 0,  0), "%z", 0, 0, ' ', "+0500");
     TEST (T (0, 0, 0, 1, 0, 0, 0, 0,  1), "%z", 0, 0, ' ', "+0600");
 
-    rw_putenv ("TZ=US/Central");
+    set_TZ ("TZ=US/Central");
     TEST (T (0, 0, 0, 1, 0, 0, 0, 0,  0), "%z", 0, 0, ' ', "+0600");
     TEST (T (0, 0, 0, 1, 0, 0, 0, 0,  1), "%z", 0, 0, ' ', "+0700");
 
-    rw_putenv ("TZ=US/Mountain");
+    set_TZ ("TZ=US/Mountain");
     TEST (T (0, 0, 0, 1, 0, 0, 0, 0,  0), "%z", 0, 0, ' ', "+0700");
     TEST (T (0, 0, 0, 1, 0, 0, 0, 0,  1), "%z", 0, 0, ' ', "+0800");
 
-    rw_putenv ("TZ=US/Pacific");
+    set_TZ ("TZ=US/Pacific");
     TEST (T (0, 0, 0, 1, 0, 0, 0, 0,  0), "%z", 0, 0, ' ', "+0800");
     TEST (T (0, 0, 0, 1, 0, 0, 0, 0,  1), "%z", 0, 0, ' ', "+0900");
 
@@ -1649,7 +1666,7 @@ void test_POSIX (charT, const char *tname)
     rw_info (0, 0, __LINE__,
              "%%Z: the locale's time zone name or abbreviation");
 
-    rw_putenv ("TZ=foo0bar1");
+    set_TZ ("TZ=foo0bar1");
     TEST (T (0, 0, 0, 1, 0, 0, 0, 0,  0), "%Z", 0, 0, ' ', "foo");
     TEST (T (0, 0, 0, 1, 0, 0, 0, 0,  1), "%Z", 0, 0, ' ', "bar");
 
@@ -1657,7 +1674,7 @@ void test_POSIX (charT, const char *tname)
     // is undefined, avoid exercising it
     // TEST (T (0, 0, 0, 1, 0, 0, 0, 0, -1), "%Z", 0, 0, ' ', "bar");
 
-    rw_putenv ("TZ=EST1EDT2");
+    set_TZ ("TZ=EST1EDT2");
     TEST (T (0, 0, 0, 1, 0, 0, 0, 0,  0), "%Z", 0, 0, ' ', "EST");
     TEST (T (0, 0, 0, 1, 0, 0, 0, 0,  1), "%Z", 0, 0, ' ', "EDT");
 
@@ -1666,9 +1683,34 @@ void test_POSIX (charT, const char *tname)
     // TEST (T (0, 0, 0, 1, 0, 0, 0, 0, -1), "%Z", 0, 0, ' ', "EDT");
 
     // exercise two-digit hour
-    rw_putenv ("TZ=ABCD01DEFG02");
-    TEST (T (0, 0, 0, 1, 0, 0, 0, 0,  0), "%Z", 0, 0, ' ', "ABCD");
-    TEST (T (0, 0, 0, 1, 0, 0, 0, 0,  1), "%Z", 0, 0, ' ', "DEFG");
+    set_TZ ("TZ=ABC01DEF02");
+    TEST (T (0, 0, 0, 1, 0, 0, 0, 0,  0), "%Z", 0, 0, ' ', "ABC");
+    TEST (T (0, 0, 0, 1, 0, 0, 0, 0,  1), "%Z", 0, 0, ' ', "DEF");
+
+    // exercise time zone name of maximum length
+#if defined (TZNAME_MAX) && !defined (_MSC_VER)
+    // MSVC may define TZNAME_MAX (if _POSIX_ is defined),
+    // but tzset() uses hardcoded value equal to 3 instead
+
+    char std_name [TZNAME_MAX + 1];
+    std::memset (std_name, 'A', TZNAME_MAX);
+    std_name [TZNAME_MAX] = '\0';
+
+    char dst_name [TZNAME_MAX + 1];
+    std::memset (dst_name, 'B', TZNAME_MAX);
+    dst_name [TZNAME_MAX] = '\0';
+
+    char tz_buf [2 * TZNAME_MAX + 8] = "TZ=";
+    std::strcat (tz_buf, std_name);
+    std::strcat (tz_buf, "01");
+    std::strcat (tz_buf, dst_name);
+    std::strcat (tz_buf, "02");
+
+    set_TZ (tz_buf);
+
+    TEST (T (0, 0, 0, 1, 0, 0, 0, 0,  0), "%Z", 0, 0, ' ', std_name);
+    TEST (T (0, 0, 0, 1, 0, 0, 0, 0,  1), "%Z", 0, 0, ' ', dst_name);
+#endif   // TZNAME_MAX && !_MSC_VER
 
     //////////////////////////////////////////////////////////////////
     // %%: replaced by %

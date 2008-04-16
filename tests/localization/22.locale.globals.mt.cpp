@@ -288,14 +288,12 @@ use_facet_loop (const std::locale &classic, int i)
 
             const std::size_t nbases = sizeof bases / sizeof *bases;
 
-            for (std::size_t i = 0; i != nbases; ++i) {
-                RW_ASSERT (bases [i] != 0);
-                RW_ASSERT (bases [i] == derived [i]);
+            for (std::size_t j = 0; j != nbases; ++j) {
+                RW_ASSERT (bases [j] != 0);
+                RW_ASSERT (bases [j] == derived [j]);
             }
         }
         else if (0 == opt_no_exceptions) {
-
-#if 1 // def _RWSTD_NO_THREAD_SAFE_EXCEPTIONS
 
             bool threw;
 
@@ -317,9 +315,6 @@ use_facet_loop (const std::locale &classic, int i)
             TEST_USE_FACET (NumpunctByname, numpunct);
             TEST_USE_FACET (TimeGetByname, time_get);
             TEST_USE_FACET (TimePutByname, time_put);
-
-#endif   // _RWSTD_NO_THREAD_SAFE_EXCEPTIONS
-
         }
     }
 
@@ -366,14 +361,12 @@ use_facet_loop (const std::locale &classic, int i)
 
             const std::size_t nbases = sizeof bases / sizeof *bases;
 
-            for (std::size_t i = 0; i != nbases; ++i) {
-                RW_ASSERT (bases [i] != 0);
-                RW_ASSERT (bases [i] == derived [i]);
+            for (std::size_t j = 0; j != nbases; ++j) {
+                RW_ASSERT (bases [j] != 0);
+                RW_ASSERT (bases [j] == derived [j]);
             }
         }
         else if (0 == opt_no_exceptions) {
-
-#ifndef _RWSTD_NO_THREAD_SAFE_EXCEPTIONS
 
             bool threw;
 
@@ -386,9 +379,6 @@ use_facet_loop (const std::locale &classic, int i)
             TEST_USE_FACET (WNumpunctByname, numpunct);
             TEST_USE_FACET (WTimeGetByname, time_get);
             TEST_USE_FACET (WTimePutByname, time_put);
-
-#endif   // _RWSTD_NO_THREAD_SAFE_EXCEPTIONS
-
         }
     }
 
@@ -509,7 +499,7 @@ run_test (int, char**)
 
     rw_info (0, 0, 0,
              "testing std::locale globals with %d thread%{?}s%{;}, "
-             "%zu iteration%{?}s%{;} each, in %zu locales { %{ .*A@} }",
+             "%d iteration%{?}s%{;} each, in %zu locales { %{ .*A@} }",
              opt_nthreads, 1 != opt_nthreads,
              opt_nloops, 1 != opt_nloops,
              nlocales, int (nlocales), "%#s", locales);
@@ -534,10 +524,30 @@ run_test (int, char**)
         rw_info (0, 0, 0,
                  "template <class T> const T& std::use_facet (const locale&)");
 
+#ifdef _RWSTD_NO_DYNAMIC_CAST
+
+        // if dynamic_cast isn't supported, then [has,use]_facet()
+        // can't reliably detect if a facet is installed or not.
+        rw_warn (0 != opt_no_exceptions, 0, __LINE__,
+                 "dynamic_cast not supported "
+                 "(macro _RWSTD_NO_DYNAMIC_CAST is #defined), "
+                 "disabling exceptions tests");
+
+        opt_no_exceptions = 1;
+
+#endif   // _RWSTD_NO_DYNAMIC_CAST
+
+
 #ifdef _RWSTD_NO_THREAD_SAFE_EXCEPTIONS
 
+        // avoid exercising exceptions (triggered by use_facet) if
+        // their implementation in the runtime isn't thread-safe
         rw_warn (0, 0, 0,
-                 "exceptions not thread safe, skipping that part of test");
+                 "exceptions not thread safe (macro "
+                 "_RWSTD_NO_THREAD_SAFE_EXCEPTIONS is #defined), "
+                 "disabling exceptions tests");
+
+        opt_no_exceptions = 1;
 
 #endif   // _RWSTD_NO_THREAD_SAFE_EXCEPTIONS
 

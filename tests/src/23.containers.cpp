@@ -33,6 +33,7 @@
 #include <23.list.h>
 
 #include <cmdopt.h>         // for rw_enabled()
+#include <driver.h>         // for rw_note()
 #include <rw_allocator.h>   // for UserAlloc
 #include <rw_printf.h>      // for rw_asnprintf()
 
@@ -532,6 +533,16 @@ _rw_vector_sigcat (char** pbuf, size_t * pbufsize, VectorIds::OverloadId which,
                    const ContainerTestCase &tcase)
 {
     // temporary empty
+
+    _RWSTD_UNUSED (pbuf);
+    _RWSTD_UNUSED (pbufsize);
+    _RWSTD_UNUSED (which);
+    _RWSTD_UNUSED (self);
+    _RWSTD_UNUSED (str);
+    _RWSTD_UNUSED (str_len);
+    _RWSTD_UNUSED (arg);
+    _RWSTD_UNUSED (arg_len);
+    _RWSTD_UNUSED (tcase);
 }
 
 /**************************************************************************/
@@ -551,6 +562,16 @@ _rw_deque_sigcat (char** pbuf, size_t * pbufsize, DequeIds::OverloadId which,
                   const ContainerTestCase &tcase)
 {
     // temporary empty
+
+    _RWSTD_UNUSED (pbuf);
+    _RWSTD_UNUSED (pbufsize);
+    _RWSTD_UNUSED (which);
+    _RWSTD_UNUSED (self);
+    _RWSTD_UNUSED (str);
+    _RWSTD_UNUSED (str_len);
+    _RWSTD_UNUSED (arg);
+    _RWSTD_UNUSED (arg_len);
+    _RWSTD_UNUSED (tcase);
 }
 
 /**************************************************************************/
@@ -570,6 +591,16 @@ _rw_queue_sigcat (char** pbuf, size_t * pbufsize, QueueIds::OverloadId which,
                   const ContainerTestCase &tcase)
 {
     // temporary empty
+
+    _RWSTD_UNUSED (pbuf);
+    _RWSTD_UNUSED (pbufsize);
+    _RWSTD_UNUSED (which);
+    _RWSTD_UNUSED (self);
+    _RWSTD_UNUSED (str);
+    _RWSTD_UNUSED (str_len);
+    _RWSTD_UNUSED (arg);
+    _RWSTD_UNUSED (arg_len);
+    _RWSTD_UNUSED (tcase);
 }
 
 /**************************************************************************/
@@ -589,6 +620,16 @@ _rw_stack_sigcat (char** pbuf, size_t * pbufsize, StackIds::OverloadId which,
                   const ContainerTestCase &tcase)
 {
     // temporary empty
+
+    _RWSTD_UNUSED (pbuf);
+    _RWSTD_UNUSED (pbufsize);
+    _RWSTD_UNUSED (which);
+    _RWSTD_UNUSED (self);
+    _RWSTD_UNUSED (str);
+    _RWSTD_UNUSED (str_len);
+    _RWSTD_UNUSED (arg);
+    _RWSTD_UNUSED (arg_len);
+    _RWSTD_UNUSED (tcase);
 }
 
 /**************************************************************************/

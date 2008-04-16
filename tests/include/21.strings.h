@@ -377,8 +377,6 @@ struct StringIds: ContainerIds {
         MEMBER_2 (ctor, str, cptr, alloc),
         // basic_string (const basic_string&)
         MEMBER_1 (ctor, str, cstr),
-        // basic_string (const basic_string&, const allocator_type&)
-        MEMBER_2 (ctor, str, cstr, alloc),
         // basic_string (const_pointer, size_type)
         MEMBER_2 (ctor, str, cptr, size),
         // basic_string (const_pointer, size_type, const allocator_type&)

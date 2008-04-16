@@ -38,7 +38,7 @@
 #include <examples.h>
 
 
-#define TMP_BUFFER_SIZE		1024
+#define TMP_BUFFER_SIZE    1024
 
 //  Japanese week days (short/abbreviated and long/normal form) in EUC-JP,
 //  Shift_JIS and UTF-8 encodings;

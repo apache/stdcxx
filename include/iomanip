@@ -23,7 +23,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2005 Rogue Wave Software.
+ * Copyright 1994-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -87,7 +87,8 @@ struct __rw_setbase
 
         const unsigned __ifl =
               __strm.flags () & ~_STD::ios_base::basefield
-            & ~(_RWSTD_IOS_BASEMASK << _RWSTD_IOS_BASEOFF)
+            & ~(   _RWSTD_STATIC_CAST (unsigned, _RWSTD_IOS_BASEMASK)
+                << _RWSTD_IOS_BASEOFF)
             | __base << _RWSTD_IOS_BASEOFF;
 
         __strm.flags (_STD::ios_base::fmtflags (__ifl));

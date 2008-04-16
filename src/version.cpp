@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -35,7 +35,7 @@ _RWSTD_NAMESPACE (__rw) {
 #ifdef _RWSTD_VER_STR
 
 extern const char __rw_ident[] = {
-    "@(#) Rogue Wave C++ Standard Library version " _RWSTD_VER_STR
+    "@(#) Apache C++ Standard Library version " _RWSTD_VER_STR
 };
 
 #endif   // _RWSTD_VER_STR
@@ -44,9 +44,28 @@ extern const char __rw_ident[] = {
 
 
 #ifdef __HP_aCC
-#  pragma COPYRIGHT      "Rogue Wave Software"
-#  pragma COPYRIGHT_DATE "1994-2007"
-#  pragma VERSIONID      _RWSTD_VER_STR
+#  pragma COPYRIGHT      "Rogue Wave Software, Inc."
+#  pragma COPYRIGHT_DATE "1994-2008"
+#  if 37300 <= __HP_aCC
+#    pragma VERSIONID      _RWSTD_VER_STR
+#  elif 0x04020000 == _RWSTD_VER
+     // work around an HP aCC 3.63 and prior ICE (see STCXXX-98)
+#    pragma VERSIONID      "4.2.0"
+#  elif 0x04020100 == _RWSTD_VER
+#    pragma VERSIONID      "4.2.1"
+#  elif 0x04020200 == _RWSTD_VER
+#    pragma VERSIONID      "4.2.2"
+#  elif 0x04020300 == _RWSTD_VER
+#    pragma VERSIONID      "4.2.3"
+#  elif 0x04030000 == _RWSTD_VER
+#    pragma VERSIONID      "4.3.0"
+#  elif 0x04030100 == _RWSTD_VER
+#    pragma VERSIONID      "4.3.1"
+#  elif 0x04030200 == _RWSTD_VER
+#    pragma VERSIONID      "4.3.2"
+#  elif 0x05000000 == _RWSTD_VER
+#    pragma VERSIONID      "5.0.0"
+#  endif   // HP aCC < 3.73
 #elif defined (__IBMCPP__)
-#  pragma comment (copyright, "(C) 1994-2007, Rogue Wave Software")
+#  pragma comment (copyright, "(C) 1994-2008, Rogue Wave Software, Inc.")
 #endif   // __HP_aCC

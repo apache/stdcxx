@@ -22,16 +22,24 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2001-2006 Rogue Wave Software.
+ * Copyright 2001-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
+
+#include <rw/_defs.h>
 
 #if defined (__linux__) && !defined (_XOPEN_SOURCE) 
    // on Linux define _XOPEN_SOURCE to get CODESET defined in <langinfo.h>
 #  define _XOPEN_SOURCE 500   /* Single UNIX conformance */
 #endif   // __linux__
 
-#include <rw/_defs.h>
+#ifdef _RWSTD_EDG_ECCP
+   // disable error #450-D: the type "long long" is nonstandard
+   // issued for uses of the type in Linux system headers (e.g.,
+   // pthreadtypes.h)
+#  pragma diag_suppress 450
+#endif   // vanilla EDG eccp demo
+
 #include _RWSTD_SYS_TYPES_H
 
 #if _RWSTD_PATH_SEP == '/'
@@ -922,7 +930,7 @@ print_ce_info (unsigned                             tab_num,
                 // sym is sized at 13 because there will never be more then
                 // 99,999 collating elements
                 char sym [13];
-                std::sprintf (sym, "<RW_CE_%d>", ce_num++);
+                std::sprintf (sym, "<RW_CE_%u>", ce_num++);
 
                 ce_map.insert (std::make_pair (sym, elem));
                 std::cout << "collating-element " << sym << " from \"";
@@ -2610,7 +2618,7 @@ print_charmap (const __rw::__rw_codecvt_t *cvt,
         print_ellipsis (mbchar, last_byte, last_ucs4, last_wchar);
 
     // process subsequent maps
-    for (std::size_t i = 0; i != UCHAR_MAX + 1U; ++i) {
+    for (unsigned i = 0; i != UCHAR_MAX + 1U; ++i) {
 
         if (UINT_MAX == tab [i]) {
             // invalid multibyte sequence (i.e., unused slot)
