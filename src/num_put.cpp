@@ -160,9 +160,9 @@ inline bool __rw_isinf (double val) { return !!isinf (val); }
 
 inline bool __rw_isnan (double val) { return !!isnan (val); }
 
-inline bool __rw_isqnan (double val) { return false; }
+inline bool __rw_isqnan (double) { return false; }
 
-inline bool __rw_issnan (double val) { return false; }
+inline bool __rw_issnan (double) { return false; }
 
 #else
 
