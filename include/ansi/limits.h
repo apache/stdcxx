@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -106,7 +106,13 @@
 #    pragma GCC system_header
 #  endif
 
-#  include _RWSTD_ANSI_C_LIMITS_H
+#  ifdef __GNUC__
+     // use the gcc extension to #include the compiler's limits.h
+#    include_next <limits.h>
+#  else
+#    include _RWSTD_ANSI_C_LIMITS_H
+#  endif   // gcc
+
 #endif   // _RWSTD_NO_DEPRECATED_C_HEADERS
 
 #if defined (__hpux__) || defined (__hpux) || defined (hpux)

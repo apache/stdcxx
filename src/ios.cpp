@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -95,29 +95,28 @@ streamsize ios_base::precision (streamsize prec)
 
 ios_base::fmtflags ios_base::flags (fmtflags fl)
 {
+    const unsigned mask =
+        ~(unsigned (_RWSTD_IOS_BASEMASK) << _RWSTD_IOS_BASEOFF);
+
     unsigned ifl = unsigned (fl);
 
     switch (fl & basefield) {
         // if basefield is set, clear the base mask and set
         // the numeric base bits according to the basefield
     case oct:
-        ifl = ifl & ~(_RWSTD_IOS_BASEMASK << _RWSTD_IOS_BASEOFF)
-                  | 8U << _RWSTD_IOS_BASEOFF;
+        ifl = ifl &  mask | 8U << _RWSTD_IOS_BASEOFF;
         break;
 
     case dec:
-        ifl = ifl & ~(_RWSTD_IOS_BASEMASK << _RWSTD_IOS_BASEOFF)
-                  | 10U << _RWSTD_IOS_BASEOFF;
+        ifl = ifl & mask | 10U << _RWSTD_IOS_BASEOFF;
         break;
 
     case hex:
-        ifl = ifl & ~(_RWSTD_IOS_BASEMASK << _RWSTD_IOS_BASEOFF)
-                  | 16U << _RWSTD_IOS_BASEOFF;
+        ifl = ifl & mask | 16U << _RWSTD_IOS_BASEOFF;
         break;
 
     case _RWSTD_IOS_BIN:
-        ifl = ifl & ~(_RWSTD_IOS_BASEMASK << _RWSTD_IOS_BASEOFF)
-                  | 2U << _RWSTD_IOS_BASEOFF;
+        ifl = ifl & mask | 2U << _RWSTD_IOS_BASEOFF;
         break;
 
     case 0:

@@ -25,7 +25,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2005-2006 Rogue Wave Software.
+ * Copyright 2005-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -162,11 +162,14 @@ extern "C" {
 // avoid namespace pollution on Solaris
 typedef struct __mbstate_t {
 
-#      ifdef _LP64
+       // Sun uses _LP64 in their header but the macro may not
+       // yetbe #defined at this point, depending on what other
+       // headers have been #included
+#      if 8 == _RWSTD_LONG_SIZE   // LP64
     long __filler [4];
 #      else
     int __filler [6];
-#      endif   // _LP64
+#      endif   // 8 == sizeof(long)
 } __mbstate_t;
 
 }   // extern "C"

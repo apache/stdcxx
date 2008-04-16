@@ -22,9 +22,18 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2001-2007 Rogue Wave Software, Inc.
+ * Copyright 2001-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
+
+#include <rw/_defs.h>
+
+#ifdef _RWSTD_EDG_ECCP
+   // disable error #450-D: the type "long long" is nonstandard
+   // issued for uses of the type in Linux system headers (e.g.,
+   // pthreadtypes.h)
+#  pragma diag_suppress 450
+#endif   // vanilla EDG eccp demo
 
 #ifdef __linux__
    // on Linux define _XOPEN_SOURCE to get CODESET defined in <langinfo.h>
@@ -33,8 +42,6 @@
 #endif   // __linux__
 
 #include "diagnostic.h"
-
-#include <rw/_defs.h>
 
 #include <cassert>   // for assert()
 #include <cerrno>    // for errno
@@ -536,12 +543,12 @@ char* get_installed_locales (int loc_cat /* = LC_INVALID_CAT */)
 {
     static char* slocname = 0;
 
-    static int size       = 0;         // the number of elements in the array
-    static int total_size = 5120;      // the size of the array
+    static std::size_t size       = 0;      // number of elements in array
+    static std::size_t total_size = 5120;   // the size of the array
 
     // allocate first time through
     if (!slocname) {
-        slocname = (char*)std::malloc (16384);
+        slocname = new char [16384];
         *slocname = '\0';
     }
 
@@ -594,8 +601,8 @@ char* get_installed_locales (int loc_cat /* = LC_INVALID_CAT */)
     const int ret = std::system (cmd);
 
     if (ret)
-      issue_diag (W_NOTSUP, false, 0, "call to system(\"%s\") failed: %s\n",
-		  cmd, std::strerror (errno));
+        issue_diag (W_NOTSUP, false, 0, "call to system(\"%s\") failed: %s\n",
+                    cmd, std::strerror (errno));
 
     // open file containing the list of installed locales
     std::FILE *f = std::fopen (fname, "r");

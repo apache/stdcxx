@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2005-2007 Rogue Wave Software, Inc.
+ * Copyright 2005-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -35,8 +35,9 @@
 #include <environ.h>    // for rw_putenv()
 
 #include <bitset>       // for bitset
-#include <ios>          // for ios::openmode, ios::seekdir
+#include <ios>          // for ios::iostate, ios::openmode, ios::seekdir
 #include <string>       // for string
+#include <locale>       // for locale::all, ...
 
 #include <assert.h>     // for assert()
 #include <ctype.h>      // for isdigit()
@@ -48,6 +49,7 @@
 #include <string.h>     // for strcpy()
 #include <stdarg.h>     // for va_arg, ...
 #include <time.h>       // for struct tm
+#include <locale.h>     // for LC_ALL, ...
 
 
 // disable tests for function name in "%{lF}"
@@ -806,6 +808,29 @@ static void
 test_ios_bitmasks ()
 {
     //////////////////////////////////////////////////////////////////
+    printf ("%s\n", "extension: \"%{Is}\": std::ios_base::iostate");
+
+    const int bad  = std::ios_base::badbit;
+    const int eof  = std::ios_base::eofbit;
+    const int fail = std::ios_base::failbit;
+    const int good = std::ios_base::goodbit;
+
+    TEST ("[%{Is}]", 0,                0, 0, "[goodbit]");
+    TEST ("[%{Is}]", bad,              0, 0, "[badbit]");
+    TEST ("[%{Is}]", eof,              0, 0, "[eofbit]");
+    TEST ("[%{Is}]", fail,             0, 0, "[failbit]");
+
+    TEST ("[%{#Is}]", 0,               0, 0, "[std::ios::goodbit]");
+    TEST ("[%{#Is}]", bad,             0, 0, "[std::ios::badbit]");
+    TEST ("[%{#Is}]", eof,             0, 0, "[std::ios::eofbit]");
+    TEST ("[%{#Is}]", fail,            0, 0, "[std::ios::failbit]");
+
+    TEST ("[%{Is}]", bad | eof,        0, 0, "[badbit | eofbit]");
+    TEST ("[%{Is}]", bad | fail,       0, 0, "[badbit | failbit]");
+    TEST ("[%{Is}]", eof | fail,       0, 0, "[eofbit | failbit]");
+    TEST ("[%{Is}]", bad | eof | fail, 0, 0, "[badbit | eofbit | failbit]");
+
+    //////////////////////////////////////////////////////////////////
     printf ("%s\n", "extension: \"%{Io}\": std::ios_base::opemode");
 
     const int in  = std::ios_base::in;
@@ -841,6 +866,240 @@ test_ios_bitmasks ()
     TEST ("[%{#Iw}]", std::ios::beg, 0, 0, "[std::ios::beg]");
     TEST ("[%{#Iw}]", std::ios::cur, 0, 0, "[std::ios::cur]");
     TEST ("[%{#Iw}]", std::ios::end, 0, 0, "[std::ios::end]");
+
+    //////////////////////////////////////////////////////////////////
+    printf ("%s\n", "extension: \"%{If}\": std::ios_base::fmtflags");
+
+#define BASE(n)   ((n)  << _RWSTD_IOS_BASEOFF)
+
+    TEST ("[%{If}]",  0,                     0, 0, "[fmtflags(0)]");
+    TEST ("[%{If}]",  std::ios::adjustfield, 0, 0, "[adjustfield]");
+    TEST ("[%{If}]",  std::ios::basefield,   0, 0, "[basefield]");
+    TEST ("[%{If}]",  std::ios::boolalpha,   0, 0, "[boolalpha]");
+    TEST ("[%{If}]",  std::ios::dec,         0, 0, "[dec]");
+    TEST ("[%{If}]",  std::ios::fixed,       0, 0, "[fixed]");
+    TEST ("[%{If}]",  std::ios::hex,         0, 0, "[hex]");
+    TEST ("[%{If}]",  std::ios::internal,    0, 0, "[internal]");
+    TEST ("[%{If}]",  std::ios::left,        0, 0, "[left]");
+    TEST ("[%{If}]",  std::ios::oct,         0, 0, "[oct]");
+    TEST ("[%{If}]",  std::ios::right,       0, 0, "[right]");
+    TEST ("[%{If}]",  std::ios::scientific,  0, 0, "[scientific]");
+    TEST ("[%{If}]",  std::ios::showbase,    0, 0, "[showbase]");
+    TEST ("[%{If}]",  std::ios::showpoint,   0, 0, "[showpoint]");
+    TEST ("[%{If}]",  std::ios::showpos,     0, 0, "[showpos]");
+    TEST ("[%{If}]",  std::ios::skipws,      0, 0, "[skipws]");
+    TEST ("[%{If}]",  std::ios::unitbuf,     0, 0, "[unitbuf]");
+    TEST ("[%{If}]",  std::ios::uppercase,   0, 0, "[uppercase]");
+#ifndef _RWSTD_NO_EXT_BIN_IO
+    TEST ("[%{If}]",  std::ios::bin,         0, 0, "[bin]");
+#endif   // _RWSTD_NO_EXT_BIN_IO
+#ifndef _RWSTD_NO_EXT_REENTRANT_IO
+    TEST ("[%{If}]",  std::ios::nolock,      0, 0, "[nolock]");
+    TEST ("[%{If}]",  std::ios::nolockbuf,   0, 0, "[nolockbuf]");
+#endif   // _RWSTD_NO_EXT_REENTRANT_IO
+
+    TEST ("[%{If}]",  BASE (1),              0, 0, "[fmtflags(0) | base(1)]");
+    TEST ("[%{If}]",  BASE (2),              0, 0, "[fmtflags(0) | base(2)]");
+    TEST ("[%{If}]",  BASE (3),              0, 0, "[fmtflags(0) | base(3)]");
+    TEST ("[%{If}]",  BASE (4),              0, 0, "[fmtflags(0) | base(4)]");
+    TEST ("[%{If}]",  BASE (5),              0, 0, "[fmtflags(0) | base(5)]");
+    TEST ("[%{If}]",  BASE (6),              0, 0, "[fmtflags(0) | base(6)]");
+    TEST ("[%{If}]",  BASE (7),              0, 0, "[fmtflags(0) | base(7)]");
+    TEST ("[%{If}]",  BASE (8),              0, 0, "[fmtflags(0)]");
+    TEST ("[%{If}]",  BASE (9),              0, 0, "[fmtflags(0) | base(9)]");
+    TEST ("[%{If}]",  BASE (10),             0, 0, "[fmtflags(0)]");
+    TEST ("[%{If}]",  BASE (11),             0, 0, "[fmtflags(0) | base(11)]");
+    TEST ("[%{If}]",  BASE (12),             0, 0, "[fmtflags(0) | base(12)]");
+    TEST ("[%{If}]",  BASE (13),             0, 0, "[fmtflags(0) | base(13)]");
+    TEST ("[%{If}]",  BASE (14),             0, 0, "[fmtflags(0) | base(14)]");
+    TEST ("[%{If}]",  BASE (15),             0, 0, "[fmtflags(0) | base(15)]");
+    TEST ("[%{If}]",  BASE (16),             0, 0, "[fmtflags(0)]");
+    TEST ("[%{If}]",  BASE (17),             0, 0, "[fmtflags(0) | base(17)]");
+    TEST ("[%{If}]",  BASE (18),             0, 0, "[fmtflags(0) | base(18)]");
+    TEST ("[%{If}]",  BASE (19),             0, 0, "[fmtflags(0) | base(19)]");
+    TEST ("[%{If}]",  BASE (20),             0, 0, "[fmtflags(0) | base(20)]");
+    TEST ("[%{If}]",  BASE (21),             0, 0, "[fmtflags(0) | base(21)]");
+    TEST ("[%{If}]",  BASE (22),             0, 0, "[fmtflags(0) | base(22)]");
+    TEST ("[%{If}]",  BASE (23),             0, 0, "[fmtflags(0) | base(23)]");
+    TEST ("[%{If}]",  BASE (24),             0, 0, "[fmtflags(0) | base(24)]");
+    TEST ("[%{If}]",  BASE (25),             0, 0, "[fmtflags(0) | base(25)]");
+    TEST ("[%{If}]",  BASE (26),             0, 0, "[fmtflags(0) | base(26)]");
+    TEST ("[%{If}]",  BASE (27),             0, 0, "[fmtflags(0) | base(27)]");
+    TEST ("[%{If}]",  BASE (28),             0, 0, "[fmtflags(0) | base(28)]");
+    TEST ("[%{If}]",  BASE (29),             0, 0, "[fmtflags(0) | base(29)]");
+    TEST ("[%{If}]",  BASE (30),             0, 0, "[fmtflags(0) | base(30)]");
+    TEST ("[%{If}]",  BASE (31),             0, 0, "[fmtflags(0) | base(31)]");
+    TEST ("[%{If}]",  BASE (32),             0, 0, "[fmtflags(0) | base(32)]");
+    TEST ("[%{If}]",  BASE (33),             0, 0, "[fmtflags(0) | base(33)]");
+    TEST ("[%{If}]",  BASE (34),             0, 0, "[fmtflags(0) | base(34)]");
+    TEST ("[%{If}]",  BASE (35),             0, 0, "[fmtflags(0) | base(35)]");
+    TEST ("[%{If}]",  BASE (36),             0, 0, "[fmtflags(0) | base(36)]");
+
+    TEST ("[%{#If}]",  0,                     0, 0, "[std::ios::fmtflags(0)]");
+    TEST ("[%{#If}]",  std::ios::adjustfield, 0, 0, "[std::ios::adjustfield]");
+    TEST ("[%{#If}]",  std::ios::basefield,   0, 0, "[std::ios::basefield]");
+    TEST ("[%{#If}]",  std::ios::boolalpha,   0, 0, "[std::ios::boolalpha]");
+    TEST ("[%{#If}]",  std::ios::dec,         0, 0, "[std::ios::dec]");
+    TEST ("[%{#If}]",  std::ios::fixed,       0, 0, "[std::ios::fixed]");
+    TEST ("[%{#If}]",  std::ios::hex,         0, 0, "[std::ios::hex]");
+    TEST ("[%{#If}]",  std::ios::internal,    0, 0, "[std::ios::internal]");
+    TEST ("[%{#If}]",  std::ios::left,        0, 0, "[std::ios::left]");
+    TEST ("[%{#If}]",  std::ios::oct,         0, 0, "[std::ios::oct]");
+    TEST ("[%{#If}]",  std::ios::right,       0, 0, "[std::ios::right]");
+    TEST ("[%{#If}]",  std::ios::scientific,  0, 0, "[std::ios::scientific]");
+    TEST ("[%{#If}]",  std::ios::showbase,    0, 0, "[std::ios::showbase]");
+    TEST ("[%{#If}]",  std::ios::showpoint,   0, 0, "[std::ios::showpoint]");
+    TEST ("[%{#If}]",  std::ios::showpos,     0, 0, "[std::ios::showpos]");
+    TEST ("[%{#If}]",  std::ios::skipws,      0, 0, "[std::ios::skipws]");
+    TEST ("[%{#If}]",  std::ios::unitbuf,     0, 0, "[std::ios::unitbuf]");
+    TEST ("[%{#If}]",  std::ios::uppercase,   0, 0, "[std::ios::uppercase]");
+#ifndef _RWSTD_NO_EXT_BIN_IO
+    TEST ("[%{#If}]",  std::ios::bin,         0, 0, "[std::ios::bin]");
+#endif   // _RWSTD_NO_EXT_BIN_IO
+#ifndef _RWSTD_NO_EXT_REENTRANT_IO
+    TEST ("[%{#If}]",  std::ios::nolock,      0, 0, "[std::ios::nolock]");
+    TEST ("[%{#If}]",  std::ios::nolockbuf,   0, 0, "[std::ios::nolockbuf]");
+#endif   // _RWSTD_NO_EXT_REENTRANT_IO
+
+    TEST ("[%{#If}]",  BASE (1),              0, 0,
+          "[std::ios::fmtflags(0) | std::ios::base(1)]");
+    TEST ("[%{#If}]",  BASE (2),              0, 0,
+          "[std::ios::fmtflags(0) | std::ios::base(2)]");
+    TEST ("[%{#If}]",  BASE (3),              0, 0,
+          "[std::ios::fmtflags(0) | std::ios::base(3)]");
+    TEST ("[%{#If}]",  BASE (4),              0, 0,
+          "[std::ios::fmtflags(0) | std::ios::base(4)]");
+    TEST ("[%{#If}]",  BASE (5),              0, 0,
+          "[std::ios::fmtflags(0) | std::ios::base(5)]");
+    TEST ("[%{#If}]",  BASE (6),              0, 0,
+          "[std::ios::fmtflags(0) | std::ios::base(6)]");
+    TEST ("[%{#If}]",  BASE (7),              0, 0,
+          "[std::ios::fmtflags(0) | std::ios::base(7)]");
+    TEST ("[%{#If}]",  BASE (8),              0, 0,
+          "[std::ios::fmtflags(0)]");
+    TEST ("[%{#If}]",  BASE (9),              0, 0,
+          "[std::ios::fmtflags(0) | std::ios::base(9)]");
+    TEST ("[%{#If}]",  BASE (10),             0, 0,
+          "[std::ios::fmtflags(0)]");
+    TEST ("[%{#If}]",  BASE (11),             0, 0,
+          "[std::ios::fmtflags(0) | std::ios::base(11)]");
+    TEST ("[%{#If}]",  BASE (12),             0, 0,
+          "[std::ios::fmtflags(0) | std::ios::base(12)]");
+    TEST ("[%{#If}]",  BASE (13),             0, 0,
+          "[std::ios::fmtflags(0) | std::ios::base(13)]");
+    TEST ("[%{#If}]",  BASE (14),             0, 0,
+          "[std::ios::fmtflags(0) | std::ios::base(14)]");
+    TEST ("[%{#If}]",  BASE (15),             0, 0,
+          "[std::ios::fmtflags(0) | std::ios::base(15)]");
+    TEST ("[%{#If}]",  BASE (16),             0, 0,
+          "[std::ios::fmtflags(0)]");
+    TEST ("[%{#If}]",  BASE (17),             0, 0,
+          "[std::ios::fmtflags(0) | std::ios::base(17)]");
+    TEST ("[%{#If}]",  BASE (18),             0, 0,
+          "[std::ios::fmtflags(0) | std::ios::base(18)]");
+    TEST ("[%{#If}]",  BASE (19),             0, 0,
+          "[std::ios::fmtflags(0) | std::ios::base(19)]");
+    TEST ("[%{#If}]",  BASE (20),             0, 0,
+          "[std::ios::fmtflags(0) | std::ios::base(20)]");
+    TEST ("[%{#If}]",  BASE (21),             0, 0,
+          "[std::ios::fmtflags(0) | std::ios::base(21)]");
+    TEST ("[%{#If}]",  BASE (22),             0, 0,
+          "[std::ios::fmtflags(0) | std::ios::base(22)]");
+    TEST ("[%{#If}]",  BASE (23),             0, 0,
+          "[std::ios::fmtflags(0) | std::ios::base(23)]");
+    TEST ("[%{#If}]",  BASE (24),             0, 0,
+          "[std::ios::fmtflags(0) | std::ios::base(24)]");
+    TEST ("[%{#If}]",  BASE (25),             0, 0,
+          "[std::ios::fmtflags(0) | std::ios::base(25)]");
+    TEST ("[%{#If}]",  BASE (26),             0, 0,
+          "[std::ios::fmtflags(0) | std::ios::base(26)]");
+    TEST ("[%{#If}]",  BASE (27),             0, 0,
+          "[std::ios::fmtflags(0) | std::ios::base(27)]");
+    TEST ("[%{#If}]",  BASE (28),             0, 0,
+          "[std::ios::fmtflags(0) | std::ios::base(28)]");
+    TEST ("[%{#If}]",  BASE (29),             0, 0,
+          "[std::ios::fmtflags(0) | std::ios::base(29)]");
+    TEST ("[%{#If}]",  BASE (30),             0, 0,
+          "[std::ios::fmtflags(0) | std::ios::base(30)]");
+    TEST ("[%{#If}]",  BASE (31),             0, 0,
+          "[std::ios::fmtflags(0) | std::ios::base(31)]");
+    TEST ("[%{#If}]",  BASE (32),             0, 0,
+          "[std::ios::fmtflags(0) | std::ios::base(32)]");
+    TEST ("[%{#If}]",  BASE (33),             0, 0,
+          "[std::ios::fmtflags(0) | std::ios::base(33)]");
+    TEST ("[%{#If}]",  BASE (34),             0, 0,
+          "[std::ios::fmtflags(0) | std::ios::base(34)]");
+    TEST ("[%{#If}]",  BASE (35),             0, 0,
+          "[std::ios::fmtflags(0) | std::ios::base(35)]");
+    TEST ("[%{#If}]",  BASE (36),             0, 0,
+          "[std::ios::fmtflags(0) | std::ios::base(36)]");
+
+    //////////////////////////////////////////////////////////////////
+    printf ("%s\n", "extension: \"%{Ie}\": std::ios_base::event");
+
+    TEST ("[%{Ie}]", std::ios::erase_event,   0, 0, "[erase_event]");
+    TEST ("[%{Ie}]", std::ios::imbue_event,   0, 0, "[imbue_event]");
+    TEST ("[%{Ie}]", std::ios::copyfmt_event, 0, 0, "[copyfmt_event]");
+    TEST ("[%{Ie}]", 3,                       0, 0, "[event(3)]");
+    TEST ("[%{Ie}]", 10,                      0, 0, "[event(10)]");
+
+    TEST ("[%{#Ie}]", std::ios::erase_event,   0, 0,
+          "[std::ios::erase_event]");
+    TEST ("[%{#Ie}]", std::ios::imbue_event,   0, 0,
+          "[std::ios::imbue_event]");
+    TEST ("[%{#Ie}]", std::ios::copyfmt_event, 0, 0,
+          "[std::ios::copyfmt_event]");
+    TEST ("[%{#Ie}]", 3,                       0, 0,
+          "[std::ios::event(3)]");
+    TEST ("[%{#Ie}]", 10,                      0, 0,
+          "[std::ios::event(10)]");
+}
+
+/***********************************************************************/
+
+static void
+test_locale_category ()
+{
+    //////////////////////////////////////////////////////////////////
+    printf ("%s\n", "extension: \"%{Lc}\": locale category");
+
+    TEST ("[%{Lc}]", LC_ALL,      0, 0, "[LC_ALL]");
+    TEST ("[%{Lc}]", LC_COLLATE,  0, 0, "[LC_COLLATE]");
+    TEST ("[%{Lc}]", LC_CTYPE,    0, 0, "[LC_CTYPE]");
+    TEST ("[%{Lc}]", LC_MONETARY, 0, 0, "[LC_MONETARY]");
+    TEST ("[%{Lc}]", LC_NUMERIC,  0, 0, "[LC_NUMERIC]");
+    TEST ("[%{Lc}]", LC_TIME,     0, 0, "[LC_TIME]");
+#ifdef LC_MESSAGES
+    TEST ("[%{Lc}]", LC_MESSAGES, 0, 0, "[LC_MESSAGES]");
+#endif   // LC_MESSAGES
+
+    TEST ("[%{Lc}]", std::locale::all,      0, 0, "[all]");
+    TEST ("[%{Lc}]", std::locale::none,     0, 0, "[none]");
+    TEST ("[%{Lc}]", std::locale::collate,  0, 0, "[collate]");
+    TEST ("[%{Lc}]", std::locale::ctype,    0, 0, "[ctype]");
+    TEST ("[%{Lc}]", std::locale::monetary, 0, 0, "[monetary]");
+    TEST ("[%{Lc}]", std::locale::numeric,  0, 0, "[numeric]");
+    TEST ("[%{Lc}]", std::locale::messages, 0, 0, "[messages]");
+    TEST ("[%{Lc}]", std::locale::time,     0, 0, "[time]");
+
+    TEST ("[%{#Lc}]", LC_ALL,      0, 0, "[LC_ALL]");
+    TEST ("[%{#Lc}]", LC_COLLATE,  0, 0, "[LC_COLLATE]");
+    TEST ("[%{#Lc}]", LC_CTYPE,    0, 0, "[LC_CTYPE]");
+    TEST ("[%{#Lc}]", LC_MONETARY, 0, 0, "[LC_MONETARY]");
+    TEST ("[%{#Lc}]", LC_NUMERIC,  0, 0, "[LC_NUMERIC]");
+    TEST ("[%{#Lc}]", LC_TIME,     0, 0, "[LC_TIME]");
+#ifdef LC_MESSAGES
+    TEST ("[%{#Lc}]", LC_MESSAGES, 0, 0, "[LC_MESSAGES]");
+#endif   // LC_MESSAGES
+
+    TEST ("[%{#Lc}]", std::locale::all,      0, 0, "[std::locale::all]");
+    TEST ("[%{#Lc}]", std::locale::none,     0, 0, "[std::locale::none]");
+    TEST ("[%{#Lc}]", std::locale::collate,  0, 0, "[std::locale::collate]");
+    TEST ("[%{#Lc}]", std::locale::ctype,    0, 0, "[std::locale::ctype]");
+    TEST ("[%{#Lc}]", std::locale::monetary, 0, 0, "[std::locale::monetary]");
+    TEST ("[%{#Lc}]", std::locale::numeric,  0, 0, "[std::locale::numeric]");
+    TEST ("[%{#Lc}]", std::locale::messages, 0, 0, "[std::locale::messages]");
+    TEST ("[%{#Lc}]", std::locale::time,     0, 0, "[std::locale::time]");
 }
 
 /***********************************************************************/
@@ -1869,68 +2128,68 @@ test_memptr ()
 
         static size_t big_endian = size_t (0 == u.bytes [0]);
 
-        const size_t lo_inx = size_t (1 - big_endian);
-        const size_t hi_inx = size_t (big_endian);
+        const size_t lo_inx = size_t (big_endian);
+        const size_t hi_inx = size_t (1 - big_endian);
 
 #if 4 == _RWSTD_LONG_SIZE
 
         uval.lval [hi_inx] = 0UL;
 
         uval.lval [lo_inx] = 0UL;
-        TEST ("%{M}",  uval.mptr, 0, 0,   "00000000:00000000");
-        TEST ("%{#M}", uval.mptr, 0, 0, "0x00000000:00000000");
+        TEST ("%{M}",  uval.mptr, 0, 0,   "0000000000000000");
+        TEST ("%{#M}", uval.mptr, 0, 0, "0x0000000000000000");
 
         uval.lval [lo_inx] = 1UL;
-        TEST ("%{M}",  uval.mptr, 0, 0,   "00000000:00000001");
-        TEST ("%{#M}", uval.mptr, 0, 0, "0x00000000:00000001");
+        TEST ("%{M}",  uval.mptr, 0, 0,   "0000000000000001");
+        TEST ("%{#M}", uval.mptr, 0, 0, "0x0000000000000001");
 
         uval.lval [lo_inx] = 0xffffffffUL;
-        TEST ("%{M}",  uval.mptr, 0, 0,   "00000000:ffffffff");
-        TEST ("%{#M}", uval.mptr, 0, 0, "0x00000000:ffffffff");
+        TEST ("%{M}",  uval.mptr, 0, 0,   "00000000ffffffff");
+        TEST ("%{#M}", uval.mptr, 0, 0, "0x00000000ffffffff");
 
         uval.lval [hi_inx] = 0xdeadbeefUL;
         
         uval.lval [lo_inx] = 0UL;
-        TEST ("%{M}",  uval.mptr, 0, 0,   "deadbeef:00000000");
-        TEST ("%{#M}", uval.mptr, 0, 0, "0xdeadbeef:00000000");
+        TEST ("%{M}",  uval.mptr, 0, 0,   "deadbeef00000000");
+        TEST ("%{#M}", uval.mptr, 0, 0, "0xdeadbeef00000000");
 
         uval.lval [lo_inx] = 0x1aUL;
-        TEST ("%{M}",  uval.mptr, 0, 0,   "deadbeef:0000001a");
-        TEST ("%{#M}", uval.mptr, 0, 0, "0xdeadbeef:0000001a");
+        TEST ("%{M}",  uval.mptr, 0, 0,   "deadbeef0000001a");
+        TEST ("%{#M}", uval.mptr, 0, 0, "0xdeadbeef0000001a");
 
         uval.lval [lo_inx] = 0x0fff1fffUL;
-        TEST ("%{M}",  uval.mptr, 0, 0,   "deadbeef:0fff1fff");
-        TEST ("%{#M}", uval.mptr, 0, 0, "0xdeadbeef:0fff1fff");
+        TEST ("%{M}",  uval.mptr, 0, 0,   "deadbeef0fff1fff");
+        TEST ("%{#M}", uval.mptr, 0, 0, "0xdeadbeef0fff1fff");
 
 #elif 8 == _RWSTD_LONG_SIZE
 
         uval.lval [hi_inx] = 0UL;
 
         uval.lval [lo_inx] = 0UL;
-        TEST ("%{M}",  uval.mptr, 0, 0,   "0000000000000000:0000000000000000");
-        TEST ("%{#M}", uval.mptr, 0, 0, "0x0000000000000000:0000000000000000");
+        TEST ("%{M}",  uval.mptr, 0, 0,   "00000000000000000000000000000000");
+        TEST ("%{#M}", uval.mptr, 0, 0, "0x00000000000000000000000000000000");
 
         uval.lval [lo_inx] = 1UL;
-        TEST ("%{M}",  uval.mptr, 0, 0,   "0000000000000000:0000000000000001");
-        TEST ("%{#M}", uval.mptr, 0, 0, "0x0000000000000000:0000000000000001");
+        TEST ("%{M}",  uval.mptr, 0, 0,   "00000000000000000000000000000001");
+        TEST ("%{#M}", uval.mptr, 0, 0, "0x00000000000000000000000000000001");
 
         uval.lval [lo_inx] = 0xffffffffUL;
-        TEST ("%{M}",  uval.mptr, 0, 0,   "0000000000000000:00000000ffffffff");
-        TEST ("%{#M}", uval.mptr, 0, 0, "0x0000000000000000:00000000ffffffff");
+        TEST ("%{M}",  uval.mptr, 0, 0,   "000000000000000000000000ffffffff");
+        TEST ("%{#M}", uval.mptr, 0, 0, "0x000000000000000000000000ffffffff");
 
         uval.lval [hi_inx] = 0x0123456789abcdefUL;
         
         uval.lval [lo_inx] = 0UL;
-        TEST ("%{M}",  uval.mptr, 0, 0,   "0123456789abcdef:0000000000000000");
-        TEST ("%{#M}", uval.mptr, 0, 0, "0x0123456789abcdef:0000000000000000");
+        TEST ("%{M}",  uval.mptr, 0, 0,   "0123456789abcdef0000000000000000");
+        TEST ("%{#M}", uval.mptr, 0, 0, "0x0123456789abcdef0000000000000000");
 
         uval.lval [lo_inx] = 0x1aUL;
-        TEST ("%{M}",  uval.mptr, 0, 0,   "0123456789abcdef:000000000000001a");
-        TEST ("%{#M}", uval.mptr, 0, 0, "0x0123456789abcdef:000000000000001a");
+        TEST ("%{M}",  uval.mptr, 0, 0,   "0123456789abcdef000000000000001a");
+        TEST ("%{#M}", uval.mptr, 0, 0, "0x0123456789abcdef000000000000001a");
 
         uval.lval [lo_inx] = 0x0fff1fffUL;
-        TEST ("%{M}",  uval.mptr, 0, 0,   "0123456789abcdef:000000000fff1fff");
-        TEST ("%{#M}", uval.mptr, 0, 0, "0x0123456789abcdef:000000000fff1fff");
+        TEST ("%{M}",  uval.mptr, 0, 0,   "0123456789abcdef000000000fff1fff");
+        TEST ("%{#M}", uval.mptr, 0, 0, "0x0123456789abcdef000000000fff1fff");
 
 #else
 
@@ -3045,6 +3304,8 @@ int main ()
     test_basic_string ();
 
     test_ios_bitmasks ();
+
+    test_locale_category ();
 
     test_ctype_mask ();
 

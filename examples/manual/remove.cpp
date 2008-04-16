@@ -51,8 +51,8 @@
 //  };
 
 
-typedef std::greater<int>		int_greater;
-typedef std::binder2nd<int_greater>	bnd_greater;
+typedef std::greater<int>              int_greater;
+typedef std::binder2nd<int_greater>    bnd_greater;
 
 int main ()
 {

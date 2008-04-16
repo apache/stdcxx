@@ -384,7 +384,8 @@ test_synopsis (std::bitset<0>*)
 template <std::size_t N>
 void test_ctors (const std::bitset<N>*)
 {
-    const std::size_t bmask = ::bitmax (N);
+    typedef unsigned long ULong;
+    const ULong bmask = ULong (::bitmax (N));
 
     {   // bitset::bitset()
         rw_info (0, 0, __LINE__, "std::bitset<%d>::bitset()", N);

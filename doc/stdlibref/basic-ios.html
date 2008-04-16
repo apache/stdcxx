@@ -15,7 +15,7 @@
     implied.   See  the License  for  the  specific language  governing
     permissions and limitations under the License.
 
-    Copyright 1999-2007 Rogue Wave Software, Inc.
+    Copyright 1999-2008 Rogue Wave Software, Inc.
 -->
 
 <HTML>
@@ -250,6 +250,49 @@ namespace std {
 <P>Before copying any parts of <SAMP>rhs</SAMP>, calls each registered callback pair <SAMP>(fn, index)</SAMP> as <SAMP>(*fn)(erase_event,*this, index)</SAMP>. After all parts but <SAMP>exceptions()</SAMP> are replaced, calls each callback pair that was copied from <SAMP>rhs</SAMP> as <SAMP>(*fn)(copy_event,*this, index)</SAMP>.</P>
 </UL>
 
+<H4><A NAME="Table&nbsp;40">Table&nbsp;40: <SAMP>copyfmt()</SAMP> Postconditions</A></H4>
+<TABLE BORDER="1" CELLPADDING="3" CELLSPACING="3">
+<tr>
+  <td valign=top><B>Element</B></td>
+  <td valign=top><B>Value</B></td>
+</tr>
+<tr>
+  <td valign=top><P CLASS="TABLE"><SAMP>rdbuf()</SAMP></P></td>
+  <td valign=top><P CLASS="TABLE">unchanged</P></td>
+</tr>
+<tr>
+  <td valign=top><P CLASS="TABLE"><SAMP>tie()</SAMP></P></td>
+  <td valign=top><P CLASS="TABLE"><SAMP>rhs.tie()</SAMP></P></td>
+</tr>
+<tr>
+  <td valign=top><P CLASS="TABLE"><SAMP>rdstate()</SAMP></P></td>
+  <td valign=top><P CLASS="TABLE">unchanged</P></td>
+</tr>
+<tr>
+  <td valign=top><P CLASS="TABLE"><SAMP>exceptions()</SAMP></P></td>
+  <td valign=top><P CLASS="TABLE"><SAMP>rhs.exceptions()</SAMP></P></td>
+</tr>
+<tr>
+  <td valign=top><P CLASS="TABLE"><SAMP>flags()</SAMP></P></td>
+  <td valign=top><P CLASS="TABLE"><SAMP>rhs.flags()</SAMP></P></td>
+</tr>
+<tr>
+  <td valign=top><P CLASS="TABLE"><SAMP>width()</SAMP></P></td>
+  <td valign=top><P CLASS="TABLE"><SAMP>rhs.width()</SAMP></P></td>
+</tr>
+<tr>
+  <td valign=top><P CLASS="TABLE"><SAMP>precision()</SAMP></P></td>
+  <td valign=top><P CLASS="TABLE"><SAMP>rhs.precision()</SAMP></P></td>
+</tr>
+<tr>
+  <td valign=top><P CLASS="TABLE"><SAMP>fill()</SAMP></P></td>
+  <td valign=top><P CLASS="TABLE"><SAMP>rhs.fill()</SAMP></P></td>
+</tr>
+<tr>
+  <td valign=top><P CLASS="TABLE"><SAMP>getloc()</SAMP></P></td>
+  <td valign=top><P CLASS="TABLE"><SAMP>rhs.getloc()</SAMP></P></td>
+</tr>
+</TABLE>
 
 <A NAME="idx119"></A><PRE>bool 
 <B>eof</B>() const; </PRE>
@@ -310,20 +353,52 @@ namespace std {
 <A NAME="idx127"></A><PRE>void 
 <B>init</B>(basic_streambuf&lt;charT,traits&gt;* sb); </PRE>
 <UL>
-<P>Performs the following initialization:</P>
-
-<UL><PRE>rdbuf()      sb
-tie()        0
-rdstate()    goodbit if sb is not null otherwise badbit
-exceptions() goodbit
-flags()      skipws | dec
-width()      0
-precision()  6
-fill()       the space character
-getloc()     a copy of the locale returned by
-             locale::locale()
-</PRE></UL>
+<P>Performs initialization according to the following table:</P>
 </UL>
+
+<H4><A NAME="Table&nbsp;41">Table&nbsp;41: <SAMP>init()</SAMP> Postconditions</A></H4>
+<TABLE BORDER="1" CELLPADDING="3" CELLSPACING="3">
+<tr>
+  <td valign=top><B>Element</B></td>
+  <td valign=top><B>Value</B></td>
+</tr>
+<tr>
+  <td valign=top><P CLASS="TABLE"><SAMP>rdbuf()</SAMP></P></td>
+  <td valign=top><P CLASS="TABLE"><SAMP>sb</SAMP></P></td>
+</tr>
+<tr>
+  <td valign=top><P CLASS="TABLE"><SAMP>tie()</SAMP></P></td>
+  <td valign=top><P CLASS="TABLE"><SAMP>0</SAMP></P></td>
+</tr>
+<tr>
+  <td valign=top><P CLASS="TABLE"><SAMP>rdstate()</SAMP></P></td>
+  <td valign=top><P CLASS="TABLE"><SAMP>sb ? goodbit : badbit</SAMP></P></td>
+</tr>
+<tr>
+  <td valign=top><P CLASS="TABLE"><SAMP>exceptions()</SAMP></P></td>
+  <td valign=top><P CLASS="TABLE"><SAMP>goodbit</SAMP></P></td>
+</tr>
+<tr>
+  <td valign=top><P CLASS="TABLE"><SAMP>flags()</SAMP></P></td>
+  <td valign=top><P CLASS="TABLE"><SAMP>skipws | dec</SAMP></P></td>
+</tr>
+<tr>
+  <td valign=top><P CLASS="TABLE"><SAMP>width()</SAMP></P></td>
+  <td valign=top><P CLASS="TABLE"><SAMP>0</SAMP></P></td>
+</tr>
+<tr>
+  <td valign=top><P CLASS="TABLE"><SAMP>precision()</SAMP></P></td>
+  <td valign=top><P CLASS="TABLE"><SAMP>6</SAMP></P></td>
+</tr>
+<tr>
+  <td valign=top><P CLASS="TABLE"><SAMP>fill()</SAMP></P></td>
+  <td valign=top><P CLASS="TABLE"><SAMP>widen(' ')</SAMP></P></td>
+</tr>
+<tr>
+  <td valign=top><P CLASS="TABLE"><SAMP>getloc()</SAMP></P></td>
+  <td valign=top><P CLASS="TABLE"><SAMP>locale::global()</SAMP></P></td>
+</tr>
+</TABLE>
 
 
 <A NAME="idx128"></A><PRE>char 

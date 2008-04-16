@@ -144,7 +144,7 @@ protected:
     // 22.2.6.3.1, p6
     virtual int do_frac_digits () const {
         return _RWSTD_STATIC_CAST(int, _RWSTD_REINTERPRET_CAST (_RWSTD_SIZE_T, 
-					    _C_get (this, _RW::__rw_fd)));
+                                           _C_get (this, _RW::__rw_fd)));
     }
 
     // 22.2.6.3.1, p7

@@ -39,6 +39,7 @@
 #endif
 
 #include <rw_new.h>
+#include <rw_printf.h>
 #include <driver.h>
 
 #ifndef _RWSTD_NO_SETRLIMIT
@@ -245,7 +246,7 @@ void test_failure (T*, const char *tname)
 {
     if (0 == tname) {
         static char buf [40];
-        std::sprintf (buf, "char[%u]", unsigned (sizeof (T)));
+        rw_sprintf (buf, "char[%zu]", sizeof (T));
         tname = buf;
     }
         
@@ -264,13 +265,13 @@ void test_failure (T*, const char *tname)
                "got { %#p, %td }",
                tname, nelems, pa.first, pa.second);
 
-    for (std::size_t i = 2; i < sizeof (T); i <<= 1) {
+    for (std::size_t i = 2; i && i < sizeof (T); i <<= 1) {
         // exercise arithmetic overflow (not to be confused
         // with the out-of-memory tests below)
 
         // attempts to allocate space for an array of elements
         // with a total size that exceeds SIZE_MAX must fail
-        nelems = _RWSTD_PTRDIFF_MAX / i + 1;
+        nelems = (_RWSTD_PTRDIFF_MAX / i) + 1;
 
         pa = std::get_temporary_buffer<T>(nelems);
 

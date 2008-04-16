@@ -36,6 +36,13 @@
 #define _UNUSED_CAT 69
 
 
+// get a list of all native locales that match the cannonical
+// locale name query strings
+_TEST_EXPORT char*
+rw_locale_query (int = _UNUSED_CAT, const char* = 0, _RWSTD_SIZE_T = 0);
+
+
+// this function will likely be deprecated!
 _TEST_EXPORT char*
 rw_locales (int = _UNUSED_CAT, const char* = 0, bool = true);
 

@@ -23,7 +23,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -192,6 +192,8 @@ _C_copyfmt (const ios_base &rhs,
     streamsize prec;     // new precision
     streamsize wide;     // new width
     unsigned   except;   // new exceptions
+    void*      ptie;     // tied ostream
+    locale     loc;      // new locale
 
     char srcbuf [16];    // buffer to copy `src' to
 
@@ -204,6 +206,9 @@ _C_copyfmt (const ios_base &rhs,
                          ? 0 : &_RWSTD_CONST_CAST (ios_base&, rhs)._C_mutex);
 
         if (rhs._C_usr) {
+
+            // copy pointer to the tied ostream, if any
+            ptie = rhs._C_usr->_C_tie;
 
             // for convenience
             const _C_usr_data* const rusr = rhs._C_usr;
@@ -235,6 +240,8 @@ _C_copyfmt (const ios_base &rhs,
             // zero out array to prevent (bogus) gcc warnings
             // about the variable being used uninitialized
             memset (a_size, 0, sizeof a_size);
+
+            ptie = 0;
         }
 
         // copy the rest of rhs state (save for exceptions)
@@ -243,6 +250,7 @@ _C_copyfmt (const ios_base &rhs,
         prec   = rhs._C_prec;
         wide   = rhs._C_wide;
         except = rhs._C_except;
+        loc    = rhs._C_loc;
 
         // copy additional data (rhs's fill char) to the small
         // temporary buffer only if it fits
@@ -273,7 +281,7 @@ _C_copyfmt (const ios_base &rhs,
             operator delete (_C_usr->_C_parray);
             operator delete (_C_usr->_C_cbarray);
         }
-        else if (ia || pa || cba) {
+        else if (ia || pa || cba || ptie) {
             // allocation may throw
             _C_usr = new _C_usr_data ();
 
@@ -302,7 +310,7 @@ _C_copyfmt (const ios_base &rhs,
         _RETHROW;
     }
 
-    if (ia || pa || cba) {
+    if (ia || pa || cba || ptie) {
 
         // assing allocated and copied arrays and their sizes
         _C_usr->_C_iarray  = ia;
@@ -312,6 +320,8 @@ _C_copyfmt (const ios_base &rhs,
         _C_usr->_C_isize   = a_size [0];
         _C_usr->_C_psize   = a_size [1];
         _C_usr->_C_cbsize  = a_size [2];
+
+        _C_usr->_C_tie     = ptie;
 
         _C_usr->_C_fire    = &ios_base::_C_fire_event;
     }
@@ -325,6 +335,7 @@ _C_copyfmt (const ios_base &rhs,
     _C_fmtfl = fmtfl & flagmask | _C_fmtfl & ~flagmask;
     _C_prec  = prec;
     _C_wide  = wide;
+    _C_loc   = loc;
 
     // copy additional data (fill character) -- will be atomic
     // only if size is sufficiently small; since this is used

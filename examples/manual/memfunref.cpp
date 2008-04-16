@@ -34,7 +34,7 @@
 #include <examples.h>
 #include <memfunref.h>
 
-typedef sublist<int>	   list_type;
+typedef sublist<int>    list_type;
 
 int main ()
 {

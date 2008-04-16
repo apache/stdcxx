@@ -53,6 +53,8 @@ static const char* const exceptions[] = {
 static const StringTestCase
 void_test_cases [] = { 
 
+#define alloc_test_cases    void_test_cases
+
 #undef TEST
 #define TEST(dummy) {                            \
         __LINE__, -1, -1, -1, -1, -1,            \
@@ -74,6 +76,8 @@ void_test_cases [] = {
 // basic_string (const value_type*)
 static const StringTestCase
 cptr_test_cases [] = {
+
+#define cptr_alloc_test_cases    cptr_test_cases
 
 #undef TEST
 #define TEST(arg, res) {                            \
@@ -165,6 +169,8 @@ cstr_test_cases [] = {
 // basic_string (const value_type*, size_type)
 static const StringTestCase
 cptr_size_test_cases [] = {
+
+#define cptr_size_alloc_test_cases    cptr_size_test_cases
 
 #undef TEST
 #define TEST(arg, size, res) {                      \
@@ -278,7 +284,9 @@ cstr_size_test_cases [] = {
 static const StringTestCase
 cstr_size_size_test_cases [] = {
 
-#define range_test_cases    cstr_size_size_test_cases
+#define range_test_cases                    cstr_size_size_test_cases
+#define cstr_size_size_alloc_test_cases     cstr_size_size_test_cases
+#define range_alloc_test_cases              cstr_size_size_test_cases
 
 #undef TEST
 #define TEST(arg, off, size, res, bthrow) {         \
@@ -334,6 +342,8 @@ cstr_size_size_test_cases [] = {
 // basic_string (size_type, value_type)
 static const StringTestCase
 size_val_test_cases [] = {
+
+#define size_val_alloc_test_cases             size_val_test_cases
 
 #undef TEST
 #define TEST(size, val, res) {                      \
@@ -1112,13 +1122,19 @@ int main (int argc, char** argv)
     }
 
         TEST (void),
+        TEST (alloc),
         TEST (cptr),
+        TEST (cptr_alloc),
         TEST (cstr),
         TEST (cptr_size),
+        TEST (cptr_size_alloc),
         TEST (cstr_size),
         TEST (cstr_size_size),
+        TEST (cstr_size_size_alloc),
         TEST (size_val),
+        TEST (size_val_alloc),
         TEST (range),
+        TEST (range_alloc),
 
 #undef TEST
 #define TEST(sig) {                             \

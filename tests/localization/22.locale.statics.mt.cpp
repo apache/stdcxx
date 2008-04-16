@@ -69,7 +69,9 @@ test_classic (void*)
 {
     static volatile int nthreads;
 
-    _RWSTD_ATOMIC_PREINCREMENT (nthreads, false);
+    // cast nthreads to int& (see STDCXX-792)
+    // casting should be removed after fixing STDCXX-794
+    _RWSTD_ATOMIC_PREINCREMENT (_RWSTD_CONST_CAST (int&, nthreads), false);
 
     // spin until all threads have been created in order to icrease
     // the odds that at least two of them will hit the tested function
@@ -88,9 +90,9 @@ test_classic (void*)
 static void*
 test_global (void*)
 {
-    for (int i = 0; i != opt_nloops; ++i) {
+    for (std::size_t i = 0; i != opt_nloops; ++i) {
 
-        const int inx = i % nlocales;
+        const std::size_t inx = i % nlocales;
 
         const std::locale last (std::locale::global (locales [inx]));
 
@@ -151,7 +153,7 @@ run_test (int, char**)
 
         rw_info (0, 0, 0,
                  "testing std::locale::global(const std::locale&) with "
-                 "%d thread%{?}s%{;}, %zu iteration%{?}s%{;} each, in "
+                 "%d thread%{?}s%{;}, %d iteration%{?}s%{;} each, in "
                  "%zu locales { %{ .*A@} }",
                  opt_nthreads, 1 != opt_nthreads,
                  opt_nloops, 1 != opt_nloops,

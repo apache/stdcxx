@@ -51,6 +51,9 @@
 #include "setlocale.h"
 #include "use_facet.h"
 
+#ifdef _RWSTD_NO_EQUAL_CTYPE_MASK
+#  include "once.h"   // for __rw_once()
+#endif   // _RWSTD_NO_EQUAL_CTYPE_MASK
 
 // utf8 encoding maximum size
 #undef  _UTF8_MB_CUR_MAX
@@ -368,6 +371,47 @@ __rw_widen (const __rw_codecvt_t *cvt, bool use_libstd,
 
 #endif   // 0/1
 
+#ifdef _RWSTD_NO_EQUAL_CTYPE_MASK
+
+// table of wide character classes
+static _STD::ctype_base::mask
+__rw_classic_wide_tab [_STD::ctype<char>::table_size];
+
+// init-once flag for the classic wide tab
+static __rw_once_t
+__rw_classic_wide_tab_once_init = _RWSTD_ONCE_INIT;
+
+extern "C" {
+
+// one-time initializer for the classic wide_tab
+static void
+__rw_init_classic_wide_tab ()
+{
+#  ifdef _RWSTDDEBUG
+
+    static int init;
+
+    // paranoid check: verify that one-time initialization works
+    _RWSTD_ASSERT (0 == init);
+
+    ++init;
+
+#  endif   // _RWSTDDEBUG
+
+    // init the classic wide tab
+    wchar_t wc_array [_STD::ctype<char>::table_size];
+
+    for (wchar_t wc = 0; wc < _STD::ctype<char>::table_size; ++wc)
+        wc_array [wc] = wc;
+
+    __rw_get_mask (0, wc_array, wc_array + _STD::ctype<char>::table_size,
+                   __rw_all, __rw_classic_wide_tab, false, false, "C");
+}
+
+}   // extern "C"
+
+#endif   // _RWSTD_NO_EQUAL_CTYPE_MASK
+
 }   // namespace __rw
 
 
@@ -380,7 +424,15 @@ _RW::__rw_facet_id ctype<wchar_t>::id;
 ctype<wchar_t>::ctype (_RWSTD_SIZE_T ref)
     : _RW::__rw_facet (ref)
 {
+#ifndef _RWSTD_NO_EQUAL_CTYPE_MASK
     _C_mask_tab  = _RW::__rw_classic_tab;
+#else
+    // initialize classic wide tab exactly once
+    _RW::__rw_once (&_RW::__rw_classic_wide_tab_once_init,
+                    _RW::__rw_init_classic_wide_tab);
+
+    _C_mask_tab  = _RW::__rw_classic_wide_tab;
+#endif
     _C_upper_tab = _RWSTD_CONST_CAST (_UChar*, _RW::__rw_upper_tab);
     _C_lower_tab = _RWSTD_CONST_CAST (_UChar*, _RW::__rw_lower_tab);
     _C_delete_it = false;
@@ -554,7 +606,7 @@ do_narrow (const char_type *lo, const char_type *hi,
 
 ctype_byname<wchar_t>::
 ctype_byname (const char *name, _RWSTD_SIZE_T refs)
-    : ctype<wchar_t>(refs), _C_cvtimpl (0), _C_cvtsize (0)
+    : ctype<wchar_t> (refs), _C_cvtimpl (0), _C_cvtsize (0)
 {
     this->_C_set_name (name, _C_namebuf, sizeof _C_namebuf);
 

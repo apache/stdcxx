@@ -616,12 +616,8 @@ __rw_get_stdio_fmat (char buf [32], int type, unsigned fmtflags,
         if (fmtflags & _RWSTD_IOS_SHOWPOINT)
             *pbuf++ = '#';
 
-        const int fltfld = fmtflags & _RWSTD_IOS_FLOATFIELD;
-
         // follows resolution of lwg issue 231
-        if (   (   _RWSTD_IOS_FIXED      == fltfld
-                || _RWSTD_IOS_SCIENTIFIC == fltfld)
-            && prec >= 0 || prec > 0) {
+        if (0 <= prec) {
 
             // 7.19.6.1, p5 of C99 specifies that, when given using the
             // asterisk, negative precision is treated the same as if

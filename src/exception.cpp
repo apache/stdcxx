@@ -498,7 +498,7 @@ __rw_vfmtwhat (char          *buf,      // (allocate if 0)
         // HP-UX and Windows are known to return a negative value for
         // buffer overflow.
 
-	// On IRIX and Tru64 UNIX on overflow the function returns
+        // On IRIX and Tru64 UNIX on overflow the function returns
         // the number of bytes actually written to the buffer which
         // makes it indistinguishable from a successful return value
         // for a completely full buffer.

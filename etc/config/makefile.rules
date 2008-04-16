@@ -154,9 +154,9 @@ endif   # eq ($(NO_DOT_O),)
 # a report (set to ALL to run all executables)
 # hung or runaway processes are killed after a customizable timeout period
 #
-# to avoid filling up disk space with junk files left behind by bad programs
-# creates and sets TMP to a temporary directory before running the programs
-# which is then removed when done
+# to avoid filling up disk space with files left behind by bad programs
+# creates and sets the POSIX TMPDIR environment variable to a temporary
+# directory before running the programs which is then removed when done
 #
 # PlumHall specific:
 # for all "top level" tests that failed to build, find and build all
@@ -167,10 +167,10 @@ run runall run_all: $(BINDIR)/exec
 	@(LD_LIBRARY_PATH=$$LD_LIBRARY_PATH:$(LIBDIR);                    \
         PATH=$$PATH:.;                                                    \
         TOPDIR=$(TOPDIR);                                                 \
-        TMP=$${TMP:-/tmp}/stdcxx-run-$$$$;                                \
-        export LD_LIBRARY_PATH PATH TMP TOPDIR TZ;                        \
-        trap "rm -rf $$TMP" HUP INT QUIT TERM EXIT;                       \
-        mkdir -p $$TMP;                                                   \
+        TMPDIR=$${TMPDIR:-/tmp}/stdcxx-run-$$$$;                          \
+        export LD_LIBRARY_PATH PATH TMPDIR TOPDIR TZ;                     \
+        trap "rm -rf $$TMPDIR" HUP INT QUIT TERM EXIT;                    \
+        mkdir -p $$TMPDIR;                                                \
         ./run $(RUNFLAGS) $(RUNTARGET);                                   \
         exit 0)
 
@@ -180,10 +180,10 @@ run runall run_all: $(BINDIR)/exec
 	@(LD_LIBRARY_PATH=$$LD_LIBRARY_PATH:$(LIBDIR);                    \
         PATH=$$PATH:$(LIBDIR):$(BINDIR):.;                                \
         TOPDIR=$(TOPDIR);                                                 \
-        TMP=$${TMP:-/tmp}/stdcxx-run-$$$$;                                \
-        export LD_LIBRARY_PATH PATH TMP TOPDIR TZ;                        \
-        trap "rm -rf $$TMP" HUP INT QUIT TERM EXIT;                       \
-        mkdir -p $$TMP;                                                   \
+        TMPDIR=$${TMPDIR:-/tmp}/stdcxx-run-$$$$;                          \
+        export LD_LIBRARY_PATH PATH TMPDIR TOPDIR TZ;                     \
+        trap "rm -rf $$TMPDIR" HUP INT QUIT TERM EXIT;                    \
+        mkdir -p $$TMPDIR;                                                \
         ./run $(RUNFLAGS) $(RUNTARGET);                                   \
         exit 0)
 

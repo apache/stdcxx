@@ -45,8 +45,8 @@ struct ScannerContext
 {
     ScannerContext (const char*, char = '#', char = '\\');
  
-    std::ifstream file;		// file stream object
-    std::string   filename;	// filename
+    std::ifstream file;            // file stream object
+    std::string   filename;        // filename
 
     // comment and escape for current file
     char comment_char;

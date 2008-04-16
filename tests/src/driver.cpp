@@ -45,6 +45,10 @@
 #include <stdlib.h>    // for free
 #include <string.h>    // for strchr, strcpy
 
+#ifdef _MSC_VER
+#  include <crtdbg.h>  // for _CrtSetReportMode(), _CrtSetDbgFlag()
+#endif
+
 #if !defined (_WIN32) && !defined (_WIN64)
 #  include <unistd.h>         // for isatty()
 #  include <sys/resource.h>   // for setlimit()
@@ -488,6 +492,12 @@ _rw_opt_verbose (int argc, char *argv[])
     // set mode: enable the option
     opt_verbose = 1;
 
+#ifdef _MSC_VER
+    _CrtSetDbgFlag (  _CRTDBG_ALLOC_MEM_DF
+                    | _CRTDBG_CHECK_ALWAYS_DF
+                    | _CRTDBG_LEAK_CHECK_DF);
+#endif
+
     return 0;
 }
 
@@ -536,6 +546,12 @@ _rw_opt_compat (int argc, char *argv[])
 
     // set mode: enable the option
     opt_compat = 1;
+
+#ifdef _MSC_VER
+    _CrtSetReportMode (_CRT_WARN, _CRTDBG_MODE_DEBUG);
+    _CrtSetReportMode (_CRT_ERROR, _CRTDBG_MODE_DEBUG);
+    _CrtSetReportMode (_CRT_ASSERT, _CRTDBG_MODE_DEBUG);
+#endif
 
     return 0;
 }
@@ -1540,7 +1556,7 @@ rw_info (int success, const char *file, int line, const char *fmt, ...)
 
 /************************************************************************/
 
-_TEST_EXPORT void
+_TEST_EXPORT bool
 rw_enable (int (*fun) (int, const char*, int, const char*, ...), bool enable)
 {
     diag_t diag;
@@ -1559,12 +1575,16 @@ rw_enable (int (*fun) (int, const char*, int, const char*, ...), bool enable)
         diag = diag_info;
     else {
         RW_ASSERT (!"Invalid function in rw_enable");
-        return;
+        return false;
     }
+
+    const bool enabled = 0 == (_rw_diag_ignore & (1 << diag));
 
     // if (enable)
     //     _rw_diag_ignore &= ~(1 << diag);
     // else
     //     _rw_diag_ignore |= 1 << diag;
     _rw_diag_ignore ^= ((enable - 1) ^ _rw_diag_ignore) & (1 << diag);
+
+    return enabled;
 }

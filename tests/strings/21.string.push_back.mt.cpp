@@ -110,7 +110,7 @@ thread_func (void *arg)
 static int
 run_test (int, char**)
 {
-    rw_info (0, 0, 0, "running %d thread%{?}s%{;}, %zu iteration%{?}s%{;} each",
+    rw_info (0, 0, 0, "running %d thread%{?}s%{;}, %d iteration%{?}s%{;} each",
              rw_opt_nthreads, 1 != rw_opt_nthreads,
              rw_opt_nloops, 1 != rw_opt_nloops);
 

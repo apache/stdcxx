@@ -44,7 +44,7 @@ typedef
 typedef
     std::istream_iterator<std::string,
                           char, std::char_traits<char>, 
-			  std::ptrdiff_t>  istrm_iter;
+                          std::ptrdiff_t>  istrm_iter;
 
 
 void spellCheck (std::istream & dictionary, std::istream & text) {

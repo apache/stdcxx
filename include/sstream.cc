@@ -82,8 +82,10 @@ str (const char_type *__s, _RWSTD_SIZE_T __slen)
     _ValueAlloc __alloc;
 
     // new buffer and size
-    char_type     *__buf;
-    _RWSTD_SIZE_T  __bufsize = __slen;
+    char_type        *__buf;
+    _RWSTD_SIZE_T     __bufsize = __slen;
+    // saved offset of pptr 
+    _RWSTD_STREAMSIZE __off = -1;
 
     if (__s == this->_C_buffer) {
         // special case: str(_C_buffer, _C_bufsize + N) called
@@ -94,6 +96,8 @@ str (const char_type *__s, _RWSTD_SIZE_T __slen)
         // set `slen' to the number of initialized characters
         // in the buffer
         __slen = this->egptr () - this->pbase ();
+        // save the offset of pptr
+        __off = this->pptr () - this->pbase ();
     }
 
     if (this->_C_bufsize < __bufsize) {
@@ -156,8 +160,12 @@ str (const char_type *__s, _RWSTD_SIZE_T __slen)
     if (this->_C_is_out ()) {
         this->setp (this->_C_buffer, this->_C_buffer + this->_C_bufsize);
 
-        if (   __s != __buf && this->_C_state & ios_base::in
-            || this->_C_state & (ios_base::app | ios_base::ate)) {
+        if (0 <= __off) {
+            // restore the pptr
+            this->pbump (__off);
+        }
+        else if (   this->_C_state & ios_base::in
+                 || this->_C_state & (ios_base::app | ios_base::ate)) {
             // in input or append/ate modes seek to end
             // (see also lwg issue 562 for clarification)
             this->pbump (__slen);
@@ -194,15 +202,9 @@ xsputn (const char_type* __s, streamsize __n)
             __off = this->pbase () - __s;
         }
 
-        // preserve current pptr() since str() would seek to end
-        const streamsize __cur = this->pptr () - this->pbase ();
-
         // grow the buffer if necessary to accommodate the whole
         // string plus the contents of the buffer up to pptr()
         str (this->_C_buffer, __bufsize);
-
-        // restore pptr()
-        this->pbump (__cur - (this->pptr () - this->pbase ()));
 
         _RWSTD_ASSERT (__n <= this->epptr () - this->pptr ());
 

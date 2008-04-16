@@ -41,13 +41,13 @@ int main ()
 
     // Write bitset to the standard output.
     std::cout << "         4....:....3....:....2....:....1....:....0\n"
-	      << "b = 5:    " << b << '\n';
+              << "b = 5:    " << b << '\n';
 
     // Invert the bitset.
     b = ~b;
 
     std::cout << "b = ~b:   " << b << '\n'
-	      << "b <<= " << b.count () << ": ";
+              << "b <<= " << b.count () << ": ";
 
     // Shift the bitset left by the number of bits set.
     b <<= b.count ();
