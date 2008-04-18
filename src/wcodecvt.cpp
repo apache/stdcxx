@@ -765,20 +765,12 @@ __rw_libstd_do_out (const wchar_t             *from,
             // in strict mode check wide character for validity
             // (i.e., diagnose surrogate pairs as illegal)
 
-#  if _RWSTD_WCHAR_SIZE == _RWSTD_CHAR_SIZE
-            typedef unsigned char WIntT;
-#  elif _RWSTD_WCHAR_SIZE == _RWSTD_SHRT_SIZE
-            typedef unsigned short WIntT;
-#  elif _RWSTD_WCHAR_SIZE ==_RWSTD_INT_SIZE
-            typedef unsigned int WIntT;
-#  elif _RWSTD_WCHAR_SIZE ==_RWSTD_LLONG_SIZE
-            typedef unsigned _RWSTD_LONG_LONG WIntT;
-#  else
-            typedef unsigned long WIntT;
-#  endif
+            typedef _RWSTD_UWCHAR_INT_T WIntT;
 
-            // convert wchar_t to an unsigned integer safe for comaprison
-            const unsigned long wi = _RWSTD_STATIC_CAST (WIntT, *from_next);
+            // convert wchar_t to the unsigned form of its underlying
+            // integer type that's safe in arithmetic comaprisons and
+            // doesn't generate signed/unsigned compiler warnings
+            const WIntT wi = _RWSTD_STATIC_CAST (WIntT, *from_next);
 
             if (   WIntT (0xd800U) <= wi && wi <= WIntT (0xdfffU)
                 || WIntT (0xfffeU) <= wi && wi <= WIntT (0xffffU)) {
