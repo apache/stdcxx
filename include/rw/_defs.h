@@ -1269,6 +1269,20 @@ __rw_assert_fail (const char*, const char*, int, const char*)
 #endif   // _RWSTD_SSIZE_T
 
 
+// _RWSTD_UWCHAR_INT_T is "unsigned wchar_t"
+#ifndef _RWSTD_UWCHAR_INT_T
+#  if _RWSTD_CHAR_SIZE == _RWSTD_WCHAR_SIZE
+#    define _RWSTD_UWCHAR_INT_T unsigned char
+#  elif _RWSTD_SHRT_SIZE == _RWSTD_WCHAR_SIZE
+#    define _RWSTD_UWCHAR_INT_T unsigned short
+#  elif _RWSTD_INT_SIZE == _RWSTD_WCHAR_SIZE
+#    define _RWSTD_UWCHAR_INT_T unsigned int
+#  else
+#    define _RWSTD_UWCHAR_INT_T _RWSTD_SIZE_T
+#  endif
+#endif   // _RWSTD_UWCHAR_INT_T
+
+
 #if defined(SNI)
 #  define _RWSTD_USING_SNI(name) _USING(__SNI::name)
 #  if defined(_RWSTD_STRICT_ANSI)
