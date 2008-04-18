@@ -47,8 +47,18 @@ int rw_opt_nthreads = 1;
 // the number of times each thread should iterate
 int rw_opt_nloops = MAX_LOOPS;
 
+#if !defined (_RWSTD_OS_HP_UX) || defined (_ILP32)
+
 // number of locales to use
-int rw_opt_nlocales = MAX_THREADS;
+int opt_nlocales = MAX_THREADS;
+
+#else   // HP-UX in LP64 mode
+
+// work around an inefficiency (small cache size?) on HP-UX
+// in LP64 mode (see STDCXX-812)
+int opt_nlocales = 10;
+
+#endif   // HP-UX 32/64 bit mode
 
 // should all threads share the same set of locale objects instead
 // of creating their own?
@@ -214,7 +224,7 @@ test_put_data (const MyNumData                               &data,
 template <class charT, class Traits>
 void
 test_get_data (const MyNumData                               &data,
-               const std::num_get<charT>                     &np,
+               const std::num_get<charT>                     &ng,
                const std::istreambuf_iterator<charT, Traits> &iter,
                const std::istreambuf_iterator<charT, Traits> &end,
                std::basic_ios<charT, Traits>                 &io)
@@ -225,7 +235,7 @@ test_get_data (const MyNumData                               &data,
     case MyNumData::put_bool: {
             const bool expected = data.value_ < 1.f;
                   bool checked;
-            np.get (iter, end, io, state, checked);
+            ng.get (iter, end, io, state, checked);
             RW_ASSERT (! (state & std::ios_base::failbit));
             RW_ASSERT (checked == expected);
         }
@@ -233,7 +243,7 @@ test_get_data (const MyNumData                               &data,
     case MyNumData::put_long: {
             const long expected = (long)data.value_;
                   long checked;
-            np.get (iter, end, io, state, checked);
+            ng.get (iter, end, io, state, checked);
             RW_ASSERT (! (state & std::ios_base::failbit));
             RW_ASSERT (checked == expected);
         }
@@ -241,7 +251,7 @@ test_get_data (const MyNumData                               &data,
     case MyNumData::put_ulong: {
             const unsigned long expected = (unsigned long)data.value_;
                   unsigned long checked;
-            np.get (iter, end, io, state, checked);
+            ng.get (iter, end, io, state, checked);
             RW_ASSERT (! (state & std::ios_base::failbit));
             RW_ASSERT (checked == expected);
         }
@@ -252,7 +262,7 @@ test_get_data (const MyNumData                               &data,
     case MyNumData::put_llong: {
             const _RWSTD_LONG_LONG expected = (_RWSTD_LONG_LONG)data.value_;
                   _RWSTD_LONG_LONG checked;
-            np.get (iter, end, io, state, checked);
+            ng.get (iter, end, io, state, checked);
             RW_ASSERT (! (state & std::ios_base::failbit));
             RW_ASSERT (checked == expected);
         }
@@ -261,7 +271,7 @@ test_get_data (const MyNumData                               &data,
             const unsigned _RWSTD_LONG_LONG expected
                 = (unsigned _RWSTD_LONG_LONG)data.value_;
                   unsigned _RWSTD_LONG_LONG checked;
-            np.get (iter, end, io, state, checked);
+            ng.get (iter, end, io, state, checked);
             RW_ASSERT (! (state & std::ios_base::failbit));
             RW_ASSERT (checked == expected);
         }
@@ -272,7 +282,7 @@ test_get_data (const MyNumData                               &data,
     case MyNumData::put_dbl: {
             const double expected = (double)data.value_;
                   double checked;
-            np.get (iter, end, io, state, checked);
+            ng.get (iter, end, io, state, checked);
             RW_ASSERT (! (state & std::ios_base::failbit));
             RW_ASSERT (checked == expected);
         }
@@ -283,7 +293,7 @@ test_get_data (const MyNumData                               &data,
     case MyNumData::put_ldbl: {
             const long double expected = (long double)data.value_;
                   long double checked;
-            np.get (iter, end, io, state, checked);
+            ng.get (iter, end, io, state, checked);
             RW_ASSERT (! (state & std::ios_base::failbit));
             RW_ASSERT (checked == expected);
         }
@@ -294,7 +304,7 @@ test_get_data (const MyNumData                               &data,
     case MyNumData::put_ptr: {
             const void* expected = (const void*)&data.value_;
                   void* checked;
-            np.get (iter, end, io, state, checked);
+            ng.get (iter, end, io, state, checked);
             RW_ASSERT (! (state & std::ios_base::failbit));
             RW_ASSERT (checked == expected);
         }
@@ -316,13 +326,15 @@ bool test_wchar;   // exercise num_get<wchar_t>
 static void*
 thread_func (void*)
 {
-    MyIos<char, std::char_traits<char> >       nio;
-    MyStreambuf<char, std::char_traits<char> > nsb;
+    typedef std::char_traits<char> Traits;
+    MyIos<char, Traits>            nio;
+    MyStreambuf<char, Traits>      nsb;
     nio.rdbuf (&nsb);
 
 #ifndef _RWSTD_NO_WCHAR_T
-    MyIos<wchar_t, std::char_traits<wchar_t> >       wio;
-    MyStreambuf<wchar_t, std::char_traits<wchar_t> > wsb;
+    typedef std::char_traits<wchar_t> WTraits;
+    MyIos<wchar_t, WTraits>           wio;
+    MyStreambuf<wchar_t, WTraits>     wsb;
     wio.rdbuf (&wsb);
 #endif // _RWSTD_NO_WCHAR_T
 
@@ -340,13 +352,13 @@ thread_func (void*)
         if (test_char) {
             // exercise the narrow char specialization of the facet
 
-            const std::num_get<char> &np =
+            const std::num_get<char> &ng =
                 std::use_facet<std::num_get<char> >(loc);
 
             nio.imbue (loc);
-            nsb.pubsetg (data.ncs_, RW_COUNT_OF (data.ncs_));
+            nsb.pubsetg (data.ncs_, Traits::length (data.ncs_));
 
-            test_get_data (data, np,
+            test_get_data (data, ng,
                            std::istreambuf_iterator<char>(&nsb),
                            std::istreambuf_iterator<char>(),
                            nio);
@@ -365,7 +377,7 @@ thread_func (void*)
                 std::use_facet<std::num_get<wchar_t> >(loc);
 
             wio.imbue (loc);
-            wsb.pubsetg (data.wcs_, RW_COUNT_OF (data.wcs_));
+            wsb.pubsetg (data.wcs_, WTraits::length (data.wcs_));
 
             test_get_data (data, wp,
                            std::istreambuf_iterator<wchar_t>(&wsb),
@@ -464,7 +476,7 @@ run_test (int, char**)
                      "failed to create locale(%#s)", name);
         }
 
-        if (nlocales == maxinx || nlocales == std::size_t (rw_opt_nlocales))
+        if (nlocales == maxinx || nlocales == std::size_t (opt_nlocales))
             break;
     }
 
@@ -554,7 +566,7 @@ int main (int argc, char *argv [])
                     &rw_opt_nloops,
                     int (MAX_THREADS),
                     &rw_opt_nthreads,
-                    &rw_opt_nlocales,
+                    &opt_nlocales,
                     &rw_opt_setlocales,
                     &rw_opt_shared_locale);
 }
