@@ -1015,7 +1015,7 @@ function linkFiles(srcs, outName)
 
     command += joinArray(srcs.split(" "), "");
 
-    command += " /Fe\"" + stageDir + "\\" + outName + "\"" +
+    command += " " + LIBS + " /Fe\"" + stageDir + "\\" + outName + "\"" +
                " /link " + LDFLAGS;
 
     var message = "Linking with command \"" + command + "\"";
@@ -1042,7 +1042,7 @@ function makeLibrary(srcFiles, outFile, shared)
         var dllname = "\"" + stageDir + "\\" + basename(outFile, "\\.lib") + ".dll\"";
         var command = LD + " ";
         command += joinArray(objNames.split(" "), "");
-        command += " /Fe" + dllname + " /link /DLL " + LDFLAGS +
+        command += " " + LIBS + " /Fe" + dllname + " /link /DLL " + LDFLAGS +
                    " /IMPLIB:" + libname;
         var message = "Making library with command \"" + command + "\"";
         logLine(message);
