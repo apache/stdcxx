@@ -144,7 +144,10 @@ locale::_C_get_std_facet (facet::_C_facet_type  type,
         size_t i = 0;
         for (; i != sizeof _RW::__rw_cats / sizeof *_RW::__rw_cats; ++i) {
             if (_RW::__rw_cats [i].cat == facet_cat) {
-                locname.assign (nm, next - nm);
+
+                const size_t nmlen = size_t (next - nm);
+
+                locname.assign (nm, nmlen);
                 locname.append ("", 1);   // append a terminating NUL
                 break;
             }

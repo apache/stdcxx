@@ -522,14 +522,14 @@ __rw_itoa (char *buf, unsigned long i, unsigned flags)
     const char* const pdigs = flags & _RWSTD_IOS_UPPERCASE ?
         __rw_digits + 36 : __rw_digits;
 
-    const int basemask = (flags >> _RWSTD_IOS_BASEOFF) - 1;
+    const unsigned basemask = (flags >> _RWSTD_IOS_BASEOFF) - 1;
 
     int bits;
 
     char *end = buf;
 
     switch (basemask) {
-    case  -1: case 9:
+    case unsigned (-1): case 9:
         return __rw_dtoa (end, i, flags);
 
     case 0:
@@ -572,9 +572,9 @@ __rw_itoa (char *buf, unsigned long i, unsigned flags)
         j = 0;
 
     do {
-        const int dig = int ((i >> (j * bits)) & basemask);
+        const unsigned dig = (i >> (j * bits)) & basemask;
 
-        _RWSTD_ASSERT (dig >= 0 && dig <= basemask);
+        _RWSTD_ASSERT (dig <= basemask);
 
         *end++ = pdigs [dig];
     } while (j--);

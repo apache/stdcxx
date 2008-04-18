@@ -208,13 +208,14 @@ const void* __rw_facet::_C_get_data ()
         // for the stripping of the special suffix
         _RW::__rw_chararray strip_name;
 
-        const char* pstr = strstr (locname.data (), "@UCS");
+        const char*  pstr = strstr (locname.data (), "@UCS");
+        const size_t plen = size_t (pstr - locname.data ());
+
         if (pstr && !pstr [4]) {
 
             // @UCS suffix is recognized irrespective of the size of wchar_t,
-            strip_name.append (locname.data (), pstr - locname.data ());
+            strip_name.append (locname.data (), plen);
             pdata = __rw_get_facet_data (cat, sz, strip_name.data ());
-
         }
         else if (   pstr && pstr [4] == '-' && !pstr [6]
                  && (   '4' == pstr [5] && sizeof (wchar_t) == 4
@@ -223,9 +224,8 @@ const void* __rw_facet::_C_get_data ()
             // @UCS-4 is only recognized where sizeof (wchar_t) == 4
             // @UCS-2 is only recognized where sizeof (wchar_t) == 2
             // no other modifier is recognized
-            strip_name.append (locname.data (), pstr - locname.data ());
+            strip_name.append (locname.data (), plen);
             pdata = __rw_get_facet_data (cat, sz, strip_name.data ());
-
         }
 
         // if the type of the facet is codecvt_byname<wchar_t,char,mbstate_t>
@@ -275,10 +275,11 @@ const void* __rw_facet::_C_get_data ()
     __rw_chararray codeset_fname;
     const char* codeset = pctype->codeset_name ();
 
-    const char *slash = strrchr (locname.data (), _RWSTD_PATH_SEP);
+    const char* const slash = strrchr (locname.data (), _RWSTD_PATH_SEP);
     if (slash) {
+        const size_t dirlen = size_t (slash - locname.data ()) + 1;
 
-        codeset_fname.assign (locname.data (), slash - locname.data () + 1);
+        codeset_fname.assign (locname.data (), dirlen);
         codeset_fname.append (codeset);
         codeset = codeset_fname.data ();
     }
