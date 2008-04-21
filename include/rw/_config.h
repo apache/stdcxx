@@ -37,7 +37,7 @@
 
 /*** library version numbers and ids **************************************/
 
-#define _RWSTD_VER 0x04020100
+#define _RWSTD_VER 0x04020001
 //                    | | | |
 //                   MMmmuupp
 //                    | | | |
