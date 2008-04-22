@@ -1,6 +1,7 @@
 /***************************************************************************
  *
- * 22.locale.ctype.cpp -  Tests exercising the narrow() and widen() ctype facet
+ * 22.locale.ctype.narrow.cpp - tests exercising the narrow() and widen()
+ *                              member functions of the ctype facet
  *
  * $Id$
  *
@@ -22,14 +23,14 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2001-2006 Rogue Wave Software.
+ * Copyright 2001-2008 Rogue Wave Software, Inc.
  *
  **************************************************************************/
 
-// DESCRIPTION: test iterates over the locales installed on a machine,
-//              calling the C character classification functions and
-//              their C++ counterpart(s), comparing the results of
-//              the calls against one another.
+// DESCRIPTION: The test iterates over a subset of locales installed
+// on a machine, calling the C character classification functions and
+// their C++ counterpart(s), comparing the results of the calls against
+// one another.
 
 
 #include <rw/_defs.h>
@@ -203,7 +204,7 @@ char narrow (char ch, const char*)
     return ch;
 }
 
-// cond1() verifies condition [1] in Test::test_narrow_widen()
+// cond1() verifies condition [1] in test_narrow_widen()
 // below using libc functions
 bool cond1 (std::ctype_base::mask mask, char ch, const char *locname)
 {
@@ -244,7 +245,7 @@ bool cond1 (std::ctype_base::mask mask, char ch, const char *locname)
 }
 
 
-// cond3() overloads verify condition [3] in Test::test_narrow_widen()
+// cond3() overloads verify condition [3] in test_narrow_widen()
 // below using libc functions
 bool cond3 (std::ctype_base::mask, char, const char*)
 {
@@ -539,6 +540,10 @@ void test_narrow_widen (charT, const char *cname)
                        c_locname, curlocname);
         }
 
+        if (0 == i)
+            rw_info (0, 0, __LINE__, "std::ctype<%s> in locale(%#s)",
+                     cname, locname);
+
         const char  c  = char (i);
         const charT ch = charT (i);
 
@@ -653,10 +658,22 @@ void test_narrow_widen (charT, const char *cname)
 
 /**************************************************************************/
 
+// exercise the behavior of the libc-based C++ locale implementation
 template <class charT>
 void test_libc (charT, const char *cname)
 {
     test_narrow_widen (charT (), cname);
+}
+
+/**************************************************************************/
+
+// exercise the behavior of our own C++ locale implementation
+template <class charT>
+void test_libstd (charT, const char *cname)
+{
+    rw_warn (0, 0, __LINE__,
+             "stdcxx implementation of std::ctype<%s> not exercised",
+             cname);
 }
 
 /**************************************************************************/
@@ -670,7 +687,11 @@ void run_test (charT, const char *cname)
         _STD_USE_FACET (std::ctype_byname<charT>, std::locale ());
     }
 
+    // exercise the behavior of the libc-based C++ locale implementation
     test_libc (charT (), cname);
+
+    // exercise the behavior of our own C++ locale implementation
+    test_libstd (charT (), cname);
 }
 
 /**************************************************************************/
@@ -678,8 +699,19 @@ void run_test (charT, const char *cname)
 static int
 run_test (int, char**)
 {
+    // set the global locale_list pointer to point to the array
+    // of NUL-separated locale names set on the command line via
+    // the --locales=... option, if specified, or to 0 (in which
+    // case we'll generate our own list)
+    locale_list = rw_opt_locales;
+
     run_test (char (), "char");
+
+#ifndef _RWSTD_NO_WCHAR_T
+
     run_test (wchar_t (), "wchar_t");
+
+#endif   // _RWSTD_NO_WCHAR_T
 
     return 0;
 }
@@ -690,8 +722,9 @@ int main (int argc, char *argv[])
 {
     return rw_test (argc, argv, __FILE__,
                     "lib.category.ctype",
-                    0 /* no comment */,
+                    "narrow and widen",
                     run_test,
-                    "",
+                    "|-locales= ",
+                    &rw_opt_setlocales,
                     (void*)0   /* sentinel */);
 }

@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -83,7 +83,8 @@ string locale::name () const
                 result += '=';
             }
 
-            result.append (catnm, next - catnm);
+            const size_t catlen = size_t (next - catnm);
+            result.append (catnm, catlen);
 
             catnm = next + !!*next;
         }
