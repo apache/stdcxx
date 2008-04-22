@@ -476,9 +476,35 @@ osname=`uname -s`
 AWK=awk
 case "$osname" in
     (AIX)
+    # output the machine model name
+    echo; echo "### Model name:"
+    /usr/bin/uname -M
+    
+    # output the number of processors installed on the system
+    echo; echo "### Number of processors:"
+    /usr/sbin/lscfg -lproc\* | /usr/bin/wc -l
+
+    # output the type of the processors
+    echo; echo "### Processor type:"
+    /usr/sbin/lscfg -lproc0 -p | /usr/bin/sed -n "s/ *Name: *\(.*\)/\1/p"
+
+    # output processor clock speed
+    echo; echo "### Processor clock speed:"
+    /usr/sbin/lsconf -s | /usr/bin/cut -d' ' -f4-
+
+    # output the kernel type (32-bit- uni or muli-processor, or
+    # 64-bit multiprocessor)
+    echo; echo "### /usr/sbin/lsconf -k"
+    /usr/sbin/lsconf -k
+
     # output the amount of real memory installed on the host
-    echo; echo "### /usr/sbin/lsattr -El sys0 -a realmem:"
-    /usr/sbin/lsattr -El sys0 -a realmem
+    echo; echo "### Physical memory:"
+
+    # one way of doing it:
+    # /usr/sbin/lsattr -El sys0 -a realmem | /usr/bin/cut -d' ' -f2
+
+    # or the easy way:
+    /usr/sbin/lsconf -m | /usr/bin/cut -d' ' -f3-
     ;;
 
     (HP-UX)
