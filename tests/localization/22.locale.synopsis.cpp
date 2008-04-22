@@ -841,7 +841,7 @@ test_ctype_specialization<char> ()
 
 
 // skip POSIX-dependent behavior
-static int opt_no_posix          = 0;   // --no-posix
+static int opt_enable_posix      = 0;   // --enable-posix
 
 
 template <class charT>
@@ -897,7 +897,7 @@ test_ctype (const char* cname)
                    std::ctype_base::alnum,
                    std::ctype_base::alpha | std::ctype_base::digit);
 
-        if (!opt_no_posix) {
+        if (opt_enable_posix) {
             // POSIX allows graph characters that aren't alnum or punct
             // 22.2.1 says the numeric values are for exposition only
             // which presumably applies to all the constants
@@ -1987,6 +1987,6 @@ main (int argc, char* argv [])
 {
     return rw_test (argc, argv, __FILE__,
                     "lib.locales", "header <locale> synopsis",
-                    run_test, "|-no-posix# ", &opt_no_posix);
+                    run_test, "|-enable-posix# ", &opt_enable_posix);
 }
 
