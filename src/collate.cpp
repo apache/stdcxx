@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2001-2006 Rogue Wave Software.
+ * Copyright 2001-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -867,7 +867,7 @@ do_transform (const char_type *__lo, const char_type *__hi) const
     _RWSTD_ASSERT (0 != __lo);
     _RWSTD_ASSERT (__lo <= __hi);
 
-    return string_type (__lo, __hi - __lo);
+    return string_type (__lo, size_t (__hi - __lo));
 }
 
 
@@ -1041,7 +1041,7 @@ do_transform (const char_type *__lo, const char_type *__hi) const
     _RWSTD_ASSERT (0 != __lo);
     _RWSTD_ASSERT (__lo <= __hi);
 
-    return string_type (__lo, __hi - __lo);
+    return string_type (__lo, size_t (__hi - __lo));
 }
 
 

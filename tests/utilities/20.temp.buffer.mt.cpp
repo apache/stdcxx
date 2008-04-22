@@ -24,7 +24,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2005-2006 Rogue Wave Software.
+ * Copyright 2005-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -126,7 +126,7 @@ extern "C" void* thr_func (void *arg)
 {
     thr_args* const targs = (thr_args*)arg;
 
-    std::printf ("thread %ld starting...\n", targs->threadno_);
+    std::printf ("thread %u starting...\n", targs->threadno_);
 
 #ifndef _RWSTD_INT64_T
 
