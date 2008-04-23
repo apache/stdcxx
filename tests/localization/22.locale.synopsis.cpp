@@ -763,7 +763,7 @@ struct CtypeDerived: std::ctype<charT>
 
 // exercise the primary template
 template <class charT>
-static void
+/*static*/ void
 test_ctype_specialization ()
 {
     CtypeDerived<charT>::test_protected_members ();
@@ -825,7 +825,7 @@ struct CtypeCharDerived: std::ctype<char>
 
 // exercise the char specialization
 _RWSTD_SPECIALIZED_FUNCTION
-static void
+/*static*/ void
 test_ctype_specialization<char> ()
 {
     // prevent multiple assertions
@@ -1891,7 +1891,7 @@ run_test (int /*unused*/, char* /*unused*/ [])
 // don't use _RWSTD_STRSTR so type macros (e.g. UDC) are not expanded
 #undef FUN1
 #define FUN1(fun, charT) \
-        fun<charT> (#charT)
+        fun< charT > (#charT)
 
     // std::locale::collate category
     FUN1 (test_collate, char);
@@ -1902,7 +1902,7 @@ run_test (int /*unused*/, char* /*unused*/ [])
 
 #undef FUN2
 #define FUN2(fun, charT, IterT) \
-        fun<charT, IterT> (#charT, #IterT)
+        fun< charT, IterT > (#charT, #IterT)
 
     // std::locale::monetary category
     FUN1 (test_moneypunct, char);
