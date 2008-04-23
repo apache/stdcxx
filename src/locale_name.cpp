@@ -38,6 +38,12 @@
 
 #include "locale_body.h"
 
+#if 6 == _RWSTD_HP_aCC_MAJOR && _RWSTD_HP_aCC_MINOR <= 1600
+   // silence bogus HP aCC 6.16/cadvise warning #20200-D:
+   // Potential null pointer dereference
+#  pragma diag_suppress 20200
+#endif
+
 
 _RWSTD_NAMESPACE (std) { 
 
