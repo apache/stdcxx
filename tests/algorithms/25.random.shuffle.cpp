@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -49,7 +49,7 @@ template
 void
 random_shuffle (RandomAccessIter<assign<base<cpy_ctor> > >, 
                 RandomAccessIter<assign<base<cpy_ctor> > >,
-                func<const std::size_t >&);
+                func<const long>&);
 
 #endif // _RWSTD_NO_EXPLICIT_INSTANTIATION
 
