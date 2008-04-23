@@ -25,7 +25,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2008 Rogue Wave Software, Inc.
  *
  **************************************************************************/
 
@@ -1128,6 +1128,12 @@
 #  define _RWSTD_ASSUME(expr)   _RWSTD_ASSERT (expr)
 #endif   // _RWSTD_ASSUME
 
+#ifndef _RWSTD_ATTRIBUTE_NORETURN
+   // gcc (and others) __attribute__ ((noreturn))
+#  define _RWSTD_ATTRIBUTE_NORETURN   /* empty */
+#endif   // _RWSTD_ATTR_NORETURN
+
+
 // compile-time assertion - asserts constant expressions during
 // compilation with no runtime overhead; failed assertions are reported
 // as compilation errors
@@ -1149,7 +1155,7 @@ struct __rw_compile_assert<true> { enum { _C_ok }; };
 // called for failed assertions
 void _RWSTD_EXPORT
 __rw_assert_fail (const char*, const char*, int, const char*)
-    _RWSTD_GNUC_ATTRIBUTE ((noreturn));
+    _RWSTD_ATTRIBUTE_NORETURN;
 
 }   // extern "C++"
 
