@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -282,6 +282,8 @@ _rw_setopt_diags (int argc, char *argv[])
             break;
         }
 
+        RW_ASSERT (0 != end);
+
         if (':' == *end || '\0' == *end) {
             parg = end + (0 != *end);
             end  = strpbrk (parg, ":,");
@@ -298,6 +300,8 @@ _rw_setopt_diags (int argc, char *argv[])
                 ret = 1;
                 break;
             }
+
+            RW_ASSERT (0 != end);
 
             if (':' == *end || '\0' == *end) {
                 parg = end + ('\0' != *end);
@@ -316,6 +320,8 @@ _rw_setopt_diags (int argc, char *argv[])
                     ret = 1;
                     break;
                 }
+
+                RW_ASSERT (0 != end);
 
                 if (':' == *end || '\0' == *end) {
                     parg = end + (0 != *end);
