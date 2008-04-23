@@ -67,8 +67,17 @@ _C_put (iter_type __it, int __opts, ios_base &__flags, char_type __fill,
     typedef moneypunct<_CharT, false> _Punct0;
     typedef moneypunct<_CharT, true>  _Punct1;
 
-    const _Punct0* __pun0 = 0;
-    const _Punct1* __pun1 = 0;
+    const _Punct0* __pun0;
+    const _Punct1* __pun1;
+
+#ifdef __GNUG__
+    // silence bogus gcc -Wuninitialized warning:
+    //   object may be used uninitialized in this function
+    // while avoiding bogus HP aCC/cadvise warning 20200:
+    //   potential null pointer dereference 
+    __pun0 = 0;
+    __pun1 = 0;
+#endif   // gcc
 
     if (__intl) {
         __pun1 = &_RWSTD_USE_FACET (_Punct1, __flags.getloc ());
