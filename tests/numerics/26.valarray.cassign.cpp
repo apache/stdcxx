@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright (C) 2007 Rogue Wave Software, Inc.
+ * Copyright (C) 2007-2008 Rogue Wave Software, Inc.
  *
  **************************************************************************/
 
@@ -805,15 +805,15 @@ run_test (int, char**)
     TEST (int);
     TEST (double);
 
-#if 0x04020000 >= _RWSTD_VER
+#if 0x04020100 >= _RWSTD_VER
 
-    // test fails to compile with stdcxx 4.2.0 and prior due to
+    // test fails to compile with stdcxx 4.2.1 and prior due to
     // STDCXX-512: http://issues.apache.org/jira/browse/STDCXX-512
     rw_warn (0, 0, __LINE__,
              "test of UserClass disabled in stdcxx 4.2.0 and prior "
              "due to STDCXX-512");
 
-#else   // stdcxx > 4.2.0
+#else   // stdcxx >= 4.2.1
 
     TEST (UserClass);
 
