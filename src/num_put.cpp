@@ -181,6 +181,36 @@ inline bool __rw_issnan (double) { return false; }
 #endif
 
 
+inline bool __rw_isfinite (float) { return true; }
+
+inline bool __rw_signbit (float) { return false; }
+
+inline bool __rw_isinf (float) { return false; }
+
+inline bool __rw_isnan (float) { return false; }
+
+inline bool __rw_isqnan (float) { return false; }
+
+inline bool __rw_issnan (float) { return false; }
+
+
+#ifndef _RWSTD_NO_LONG_DOUBLE
+
+inline bool __rw_isfinite (long double) { return true; }
+
+inline bool __rw_signbit (long double) { return false; }
+
+inline bool __rw_isinf (long double) { return false; }
+
+inline bool __rw_isnan (long double) { return false; }
+
+inline bool __rw_isqnan (long double) { return false; }
+
+inline bool __rw_issnan (long double) { return false; }
+
+#endif   // _RWSTD_NO_LONG_DOUBLE
+
+
 static int
 __rw_fmat_infinite (char *buf, size_t bufsize, double val, unsigned flags)
 {
