@@ -196,6 +196,22 @@ inline bool __rw_issnan (float) { return false; }
 
 #ifndef _RWSTD_NO_LONG_DOUBLE
 
+#  if _RWSTD_DBL_SIZE == _RWSTD_LDBL_SIZE
+
+inline bool __rw_isfinite (long double x) { return __rw_isfinite (double (x)); }
+
+inline bool __rw_signbit (long double x) { return __rw_signbit (double (x)); }
+
+inline bool __rw_isinf (long double x) { return __rw_isinf (double (x)); }
+
+inline bool __rw_isnan (long double x) { return __rw_isnan (double (x)); }
+
+inline bool __rw_isqnan (long double x) { return __rw_isqnan (double (x)); }
+
+inline bool __rw_issnan (long double x) { return __rw_issnan (double (x)); }
+
+#  else   // _RWSTD_DBL_SIZE != _RWSTD_LDBL_SIZE
+
 inline bool __rw_isfinite (long double) { return true; }
 
 inline bool __rw_signbit (long double) { return false; }
@@ -207,6 +223,8 @@ inline bool __rw_isnan (long double) { return false; }
 inline bool __rw_isqnan (long double) { return false; }
 
 inline bool __rw_issnan (long double) { return false; }
+
+#  endif   // _RWSTD_DBL_SIZE == _RWSTD_LDBL_SIZE
 
 #endif   // _RWSTD_NO_LONG_DOUBLE
 
