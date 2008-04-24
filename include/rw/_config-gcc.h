@@ -25,7 +25,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -83,6 +83,10 @@
 #endif   //__GNUG__ <= 2 && __GNUC_MINOR__ < 97 && _RWSTD_NO_HONOR_STD
 
 #define _RWSTD_GNUC_ATTRIBUTE(attr)   __attribute__ (attr)
+
+// gcc attribute((noreturn)) to indicate that a function doesn't return
+// (it may still exit by throwing an exception or by calling longjmp)
+#define _RWSTD_ATTRIBUTE_NORETURN   _RWSTD_GNUC_ATTRIBUTE ((noreturn))
 
 #ifdef _RWSTD_OS_LINUX
 
