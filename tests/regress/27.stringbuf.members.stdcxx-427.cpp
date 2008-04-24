@@ -25,7 +25,6 @@
  **************************************************************************/
 
 #include <cassert>
-#include <cstdio>
 #include <sstream>
 
 int main ()
@@ -47,18 +46,15 @@ int main ()
     {
         Buf buf ("abcde", std::ios::in);
         buf.setget (1, 2, 4);
-        std::printf ("%s\n", buf.str ().c_str ());
         assert ("bcd" == buf.str ());
     }
     {
         Buf buf ("abcde", std::ios::out);
         buf.setput (1, 2, 4);
-        std::printf ("%s\n", buf.str ().c_str ());
         assert ("bcde" == buf.str ());
     }
     {
         Buf buf ("abcde", std::ios::openmode ());
-        std::printf ("%s\n", buf.str ().c_str ());
         assert ("" == buf.str ());
     }
 }
