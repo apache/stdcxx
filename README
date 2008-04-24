@@ -1,31 +1,12 @@
 
             $Id$
 
-              Apache C++ Standard Library (STDCXX) 4.2.0
+              Apache C++ Standard Library (STDCXX) 4.2.1
               ------------------------------------------
-
-  i. Disclaimer
-  -------------
-
-  The  ASF Incubation Policy  requires every  Podling (project  of the
-  Apache Incubator) to include a  clear disclaimer on its Web site and
-  in all documentation stating  that it is undergoing incubation.  The
-  following is the text of the required disclaimer.
-
-  STDCXX  is an effort  undergoing incubation  at the  Apache Software
-  Foundation (ASF), sponsored by  the Apache Incubator PMC. Incubation
-  is required  of all newly  accepted projects until a  further review
-  indicates  that  the  infrastructure, communications,  and  decision
-  making  process have stabilized  in a  manner consistent  with other
-  successful ASF projects.  While incubation status is not necessarily
-  a reflection of  the completeness or stability of  the code, it does
-  indicate that the project has yet to be fully endorsed by the ASF.
-
 
   0  Index
   --------
 
-  Disclaimer ....................................................... i
   Index ............................................................ 0
   Contents ......................................................... 1
     Compatibility ................................................ 1.1
@@ -84,7 +65,7 @@
   1  Contents
   -----------
 
-  This  file is  part  of version  4.2.0  of the  Apache C++  Standard
+  This  file is  part  of version  4.2.1  of the  Apache C++  Standard
   Library (STDCXX), an Open  Source implementation of the C++ Standard
   Library   conforming   to   INCITS/ISO/IEC  14882-2003   Programming
   Languages  -- C++.
@@ -115,19 +96,15 @@
   1.1  Compatibility
   ------------------
 
-  This version of the library is source and binary compatible with all
-  previous 4.x  releases. Programs  compiled and linked  with previous
-  versions  of  the  (shared)  library  within the  4.x  lineage  will
-  continue to link and work correctly when linked with this version of
-  the   library   (this   is   sometimes  referred   to   a   backward
-  compatibility), provided  the same compiler is used  to compile both
-  the programs and  the library. Changing the compiler  or its version
-  may  have an  impact on  the binary  compatibility of  the generated
-  object code. Programs  compiled and linked with this  version of the
-  library may not link with with prior versions of the library, or may
-  not  operate correctly  (this is  sometimes referred  to  as forward
-  compatibility).
-
+  This version of  the library is source as well  as both backward and
+  forward binary  compatible with all  past or future  4.2.x releases.
+  Programs  compiled and linked  with other  releases of  the (shared)
+  library  within the  4.2.x lineage  will continue  to link  and work
+  correctly when linked with this version of the library, provided the
+  same compiler is used to  compile both the programs and the library.
+  Changing  the compiler, its  version, or  some compiler  options may
+  have an impact  on the binary compatibility of  the generated object
+  code.
 
   2  Requirements
   ---------------
@@ -140,28 +117,19 @@
 
   o  GNU gunzip
   o  GNU make, version 3.70 or later (referred to as gmake here)
-  o  GNU gcc, version 2.95.2 or later, or
-  o  EDG eccp 2.42 or later, or
-  o  Comeau C++ 4.2.42 or later, or
-  o  HP aCC 3.13 or later for PA-RISC, or
-  o  HP aCC 5.36 or later for IPF, or
-  o  Intel C++ 7.0 or later for Linux/IA32 or IA64, or
-  o  Compaq/HP C++ 6.2 or later for Tru64 UNIX, or
-  o  IBM VisualAge 5.0 or later for AIX 4.3 or later
-  o  SGI MIPSpro 7.3 or later for IRIX
-  o  Sun C++ 5.3 or later for SunOS 5.6 or later
+  o  C++ compiler and linker
 
 
   3  Unpacking Instructions
   -------------------------
 
   The  distribution consists entirely  of a  single file  named either
-  stdcxx-incubating-X.Y.Z.tar.gz    for    a    final   release,    or
-  stdcxx-incubating-X.Y.Z-YYYYMMDD.tar.gz for snapshots.
+  stdcxx-X.Y.Z.tar.gz      for      a      final      release,      or
+  stdcxx-X.Y.Z-YYYYMMDD.tar.gz for snapshots.
 
   To unpack the tarball, execute the following command:
 
-  $ gunzip -c stdcxx-incubating-X.Y.Z.tar.gz | tar -xf -
+  $ gunzip -c stdcxx-X.Y.Z.tar.gz | tar -xf -
 
   Above, X, Y, and Z are the major, minor, and micro version number of
   the library,  respectively, and the  optional -YYYYMMDD part  is the
@@ -291,14 +259,13 @@
 
   Several utility programs are  provided in complete source form along
   with  the  library sources.   They  are:  exec,  gencat, locale  and
-  localedef.  The header  and  source files  for  these utilities  are
+  localedef.   The header  and source  files for  these  utilities are
   contained  in the  ${TOPDIR}/util/ directory.   The exec  and gencat
   utilities are  part of the test  harness and are not  intended to be
-  used directly or distributed to end users.  The localedef utility is
-  used to build locales from locale definition files and character set
-  description files.  Locales generated by  the utility can be read by
-  the locale  utility and  used by the  Apache C++  Standard Library's
-  localization library.
+  used directly.  The localedef utility  is used to build locales from
+  locale  definition  files   and  character  set  description  files.
+  Locales generated by  the utility can be read  by the locale utility
+  and used by the Apache C++ Standard Library's localization library.
 
 
   4.3  Locales
@@ -724,7 +691,7 @@
        +- include/*{,.cc}        library headers
        |         /config.h       generated configuration header
        +- lib/libstd*.[a|so]     archive or .so symbolic link
-       |      libstd*.so.4.2.0   versioned shared library
+       |      libstd*.so.4.2.1   versioned shared library
        +- nls/*/*                codeset and locale databases
 
   To specify a  subset of locales to install instead  of the full set,
@@ -918,12 +885,16 @@
      The name of the macro depends on the name of the operating system
      typically reported by the uname utility:
 
-     _RWSTD_OS_AIX:    AIX
-     _RWSTD_OS_HP_UX:  HP-UX
-     _RWSTD_OS_IRIX64: IRIX
-     _RWSTD_OS_LINUX:  Linux
-     _RWSTD_OS_OSF1:   Tru64 UNIX
-     _RWSTD_OS_SUNOS:  SunOS and Solaris
+     _RWSTD_OS_AIX:     AIX
+     _RWSTD_OS_DARWIN:  Apple Darwin
+     _RWSTD_OS_FREEBSD: FreeBSD
+     _RWSTD_OS_HP_UX:   HP-UX
+     _RWSTD_OS_IRIX64:  IRIX
+     _RWSTD_OS_LINUX:   Linux
+     _RWSTD_OS_NETBSD:  NetBSD
+     _RWSTD_OS_OSF1:    Tru64 UNIX
+     _RWSTD_OS_SUNOS:   SunOS and Solaris
+     _RWSTD_OS_WINDOWS: Microsoft Windows
 
   o  _RWSTD_OS_SYSNAME
 
@@ -1340,6 +1311,11 @@
 
   8.3.4  C Library Configuration Macros
   -------------------------------------
+
+  o  _RWSTD_NO_EQUAL_CTYPE_MASK [auto, lib]
+
+     When #defined, the isxxx() and iswxxx() character classification
+     functions return different results for of the same arguments.
 
   o  _RWSTD_NO_LIBC_IN_STD [auto, over]
 
@@ -1943,12 +1919,6 @@
     This release tested with:
 
     o  EDG eccp 3.9 on Red Hat Enterprise Linux 5.0, x86_64
-       The library fails to build unless _RWSTDDEBUG is #defined.
-       See http://issues.apache.org/jira/browse/STDCXX-595
-
-       The test driver and the exec utility fail to build.
-       See http://issues.apache.org/jira/browse/STDCXX-414
-
     o  EDG eccp 3.9 on Solaris 9
 
 
@@ -1961,15 +1931,17 @@
 
     This release tested with:
 
+    o  gcc 4.3.0, Fedora 8, x86_64
+    o  gcc 4.2.1, Fedora 8, x86_64
     o  gcc 4.1.1, Solaris 10, SPARC
-    o  gcc 4.1.0, SuSE Linux Enterprise Server 10.0, EM64T
+    o  gcc 4.1.0, SUSE Linux Enterprise Server 10, x86_64
     o  gcc 4.0.1, Mac OS X (Darwin), x86
-    o  gcc 3.4.6, Red Hat Enterprise Linux 4, Update 4, AMD64 and EM64T
-    o  gcc 3.4.4, Cygwin on Windows XP SP 2, x86
+    o  gcc 3.4.6, Red Hat Enterprise Linux 4, x86_64
+    o  gcc 3.4.4, Cygwin on Windows XP, x86
     o  gcc 3.4.4, FreeBSD 6.2, x86
-    o  gcc 3.4.4, Red Hat Enterprise Linux 4, Update 2, IA64
-    o  gcc 3.3.3, SuSE Linux Enterprise Server 9.1, AMD64
-    o  gcc 3.2.3, Red Hat Enterprise Linux 3, Update 8, EM64T
+    o  gcc 3.4.4, Red Hat Enterprise Linux 4, IA64
+    o  gcc 3.3.3, SUSE Linux Enterprise Server 9.1, x86_64
+    o  gcc 3.2.3, Red Hat Enterprise Linux 3, x86_64
 
                                    
     10.7 HP aCC
@@ -1980,12 +1952,10 @@
 
     This release tested with:
     
-    o  aCC 6.13, HPUX 11.23, IPF
-    o  aCC 6.05, HPUX 11.23, IPF
+    o  aCC 6.15, HPUX 11.23, IPF
+    o  aCC 6.15, HPUX 11.23, IPF
     o  aCC 6.00, HPUX 11.23, IPF
     o  aCC 5.57, HPUX 11.23, IPF
-    o  aCC 3.74, HPUX 11.31, PA-RISC
-    o  aCC 3.73, HPUX 11.31, PA-RISC
     o  aCC 3.73, HPUX 11.23, PA-RISC
     o  aCC 3.73, HPUX 11.11, PA-RISC
     o  aCC 3.63, HPUX 11.31, PA-RISC
@@ -2005,10 +1975,10 @@
     o  XLC++ 7.0, AIX 5.3, POWER
     o  VisualAge C++ 6.0, AIX 5.2, POWER
 
-    For  builds with  VisualAge C++ 5.0  and 6.0  there  are some
-    special  considerations  when   building  programs  that  use  the
-    implicit inclusion  mechanism (i.e.,  the -qtempinc mode  which is
-    active by default).
+    For builds with  VisualAge C++ 5.0 and 6.0  there are some special
+    considerations  when  building  programs  that  use  the  implicit
+    inclusion mechanism  (i.e., the -qtempinc mode which  is active by
+    default).
 
     The mechanism imposes some restrictions on the way the source code
     is structured: template declarations  have to be present in header
@@ -2022,22 +1992,13 @@
     ---------------
 
     Ported to  Intel C++ 7.0 through  9.0 on Linux  and Windows (x86,
-    IA64, and EM64T).
+    IA64, and x86_64).
 
     This release tested with:
 
-    o  Intel C++ 10.0, Red Hat Enterprise Linux 4, Update 4, AMD64 and EM64T
-    o  Intel C++ 10.0, SuSE Linux Enterprise Server 10.0, EM64T
-    o  Intel C++ 10.0, Windows 2000 SP 4, x86
-    o  Intel C++ 10.0, Windows 2003 SP 1, EM64T and x86
-    o  Intel C++ 10.0, Windows XP SP 2, EM64T and x86
-    o  Intel C++ 10.0, Windows Vista, EM64T
-    o  Intel C++ 9.1, Red Hat Enterprise Linux 4, Update 4, AMD64 and EM64T
-    o  Intel C++ 9.1, Red Hat Enterprise Linux 4, Update 2, IA64
-    o  Intel C++ 9.1, SuSE Linux Enterprise Server 10.0, EM64T
-    o  Intel C++ 9.1, Windows 2000 SP 4, x86
-    o  Intel C++ 9.1, Windows 2003 SP 1, x86
-    o  Intel C++ 9.1, Windows XP SP 2, x86
+    o  Intel C++ 10.0 and 9.1, Red Hat Enterprise Linux 5 and 4, x86_64
+    o  Intel C++ 10.0 and 9.1, SUSE Linux Enterprise Server 10 and 9, x86_64
+    o  Intel C++ 10.0 and 9.1, Windows Vista, XP and 2003, x86_64 and x86
 
     10.10  KAI C++
     --------------
@@ -2052,20 +2013,15 @@
     10.12  Microsoft Visual Studio
     ------------------------------
 
-    Ported to  Visual Studio .NET 2002 (AKA MSVC 7.0)  through Visual
-    Studio .NET 2005 (AKA MSVC 8.0) on Windows (x86, IA64, and EM64T),
-    and Visual Studio 2008 (AKA MSVC 9.0), Beta 2.
+    Ported to  Visual Studio .NET  2002 (AKA MSVC 7.0)  through Visual
+    Studio  .NET  2008 (AKA  MSVC  9.0)  on  Windows (x86,  IA64,  and
+    x86_64).
 
     This release tested with:
 
-    o  Visual Studio 2008 Beta 2, Windows XP, x86
-    o  Visual Studio 2005, Windows 2000 SP 4, x86
-    o  Visual Studio 2005, Windows 2003 SP 1, EM64T and x86
-    o  Visual Studio 2005, Windows XP SP 2, EM64T and x86
-    o  Visual Studio 2005, Windows Vista, EM64T
-    o  Visual Studio 2003, Windows 2000 SP 4, x86
-    o  Visual Studio 2003, Windows 2003 SP 1, x86
-    o  Visual Studio 2003, Windows XP SP 2, x86
+    o  Visual Studio 2008, Windows Vista, XP, and 2003, x86 and x86_64
+    o  Visual Studio 2005, Windows Vista, XP, and 2003, x86 and x86_64
+    o  Visual Studio 2003, Windows XP and 2003, x86
 
 
     10.13  SGI MIPSpro
@@ -2092,12 +2048,10 @@
 
     This release tested with:
 
-    o  Sun C++ 5.9, Red Hat Enterprise Linux 4, Update 4, AMD64 and EM64T
-    o  Sun C++ 5.9, SuSE Linux Enterprise Server 9.1, AMD64
-    o  Sun C++ 5.9, Solaris 10, AMD64 and SPARC
-    o  Sun C++ 5.9, Solaris 9, SPARC
-    o  Sun C++ 5.8, Solaris 10, AMD64 and SPARC
-    o  Sun C++ 5.8, Solaris 8, SPARC
+    o  Sun C++ 5.9, Red Hat Enterprise Linux 4, Update 4, x86_64
+    o  Sun C++ 5.9, SUSE Linux Enterprise Server 9.1, x86_64
+    o  Sun C++ 5.9, Solaris 10, 9, 8, x86_64 and SPARC
+    o  Sun C++ 5.8, Solaris 10, 9, 8, x86_64 and SPARC
     o  Sun C++ 5.7, Solaris 10, SPARC
     o  Sun C++ 5.6, Solaris 9, SPARC
     o  Sun C++ 5.3, Solaris 8, SPARC
