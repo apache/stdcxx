@@ -25,7 +25,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -97,4 +97,10 @@
 #    define _RWSTD_NO_EXCEPTIONS
 #  endif   // _RWSTD_NO_EXCEPTIONS
 #endif   // __HPACC_NOEH
+
+#if 6 <= _RWSTD_HP_aCC_MAJOR
+   // aCC 6 attribute((noreturn)) to indicate that a function
+   // doesn't return (it may exit by throwing an exception)
+#  define _RWSTD_ATTRIBUTE_NORETURN __attribute__ ((noreturn))
+#endif   // aCC >= 6
 

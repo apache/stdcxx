@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2005-2006 Rogue Wave Software.
+ * Copyright 2005-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -815,7 +815,7 @@ _rw_pvasnprintf (Buffer &buf, const char *fmt, VarArgs *pva)
             RW_ASSERT (size_t (len) <= *buf.pbufsize);
             RW_ASSERT (buf.endoff <= *buf.pbufsize);
 
-            const size_t offinx = size_t (nextoff - 1);
+            const size_t offinx = size_t (nextoff) - 1;
 
             if (pspec [paramno].cond_end && pspec [paramno].cond_begin) {
                 // change from an if to an else clause
@@ -1444,11 +1444,11 @@ _rw_fmtfloating (const FmtSpec &spec, Buffer &buf, const void *pval)
         *pf++ = 't';
     else if (spec.mod == spec.mod_L) {
         strcpy (pf, _RWSTD_LDBL_PRINTF_PREFIX);
-        for ( ; *pf; ++pf);
+        pf += strlen (pf);
     }
     else if (spec.mod == spec.mod_ext_A && _RWSTD_LDBL_SIZE == spec.width) {
         strcpy (pf, _RWSTD_LDBL_PRINTF_PREFIX);
-        for ( ; *pf; ++pf);
+        pf += strlen (pf);
     }
 
     if (spec.mod != spec.mod_ext_A && 0 <= spec.width) {
@@ -1801,27 +1801,12 @@ _rw_fmttm (const FmtSpec &spec, Buffer &buf, const tm *tmb)
 template <class charT>
 int _rw_quotechar (char *buf, charT wc, int noesc)
 {
-#if _RWSTD_WCHAR_MIN < 0
-
     // wchar_t is signed, convert its value to unsigned long
     // without widening (i.e., treat it as an unsigned type)
+    const _RWSTD_UWCHAR_INT_T wi =
+        _RWSTD_STATIC_CAST (_RWSTD_UWCHAR_INT_T, wc);
 
-#  if _RWSTD_WCHAR_MIN == _RWSTD_SHRT_MIN
-    const ULong wi = UShrt (wc);
-#  elif _RWSTD_WCHAR_MIN ==_RWSTD_INT_MIN
-    const ULong wi = UInt (wc);
-#  elif _RWSTD_WCHAR_MIN == _RWSTD_LONG_MIN
-    const ULong wi = ULong (wc);
-#  endif
-
-#else   // if _RWSTD_WCHAR_MIN >= 0
-
-    // wchar_t is unsigned
-    const ULong wi = ULong (wc);
-
-#endif   // _RWSTD_WCHAR_MIN < 0
-
-    if ((1 == sizeof wc || wi < 0x100) && noesc) {
+    if ((1 == sizeof wc || wi < 0x100U) && noesc) {
         buf [0] = char (wc);
         buf [1] = '\0';
         return 1;
@@ -2323,8 +2308,11 @@ _rw_fmtwchr (const FmtSpec &spec, Buffer &buf, wint_t val, int noesc)
 }
 
 /********************************************************************/
+// extern so it can be used in other translation units of the driver
+// although it's not mneant to be called directly except by the
+// implementation of rw_printf() and friends
 
-extern int
+/* extern */ int
 _rw_fmtstr (const FmtSpec &spec, Buffer &buf, const char *str, size_t len)
 {
     if (spec.fl_pound)
@@ -3107,8 +3095,11 @@ _rw_fmtexpr (FmtSpec &spec, Buffer &buf, VarArgs *pva)
         char *pbuf = varbuf;
 
         const size_t varlen = strlen (param) + strlen (val) + 2;
-        if (sizeof varbuf < varlen)
+        if (sizeof varbuf < varlen) {
             pbuf = (char*)malloc (varlen);
+            if (0 == pbuf)
+                return -1;
+        }
 
         strcpy (pbuf, param);
         strcat (pbuf, "=");
@@ -3303,7 +3294,7 @@ rw_sprintf (char *buf, const char *fmt, ...)
     va_end (va);
 
     if (-1 < nchars)
-        memcpy (buf, tmpbuf, size_t (nchars + 1 /* NUL */));
+        memcpy (buf, tmpbuf, size_t (nchars) + 1 /* NUL */);
 
     free (tmpbuf);
 
@@ -3327,7 +3318,7 @@ rw_snprintf (char *buf, size_t bufsize, const char *fmt, ...)
     va_end (va);
 
     if (size_t (nchars) < bufsize) {
-        memcpy (buf, tmpbuf, size_t (nchars + 1 /* NUL */));
+        memcpy (buf, tmpbuf, size_t (nchars) + 1 /* NUL */);
     }
     else {
         // buffer isn't big enough
