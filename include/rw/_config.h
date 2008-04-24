@@ -25,7 +25,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2007 Rogue Wave Software, Inc.
+ * Copyright 1994-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -37,7 +37,7 @@
 
 /*** library version numbers and ids **************************************/
 
-#define _RWSTD_VER 0x04020000
+#define _RWSTD_VER 0x04020200
 //                    | | | |
 //                   MMmmuupp
 //                    | | | |
@@ -47,7 +47,7 @@
 //                    +--------- MM = major version number
 
 // library version string (patch number included only if non-zero)
-#define _RWSTD_VER_STR   "4.2.0"
+#define _RWSTD_VER_STR   "4.2.2"
 
 // library version numbers
 #define _RWSTD_VER_MAJOR ((_RWSTD_VER >> 24) & 0xff)
