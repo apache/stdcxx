@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -101,10 +101,11 @@ _C_get_rep (size_type __cap, size_type __len)
 
     // allocate, initialize the __string_ref, and initialize each character
     _C_string_ref_type* const __ret =
-    _RWSTD_REINTERPRET_CAST (_C_string_ref_type*,
-        _RWSTD_VALUE_ALLOC (_C_value_alloc_type, *this,
-            allocate (__cap + sizeof (_C_string_ref_type) /
-                          sizeof (value_type) + 2)));
+        _RWSTD_STATIC_CAST (_C_string_ref_type*,
+            _RWSTD_STATIC_CAST (void*,
+                _RWSTD_VALUE_ALLOC (_C_value_alloc_type, *this,
+                    allocate (  __cap + sizeof (_C_string_ref_type)
+                              / sizeof (value_type) + 2))));
 
     // avoid copy construction (mutex isn't copy-constructible)
     // _C_ref_alloc_type (*this).construct (__ret, _C_string_ref_type ());
@@ -464,6 +465,7 @@ replace (size_type __pos, size_type __len, size_type __count, value_type __val)
 
 #  ifdef _RWSTD_NO_STRING_OUTLINED_MEMBER_TEMPLATES
 
+_EXPORT
 template <class _CharT, class _Traits, class _Alloc,
           class _StringIter, class _InputIter>
 _STD::basic_string<_CharT, _Traits, _Alloc>& 
@@ -561,6 +563,7 @@ replace (iterator __first1, iterator __last1,
 
 #  ifdef _RWSTD_NO_STRING_OUTLINED_MEMBER_TEMPLATES
 
+_EXPORT
 template <class _CharT, class _Traits, class _Alloc,
           class _StringIter, class _InputIter>
 _STD::basic_string<_CharT, _Traits, _Alloc>& 
