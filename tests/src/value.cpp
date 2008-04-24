@@ -244,6 +244,12 @@ assign (assign_op which, const UserClass &rhs)
         pex        = &ex_div_assign;
         new_val    = data_.val_ / rhs.data_.val_;
         break;
+
+    default:
+        // should never get here (silences bogus HP aCC/cadvise
+        // warning #20200-D: Potential null pointer dereference)
+        RW_ASSERT (!"unhandled case");
+        return;
     }
 
     // increment the number of invocations of the operator
@@ -494,6 +500,11 @@ __rw_from_char (T*, const char *str, size_t len, bool sorted)
 
     typedef unsigned char UChar;
 
+    // this should trivially hold given the above but the assert
+    // silences bogus HP aCC/cadvise warning #20200-D: Potential
+    // null pointer dereference
+    RW_ASSERT (0 != array);
+
     for (size_t i = 0; i < strlen_; ++i)
         array [i].data_.val_ = UChar (str_ [i]);
 
@@ -680,7 +691,6 @@ _rw_fmtxarrayv (char **pbuf, size_t *pbufsize, const char *fmt, va_list va)
     bool     fl_plus  =  false;
     bool     fl_pound =  false;
     int      nelems   = -1;
-    int      paramno  = -1;
     int      cursor   = -1;
 
     const UserClass* pelem    = 0;
@@ -731,9 +741,7 @@ _rw_fmtxarrayv (char **pbuf, size_t *pbufsize, const char *fmt, va_list va)
         // process positional parameter or width
         char* end = 0;
         const int arg = strtol (fmt, &end, 10);
-        if ('$' == *end)
-            paramno = arg;
-        else
+        if ('$' != *end)
             nelems = arg;
 
         fmt = end;

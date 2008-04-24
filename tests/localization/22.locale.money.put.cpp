@@ -833,7 +833,7 @@ static int
 run_test (int, char*[])
 {
     // check to see if we can test -0.0
-    static double d = -0.0;
+    static volatile double d = -0.0;
     test_neg_zero = 1.0 / d < d;
     
     if (no_grouping)
