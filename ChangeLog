@@ -1,3 +1,27 @@
+2008-04-24  Martin Sebor  <sebor@roguewave.com>
+
+	Merged revs 648509 and 648403 from trunk.
+
+        2008-04-15  Martin Sebor  <sebor@roguewave.com>
+
+        STDCXX-832
+        * include/string.cc (_C_get_rep): Used two static_casts via void*
+        instead of a single reinterpret_cast to prevent HP aCC 6 warning
+        #4232: conversion from "wchar_t*" to a more strictly aligned type.
+
+	2008-04-15  Martin Sebor  <sebor@roguewave.com>
+
+	STDCXX-874
+	* include/string (__rw_replace, __rw_replace_aux): Decorated
+	exported templates with the export keyword.
+	* include/string.cc: Same.
+
+
+2008-04-24  Martin Sebor  <sebor@roguewave.com>
+
+	* ChangeLog: Regenerated.
+
+
 2008-04-23  Martin Sebor  <sebor@roguewave.com>
 
 	STDCXX-775
