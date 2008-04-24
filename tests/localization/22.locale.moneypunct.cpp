@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1998-2006 Rogue Wave Software.
+ * Copyright 1998-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -75,7 +75,9 @@ std::lconv* lconvdup (const std::lconv *plconv)
         + positive_sign_sz
         + negative_sign_sz;
 
-    char *pbuf = new char [sizeof (std::lconv) + total_sz];
+    const std::size_t bufsize = sizeof (std::lconv) + total_sz;
+
+    char *pbuf = _RWSTD_STATIC_CAST (char*, operator new (bufsize));
 
     std::lconv *plconv2 = _RWSTD_REINTERPRET_CAST (std::lconv*, pbuf);
 
@@ -429,7 +431,7 @@ check_moneypunct (const char *locname)
         check_format (*plconv);
 
         // cast away constness to work around compiler bugs (e.g., MSVC 6)
-        delete _RWSTD_CONST_CAST (std::lconv*, plconv);
+        operator delete (_RWSTD_CONST_CAST (std::lconv*, plconv));
     }
     _CATCH (...) {
         return false;

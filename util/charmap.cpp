@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2001-2007 Rogue Wave Software, Inc.
+ * Copyright 2001-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -671,7 +671,8 @@ bool Charmap::convert_to_ucs (const std::string &sym_name,
         return true;
     }
 
-    char utf8_enc [_RWSTD_MB_LEN_MAX + 1];
+    // allocate enough space for the longest possible UTF-8 character
+    char utf8_enc [8 + 1 /* NUL */];
 
     const char* const ch_end =
         convert_to_utf8  (encoding.c_str (), encoding.size (),

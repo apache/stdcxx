@@ -25,7 +25,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2001-2006 Rogue Wave Software.
+ * Copyright 2001-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -63,6 +63,13 @@
        { _RWSTD_LC_MESSAGES, "LC_MESSAGES", pfx::_C_messages }
 
 #endif   // _RWSTD_NO_LOCALE_NAME_FMAT
+
+
+#if 6 == _RWSTD_HP_aCC_MAJOR && _RWSTD_HP_aCC_MINOR <= 1600
+   // silence bogus HP aCC 6.16/cadvise warning #20200-D:
+   // Potential null pointer dereference
+#  pragma diag_suppress 20200
+#endif
 
 
 _RWSTD_NAMESPACE (__rw) {
@@ -819,7 +826,7 @@ _C_manage (__rw_locale *plocale, const char *locname)
             else {
                 // ginit must be volatile to prevent optimizers
                 // from turning this into an infinite loop
-                while (ginit < 1000);
+                while (ginit < 1000) { /* empty */ }
             }
         }
 

@@ -1141,6 +1141,9 @@ make_LC_TIME (const time_data *td)
     rw_fatal (0 != fout, 0, __LINE__,
               "fopen(%#s, \"w\") failed: %{#m} - %m", srcfname);
 
+    // rw_fatal() doesn't return on failure
+    RW_ASSERT (0 != fout);
+
     std::fprintf (fout, "LC_TIME\n");
 
     unsigned i;
@@ -1278,6 +1281,9 @@ make_LC_TIME (const time_data *td)
     fout = std::fopen (cmfname, "w");
     rw_fatal (0 != fout, 0, __LINE__,
               "fopen(%#s, \"w\") failed: %{#m} - %m", cmfname);
+
+    // rw_fatal() doesn't return on failure
+    RW_ASSERT (0 != fout);
 
     pcs_write (fout, 0);
 
