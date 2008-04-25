@@ -1,7 +1,7 @@
 
             $Id$
 
-              Apache C++ Standard Library (STDCXX) 4.2.1
+              Apache C++ Standard Library (STDCXX) 4.3.0
               ------------------------------------------
 
   0  Index
@@ -65,7 +65,7 @@
   1  Contents
   -----------
 
-  This  file is  part  of version  4.2.1  of the  Apache C++  Standard
+  This  file is  part  of version  4.3.0  of the  Apache C++  Standard
   Library (STDCXX), an Open  Source implementation of the C++ Standard
   Library   conforming   to   INCITS/ISO/IEC  14882-2003   Programming
   Languages  -- C++.
@@ -96,15 +96,17 @@
   1.1  Compatibility
   ------------------
 
-  This version of  the library is source as well  as both backward and
-  forward binary  compatible with all  past or future  4.2.x releases.
-  Programs  compiled and linked  with other  releases of  the (shared)
-  library  within the  4.2.x lineage  will continue  to link  and work
-  correctly when linked with this version of the library, provided the
-  same compiler is used to  compile both the programs and the library.
-  Changing  the compiler, its  version, or  some compiler  options may
-  have an impact  on the binary compatibility of  the generated object
-  code.
+  This version of the library is source and backward binary compatible
+  with all past 4.x releases.  Programs compiled and linked with other
+  releases  of  the  (shared)  library  within the  4.x  lineage  will
+  continue to link and work correctly when linked with this version of
+  the library, provided the same  compiler is used to compile both the
+  programs and  the library.  Changing  the compiler, its  version, or
+  some compiler options may have an impact on the binary compatibility
+  of the generated object code. This version is not forward compatible
+  with past releases of the library. Programs compiled and linked with
+  this version of the library may not link with with prior versions of
+  the library, or may not operate correctly.
 
   2  Requirements
   ---------------
@@ -672,7 +674,7 @@
        +- include/*{,.cc}        library headers
        |         /config.h       generated configuration header
        +- lib/libstd*.[a|so]     archive or .so symbolic link
-       |      libstd*.so.4.2.1   versioned shared library
+       |      libstd*.so.4.3.0   versioned shared library
        +- nls/*/*                codeset and locale databases
 
   To specify a  subset of locales to install instead  of the full set,
