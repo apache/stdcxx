@@ -15,7 +15,7 @@
 # implied.   See  the License  for  the  specific language  governing
 # permissions and limitations under the License.
 #
-# Copyright 1999-2007 Rogue Wave Software, Inc.
+# Copyright 1999-2008 Rogue Wave Software, Inc.
 #
 
 # RW_SYS_ATOMIC_OPS
@@ -43,7 +43,7 @@ AC_DEFUN([RW_SYS_ATOMIC_OPS], [dnl
   case $build_cpu in
     ia64) ;;
     sparc) ;;
-    x86|i686) ;;
+    x86|i386|i686) ;;
     x86_64) ;;
     *) AC_MSG_ERROR([unsupported build architecture $build_cpu])
        exit ;;

@@ -19,7 +19,7 @@
 #
 
 # information on the package
-AC_PREREQ([2.59])
+AC_PREREQ([2.62]) # multi-line definitions were added in this version
 AC_COPYRIGHT([Copyright (c) 2005-2007 Apache Software Foundation.
 Copyright (c) 1999-2007 Rogue Wave Software, Inc.])
 AC_REVISION([$Id$])
@@ -36,29 +36,47 @@ AC_CONFIG_HEADERS([include/config.h])
 
 AM_INIT_AUTOMAKE([dist-bzip2 dist-zip])
 
+# custom configure options
 AM_NLS
 AC_ENABLE_DEBUG
 AC_ENABLE_THREADS
 
-# checks for programs
+AC_MSG_NOTICE([checks for programs])
 AC_PROG_LIBTOOL
+AC_PROG_CC_STDC
 AC_PROG_CXX
 AM_PROG_AS
 
-# checks for system-specific features
+AC_MSG_NOTICE([checks for system-specific features])
 RW_SYS_ATOMIC_OPS
 
-# checks for native C language data types
-AC_CHECK_TYPE([long long], [], [AC_DEFINE([_RWSTD_NO_LONG_LONG], [1],
-[Define if compiler does not support native `long long' type.])])
-AC_CHECK_TYPE([long double], [], [AC_DEFINE([_RWSTD_NO_LONG_DOUBLE], [1],
-[Define if compiler does not support native `long double' type.])])
+AC_MSG_NOTICE([checks for Standard C Language])
+AC_C99_FUNC([], [AC_DEFINE([_RWSTD_NO_FUNC], [1],
+[Define if compiler does not support C99 preprocessing symbol `__func__'.])])
+RW_STDC_TYPES
 
-# checks for common C library type definitions
-AC_CHECK_TYPE([size_t], [], [AC_DEFINE([_RWSTD_NO_SIZE_T], [1],
-[Define if standard headers do not define `size_t' type.])])
+AC_MSG_NOTICE([checks for Standard C Library])
+AC_PATH_HEADER([_RWSTD_ANSI_C_ASSERT_H], [assert.h])
+AC_PATH_HEADER([_RWSTD_ANSI_C_CTYPE_H], [ctype.h])
+AC_PATH_HEADER([_RWSTD_ANSI_C_ERRNO_H], [errno.h])
+AC_PATH_HEADER([_RWSTD_ANSI_C_ISO646_H], [iso646.h])
+AC_PATH_HEADER([_RWSTD_ANSI_C_SETJMP_H], [setjmp.h])
 
-# checks for C++ compiler-specific features
+RW_STDC_FLOAT
+RW_STDC_LOCALE
+RW_STDC_MATH
+RW_STDC_SIGNAL
+RW_STDC_STDARG
+RW_STDC_STDIO
+RW_STDC_STDDEF
+RW_STDC_STDINT
+RW_STDC_STDLIB
+RW_STDC_STRING
+RW_STDC_TIME
+RW_STDC_WCHAR
+RW_STDC_WCTYPE
+
+AC_MSG_NOTICE([checks for C++ compiler features])
 AC_LANG(C++)
 AC_HEADER_NO_STD
 

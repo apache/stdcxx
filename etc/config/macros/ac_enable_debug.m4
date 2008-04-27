@@ -15,7 +15,7 @@
 # implied.   See  the License  for  the  specific language  governing
 # permissions and limitations under the License.
 #
-# Copyright 1999-2007 Rogue Wave Software, Inc.
+# Copyright 1999-2008 Rogue Wave Software, Inc.
 #
 
 # AC_ENABLE_DEBUG([DEFAULT])

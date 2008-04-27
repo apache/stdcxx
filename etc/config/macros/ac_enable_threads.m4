@@ -15,7 +15,7 @@
 # implied.   See  the License  for  the  specific language  governing
 # permissions and limitations under the License.
 #
-# Copyright 1999-2007 Rogue Wave Software, Inc.
+# Copyright 1999-2008 Rogue Wave Software, Inc.
 #
 
 # AC_ENABLE_THREADS([DEFAULT])
@@ -32,7 +32,7 @@
 # omitted, it defaults to `native'.
 #
 AC_DEFUN([AC_ENABLE_THREADS], [dnl
-  AC_MSG_CHECKING([whether to build thread targets])
+  AC_MSG_CHECKING([whether to build multithread targets])
 
   define([AC_ENABLE_THREADS_DEFAULT], ifelse($1, no, no, native))dnl
   AC_ARG_ENABLE([THREADS],

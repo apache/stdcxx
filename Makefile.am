@@ -65,18 +65,22 @@ EXTRA_DIST = \
 # updating/regenerating maintenance files.
 ACLOCAL_AMFLAGS = -I @CONFIG_MACRODIR@
 
-config_auxdir = @CONFIG_AUXDIR@
-
 MAINTAINERCLEANFILES = \
 	COPYING \
 	INSTALL \
 	Makefile.in \
 	aclocal.m4 \
 	configure \
-	$(config_auxdir)/config.guess \
-	$(config_auxdir)/config.sub \
-	$(config_auxdir)/depcomp \
-	$(config_auxdir)/install-sh \
-	$(config_auxdir)/ltmain.sh \
-	$(config_auxdir)/missing
+	libtool \
+	@CONFIG_AUXDIR@/config.guess \
+	@CONFIG_AUXDIR@/config.sub \
+	@CONFIG_AUXDIR@/depcomp \
+	@CONFIG_AUXDIR@/install-sh \
+	@CONFIG_AUXDIR@/ltmain.sh \
+	@CONFIG_AUXDIR@/missing \
+	@CONFIG_MACRODIR@/libtool.m4 \
+	@CONFIG_MACRODIR@/lt~obsolete.m4 \
+	@CONFIG_MACRODIR@/ltsugar.m4 \
+	@CONFIG_MACRODIR@/ltversion.m4 \
+	@CONFIG_MACRODIR@/ltoptions.m4
 

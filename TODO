@@ -16,8 +16,8 @@ likely broken.  Hack at your own risk.
 To "bootstrap" the resulting distribution, run the following commands
 in the top-level source directory:
 
-	$ aclocal -I etc/config/macros
 	$ libtoolize -c
+	$ aclocal -I etc/config/macros
 	$ autoheader
 	$ automake -ac
 	$ autoconf
