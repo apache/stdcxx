@@ -1424,6 +1424,13 @@ _rw_fmtfloating (const FmtSpec &spec, Buffer &buf, const void *pval)
     if (spec.fl_zero)
         *pf++ = '0';
 
+    if (spec.mod != spec.mod_ext_A && 0 <= spec.width) {
+        pf += sprintf (pf, "%i", spec.width);
+    }
+
+    if (0 <= spec.prec)
+        pf += sprintf (pf, ".%i", spec.prec);
+
     if (spec.mod == spec.mod_h)
         *pf++ = 'h';
     else if (spec.mod == spec.mod_hh) {
@@ -1450,13 +1457,6 @@ _rw_fmtfloating (const FmtSpec &spec, Buffer &buf, const void *pval)
         strcpy (pf, _RWSTD_LDBL_PRINTF_PREFIX);
         pf += strlen (pf);
     }
-
-    if (spec.mod != spec.mod_ext_A && 0 <= spec.width) {
-        pf += sprintf (pf, "%i", spec.width);
-    }
-
-    if (0 <= spec.prec)
-        pf += sprintf (pf, ".%i", spec.prec);
 
     *pf++ = char (spec.cvtspec);
     *pf   = '\0';
@@ -1499,6 +1499,7 @@ _rw_fmtfloating (const FmtSpec &spec, Buffer &buf, const void *pval)
             buffer [len - 3] = buffer [len - 2];
             buffer [len - 2] = buffer [len - 1];
             buffer [len - 1] = buffer [len];
+            --len;
         }
     }
 
