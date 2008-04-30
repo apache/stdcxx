@@ -35,7 +35,7 @@
 
 int main ()
 {
-    struct: std::streambuf { } xsb, ysb;
+    struct sbuf : std::streambuf { } xsb, ysb;
     std::ostream xstrm (0);
     std::ostream ystrm (0);
 
