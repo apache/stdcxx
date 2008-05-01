@@ -1,7 +1,7 @@
 
             $Id$
 
-              Apache C++ Standard Library (STDCXX) 4.2.1
+              Apache C++ Standard Library (STDCXX) 4.2.2
               ------------------------------------------
 
   0  Index
@@ -65,7 +65,7 @@
   1  Contents
   -----------
 
-  This  file is  part  of version  4.2.1  of the  Apache C++  Standard
+  This  file is  part  of version  4.2.2  of the  Apache C++  Standard
   Library (STDCXX), an Open  Source implementation of the C++ Standard
   Library   conforming   to   INCITS/ISO/IEC  14882-2003   Programming
   Languages  -- C++.
@@ -691,7 +691,7 @@
        +- include/*{,.cc}        library headers
        |         /config.h       generated configuration header
        +- lib/libstd*.[a|so]     archive or .so symbolic link
-       |      libstd*.so.4.2.1   versioned shared library
+       |      libstd*.so.4.2.2   versioned shared library
        +- nls/*/*                codeset and locale databases
 
   To specify a  subset of locales to install instead  of the full set,
