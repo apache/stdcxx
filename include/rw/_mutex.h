@@ -1936,6 +1936,14 @@ __rw_atomic_exchange (bool &__x, bool __y, bool)
 
 #if _RWSTD_LONG_SIZE == _RWSTD_INT_SIZE
 
+#  if 6 == _RWSTD_HP_aCC_MAJOR
+     // suppress HP aCC 64 bit migration remark: conversion from
+     // "long *" to "int *" may cause target of pointers to have
+     // a different size
+#    pragma diag_suppress 4230
+#  endif   // HP aCC 6
+
+
 inline long
 __rw_atomic_preincrement (long &__x, bool)
 {
@@ -1980,6 +1988,11 @@ __rw_atomic_exchange (unsigned long &__x,
                                  _RWSTD_STATIC_CAST (int, __y),
                                  false);
 }
+
+
+#  if 6 == _RWSTD_HP_aCC_MAJOR
+#    pragma diag_default 4230
+#  endif   // HP aCC 6
 
 #endif   // _RWSTD_LONG_SIZE == _RWSTD_INT_SIZE
 
