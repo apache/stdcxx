@@ -30,44 +30,73 @@
 
 #include <driver.h>      // for rw_test()
 #include <rw_locale.h>   // for rw_create_catalog()
-#include <rw_thread.h>
+#include <rw_thread.h>   // for rw_thread_pool()
+#include <rw_process.h>  // for rw_system()
+#include <file.h>        // for SHELL_RM_F
 #include <valcmp.h>      // for rw_strncmp ()
 
 #include <cstring>   // for strlen()
 #include <cstdio>    // for remove()
 
 // maximum number of threads allowed by the command line interface
+#define MAX_CATALOGS     32
 #define MAX_THREADS      32
 #define MAX_LOOPS    100000
 
+// deault number of catalogs
+int opt_ncatalogs = 11;
+
 // default number of threads (will be adjusted to the number
 // of processors/cores later)
-int rw_opt_nthreads = 1;
+int opt_nthreads = 1;
 
 // the number of times each thread should iterate (unless specified
 // otherwise on the command line)
-int rw_opt_nloops = 100000;
+int opt_nloops = 10000;
 
-// locale for threads to share
-static const
-std::locale locale;
+#if !defined (_RWSTD_OS_HP_UX) || defined (_ILP32)
 
-// message catalog for threads to share
-static
-std::messages_base::catalog catalog;
+// number of locales to use
+int opt_nlocales = MAX_THREADS;
 
-static
-std::messages_base::catalog wcatalog;
+#else   // HP-UX in LP64 mode
+
+// work around a small cache size on HP-UX in LP64 mode
+// in LP64 mode (see STDCXX-812)
+int opt_nlocales = 9;
+
+#endif   // HP-UX 32/64 bit mode
+
+// should all threads share the same set of locale objects instead
+// of creating their own?
+int opt_shared_locale;
 
 /**************************************************************************/
 
-#ifndef _WIN32
-#  define CAT_NAME "./rwstdmessages.cat"
-#  define MSG_NAME "rwstdmessages.msg"
-#else
-#  define CAT_NAME "rwstdmessages.dll"
-#  define MSG_NAME "rwstdmessages.rc"
-#endif
+// array of locale names to use for testing
+static const char*
+locales [MAX_THREADS];
+
+// number of locale names in the array
+static std::size_t
+nlocales;
+
+/**************************************************************************/
+
+//
+struct MyMessageData
+{
+    // name of the locale the data corresponds to
+    const char* locale_name_;
+
+    // optionally set to the named locale for threads to share
+    std::locale locale_;
+
+} my_message_data [MAX_THREADS];
+
+char my_catalog_names [64][MAX_CATALOGS];
+
+/**************************************************************************/
 
 #define MAX_SETS 5
 #define MAX_MESSAGES  5
@@ -123,38 +152,6 @@ messages [MAX_SETS][MAX_MESSAGES] = {
     }
 };
 
-static std::string str_messages;
-
-/**************************************************************************/
-
-template <class T>
-void test_open_close (const std::locale& loc,
-                      const std::messages<T>& msgs,
-                      const std::string& name)
-{
-    std::messages_base::catalog cat =
-        (msgs.open) (name, loc);
-
-    RW_ASSERT (! (cat < 0));
-
-    (msgs.close) (cat);
-}
-
-template <class T>
-void test_get (const std::messages<T>& msgs,
-               const std::messages_base::catalog cat,
-               int set, int msgid,
-               const std::basic_string<T>& dflt)
-{
-    // the msg_id() thing seems like a bug to me. if anything, the user
-    // should never need to write or call msg_id().
-
-    const typename std::messages<T>::string_type res =
-        msgs.get (cat, set, msg_id (set, msgid), dflt);
-
-    RW_ASSERT (!rw_strncmp (messages [set-1][msgid-1], res.c_str ()));
-}
-
 /**************************************************************************/
 
 extern "C" {
@@ -165,49 +162,142 @@ bool test_wchar;   // exercise messages<wchar_t>
 static void*
 thread_func (void*)
 {
-    const std::string name (CAT_NAME);
-
-    const std::messages<char>& nmsgs =
-        std::use_facet<std::messages<char> >(locale);
-
     const std::string ndflt ("\1\2\3\4");
 
+    struct {
+        std::messages_base::catalog cat;
+        std::locale loc;
+    } ncatalogs [4];
+
+    const unsigned n_ncatalogs = sizeof (ncatalogs) / sizeof (*ncatalogs);
+
+    // 22.2.7.1.2 says values less than 0 returned if catalog can't
+    // be opened, so we use -1 as a sentinel.
+    for (unsigned c = 0; c < n_ncatalogs; ++c)
+        ncatalogs [c].cat = -1;
+
 #ifndef _RWSTD_NO_WCHAR_T
-    const std::messages<wchar_t>& wmsgs =
-        std::use_facet<std::messages<wchar_t> >(locale);
 
     const std::wstring wdflt (L"\1\2\3\4");
-#endif // _RWSTD_NO_WCHAR_T
 
-    for (int i = 0; i != rw_opt_nloops; ++i) {
+    struct {
+        std::messages_base::catalog cat;
+        std::locale loc;
+    } wcatalogs [5];
 
-        int set   = 1 + i % MAX_SETS;
-        int msgid = 1 + i % MAX_MESSAGES;
+    const unsigned n_wcatalogs = sizeof (wcatalogs) / sizeof (*wcatalogs);
+
+    for (unsigned c = 0; c < n_wcatalogs; ++c)
+        wcatalogs [c].cat = -1;
+
+#endif   // _RWSTD_NO_WCHAR_T
+
+    ///////////////////////////////////////////////////////////////////////
+
+    for (int i = 0; i < opt_nloops; ++i) {
+
+        const MyMessageData& data = my_message_data [i % nlocales];
+
+        // construct a named locale, get a reference to the money_get
+        // facet from it and use it to format a random money value
+        const std::locale loc = 
+            opt_shared_locale ? data.locale_
+                              : std::locale (data.locale_name_);
+
+        const int set   = 1 + i % MAX_SETS;
+        const int msgid = 1 + i % MAX_MESSAGES;
 
         if (test_char) {
-            if (i & 1) {
-                test_get<char>(nmsgs, catalog, set, msgid, ndflt);
+            // exercise the narrow char specialization of the facet
+
+            const std::messages<char> &nm =
+                std::use_facet<std::messages<char> >(loc);
+
+            const unsigned cat_idx = i % n_ncatalogs;
+            if (! (ncatalogs [cat_idx].cat < 0)) {
+                (nm.close)(ncatalogs [cat_idx].cat);
             }
-            else {
-                test_open_close<char>(locale, nmsgs, name);
+
+            const unsigned name_idx = i % opt_ncatalogs;
+
+            const std::messages_base::catalog cat = 
+                (nm.open)(my_catalog_names [name_idx], loc);
+
+            ncatalogs [cat_idx].cat = cat;
+            ncatalogs [cat_idx].loc = loc;
+
+            if (i & 1) {
+
+                // get a message from the catalog every odd iteration
+                const std::messages<char>::string_type res =
+                        nm.get (cat, set, msg_id (set, msgid), ndflt);
+
             }
         }
-
-        if (test_wchar) {
 
 #ifndef _RWSTD_NO_WCHAR_T
 
-            if (i & 1) {
-                test_get<wchar_t>(wmsgs, wcatalog, set, msgid, wdflt);
-            }
-            else {
-                test_open_close<wchar_t>(locale, wmsgs, name);
+        if (test_wchar) {
+            // exercise the wide char specialization of the facet
+
+            const std::messages<wchar_t> &wm =
+                std::use_facet<std::messages<wchar_t> >(loc);
+
+            const unsigned cat_idx = i % n_wcatalogs;
+            if (! (wcatalogs [cat_idx].cat < 0)) {
+                (wm.close)(wcatalogs [cat_idx].cat);
             }
 
-#endif // _RWSTD_NO_WCHAR_T
+            const unsigned name_idx = i % opt_ncatalogs;
 
+            const std::messages_base::catalog cat = 
+                (wm.open)(my_catalog_names [name_idx], loc);
+
+            RW_ASSERT (! (cat < 0));
+
+            wcatalogs [cat_idx].cat = cat;
+            wcatalogs [cat_idx].loc = loc;
+
+            if (! (i & 1)) {
+
+                // get a message from the catalog every even iteration
+                const std::messages<wchar_t>::string_type res =
+                        wm.get (cat, set, msg_id (set, msgid), wdflt);
+
+            }
+        }
+
+#endif   // _RWSTD_NO_WCHAR_T
+
+    }
+
+    ///////////////////////////////////////////////////////////////////////
+
+    // close any catalogs that are still open
+
+    for (unsigned c = 0; c < n_ncatalogs; ++c) {
+        if (! (ncatalogs [c].cat < 0)) {
+
+            const std::messages<char> &nm =
+                std::use_facet<std::messages<char> >(ncatalogs[c].loc);
+
+            (nm.close)(ncatalogs [c].cat);
         }
     }
+
+#ifndef _RWSTD_NO_WCHAR_T
+
+    for (unsigned c = 0; c < n_wcatalogs; ++c) {
+        if (! (wcatalogs [c].cat < 0)) {
+
+            const std::messages<wchar_t> &wm =
+                std::use_facet<std::messages<wchar_t> >(wcatalogs[c].loc);
+
+            (wm.close)(wcatalogs [c].cat);
+        }
+    }
+
+#endif   // _RWSTD_NO_WCHAR_T
 
     return 0;
 }
@@ -219,36 +309,96 @@ thread_func (void*)
 static int
 run_test (int, char**)
 {
-    for (int i = 0; i < MAX_SETS; ++i) {
-        for (int j = 0; j < MAX_MESSAGES; ++j)
-            str_messages.append (messages [i][j], std::strlen (messages [i][j]) + 1);
+    std::string catalog;
 
-        str_messages.append (1, '\0');
+    // initialize the catalog data
+    for (int i = 0; i < MAX_SETS; ++i) {
+
+        for (int j = 0; j < MAX_MESSAGES; ++j) {
+            catalog.append (messages [i][j],
+                            std::strlen (messages [i][j]) + 1);
+        }
+
+        catalog.append (1, '\0');
     }
 
-    // generate a message catalog
-    rw_create_catalog (MSG_NAME, str_messages.c_str ());
-    const std::string name (CAT_NAME);
+    ///////////////////////////////////////////////////////////////////////
 
-    const std::messages<char>& nmsgs =
-        std::use_facet<std::messages<char> >(locale);
+    // create the catalogs and initialize array of catalog names
+    for (int i = 0; i < opt_ncatalogs; ++i) {
 
-    catalog = (nmsgs.open) (name, locale);
+        char* msg_name = my_catalog_names [i];
 
-#ifndef _RWSTD_NO_WCHAR_T
-
-    const std::messages<wchar_t>& wmsgs =
-        std::use_facet<std::messages<wchar_t> >(locale);
-
-    wcatalog = (wmsgs.open) (name, locale);
-
+#ifndef _WIN32
+        std::sprintf (msg_name, "rwstdmessages_%d.msg", i);
+#else
+        std::sprintf (msg_name, "rwstdmessages_%d.rc", i);
 #endif
+
+        const int failed = rw_create_catalog (msg_name, catalog.c_str ());
+        rw_fatal (!failed, 0, __LINE__,
+                  "failed to create message catalog from %s",
+                  msg_name);
+
+#ifndef _WIN32
+        std::sprintf (msg_name, "./rwstdmessages_%d.cat", i);
+#else
+        std::sprintf (msg_name, "rwstdmessages_%d.dll", i);
+#endif
+    }
+
+    ///////////////////////////////////////////////////////////////////////
+
+    // find all installed locales for which setlocale (LC_ALL) succeeds
+    const char* const locale_list =
+        rw_opt_locales ? rw_opt_locales : rw_locales (_RWSTD_LC_ALL);
+
+    const std::size_t maxinx = RW_COUNT_OF (locales);
+
+    for (const char* name = locale_list;
+         *name;
+         name += std::strlen (name) + 1) {
+
+        const std::size_t inx = nlocales;
+        locales [inx] = name;
+
+        // fill in the money and results for this locale
+        MyMessageData& data = my_message_data [inx];
+        data.locale_name_ = name;
+
+        try {
+            const std::locale loc (data.locale_name_);
+
+            const std::messages<char>& nm =
+                std::use_facet<std::messages<char> >(loc);
+
+#ifdef _RWSTD_NO_WCHAR_T
+
+            const std::messages<wchar_t>& nm =
+                std::use_facet<std::messages<wchar_t> >(loc);
+
+#endif // _RWSTD_NO_WCHAR_T
+
+            if (opt_shared_locale)
+                data.locale_ = loc;
+
+            nlocales += 1;
+
+        }
+        catch (...) {
+            rw_warn (!rw_opt_locales, 0, __LINE__,
+                     "unable to use locale(%#s)", name);
+        }
+
+        if (nlocales == maxinx || nlocales == std::size_t (opt_nlocales))
+            break;
+    }
 
     rw_info (0, 0, 0,
              "testing std::messages<charT> with %d thread%{?}s%{;}, "
              "%d iteration%{?}s%{;} each",
-             rw_opt_nthreads, 1 != rw_opt_nthreads,
-             rw_opt_nloops, 1 != rw_opt_nloops);
+             opt_nthreads, 1 != opt_nthreads,
+             opt_nloops, 1 != opt_nloops);
 
     ///////////////////////////////////////////////////////////////////////
 
@@ -258,12 +408,12 @@ run_test (int, char**)
     rw_info (0, 0, 0, "exercising std::messages<char>");
 
     int result = 
-        rw_thread_pool (0, std::size_t (rw_opt_nthreads), 0,
+        rw_thread_pool (0, std::size_t (opt_nthreads), 0,
                         thread_func, 0);
 
     rw_error (result == 0, 0, __LINE__,
               "rw_thread_pool(0, %d, 0, %{#f}, 0) failed",
-              rw_opt_nthreads, thread_func);
+              opt_nthreads, thread_func);
 
     ///////////////////////////////////////////////////////////////////////
 
@@ -275,12 +425,12 @@ run_test (int, char**)
     rw_info (0, 0, 0, "exercising std::messages<wchar_t>");
 
     result = 
-        rw_thread_pool (0, std::size_t (rw_opt_nthreads), 0,
+        rw_thread_pool (0, std::size_t (opt_nthreads), 0,
                         thread_func, 0);
 
     rw_error (result == 0, 0, __LINE__,
               "rw_thread_pool(0, %d, 0, %{#f}, 0) failed",
-              rw_opt_nthreads, thread_func);
+              opt_nthreads, thread_func);
 
     ///////////////////////////////////////////////////////////////////////
 
@@ -291,26 +441,18 @@ run_test (int, char**)
                       "std::messages<wchar_t>");
 
     result = 
-        rw_thread_pool (0, std::size_t (rw_opt_nthreads), 0,
+        rw_thread_pool (0, std::size_t (opt_nthreads), 0,
                         thread_func, 0);
 
     rw_error (result == 0, 0, __LINE__,
               "rw_thread_pool(0, %d, 0, %{#f}, 0) failed",
-              rw_opt_nthreads, thread_func);
+              opt_nthreads, thread_func);
 
 #endif // _RWSTD_NO_WCHAR_T
 
     ///////////////////////////////////////////////////////////////////////
 
-    (nmsgs.close) (catalog);
-
-#ifndef _RWSTD_NO_WCHAR_T
-
-    (wmsgs.close) (wcatalog);
-    
-#endif // _RWSTD_NO_WCHAR_T
-
-    std::remove (CAT_NAME);
+    rw_system (SHELL_RM_F "rwstdmessages_*");
 
     return result;
 }
@@ -323,9 +465,9 @@ int main (int argc, char *argv[])
 
     // set nthreads to the greater of the number of processors
     // and 2 (for uniprocessor systems) by default
-    rw_opt_nthreads = rw_get_cpus ();
-    if (rw_opt_nthreads < 2)
-        rw_opt_nthreads = 2;
+    opt_nthreads = rw_get_cpus ();
+    if (opt_nthreads < 2)
+        opt_nthreads = 2;
 
 #endif   // _RWSTD_REENTRANT
 
@@ -333,8 +475,11 @@ int main (int argc, char *argv[])
                     "lib.locale.messages",
                     "thread safety", run_test,
                     "|-nloops#0 "        // must be non-negative
+                    "|-ncatalogs#0-* "   // must be non-negative
                     "|-nthreads#0-* ",    // must be in [0, MAX_THREADS]
-                    &rw_opt_nloops,
+                    &opt_nloops,
+                    int (MAX_CATALOGS),
+                    &opt_ncatalogs,
                     int (MAX_THREADS),
-                    &rw_opt_nthreads);
+                    &opt_nthreads);
 }
