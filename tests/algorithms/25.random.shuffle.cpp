@@ -307,14 +307,12 @@ void test_random_shuffle (const std::size_t line)
     };
 
     for (std::size_t i = 0; i != sizeof array / sizeof *array; ++i) {
-        const bool success = array [i] == result [i];
-        if (!success) {
-            rw_assert (0, 0, line, 
-                       "randomly shuffled sequence failed to match "
-                       "the expected result (data portability failure) "
-                       "%d != %d at %zu",
-                       array [i], result [i], i + 1);
-        }
+        if (!rw_assert (array [i] == result [i], 0, line, 
+                        "randomly shuffled sequence failed to match "
+                        "the expected result (data portability failure) "
+                        "%d != %d at %zu",
+                        array [i], result [i], i + 1))
+            break;
     }
 
 #else
