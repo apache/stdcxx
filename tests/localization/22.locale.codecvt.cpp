@@ -387,29 +387,6 @@ const CodecvtBnW& create_CodecvtBnW (const std::locale& loc)
 
 // facet operations results
 static const char*
-rwtest_codecvt_result (CodecvtResult res)
-{
-    static const struct {
-        CodecvtResult res;
-        const char*   str;
-    } results [] = {
-        { std::codecvt_base::ok,      "std::codecvt_base::ok" },
-        { std::codecvt_base::partial, "std::codecvt_base::partial" },
-        { std::codecvt_base::noconv,  "std::codecvt_base::noconv" },
-        { std::codecvt_base::error,   "std::codecvt_base::error" }
-    };
-
-    for (unsigned i = 0; i != sizeof results / sizeof *results; ++i)
-        if (res == results [i].res)
-            return results [i].str;
-
-    const char* rwtest_codecvt_result (int);
-
-    return rwtest_codecvt_result (int (res));
-}
-
-// overload for genericity
-static const char*
 rwtest_codecvt_result (int res)
 {
     // allow the function to be called up to 8 times in the same expression
@@ -426,6 +403,26 @@ rwtest_codecvt_result (int res)
     std::sprintf (buf [inx], "%#x", res);
 
     return buf [inx];
+}
+
+static const char*
+rwtest_codecvt_result (CodecvtResult res)
+{
+    static const struct {
+        CodecvtResult res;
+        const char*   str;
+    } results [] = {
+        { std::codecvt_base::ok,      "std::codecvt_base::ok" },
+        { std::codecvt_base::partial, "std::codecvt_base::partial" },
+        { std::codecvt_base::noconv,  "std::codecvt_base::noconv" },
+        { std::codecvt_base::error,   "std::codecvt_base::error" }
+    };
+
+    for (unsigned i = 0; i != sizeof results / sizeof *results; ++i)
+        if (res == results [i].res)
+            return results [i].str;
+
+    return rwtest_codecvt_result (int (res));
 }
 
 /****************************************************************************/
@@ -1348,6 +1345,8 @@ test_inout (int which, int line, const char* name,
             const internT* sint, std::size_t int_len, std::size_t int_num,
             std::codecvt_base::result expect)
 {
+    _RWSTD_UNUSED (line);
+
     char namebuf [256];
     assert (255 >= std::strlen (name));
     std::strcpy (namebuf, name);
@@ -1457,8 +1456,8 @@ test_inout (int which, int line, const char* name,
     // including the values of function arguments
     static char fcall [4096];
 
-    if (   'I' == which || 'i' == which
-        || 'o' == which && std::codecvt_base::ok == expect) {
+    if (   ('I' == which || 'i' == which
+        || 'o' == which) && std::codecvt_base::ok == expect) {
         // exercise do_in():
         // *  the type of `sext' is char
         // *  ext_len is the number of bytes in the external sequence
@@ -1554,8 +1553,8 @@ test_inout (int which, int line, const char* name,
         delete[] int_lo;
     }
 
-    if (   'O' == which || 'o' == which
-        || 'i' == which && std::codecvt_base::ok == expect) {
+    if (   ('O' == which || 'o' == which
+        || 'i' == which) && std::codecvt_base::ok == expect) {
         // exercise do_out():
         // *  the type of `sint' is internT (i.e., either char or wchar_t)
         // *  int_len is the number of internT characters
