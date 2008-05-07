@@ -56,7 +56,6 @@
 
 /**************************************************************************/
 
-#include <cstddef>   // for std::size_t, std::ptrdiff_t
 #include <cfloat>    // FLT_MAX, FLT_MIN, etc.
 #include <climits>   // INT_MAX, INT_MIN, etc.
 #include <clocale>   // for localeconv(), setlocale()
@@ -222,7 +221,7 @@ struct Streambuf: std::basic_streambuf<charT, Traits>
                     _RWSTD_CONST_CAST (charT*, gend));
     }
 
-    std::ptrdiff_t gptr_off () const {
+    int gptr_off () const {
         return this->gptr () - this->eback ();
     }
 };
@@ -235,6 +234,13 @@ struct NumGet: std::num_get<charT, InputIterator>
 
 /**************************************************************************/
 
+// if non-zero expected to point to a maximum valid value
+// of type T that's being tested below (used for floating
+// point ranges)
+// on function return, the pointed to value is overwritten
+// with the actual extracted value
+void *pmax = 0;
+
 
 enum IterType { iter_pointer, iter_istreambuf, iter_input };
 
@@ -244,7 +250,6 @@ int do_test (int         lineno,          // line number
              const char *cname,           // name of character type
              IterType    itype,           // type of input iterator
              const char *iname,           // name of input iterator
-             void       *pmax,
              nativeT     val,             // value expected to be extracted
              const char *str,             // input sequence
              int         eat_expect = -1, // number of consumed characters
@@ -315,7 +320,7 @@ int do_test (int         lineno,          // line number
 
     const charT *plast = pnext + std::char_traits<charT>::length (pnext);
 
-    std::ptrdiff_t consumed;
+    int consumed;
 
     switch (itype) {
     case iter_pointer: {
@@ -438,7 +443,6 @@ int do_test (int         lineno,          // line number
              const char *cname,           // name of character type
              IterType    itype,           // iterator type
              const char *iname,           // name of iterator type
-             void       *pmax,
              nativeT     val,             // value expected to be extracted
              const char *str,             // input sequence
              int         eat_expect = -1, // number of consumed characters
@@ -449,15 +453,15 @@ int do_test (int         lineno,          // line number
     switch (ctype) {
     case narrow_char:
         return do_test (lineno, (char*)0, cname, itype, iname,
-                        pmax, val, str, eat_expect, flags, err_expect, grouping);
+                        val, str, eat_expect, flags, err_expect, grouping);
     case wide_char:
         return do_test (lineno, (wchar_t*)0, cname, itype, iname,
-                        pmax, val, str, eat_expect, flags, err_expect, grouping);
+                        val, str, eat_expect, flags, err_expect, grouping);
     case user_char:
         break;
 #if 0   // disabled
         return do_test (lineno, (UserChar*)0, cname, itype, iname,
-                        pmax, val, str, eat_expect, flags, err_expect, grouping);
+                        val, str, eat_expect, flags, err_expect, grouping);
 #endif   // disabled
     }
 
@@ -497,8 +501,7 @@ int do_test (int         lineno,          // line number
 /*************************************************************************/
 
 #define TEST   do_test
-#define T      __LINE__, ctype, cname, itype, iname, 0
-#define T_MAX  __LINE__, ctype, cname, itype, iname, &val
+#define T      __LINE__, ctype, cname, itype, iname
 
 
 template <class numT>
@@ -2099,16 +2102,15 @@ test_pvoid (CharType ctype, const char *cname,
     TEST (T, PVoid (0x0000ffff), "FfFf", 4, 0, Eof);
 
     // exercise overflow conditions
-#if    defined (_RWSTD_LONG_LONG) && _RWSTD_PTR_SIZE > _RWSTD_LONG_SIZE \
-    || ULONG_MAX > 0xffffffffUL
-    const char pvmax[]        = "0xffffffffffffffff";
-    const char pvmax_plus_1[] = "0x10000000000000000";
-#elif ULONG_MAX == 0xffffUL
+#if ULONG_MAX == 0xffffUL
     const char pvmax[]        = "0xffff";
     const char pvmax_plus_1[] = "0x10000";
 #elif ULONG_MAX == 0xffffffffUL
     const char pvmax[]        = "0xffffffff";
     const char pvmax_plus_1[] = "0x100000000";
+#elif ULONG_MAX > 0xffffffffUL
+    const char pvmax[]        = "0xffffffffffffffff";
+    const char pvmax_plus_1[] = "0x10000000000000000";
 #else
     // working around a SunPro bug (PR #28279)
     const char pvmax[]        = "0";
@@ -2194,7 +2196,7 @@ void test_floating_point (CharType ctype, const char *cname,
     TEST (T, F (1.0e+28), "10000000000000000000000000000",  29, 0, Eof);
     TEST (T, F (1.0e+29), "100000000000000000000000000000", 30, 0, Eof);
 
-#define VALSTR(x)   floatT (x), #x, int (std::strlen (#x))
+#define VALSTR(x)   floatT (x), #x, std::strlen (#x)
 
     // exercise various forms of floating point 0
 
@@ -2441,7 +2443,8 @@ test_flt_uflow (CharType ctype, const char *cname,
              cname, iname);
 
     // exercise bahvior on underflow
-    float val = 0;
+    static float val = 0;
+    pmax = &val;
 
     // on underflow, get() follows C99 requirements on strtof()
     // i.e., it stores a value in the range [0, +/-FLT_MIN]
@@ -2452,34 +2455,35 @@ test_flt_uflow (CharType ctype, const char *cname,
     //     normalized positive number in the return type; whether
     //     errno acquires the value ERANGE is implementation-defined.
 
-    TEST (T_MAX, (val = FLT_MIN, 0.0f), "1.111111e-9999", 14, 0, Eof);
+    TEST (T, (val = FLT_MIN, 0.0f), "1.111111e-9999", 14, 0, Eof);
     rw_assert (!(val < 0.0), 0, __LINE__,
                "correct sign after positive underflow");
 
-    TEST (T_MAX, (val = 0.0f, -FLT_MIN), "-1.111111e-9999", 15, 0, Eof);
+    TEST (T, (val = 0.0f, -FLT_MIN), "-1.111111e-9999", 15, 0, Eof);
     rw_assert (!(val > 0.0), 0, __LINE__,
                "correct sign after negative underflow");
 
     if (1.234567e-39 < FLT_MIN) {
-        TEST (T_MAX, (val = FLT_MIN, 0.0f),   "1.234567e-39", 12, 0, Eof);
-        TEST (T_MAX, (val = 0.0f, -FLT_MIN), "-1.234567e-39", 13, 0, Eof);
+        TEST (T, (val = FLT_MIN, 0.0f),   "1.234567e-39", 12, 0, Eof);
+        TEST (T, (val = 0.0f, -FLT_MIN), "-1.234567e-39", 13, 0, Eof);
     }
 
     if (1.234567e-49 < FLT_MIN) {
-        TEST (T_MAX, (val = FLT_MIN, 0.0f),   "1.234567e-49", 12, 0, Eof);
-        TEST (T_MAX, (val = 0.0f, -FLT_MIN), "-1.234567e-49", 13, 0, Eof);
+        TEST (T, (val = FLT_MIN, 0.0f),   "1.234567e-49", 12, 0, Eof);
+        TEST (T, (val = 0.0f, -FLT_MIN), "-1.234567e-49", 13, 0, Eof);
     }
 
     if (1.234567e-99 < FLT_MIN) {
-        TEST (T_MAX, (val = FLT_MIN, 0.0f),   "1.234567e-99", 12, 0, Eof);
-        TEST (T_MAX, (val = 0.0f, -FLT_MIN), "-1.234567e-99", 13, 0, Eof);
+        TEST (T, (val = FLT_MIN, 0.0f),   "1.234567e-99", 12, 0, Eof);
+        TEST (T, (val = 0.0f, -FLT_MIN), "-1.234567e-99", 13, 0, Eof);
     }
 
     // exercise facet's behavior on underflow:
     //   parsing succeeds (fail is clear), +/-min is stored
-    TEST (T_MAX,  FLT_MIN, _RWSTD_STRSTR ( _RWSTD_DBL_MIN), -1, 0, Eof);
-    TEST (T_MAX, -FLT_MIN, _RWSTD_STRSTR (-_RWSTD_DBL_MIN), -1, 0, Eof);
+    TEST (T,  FLT_MIN, _RWSTD_STRSTR ( _RWSTD_DBL_MIN), -1, 0, Eof);
+    TEST (T, -FLT_MIN, _RWSTD_STRSTR (-_RWSTD_DBL_MIN), -1, 0, Eof);
 
+    pmax = 0;   // reset before next test
 
 
     rw_info (0, 0, 0, "std::num_get<%s, %s>::get (..., float&) on overflow",
@@ -2610,7 +2614,8 @@ void test_dbl_uflow (CharType ctype, const char *cname,
              cname, iname);
 
     // exercise bahvior on underflow
-    double val = DBL_MIN;
+    static double val = DBL_MIN;
+    pmax = &val;
 
     // on underflow, get() follows C99 requirements on strtod()
     // i.e., it stores a value in the range [0, +/-DBL_MIN]
@@ -2621,24 +2626,25 @@ void test_dbl_uflow (CharType ctype, const char *cname,
     //     normalized positive number in the return type; whether
     //     errno acquires the value ERANGE is implementation-defined.
 
-    TEST (T_MAX, (val = DBL_MIN, 0.0),   "1.111111e-9999", 14, 0, Eof);
-    TEST (T_MAX, (val = 0.0, -DBL_MIN), "-1.111111e-9999", 15, 0, Eof);
+    TEST (T, (val = DBL_MIN, 0.0),   "1.111111e-9999", 14, 0, Eof);
+    TEST (T, (val = 0.0, -DBL_MIN), "-1.111111e-9999", 15, 0, Eof);
 
     if (1.23456789e-309L < DBL_MIN) {
-        TEST (T_MAX, (val = DBL_MIN, 0.0),   "1.23456789e-309", 15, 0, Eof);
-        TEST (T_MAX, (val = 0.0, -DBL_MIN), "-1.23456789e-309", 16, 0, Eof);
+        TEST (T, (val = DBL_MIN, 0.0),   "1.23456789e-309", 15, 0, Eof);
+        TEST (T, (val = 0.0, -DBL_MIN), "-1.23456789e-309", 16, 0, Eof);
     }
 
     if (1.234567e-409L < DBL_MIN) {
-        TEST (T_MAX, (val = DBL_MIN, 0.0),   "1.23456789e-409", 15, 0, Eof);
-        TEST (T_MAX, (val = 0.0, -DBL_MIN), "-1.23456789e-409", 16, 0, Eof);
+        TEST (T, (val = DBL_MIN, 0.0),   "1.23456789e-409", 15, 0, Eof);
+        TEST (T, (val = 0.0, -DBL_MIN), "-1.23456789e-409", 16, 0, Eof);
     }
 
     if (1.234567e-999L < DBL_MIN) {
-        TEST (T_MAX, (val = DBL_MIN, 0.0),   "1.23456789e-999", 15, 0, Eof);
-        TEST (T_MAX, (val = 0.0, -DBL_MIN), "-1.23456789e-999", 16, 0, Eof);
+        TEST (T, (val = DBL_MIN, 0.0),   "1.23456789e-999", 15, 0, Eof);
+        TEST (T, (val = 0.0, -DBL_MIN), "-1.23456789e-999", 16, 0, Eof);
     }
 
+    pmax = 0;   // reset before next test
 
 
 #  ifdef _RWSTD_LDBL_MAX
@@ -2731,7 +2737,8 @@ test_ldbl_uflow (CharType ctype, const char *cname,
              cname, iname);
 
     // exercise bahvior on underflow
-    long double val = LDBL_MIN;
+    static long double val = LDBL_MIN;
+    pmax = &val;
 
     // on underflow, get() follows C99 requirements on strtold()
     // i.e., it stores a value in the range [0, +/-LDBL__MIN]
@@ -2742,22 +2749,23 @@ test_ldbl_uflow (CharType ctype, const char *cname,
     //     normalized positive number in the return type; whether
     //     errno acquires the value ERANGE is implementation-defined.
 
-    TEST (T_MAX, (val = LDBL_MIN, 0.0L),   "1.987654321e-99999", 18, 0, Eof);
-    TEST (T_MAX, (val = 0.0L, -LDBL_MIN), "-1.987654321e-99999", 19, 0, Eof);
+    TEST (T, (val = LDBL_MIN, 0.0L),   "1.987654321e-99999", 18, 0, Eof);
+    TEST (T, (val = 0.0L, -LDBL_MIN), "-1.987654321e-99999", 19, 0, Eof);
 
     const char fmt[] = "%Lg";
 
     long double ld = 0.0;
     if (1 == std::sscanf ("3.456789e-4932", fmt, &ld) && ld < LDBL_MIN) {
-        TEST (T_MAX, (val = LDBL_MIN, 0.0L),   "3.456789e-4932", 14, 0, Eof);
-        TEST (T_MAX, (val = 0.0L, -LDBL_MIN), "-3.456789e-4932", 15, 0, Eof);
+        TEST (T, (val = LDBL_MIN, 0.0L),   "3.456789e-4932", 14, 0, Eof);
+        TEST (T, (val = 0.0L, -LDBL_MIN), "-3.456789e-4932", 15, 0, Eof);
     }
 
     if (1 == std::sscanf ("3.456789e-9999", fmt, &ld) && ld < LDBL_MIN) {
-        TEST (T_MAX, (val = LDBL_MIN, 0.0L),   "3.456789e-9999", 14, 0, Eof);
-        TEST (T_MAX, (val = 0.0L, -LDBL_MIN), "-3.456789e-9999", 15, 0, Eof);
+        TEST (T, (val = LDBL_MIN, 0.0L),   "3.456789e-9999", 14, 0, Eof);
+        TEST (T, (val = 0.0L, -LDBL_MIN), "-3.456789e-9999", 15, 0, Eof);
     }
 
+    pmax = 0;   // reset before next test
 
 
 #  ifdef _RWSTD_LDBL_MAX
