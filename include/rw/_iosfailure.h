@@ -25,7 +25,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -56,11 +56,25 @@ struct _RWSTD_EXPORT __rw_failure: __rw_exception
 };
 
 
-struct _RWSTD_EXPORT __rw_badbit_set: __rw_failure { };
+// (optionally) thrown when stream sets badbit
+struct _RWSTD_EXPORT __rw_badbit_set: __rw_failure
+{
+    virtual ~__rw_badbit_set () _THROWS (());
+};
 
-struct _RWSTD_EXPORT __rw_eofbit_set: __rw_failure { };
 
-struct _RWSTD_EXPORT __rw_failbit_set: __rw_failure { };
+// (optionally) thrown when stream sets eofbit
+struct _RWSTD_EXPORT __rw_eofbit_set: __rw_failure
+{
+    virtual ~__rw_eofbit_set () _THROWS (());
+};
+
+
+// (optionally) thrown when stream sets failbit
+struct _RWSTD_EXPORT __rw_failbit_set: __rw_failure
+{
+    virtual ~__rw_failbit_set () _THROWS (());
+};
 
 }   // namespace __rw
 
