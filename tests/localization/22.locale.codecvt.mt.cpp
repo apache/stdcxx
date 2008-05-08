@@ -45,18 +45,18 @@
 
 // default number of threads (will be adjusted to the number
 // of processors/cores later)
-int rw_opt_nthreads = 1;
+int opt_nthreads = 1;
 
 // the number of times each thread should iterate (unless specified
 // otherwise on the command line)
-int rw_opt_nloops = 5000;
+int opt_nloops = 5000;
 
 // number of locales to use
-int rw_opt_nlocales = MAX_THREADS;
+int opt_nlocales = MAX_THREADS;
 
 // should all threads share the same set of locale objects instead
 // of creating their own?
-int rw_opt_shared_locale;
+int opt_shared_locale;
 
 /**************************************************************************/
 
@@ -314,7 +314,7 @@ thread_func (void*)
     const int ni = RW_COUNT_OF (nsrc);
     const int wi = RW_COUNT_OF (wsrc);
 
-    for (int i = 0; i != rw_opt_nloops; ++i) {
+    for (int i = 0; i != opt_nloops; ++i) {
 
         const int inx = i % nlocales;
         const MyCodecvtData& data = my_codecvt_data [inx];
@@ -322,8 +322,8 @@ thread_func (void*)
         // construct a named locale, get a reference to the codecvt
         // facet from it and use it to format a random money value
         const std::locale loc =
-            rw_opt_shared_locale ? data.locale_
-                                 : std::locale (data.locale_name_);
+            opt_shared_locale ? data.locale_
+                              : std::locale (data.locale_name_);
 
         const MyCodecvtData::CvtId op =
             MyCodecvtData::CvtId (i % MyCodecvtData::cvt_max);
@@ -460,7 +460,7 @@ run_test (int, char**)
             run_test_fill<wchar_t>
                 (loc, wsrc [inx % wi], nsrc [inx % ni], data.wchar_data_);
 
-            if (rw_opt_shared_locale)
+            if (opt_shared_locale)
                 data.locale_ = loc;
 
             nlocales += 1;
@@ -471,7 +471,7 @@ run_test (int, char**)
                      "failed to create locale(%#s)", name);
         }
 
-        if (nlocales == maxinx || nlocales == std::size_t (rw_opt_nlocales))
+        if (nlocales == maxinx || nlocales == std::size_t (opt_nlocales))
             break;
     }
 
@@ -482,8 +482,8 @@ run_test (int, char**)
     rw_info (0, 0, 0,
              "testing std::codecvt<charT> with %d thread%{?}s%{;}, "
              "%d iteration%{?}s%{;} each, in %zu locales { %{ .*A@} }",
-             rw_opt_nthreads, 1 != rw_opt_nthreads,
-             rw_opt_nloops, 1 != rw_opt_nloops,
+             opt_nthreads, 1 != opt_nthreads,
+             opt_nloops, 1 != opt_nloops,
              nlocales, int (nlocales), "%#s", locales);
 
     ///////////////////////////////////////////////////////////////////////
@@ -495,11 +495,11 @@ run_test (int, char**)
 
     // create and start a pool of threads and wait for them to finish
     int result = 
-        rw_thread_pool (0, std::size_t (rw_opt_nthreads), 0, thread_func, 0);
+        rw_thread_pool (0, std::size_t (opt_nthreads), 0, thread_func, 0);
 
     rw_error (result == 0, 0, __LINE__,
               "rw_thread_pool(0, %d, 0, %{#f}, 0) failed",
-              rw_opt_nthreads, thread_func);
+              opt_nthreads, thread_func);
 
     ///////////////////////////////////////////////////////////////////////
 
@@ -509,11 +509,11 @@ run_test (int, char**)
     test_wchar  = true;
 
     result = 
-        rw_thread_pool (0, std::size_t (rw_opt_nthreads), 0, thread_func, 0);
+        rw_thread_pool (0, std::size_t (opt_nthreads), 0, thread_func, 0);
 
     rw_error (result == 0, 0, __LINE__,
               "rw_thread_pool(0, %d, 0, %{#f}, 0) failed",
-              rw_opt_nthreads, thread_func);
+              opt_nthreads, thread_func);
 
     ///////////////////////////////////////////////////////////////////////
 
@@ -524,11 +524,11 @@ run_test (int, char**)
     test_wchar  = true;
 
     result = 
-        rw_thread_pool (0, std::size_t (rw_opt_nthreads), 0, thread_func, 0);
+        rw_thread_pool (0, std::size_t (opt_nthreads), 0, thread_func, 0);
 
     rw_error (result == 0, 0, __LINE__,
               "rw_thread_pool(0, %d, 0, %{#f}, 0) failed",
-              rw_opt_nthreads, thread_func);
+              opt_nthreads, thread_func);
 
     return result;
 }
@@ -541,9 +541,9 @@ int main (int argc, char *argv[])
 
     // set nthreads to the greater of the number of processors
     // and 2 (for uniprocessor systems) by default
-    rw_opt_nthreads = rw_get_cpus ();
-    if (rw_opt_nthreads < 2)
-        rw_opt_nthreads = 2;
+    opt_nthreads = rw_get_cpus ();
+    if (opt_nthreads < 2)
+        opt_nthreads = 2;
 
 #endif   // _RWSTD_REENTRANT
 
@@ -555,10 +555,10 @@ int main (int argc, char *argv[])
                     "|-nlocales#0 "      // arg must be non-negative
                     "|-locales= "        // must be provided
                     "|-shared-locale# ",
-                    &rw_opt_nloops,
+                    &opt_nloops,
                     int (MAX_THREADS),
-                    &rw_opt_nthreads,
-                    &rw_opt_nlocales,
+                    &opt_nthreads,
+                    &opt_nlocales,
                     &rw_opt_setlocales,
-                    &rw_opt_shared_locale);
+                    &opt_shared_locale);
 }

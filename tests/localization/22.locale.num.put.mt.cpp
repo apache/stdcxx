@@ -245,7 +245,7 @@ thread_func (void*)
         // so that the locale is used not only by the num_put facet
         const std::locale loc =
             opt_shared_locale ? data.locale_
-                                 : std::locale (data.locale_name_);
+                              : std::locale (data.locale_name_);
 
         if (test_char) {
             // exercise the narrow char specialization of the facet

@@ -191,7 +191,7 @@ thread_func (void*)
         // facet from it and use it to format a random money value
         const std::locale loc =
             opt_shared_locale ? data.locale_
-                                 : std::locale (data.locale_name_);
+                              : std::locale (data.locale_name_);
 
         if (test_char) {
             // exercise the narrow char specialization of the facet

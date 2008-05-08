@@ -165,7 +165,7 @@ thread_func (void*)
         // using a random conversion specifier
         const std::locale loc =
             opt_shared_locale ? data.locale_
-                                 : std::locale (data.locale_name_);
+                              : std::locale (data.locale_name_);
 
         if (test_char) {
             // exercise the narrow char specialization of the facet
