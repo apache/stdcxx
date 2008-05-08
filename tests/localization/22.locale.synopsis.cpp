@@ -1342,6 +1342,53 @@ test_num_put (const char* cname, const char* iname)
 
 // collate category
 
+_RWSTD_NAMESPACE (std) {
+
+// class template specialization for UDC type
+_RWSTD_SPECIALIZED_CLASS
+struct collate<UDC>: locale::facet
+{
+    typedef UDC                 char_type;
+    typedef basic_string<UDC>   string_type;
+
+    static locale::id           id;
+
+    int
+    compare (const char_type* begin1, const char_type* end1,
+             const char_type* begin2, const char_type* end2) const {
+        return do_compare (begin1, end1, begin2, end2) ;
+    }
+
+protected:
+
+    // define (no-op) virtual functions for UDC type
+    virtual int
+    do_compare (const char_type*, const char_type*,
+                const char_type*, const char_type*) const
+    {
+        return int ();
+    }
+
+    virtual string_type
+    do_transform (const char_type*, const char_type*) const
+    {
+        return string_type ();
+    }
+
+
+    virtual long
+    do_hash (const char_type*, const char_type*) const
+    {
+        return long ();
+    }
+
+};
+
+locale::id collate<UDC>::id;
+
+}   // namespace std
+
+
 template <class charT>
 struct CollateDerived: std::collate<charT>
 {
