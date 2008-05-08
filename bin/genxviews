@@ -363,6 +363,10 @@ process_results "Red Hat Enterprise Linux 5.0" "EM64T" "EDG eccp 3.9" \
                 "linux_redhat_el-5.0-em64t-eccp-3.9-*-*-log.gz.txt" \
                 linux_redhat_el-5.0-em64t-eccp-3.9.html
 
+process_results "Red Hat Enterprise Linux 5.0" "EM64T" "gcc 4.3.0" \
+                "linux_redhat_el-5.0-em64t-gcc-4.3.0-*-*-log.gz.txt" \
+                linux_redhat_el-5.0-em64t-gcc-4.3.0.html
+
 process_results "Red Hat Enterprise Linux 5.0" "EM64T" "gcc 4.1.1" \
                 "linux_redhat_el-5.0-em64t-gcc-4.1.1-*-*-log.gz.txt" \
                 linux_redhat_el-5.0-em64t-gcc-4.1.1.html
@@ -376,6 +380,10 @@ process_results "Red Hat Enterprise Linux 5.0" "EM64T" "Intel C++ 9.1" \
                 linux_redhat_el-5.0-em64t-icc-9.1.html
 
 # Red Hat Enterprise Linux 4 Update 4
+process_results "Red Hat Enterprise Linux 4 Update 4" "AMD64" "gcc 4.3.0" \
+                "linux_redhat_el-4.4-amd64-gcc-4.3.0-*-*-log.gz.txt" \
+                linux_redhat_el-4.4-amd64-gcc-4.3.0.html
+
 process_results "Red Hat Enterprise Linux 4 Update 4" "AMD64" "gcc 3.4.6" \
                 "linux_redhat_el-4.4-amd64-gcc-3.4.6-*-*-log.gz.txt" \
                 linux_redhat_el-4.4-amd64-gcc-3.4.6.html
@@ -410,6 +418,10 @@ process_results "Red Hat Enterprise Linux 3 Update 8" "EM64T" "gcc 3.2.3" \
 process_results "Solaris 10" "SPARC" "EDG eccp 3.9" \
                 "solaris-10-sparc-eccp-3.9-*-*-log.gz.txt" \
                 solaris-10-sparc-eccp-3.9.html
+
+process_results "Solaris 10" "SPARC" "gcc 4.3.0" \
+                "solaris-10-sparc-gcc-4.3.0-*-*-log.gz.txt" \
+                solaris-10-sparc-gcc-4.3.0.html
 
 process_results "Solaris 10" "SPARC" "gcc 4.1.1" \
                 "solaris-10-sparc-gcc-4.1.1-*-*-log.gz.txt" \
@@ -461,6 +473,10 @@ process_results "SuSE Enterprise Server 10.0" "EM64T" "EDG eccp 3.9" \
                 "linux_suse-10.0-em64t-eccp-3.9-*-*-log.gz.txt" \
                 linux_suse-10.0-em64t-eccp-3.9.html
 
+process_results "SuSE Enterprise Server 10.0" "EM64T" "gcc 4.3.0" \
+                "linux_suse-10.0-em64t-gcc-4.3.0-*-*-log.gz.txt" \
+                linux_suse-10.0-em64t-gcc-4.3.0.html
+
 process_results "SuSE Enterprise Server 10.0" "EM64T" "gcc 4.1.0" \
                 "linux_suse-10.0-em64t-gcc-4.1.0-*-*-log.gz.txt" \
                 linux_suse-10.0-em64t-gcc-4.1.0.html
@@ -475,7 +491,7 @@ process_results "SuSE Enterprise Server 10.0" "EM64T" "Intel C++ 9.1" \
 
 # SuSE Enterprise Server 9.1
 process_results "SuSE Enterprise Server 9.1" "AMD64" "gcc 3.3.3" \
-                "linux_suse-9.1-amd64-gcc-3.3.3-43.28-*-*-log.gz.txt" \
+                "linux_suse-9.1-amd64-gcc-3.3.3-*-*-log.gz.txt" \
                 linux_suse-9.1-amd64-gcc-3.3.3.html
 
 process_results "SuSE Enterprise Server 9.1" "AMD64" "Intel C++ 10.0" \
