@@ -45,9 +45,13 @@
 #include <stdlib.h>    // for free
 #include <string.h>    // for strchr, strcpy
 
+#ifdef _WIN32
+#  include <windows.h> // for SetErrorMode()
+#endif   // _WIN32
+
 #ifdef _MSC_VER
 #  include <crtdbg.h>  // for _CrtSetReportMode(), _CrtSetDbgFlag()
-#endif
+#endif   // _MSC_VER
 
 #if !defined (_WIN32) && !defined (_WIN64)
 #  include <unistd.h>         // for isatty()
@@ -492,12 +496,6 @@ _rw_opt_verbose (int argc, char *argv[])
     // set mode: enable the option
     opt_verbose = 1;
 
-#ifdef _MSC_VER
-    _CrtSetDbgFlag (  _CRTDBG_ALLOC_MEM_DF
-                    | _CRTDBG_CHECK_ALWAYS_DF
-                    | _CRTDBG_LEAK_CHECK_DF);
-#endif
-
     return 0;
 }
 
@@ -546,12 +544,6 @@ _rw_opt_compat (int argc, char *argv[])
 
     // set mode: enable the option
     opt_compat = 1;
-
-#ifdef _MSC_VER
-    _CrtSetReportMode (_CRT_WARN, _CRTDBG_MODE_DEBUG);
-    _CrtSetReportMode (_CRT_ERROR, _CRTDBG_MODE_DEBUG);
-    _CrtSetReportMode (_CRT_ASSERT, _CRTDBG_MODE_DEBUG);
-#endif
 
     return 0;
 }
@@ -930,6 +922,128 @@ _rw_setopts_compat ()
     return 0;
 }
 
+
+#ifdef _WIN32
+
+static int
+_rw_opt_no_popups (int argc, char *argv[])
+{
+    static int opt_no_popups;
+
+    if (0 == argc) {
+        // query mode: return the value of the option
+        return opt_no_popups;
+    }
+
+    if (1 == argc && argv && 0 == argv [0]) {
+        // help mode: set argv[0] to the text of the help message
+
+        static const char helpstr[] = {
+            "Prevents the program from using message box popup window's for\n"
+            "error messages.\n"
+        };
+
+        argv [0] = _RWSTD_CONST_CAST (char*, helpstr);
+
+        return 0;
+    }
+
+    // set mode: enable the option
+    opt_no_popups = 1;
+
+    SetErrorMode (SEM_FAILCRITICALERRORS | SEM_NOGPFAULTERRORBOX);
+
+#  ifdef _MSC_VER
+    _CrtSetReportMode (_CRT_WARN, _CRTDBG_MODE_FILE | _CRTDBG_MODE_DEBUG);
+    _CrtSetReportFile (_CRT_WARN, _CRTDBG_FILE_STDERR);
+    _CrtSetReportMode (_CRT_ERROR, _CRTDBG_MODE_FILE | _CRTDBG_MODE_DEBUG);
+    _CrtSetReportFile (_CRT_ERROR, _CRTDBG_FILE_STDERR);
+    _CrtSetReportMode (_CRT_ASSERT, _CRTDBG_MODE_FILE | _CRTDBG_MODE_DEBUG);
+    _CrtSetReportFile (_CRT_ASSERT, _CRTDBG_FILE_STDERR);
+#  endif   // _MSC_VER
+
+    return 0;
+}
+
+#endif   // _WIN32
+
+
+#if defined (_MSC_VER) && defined (_DEBUG)
+
+static int
+_rw_opt_debug_heap (int argc, char *argv[])
+{
+    static int opt_debug_heap;
+
+    if (0 == argc) {
+        // query mode: return the value of the option
+        return opt_debug_heap;
+    }
+
+    if (1 == argc && argv && 0 == argv [0]) {
+        // help mode: set argv[0] to the text of the help message
+
+        static const char helpstr[] = {
+            "Enables the heap consistency checking on every memory allocation\n"
+            "and deallocation request.\n"
+        };
+
+        argv [0] = _RWSTD_CONST_CAST (char*, helpstr);
+
+        return 0;
+    }
+
+    // set mode: enable the option
+    opt_debug_heap = 1;
+
+    _CrtSetDbgFlag (  _CRTDBG_ALLOC_MEM_DF
+                    | _CRTDBG_CHECK_ALWAYS_DF
+                    | _CRTDBG_LEAK_CHECK_DF);
+
+    return 0;
+}
+
+#endif   // _MSC_VER && _DEBUG
+
+
+#ifdef _WIN32
+
+static int
+_rw_setopts_windows ()
+{
+    int nopts =
+        rw_setopts ("|-no-popups ",
+                    _rw_opt_no_popups,
+                    0 /* detect missing handlers */);
+
+    if (1 > nopts) {
+        rw_fprintf (rw_stderr,
+                    "%s:%d: rw_setopts() failed\n", __FILE__, __LINE__);
+        abort ();
+        return 1;
+    }
+
+#  if defined (_MSC_VER) && defined (_DEBUG)
+
+    nopts =
+        rw_setopts ("|-debug-heap ",
+                    _rw_opt_debug_heap,
+                    0 /* detect missing handlers */);
+
+    if (1 > nopts) {
+        rw_fprintf (rw_stderr,
+                    "%s:%d: rw_setopts() failed\n", __FILE__, __LINE__);
+        abort ();
+        return 1;
+    }
+
+#  endif   // _MSC_VER && _DEBUG
+
+    return 0;
+}
+
+#endif   // _WIN32
+
 /************************************************************************/
 
 _TEST_EXPORT int
@@ -994,6 +1108,10 @@ rw_vtest (int argc, char **argv,
     _rw_setopts_types ();
 
     _rw_setopts_lines ();
+
+#ifdef _WIN32
+    _rw_setopts_windows ();
+#endif   // _WIN32
 
     int status = rw_runopts (argc, argv);
 
