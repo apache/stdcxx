@@ -126,8 +126,8 @@ _rw_bracketmatch (const char *pattern, const unsigned char ch, int)
 _TEST_EXPORT int
 rw_fnmatch (const char *pattern, const char *string, int arg)
 {
-    _RWSTD_ASSERT (pattern);
-    _RWSTD_ASSERT (string);
+    RW_ASSERT (pattern);
+    RW_ASSERT (string);
 
     const char *next = string;
 
