@@ -157,6 +157,34 @@ const char* fpclass_name (int fpc)
 
 /***********************************************************************/
 
+#ifdef _MSC_VER
+
+inline int _fpclass (float val)
+{
+    long lval = *_RWSTD_REINTERPRET_CAST (long*, &val);
+
+    if (0 == (lval & 0x7FFFFFFF))
+        return lval ? _FPCLASS_NZ : _FPCLASS_PZ;
+
+    if (0 == (lval & 0x7F800000))
+        return (lval & 0x80000000) ? _FPCLASS_ND : _FPCLASS_PD;
+
+    if (0x7F800000 == (lval & 0x7FFFFFFF))
+        return (lval & 0x80000000) ? _FPCLASS_NINF : _FPCLASS_PINF;
+
+    if (0x7F800000 == (lval & 0x7F800000))
+        return (lval & 0x00400000) ? _FPCLASS_QNAN : _FPCLASS_SNAN;
+
+    return (lval & 0x80000000) ? _FPCLASS_NN : _FPCLASS_PN;
+}
+
+inline int _fpclass (long double val)
+{
+    return _fpclass (double (val));
+}
+
+#endif
+
 template <class FloatT>
 void test_infinity (FloatT inf, FloatT max, const char *tname)
 {
@@ -451,9 +479,10 @@ struct limits_values<float>
 
     static std::float_denorm_style has_denorm () {
 
-#if defined (_AIX) \
-    || defined (__hpux) \
-    || defined (__osf__)
+#if defined (_AIX)       \
+    || defined (__hpux)  \
+    || defined (__osf__) \
+    || defined (_MSC_VER)
         return std::denorm_present;
 #else
         return std::denorm_indeterminate;
@@ -718,9 +747,10 @@ struct limits_values<double>
 
 
     static std::float_denorm_style has_denorm () {
-#if defined (_AIX) \
-    || defined (__hpux) \
-    || defined (__osf__)
+#if defined (_AIX)       \
+    || defined (__hpux)  \
+    || defined (__osf__) \
+    || defined (_MSC_VER)
         return std::denorm_present;
 #else
         return std::denorm_indeterminate;
@@ -978,9 +1008,10 @@ struct limits_values<long double>
 
 
     static std::float_denorm_style has_denorm () {
-#if defined (_AIX) \
-    || defined (__hpux) \
-    || defined (__osf__)
+#if defined (_AIX)       \
+    || defined (__hpux)  \
+    || defined (__osf__) \
+    || defined (_MSC_VER)
         return std::denorm_present;
 #else
         return std::denorm_indeterminate;
