@@ -33,6 +33,8 @@
 
 
 extern "C" {
+    typedef void* rw_thread_proc (void*);
+}    // extern "C"
 
 struct rw_thread_attr_t;
 
@@ -48,7 +50,7 @@ struct rw_thread_t
 _TEST_EXPORT int
 rw_thread_create (rw_thread_t*,
                   rw_thread_attr_t*,
-                  void* (*)(void*),
+                  rw_thread_proc*,
                   void*);
 
 
@@ -77,7 +79,7 @@ _TEST_EXPORT int
 rw_thread_pool (rw_thread_t*      /* tidarray */,
                 _RWSTD_SIZE_T     /* nthreads */,
                 rw_thread_attr_t* /* attr */,
-                void* (*)(void*)  /* thr_proc */,
+                rw_thread_proc*   /* thr_proc */,
                 void**            /* argarray */,
                 _RWSTD_SIZE_T     /* timeout  */ = 0);
 
@@ -92,9 +94,5 @@ rw_thread_pool_timeout_expired ();
 // or -1 on error
 _TEST_EXPORT int
 rw_get_cpus ();
-
-
-
-}   // extern "C"
 
 #endif   // RW_RWTHREAD_H_INCLUDED
