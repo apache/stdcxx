@@ -73,6 +73,9 @@ int opt_facets [opt_nfacets];
 // disable exceptions?
 int opt_no_exceptions;
 
+// default timeout used by each threaded section of this test
+int opt_timeout = 60;
+
 /**************************************************************************/
 
 // array of locale names to use for testing
@@ -148,6 +151,9 @@ test_has_facet (void*)
     const std::locale classic (std::locale::classic ());
 
     for (int i = 0; i != opt_nloops; ++i) {
+
+        if (rw_thread_pool_timeout_expired ())
+            break;
 
         // save the name of the locale
         const char* const locale_name = locales [i % nlocales];
@@ -395,6 +401,10 @@ test_use_facet (void*)
     const std::locale classic (std::locale::classic ());
 
     for (int i = 0; i != opt_nloops; ++i) {
+
+        if (rw_thread_pool_timeout_expired ())
+            break;
+
         try {
             use_facet_loop (classic, i);
         }
@@ -586,6 +596,7 @@ int main (int argc, char *argv[])
                     "thread safety", run_test,
                     "|-has_facet~ "
                     "|-use_facet~ "
+                    "|-soft-timeout#0 "  // must be non-negative
                     "|-nloops#0 "        // arg must be non-negative
                     "|-nthreads#0-* "    // arg must be in [0, MAX_THREADS]
                     "|-locales= "        // argument must be provided
@@ -605,6 +616,7 @@ int main (int argc, char *argv[])
                     "|-time_put~ ",
                     &opt_has_facet,
                     &opt_use_facet,
+                    &opt_timeout,
                     &opt_nloops,
                     int (MAX_THREADS),
                     &opt_nthreads,

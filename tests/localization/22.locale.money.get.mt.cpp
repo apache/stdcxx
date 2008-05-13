@@ -67,6 +67,9 @@ int opt_nlocales = 9;
 // of creating their own?
 int opt_shared_locale;
 
+// default timeout used by each threaded section of this test
+int opt_timeout = 60;
+
 /**************************************************************************/
 
 // array of locale names to use for testing
@@ -175,6 +178,9 @@ thread_func (void*)
 #endif  // _RWSTD_NO_LONG_DOUBLE
 
     for (int i = 0; i != opt_nloops; ++i) {
+
+        if (rw_thread_pool_timeout_expired ())
+            break;
 
         // save the name of the locale
         const MyMoneyData& data = my_money_data [i % nlocales];
@@ -464,11 +470,13 @@ int main (int argc, char *argv[])
     return rw_test (argc, argv, __FILE__,
                     "lib.locale.money.get",
                     "thread safety", run_test,
+                    "|-soft-timeout#0 "  // must be non-negative
                     "|-nloops#0 "        // must be non-negative
                     "|-nthreads#0-* "    // must be in [0, MAX_THREADS]
                     "|-nlocales#0 "      // arg must be non-negative
                     "|-locales= "        // must be provided
                     "|-shared-locale# ",
+                    &opt_timeout,
                     &opt_nloops,
                     int (MAX_THREADS),
                     &opt_nthreads,

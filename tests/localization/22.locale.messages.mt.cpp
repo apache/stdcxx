@@ -71,6 +71,9 @@ int opt_nlocales = 9;
 // of creating their own?
 int opt_shared_locale;
 
+// default timeout used by each threaded section of this test
+int opt_timeout = 60;
+
 /**************************************************************************/
 
 // array of locale names to use for testing
@@ -474,9 +477,11 @@ int main (int argc, char *argv[])
     return rw_test (argc, argv, __FILE__,
                     "lib.locale.messages",
                     "thread safety", run_test,
+                    "|-soft-timeout#0 "  // must be non-negative
                     "|-nloops#0 "        // must be non-negative
                     "|-ncatalogs#0-* "   // must be non-negative
                     "|-nthreads#0-* ",    // must be in [0, MAX_THREADS]
+                    &opt_timeout,
                     &opt_nloops,
                     int (MAX_CATALOGS),
                     &opt_ncatalogs,

@@ -30,6 +30,7 @@
 #define _RWSTD_TEST_SRC
 
 #include <rw_thread.h>
+#include <rw_alarm.h>   // for rw_alarm()
 #include <stddef.h>     // for size_t
 #include <string.h>     // for memset()
 
@@ -51,6 +52,29 @@ FILE* popen (const char*, const char*);
 /**************************************************************************/
 
 static long maxthreads;
+
+/************************************************************************/
+
+static volatile int
+_rw_timeout_expired = 0;
+
+/************************************************************************/
+
+_TEST_EXPORT int
+rw_thread_pool_timeout_expired ()
+{
+    return _rw_timeout_expired != 0;
+}
+
+/************************************************************************/
+
+static void
+_rw_timeout_handler (int)
+{
+    _rw_timeout_expired = 1;
+}
+
+/************************************************************************/
 
 
 #if defined (_RWSTD_POSIX_THREADS)
@@ -479,8 +503,15 @@ rw_thread_pool (rw_thread_t        *thr_id,
                 size_t              nthrs,
                 rw_thread_attr_t*,
                 void*             (*thr_proc)(void*),
-                void*              *thr_arg)
+                void*              *thr_arg,
+                size_t              timeout)
 {
+    // apply timeout if one was specified
+    if (0 != timeout) {
+        _rw_timeout_expired = 0;
+        rw_alarm (timeout, _rw_timeout_handler);
+    }
+
     // small buffer for thread ids when invoked with (thr_id == 0)
     rw_thread_t id_buf [16];
 
