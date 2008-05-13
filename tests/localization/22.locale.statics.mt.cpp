@@ -131,7 +131,7 @@ run_test (int, char**)
 
         // create and start a pool of threads and wait for them to finish
         result = rw_thread_pool (0, std::size_t (opt_nthreads), 0,
-                                 test_classic, 0);
+                                 test_classic, 0, opt_timeout);
     }
 
     if (rw_note (0 <= opt_global, 0, __LINE__,
@@ -167,7 +167,7 @@ run_test (int, char**)
 
         // create and start a pool of threads and wait for them to finish
         result = rw_thread_pool (0, std::size_t (opt_nthreads), 0,
-                                 test_global, 0);
+                                 test_global, 0, opt_timeout);
     }
 
     return result;
