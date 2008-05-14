@@ -179,7 +179,7 @@ static wchar_t utf8_decode (const char* from, const char* to)
     const unsigned char* const ch_end =
         _RWSTD_REINTERPRET_CAST (const unsigned char*, to);
 
-    size_t num_bytes;
+    size_t num_bytes = 0;
 
     wchar_t ret = 0;
 
