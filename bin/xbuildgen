@@ -878,13 +878,6 @@ EOF
 
 ######################################################################
 
-# the location of the logs
-if [ -z $version ]; then
-    logdir="http://people.apache.org/~sebor/stdcxx/results"
-else
-    logdir="http://people.apache.org/~sebor/stdcxx-$version/results"
-fi
-
 # the name of a temporary file containing the build timings
 timings_file=$TMPDIR/.stdcxx-timings.$$
 
@@ -905,6 +898,7 @@ logcount=0
 
 # space-separated list of names of text logs processed in loop below
 textlogs=""
+logdir=""
 
 for l in $gzlogs; do
     logcount=$((logcount + 1))
@@ -916,6 +910,12 @@ for l in $gzlogs; do
 
     # set temporary variables (valid only within the loop)
     txtlog=$TMPDIR/`basename $l .gz.txt`.txt.$$
+
+    if [ "$logdir" = "" ]; then
+        logdir=`dirname $l`
+    elif [ $logdir != `dirname $l` ]; then
+        echo "$myname: not implemented: logs in multiple directories" >&2
+    fi
 
     # append the name of the log to the list
     textlogs="$textlogs $txtlog"
@@ -936,74 +936,14 @@ xcomp=$HOME/stdcxx/bin/xcomp.awk
 
 ######################################################################
 
-# process a list of builds, one build per row
-process_builds()
-{
-    component_type=$1   # example, locale, or test
-    component_list=$2   # list of component names
-
-    cat <<EOF | output
-    <h2>Results of ${component_type}s</h2>
-    <table>
-      <tr>
-        <th><a name="${component_type}s"></a>log</th>
-        $table_header
-      </tr>
-EOF
-
-    for l in $textlogs; do
-
-        fname=`basename $l .$$`
-        cat <<EOF | output
-      <tr>
-        <td class="name">
-            <a href="$logdir/$fname">$fname</a>
-        </td>
-EOF
-
-        for c in $component_list; do
-
-            line=`grep "^$c  *[^-]" $l`
-            if [ $? -eq 0 -a "$line" != "" ]; then
-                  echo $line \
-                | awk -f $xcomp component=$component_type         \
-                      name=$c verbose=$verbose expect="$expect"   \
-                | output
-            else
-                output "        <td class=\"missing\">N/A</td>"
-            fi
-        done
-
-        output "      </tr>"
-    done
-    output "    </table>"
-}
-
-
-if [ $components_in_rows -ne 0 ]; then
-
-    # check to see 
-    if [ -r $xfailfile ]; then
-        xfails=$xfailfile
-    else
-        xfails=""
-    fi
-
-    awk -f $xcomp bodyonly=1 $xfails $textlogs | output
+# check to see 
+if [ -r $xfailfile ]; then
+    xfails=$xfailfile
 else
-    if [ "$examples_list" != "" ]; then
-        process_builds "example" "$examples_list"
-    fi
-
-    if [ "$test_list" != "" ]; then
-        process_builds "test" "$test_list"
-    fi
-
-    if [ "$locale_list" != "" ]; then
-        process_builds "locale" "$locale_list"
-    fi
+    xfails=""
 fi
 
+awk -f $xcomp bodyonly=1 logdir=$logdir $xfails $textlogs | output
 
 ######################################################################
 # output the rest of the HTML file

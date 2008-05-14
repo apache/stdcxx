@@ -23,7 +23,7 @@
 ########################################################################
 #
 # SYNOPSIS
-#     myname [bodyonly=0|1] logs...
+#     myname [bodyonly=0|1 logdir=<logdir>] logs...
 #
 # VARIABLES:
 #   bodyonly     when non-zero, suppresses the <html> tags
@@ -1777,7 +1777,7 @@ function get_gzlogfname(fname)
     # replace the trailing .txt suffix with .gz.txt
     sub("\\.txt$", ".gz.txt", fref)
 
-    return "../" fref
+    return logdir "/" fref
 }
 
 

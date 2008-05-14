@@ -30,6 +30,16 @@ if [ "$BASH" = "" ]; then
     fi
 fi
 
+readonly www_stdcxx_dir="/www/stdcxx.apache.org/builds"
+
+XBUILDGEN=`which xbuildgen 2>/dev/null`
+
+if [ "$XBUILDGEN" = "" ]; then
+    XBUILDGEN=`dirname $0`/xbuildgen
+fi
+
+# default directory where to look for build logs to process
+logdir=.
 
 # show the command line to invoke xbuildgen without actually
 # invoking the script
@@ -38,9 +48,8 @@ dryrun=0
 # write verbose progress output to stdout?
 verbose=0
 
-
 # process command line options
-while getopts "dvD:o:V:" opt_name; do
+while getopts "dvD:L:o:V:" opt_name; do
     case $opt_name in
         # options with no arguments
 
@@ -54,8 +63,12 @@ while getopts "dvD:o:V:" opt_name; do
 
         # options with arguments
 
-        D)  # output directory
+        D)  # argument names the directory where to create output files
             outdir=$OPTARG
+            ;;
+
+        L)  # argument names the directory containing build logs
+            logdir=$OPTARG
             ;;
 
         o)  # argument is the name of output file (stdout by default)
@@ -72,29 +85,26 @@ done
 
 
 # set the Subversion and output directories based on version
-if [ "$version" == "" ]; then
+if [ "$version" = "" ]; then
 
     # Subversion (sub)directory under stdcxx/
     svndir="trunk"
 
     # set output directory unless already set on the command line
-    if [ "$outdir" = "" ]; then
-        outdir="$HOME/public_html/stdcxx/results/builds"
+    if [ "$outdir" = "" -a -w $www_stdcxx_dir ]; then
+        outdir="/www/stdcxx.apache.org/builds/$svndir"
     fi
 else
     # Subversion (sub)directory under stdcxx/
     svndir="branches/$version"
 
     # set output directory unless already set on the command line
-    if [ "$outdir" = "" ]; then
-        outdir="$HOME/public_html/stdcxx-$version/results/builds"
+    if [ "$outdir" = "" -a -w $www_stdcxx_dir ]; then
+        outdir="/www/stdcxx.apache.org/builds/$version"
     fi
 
     verarg="-V$version"
 fi
-
-# program to invoke to process detailed results
-CROSS=$HOME/stdcxx/bin/xbuildgen
 
 
 # extract the script's revision number
@@ -103,7 +113,7 @@ myrev=${myrev#'$Revision: '}   # strip leading text
 myrev=${myrev%' $'}            # strip trailing text
 
 # form the URL to this version of the script in the repository
-myurl='$HeadURL: http://svn.apache.org/repos/asf/stdcxx/$svndir/bin/genxviews $'
+myurl='$HeadURL: http://svn.apache.org/repos/asf/stdcxx/trunk/bin/genxviews $'
 myurl=${myurl#'$HeadURL: '}   # strip leading text
 myurl=${myurl##*asf/}         # strip svn prefix
 myurl=${myurl%' $'}           # strip trailing text
@@ -116,9 +126,24 @@ readonly myname=${myurl##*/}
 
 myurl="$myurl?view=markup&rev=$myrev"
 
+######################################################################
+# validate arguments
+
+if [ ! -x $XBUILDGEN ]; then
+    echo "$myname $error: cannot find xbuildgen" >&1
+    exit 2
+fi
+
+
+if [ ! -d "$logdir" -o ! -r "$logdir" ]; then
+    echo "$myname error: \"$logdir\" does not exist or isn't readable" >&2
+    exit 2
+fi
+
 
 if [ $verbose -ne 0 ]; then
     echo "$myname: using output directory: \"$outdir\""
+    echo "$myname: reading logs from: \"$logdir\""
 fi
 
 ######################################################################
@@ -144,10 +169,7 @@ output ()
 
 # start the clock measuring the amount of wall clock time to process
 # all logs and generate the page
-start_time=`LC_ALL=C date`
-
-
-cd $outdir/..
+readonly start_time=`LC_ALL=C date`
 
 
 readonly scripturl="<a href=\"$myurl\"><code>$myname</code></a>"
@@ -201,7 +223,8 @@ process_results ()
     xfile="$5"
 
     if [ $verbose -ne 0 ]; then
-        echo "$myname: processing logs for $osname-$arch-$compiler: $alllogs"
+        echo "$myname: processing logs for $compiler on $osname, $arch"
+        echo "$myname: searching for files matching \"$alllogs\""
     fi
 
     cat<<EOF | output
@@ -229,8 +252,8 @@ EOF
     for b in $btypes; do
         for s in $suffixes; do
 
-            log=`echo $alllogs | tr ' ' '\n' | grep "[-]$b$s-" \
-                               | sort | tail -n 1`
+            log=`  echo $logdir/$alllogs | tr ' ' '\n' \
+                 | grep "[-]$b$s-" | sort | tail -n 1`
 
             if [ "$log" != "" ]; then
                 buildlogs="$buildlogs $log"
@@ -250,13 +273,13 @@ EOF
         output "            <td><i>$xfile</i></td>"
     else
         if [ $verbose -ne 0 ]; then
-            echo "$myname: $CROSS $verarg -s -o$outdir/$xfile -T\"$title\" $buildlogs"
+            echo "$myname: $XBUILDGEN $verarg -s -o$outdir/$xfile -T\"$title\" $buildlogs"
         fi
 
         output "            <td><a href=\"$xfile\">$xfile</a></td>"
 
         if [ $dryrun -eq 0 ]; then
-            $CROSS $verarg -s -o$outdir/$xfile -T"$title" $buildlogs
+            $XBUILDGEN $verarg -s -o$outdir/$xfile -T"$title" $buildlogs
         fi
     fi
 
@@ -355,7 +378,7 @@ process_results "HP-UX 11.11" "PA-RISC" "HP aCC 3.63" \
 # IRIX #################################################################
 process_results "IRIX 6.5" "MIPS" "SGI MIPSpro 7.41" \
                 "irix-6.5-mips-mipspro-7.41-*-*-log.gz.txt" \
-                irix-6.5-mips-mipspro-7.41.htm
+                irix-6.5-mips-mipspro-7.41.html
 
 # Red Hat Linux ########################################################
 # Red Hat Enterprise Linux 5.0
@@ -587,7 +610,7 @@ process_results "Windows 2000, SP4" "x86" "Intel C++ 9.1" \
 readonly now=`date`
 processing_time=`$HOME/stdcxx/bin/duration "$start_time" "$now"`
 
-cat<<EOF
+cat<<EOF | output
     </table>
     <hr>
     <i>Generated in $processing_time.</i>
