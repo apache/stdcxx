@@ -353,12 +353,12 @@ EOF
 echo "### running $0 $* [$#]"
 
 # script's revision number
-myrev='$Revision$'
+myrev='$Revision: 656702 $'
 myrev=${myrev#'$Revision: '}   # strip leading text
 myrev=${myrev%' $'}            # strip trailing text
 
 # URL to this version of the script in the repository
-myurl='$HeadURL$'
+myurl='$HeadURL: https://svn.apache.org/repos/asf/stdcxx/branches/4.2.x/bin/buildntest $'
 myurl=${myurl#'$HeadURL: '}   # strip leading text
 myurl=${myurl%' $'}           # strip trailing text
 myurl="$myurl?view=markup&rev=$myrev"

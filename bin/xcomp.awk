@@ -23,7 +23,7 @@
 ########################################################################
 #
 # SYNOPSIS
-#     myname [bodyonly=0|1] logs...
+#     myname [bodyonly=0|1 logdir=<logdir>] logs...
 #
 # VARIABLES:
 #   bodyonly     when non-zero, suppresses the <html> tags
@@ -1233,6 +1233,12 @@ function print_section(section)
         return
     }
 
+    # create the table header roughly in the following format:
+    #
+    # | ### | component |  1 |  2 |  3 |  4 |  5  |  6  | ... |  16 |
+    # |     |    name   | 8d | 8D | 8s | 8S | 11d | 11D | ... | 15S |
+    # |     |           |     date     |      date      | ... | date|
+
     thead =       "      <thead>\n"
     thead = thead "        <tr class=\"header\">\n"
     thead = thead "          <td rowspan=3 title=\"" \
@@ -1242,6 +1248,9 @@ function print_section(section)
     thead = thead sectname " name</td>\n"
 
     if (2 == section) {
+        # for tests only, insert a column at offset 2 with the maximum
+        # number of assertions found in the test on the given row across
+        # all build logs
         thead = thead "          <td rowspan=3 "
         thead = thead "title=\"maximum total assertions\">"
         thead = thead "max<br>asserts</td>\n"
@@ -1253,9 +1262,9 @@ function print_section(section)
 
     colnos = ""
 
-    # the date of the last log
-    lastdate = ""
-    datespan = 0
+    lastdate = ""   # date (M/d) of the last log
+    lastfull = ""   # full date and time of the last log
+    datespan = 0    # number of same consecutive dates
 
     # iterate over the array of section counts for each log file
     # and compose the column headers for each log
@@ -1288,11 +1297,15 @@ function print_section(section)
         }
 
         if (0 == datespan) {
+            # first iteration
             lastdate = date
+            lastfull = fulldate
             datespan = 1
         }
-        else if (date == lastdate)
+        else if (date == lastdate) {
+            # increment the span of the last seen date
             ++datespan
+        }
         else {
             row2 = row2 "          <td"
 
@@ -1300,11 +1313,12 @@ function print_section(section)
             # for a single log, otherwise the timestamps are most
             # likely different for each log
             if (1 < datespan)
-                row2 = row2 " colspan=" datespan ">" date "</td>\n"
+                row2 = row2 " colspan=" datespan ">" lastdate "</td>\n"
             else
-                row2 = row2 " title=\"" fulldate "\">" date "</td>\n"
+                row2 = row2 " title=\"" lastfull "\">" lastdate "</td>\n"
 
             lastdate = date
+            lastfull = fulldate
             datespan = 1
         }
     }
@@ -1316,9 +1330,9 @@ function print_section(section)
     # for a single log, otherwise the timestamps are most likely
     # different for each log
     if (1 < datespan)
-        row2 = row2 " colspan=" datespan ">" date "</td>\n"
+        row2 = row2 " colspan=" datespan ">" lastdate "</td>\n"
     else
-        row2 = row2 " title=\"" fulldate "\">" date "</td>\n"
+        row2 = row2 " title=\"" lastfull "\">" lastdate "</td>\n"
 
     row0 = row0 colnos "\n        </tr>\n"
     row1 = row1 "        </tr>\n"
@@ -1763,7 +1777,7 @@ function get_gzlogfname(fname)
     # replace the trailing .txt suffix with .gz.txt
     sub("\\.txt$", ".gz.txt", fref)
 
-    return "../" fref
+    return "logs/" fref
 }
 
 
