@@ -243,7 +243,7 @@ EOF
 
     # a, A: AIX shared archive (32-bit and 64-bit, respectively)
     # d, D: shared library (.sl, .so, or .dll)
-    # s, S: archive library (.a or .lib(
+    # s, S: archive library (.a or .lib)
     suffixes="a A d D s S"
 
     unset buildlogs
@@ -261,6 +261,10 @@ EOF
             fi
         done
     done
+
+    if [ $verbose -ne 0 ]; then
+        echo "$myname: found $count logs: $buildlogs"
+    fi
 
     # create a title for the page
     title="$compiler results on $osname/$arch"
