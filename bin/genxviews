@@ -251,7 +251,6 @@ EOF
 
     for b in $btypes; do
         for s in $suffixes; do
-
             log=`  echo $logdir/$alllogs | tr ' ' '\n' \
                  | grep "[-]$b$s-" | sort | tail -n 1`
 
@@ -612,7 +611,7 @@ process_results "Windows 2000, SP4" "x86" "Intel C++ 9.1" \
 
 # compute the number of seconds it took to process all logs
 readonly now=`date`
-processing_time=`$HOME/stdcxx/bin/duration "$start_time" "$now"`
+processing_time=`duration "$start_time" "$now"`
 
 cat<<EOF | output
     </table>
