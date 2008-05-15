@@ -1908,8 +1908,8 @@ function print_logtable()
         print "          <td>" logdates [fname] "</td>"
 
         # compute and format the age of the build
-        duration = "~/stdcxx/bin/duration -f \"" logdates [fname] \
-                                         "\" \"" todays_date "\""
+        duration = "duration -f \"" logdates [fname] \
+                               "\" \"" todays_date "\""
         duration | getline fullage
         close(duration)
 
