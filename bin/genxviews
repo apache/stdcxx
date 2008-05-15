@@ -1,6 +1,10 @@
 #!/bin/sh
 #
-# $Id$
+<<<<<<< .working
+# $Id: genxviews 589896 2007-10-29 22:44:55Z sebor $
+=======
+# $Id: genxviews 601595 2007-12-06 01:33:50Z sebor $
+>>>>>>> .merge-right.r656504
 #
 ########################################################################
 #
@@ -22,13 +26,159 @@
 #
 ########################################################################
 
-CROSS=$HOME/bin/xbuildgen
+if [ "$BASH" = "" ]; then
+    # this is not Bash; try to invoke it
+    if [ -x /usr/local/bin/bash ]; then
+        /usr/local/bin/bash $0 "$@"
+        exit $?
+    fi
+fi
 
-OUTDIR=$HOME/public_html/stdcxx/results
+readonly www_stdcxx_dir="/www/stdcxx.apache.org/builds"
 
-cd $OUTDIR
+XBUILDGEN=`which xbuildgen 2>/dev/null`
 
-cat<<EOF
+if [ "$XBUILDGEN" = "" ]; then
+    XBUILDGEN=`dirname $0`/xbuildgen
+fi
+
+# default directory where to look for build logs to process
+logdir=.
+
+# show the command line to invoke xbuildgen without actually
+# invoking the script
+dryrun=0
+
+# write verbose progress output to stdout?
+verbose=0
+
+# process command line options
+while getopts "dvD:L:o:V:" opt_name; do
+    case $opt_name in
+        # options with no arguments
+
+        d)  # dry run (do not invoke xbuildgen)
+            dryrun=1
+            ;;
+
+        v) # verbose mode
+           verbose=1
+           ;;
+
+        # options with arguments
+
+        D)  # argument names the directory where to create output files
+            outdir=$OPTARG
+            ;;
+
+        L)  # argument names the directory containing build logs
+            logdir=$OPTARG
+            ;;
+
+        o)  # argument is the name of output file (stdout by default)
+            outfile=$OPTARG
+            ;;
+
+        V)  # specify stdcxx branch/version to generate cross-build
+            # result views for (trunk by default)
+            version=$OPTARG
+            ;;
+
+     esac;
+done
+
+
+# set the Subversion and output directories based on version
+if [ "$version" = "" ]; then
+
+    # Subversion (sub)directory under stdcxx/
+    svndir="trunk"
+
+    # set output directory unless already set on the command line
+    if [ "$outdir" = "" -a -w $www_stdcxx_dir ]; then
+        outdir="/www/stdcxx.apache.org/builds/$svndir"
+    fi
+else
+    # Subversion (sub)directory under stdcxx/
+    svndir="branches/$version"
+
+    # set output directory unless already set on the command line
+    if [ "$outdir" = "" -a -w $www_stdcxx_dir ]; then
+        outdir="/www/stdcxx.apache.org/builds/$version"
+    fi
+
+    verarg="-V$version"
+fi
+
+
+# extract the script's revision number
+myrev='$Revision$'
+myrev=${myrev#'$Revision: '}   # strip leading text
+myrev=${myrev%' $'}            # strip trailing text
+
+# form the URL to this version of the script in the repository
+myurl='$HeadURL: http://svn.apache.org/repos/asf/stdcxx/trunk/bin/genxviews $'
+myurl=${myurl#'$HeadURL: '}   # strip leading text
+myurl=${myurl##*asf/}         # strip svn prefix
+myurl=${myurl%' $'}           # strip trailing text
+
+# prepend ViewVC prefix
+myurl="http://svn.apache.org/viewvc/$myurl"
+
+# extract program name from the url (used in diagnostic messages)
+readonly myname=${myurl##*/}
+
+myurl="$myurl?view=markup&rev=$myrev"
+
+######################################################################
+# validate arguments
+
+if [ ! -x $XBUILDGEN ]; then
+    echo "$myname $error: cannot find xbuildgen" >&1
+    exit 2
+fi
+
+
+if [ ! -d "$logdir" -o ! -r "$logdir" ]; then
+    echo "$myname error: \"$logdir\" does not exist or isn't readable" >&2
+    exit 2
+fi
+
+
+if [ $verbose -ne 0 ]; then
+    echo "$myname: using output directory: \"$outdir\""
+    echo "$myname: reading logs from: \"$logdir\""
+fi
+
+######################################################################
+
+# write to output file when specified or to stdout otherwise
+output ()
+{
+    if [ $# -eq 0 ]; then
+        # no arguments provided, copy its own stdin to outfile
+        if [ -z $outfile ]; then
+            cat
+        else
+            cat >>$outfile
+        fi
+    elif [ -z $outfile ]; then
+        echo "$*"
+    else
+        echo "$*" >>$outfile
+    fi
+}
+
+######################################################################
+
+# start the clock measuring the amount of wall clock time to process
+# all logs and generate the page
+readonly start_time=`LC_ALL=C date`
+
+
+readonly scripturl="<a href=\"$myurl\"><code>$myname</code></a>"
+
+cat<<EOF | output
 <html>
   <body>
     <style type="text/css">
@@ -51,19 +201,22 @@ cat<<EOF
       }
     </style>
     <h1>Available Multi-platform Build Result Views</h1>
-    Generated `date`
+    Generated `date` by $scripturl on `hostname` running `uname -sr`
     <hr>
     <table>
       <thead>
         <tr>
-          <th>OS</td>
+          <th>Operating System</td>
           <th>Architecture</td>
           <th>Compiler</td>
           <th>Build Results</td>
+          <th>Logs</td>
+          <th>Time<br>(sec)</td>
         </tr>
         </thead>
         <tbody>
 EOF
+
 
 process_results ()
 {
@@ -71,16 +224,18 @@ process_results ()
     arch="$2"
     compiler="$3"
     alllogs="$4"
-    outfile="$5"
+    xfile="$5"
 
-    cat<<EOF
+    if [ $verbose -ne 0 ]; then
+        echo "$myname: processing logs for $compiler on $osname, $arch"
+        echo "$myname: searching for files matching \"$alllogs\""
+    fi
+
+    cat<<EOF | output
           <tr>
             <td>$osname</td>
             <td>$arch</td>
             <td>$compiler</td>
-            <td><a href="$outfile">$outfile</a></td>
-          </tr>
-
 EOF
 
     # build types:
@@ -92,162 +247,381 @@ EOF
 
     # a, A: AIX shared archive (32-bit and 64-bit, respectively)
     # d, D: shared library (.sl, .so, or .dll)
-    # s, S: archive library (.a or .lib(
+    # s, S: archive library (.a or .lib)
     suffixes="a A d D s S"
 
     unset buildlogs
+    count=0
 
     for b in $btypes; do
         for s in $suffixes; do
-            log=`echo $alllogs | tr ' ' '\n' | grep "[-]$b$s-" \
-                               | sort | tail -n 1`
-            buildlogs="$buildlogs $log"
+
+            log=`  echo $logdir/$alllogs | tr ' ' '\n' \
+                 | grep "[-]$b$s-" | sort | tail -n 1`
+
+            if [ "$log" != "" ]; then
+                buildlogs="$buildlogs $log"
+                count=`expr $count + 1`
+            fi
         done
     done
 
-    $CROSS -o$OUTDIR/$outfile $buildlogs
+    if [ $verbose -ne 0 ]; then
+        echo "$myname: found $count logs: $buildlogs"
+    fi
+
+    # create a title for the page
+    title="$compiler results on $osname/$arch"
+
+    # start the clock
+    duration=`expr \( $(date +%M) \* 60 \) + $(date +%S)`
+
+    if [ "$buildlogs" = "" ]; then
+        # format missing logs in italics
+        output "            <td><i>$xfile</i></td>"
+    else
+        if [ $verbose -ne 0 ]; then
+            echo "$myname: $XBUILDGEN $verarg -s -o$outdir/$xfile -T\"$title\" $buildlogs"
+        fi
+
+        output "            <td><a href=\"$xfile\">$xfile</a></td>"
+
+        if [ $dryrun -eq 0 ]; then
+            $XBUILDGEN $verarg -s -o$outdir/$xfile -T"$title" $buildlogs
+        fi
+    fi
+
+    # compute the number of seconds it took to process the logs
+    end=`expr \( \( $(date +%M) \* 60 \) + $(date +%S) \)`
+
+    if [ $end -lt $duration ]; then
+        # adjust for overflow
+        end=`expr $end + 60`
+    fi
+
+    duration=`expr $end - $duration`
+
+    cat<<EOF | output
+        <td>$count</td>
+        <td>$duration</td>
+    </tr>
+EOF
 }
+
+########################################################################
+# operating systems and compilers below are listed alphabetically
+# starting with the most recent version first
 
 # AIX ##################################################################
 process_results "AIX 5.3" "PowerPC" "IBM XLC++ 9.0" \
-                "aix-5.3-ppc-vacpp-*-9.0-*-*-log.gz.txt" \
+                "aix-5.3-ppc-vacpp-9.0-*-*-log.gz.txt" \
                 aix-5.3-ppc-vacpp-9.0.html
 
 process_results "AIX 5.3" "PowerPC" "IBM XLC++ 8.0" \
-                "aix-5.3-ppc-vacpp-*-8.0-*-*-log.gz.txt" \
+                "aix-5.3-ppc-vacpp-8.0-*-*-log.gz.txt" \
                 aix-5.3-ppc-vacpp-8.0.html
 
 process_results "AIX 5.3" "PowerPC" "IBM XLC++ 7.0" \
-                "aix-5.3-ppc-vacpp-*-7.0.0.0-*-*-log.gz.txt" \
+                "aix-5.3-ppc-vacpp-7.0-*-*-log.gz.txt" \
                 aix-5.3-ppc-vacpp-7.0.html
 
 process_results "AIX 5.2" "PowerPC" "IBM VisualAge C++ 6.0" \
-                "aix-5.2-ppc-visualage-*-6.0.0-*-*-log.gz.txt" \
-                aix-5.2-ppc-visualage-6.0.html
+                "aix-5.2-ppc-vacpp-6.0-*-*-log.gz.txt" \
+                aix-5.2-ppc-vacpp-6.0.html
 
 # FreeBSD ##############################################################
 process_results "FreeBSD 6.2" "x86" "gcc 3.4.4" \
-                "freebsd-6.2-x86-gcc-*-3.4.4-*-*-log.gz.txt" \
+                "freebsd-6.2-x86-gcc-3.4.4-*-*-log.gz.txt" \
                 freebsd-6.2-x86-gcc-3.4.4.html
 
 # HP-UX ################################################################
+process_results "HP-UX 11.31" "IPF" "HP aCC 6.16" \
+                "hpux-11.31-ia64-acc-6.16-*-*-log.gz.txt" \
+                hpux-11.31-ia64-6.16.html
+
+process_results "HP-UX 11.31" "IPF" "HP aCC 6.15" \
+                "hpux-11.31-ia64-acc-6.15-*-*-log.gz.txt" \
+                hpux-11.31-ia64-6.15.html
+
 process_results "HP-UX 11.31" "PA-RISC" "HP aCC 3.74" \
-                "hpux-11.31-pa-acc-*-3.74-*-*-log.gz.txt" \
+                "hpux-11.31-pa-acc-3.74-*-*-log.gz.txt" \
                 hpux-11.31-pa-acc-3.74.html
 
 process_results "HP-UX 11.31" "PA-RISC" "HP aCC 3.73" \
-                "hpux-11.31-pa-acc-*-3.73-*-*-log.gz.txt" \
+                "hpux-11.31-pa-acc-3.73-*-*-log.gz.txt" \
                 hpux-11.31-pa-acc-3.73.html
 
 process_results "HP-UX 11.23" "IPF" "HP aCC 6.13" \
-                "hpux-11.23-ia64-acc-64b-6.13-*-*-log.gz.txt" \
+                "hpux-11.23-ia64-acc-6.13-*-*-log.gz.txt" \
                 hpux-11.23-ia64-acc-6.13.html
 
 process_results "HP-UX 11.23" "IPF" "HP aCC 6.00" \
-                "hpux-11.23-ia64-acc-64b-6.00-*-*-log.gz.txt" \
+                "hpux-11.23-ia64-acc-6.00-*-*-log.gz.txt" \
                 hpux-11.23-ia64-acc-6.00.html
 
 process_results "HP-UX 11.23" "IPF" "HP aCC 5.57" \
-                "hpux-11.23-ia64-acc-64b-5.57-*-*-log.gz.txt" \
+                "hpux-11.23-ia64-acc-5.57-*-*-log.gz.txt" \
                 hpux-11.23-ia64-acc-5.57.html
 
+process_results "HP-UX 11.23" "PA-RISC" "HP aCC 3.80" \
+                "hpux-11.23-pa-acc-3.80-*-*-log.gz.txt" \
+                hpux-11.23-pa-acc-3.80.html
+
 process_results "HP-UX 11.23" "PA-RISC" "HP aCC 3.73" \
-                "hpux-11.23-pa-acc-*-3.73-*-*-log.gz.txt" \
+                "hpux-11.23-pa-acc-3.73-*-*-log.gz.txt" \
                 hpux-11.23-pa-acc-3.73.html
 
 process_results "HP-UX 11.23" "PA-RISC" "HP aCC 3.63" \
-                "hpux-11.23-pa-acc-*-3.63-*-*-log.gz.txt" \
+                "hpux-11.23-pa-acc-3.63-*-*-log.gz.txt" \
                 hpux-11.23-pa-acc-3.63.html
 
 process_results "HP-UX 11.11" "PA-RISC" "HP aCC 3.73" \
-                "hpux-11.11-pa-acc-*-3.73-*-*-log.gz.txt" \
+                "hpux-11.11-pa-acc-3.73-*-*-log.gz.txt" \
                 hpux-11.11-pa-acc-3.73.html
 
 process_results "HP-UX 11.11" "PA-RISC" "HP aCC 3.63" \
-                "hpux-11.11-pa-acc-*-3.63-*-*-log.gz.txt" \
+                "hpux-11.11-pa-acc-3.63-*-*-log.gz.txt" \
                 hpux-11.11-pa-acc-3.63.html
 
 # IRIX #################################################################
-process_results "IRIX 6.5.16" "MIPS" "SGI MIPSpro 7.41" \
-                "irix-6.5.16-mips-mipspro-*-7.41-*-*-log.gz.txt" \
-                irix-6.5.16-mips-mipspro-7.41.htm
+process_results "IRIX 6.5" "MIPS" "SGI MIPSpro 7.41" \
+                "irix-6.5-mips-mipspro-7.41-*-*-log.gz.txt" \
+                irix-6.5-mips-mipspro-7.41.html
 
 # Red Hat Linux ########################################################
-process_results "Red Hat EL 5.0" "EM64T" "gcc 4.1.1" \
-                "linux_redhat_el-5.0-em64t-gcc-*-4.1.1-*-*-log.gz.txt" \
+# Red Hat Enterprise Linux 5.0
+process_results "Red Hat Enterprise Linux 5.0" "EM64T" "EDG eccp 3.9" \
+                "linux_redhat_el-5.0-em64t-eccp-3.9-*-*-log.gz.txt" \
+                linux_redhat_el-5.0-em64t-eccp-3.9.html
+
+process_results "Red Hat Enterprise Linux 5.0" "EM64T" "gcc 4.3.0" \
+                "linux_redhat_el-5.0-em64t-gcc-4.3.0-*-*-log.gz.txt" \
+                linux_redhat_el-5.0-em64t-gcc-4.3.0.html
+
+process_results "Red Hat Enterprise Linux 5.0" "EM64T" "gcc 4.1.1" \
+                "linux_redhat_el-5.0-em64t-gcc-4.1.1-*-*-log.gz.txt" \
                 linux_redhat_el-5.0-em64t-gcc-4.1.1.html
 
-process_results "Red Hat AS 4 Update 4" "AMD64" "gcc 3.4.4" \
-                "linux_redhat_el-4.4-amd64-gcc-*-3.4.4-*-*-log.gz.txt" \
-                linux_redhat_el-4.4-amd64-gcc-3.4.4.html
+process_results "Red Hat Enterprise Linux 5.0" "EM64T" "Intel C++ 10.0" \
+                "linux_redhat_el-5.0-em64t-icc-10.0-*-*-log.gz.txt" \
+                linux_redhat_el-5.0-em64t-icc-10.0.html
 
-process_results "Red Hat AS 4 Update 2" "AMD64" "gcc 3.4.6" \
-                "linux_redhat_el-4.4-amd64-gcc-*-3.4.6-*-*-log.gz.txt" \
+process_results "Red Hat Enterprise Linux 5.0" "EM64T" "Intel C++ 9.1" \
+                "linux_redhat_el-5.0-em64t-icc-9.1-*-*-log.gz.txt" \
+                linux_redhat_el-5.0-em64t-icc-9.1.html
+
+# Red Hat Enterprise Linux 4 Update 4
+process_results "Red Hat Enterprise Linux 4 Update 4" "AMD64" "gcc 4.3.0" \
+                "linux_redhat_el-4.4-amd64-gcc-4.3.0-*-*-log.gz.txt" \
+                linux_redhat_el-4.4-amd64-gcc-4.3.0.html
+
+process_results "Red Hat Enterprise Linux 4 Update 4" "AMD64" "gcc 3.4.6" \
+                "linux_redhat_el-4.4-amd64-gcc-3.4.6-*-*-log.gz.txt" \
                 linux_redhat_el-4.4-amd64-gcc-3.4.6.html
 
-process_results "Red Hat AS 4 Update 2" "IA64" "gcc 3.4.4" \
-                "linux_redhat_el-4.2-ia64-gcc-*-3.4.4-*-*-log.gz.txt" \
+process_results "Red Hat Enterprise Linux 4 Update 4" "EM64T" "Intel C++ 10.0" \
+                "linux_redhat_el-4.4-em64t-icc-10.0-*-*-log.gz.txt" \
+                linux_redhat_el-4.4-em64t-icc-10.0.html
+
+process_results "Red Hat Enterprise Linux 4 Update 4" "EM64T" "Intel C++ 9.1" \
+                "linux_redhat_el-4.4-em64t-icc-9.1-*-*-log.gz.txt" \
+                linux_redhat_el-4.4-em64t-icc-9.1.html
+
+# Red Hat Enterprise Linux 4 Update 2
+process_results "Red Hat Enterprise Linux 4 Update 4" "AMD64" "gcc 3.4.6" \
+                "linux_redhat_el-4.4-amd64-gcc-3.4.6-*-*-log.gz.txt" \
+                linux_redhat_el-4.4-amd64-gcc-3.4.6.html
+
+process_results "Red Hat Enterprise Linux 4 Update 2" "IA64" "gcc 3.4.4" \
+                "linux_redhat_el-4.2-ia64-gcc-3.4.4-*-*-log.gz.txt" \
                 linux_redhat_el-4.2-ia64-gcc-3.4.4.html
 
-process_results "Red Hat AS 3 Update 8" "EM64T" "gcc 3.2.3" \
-                "linux_redhat_el-3.8-em64t-gcc-3.2.3-*-*-log.gz.txt \
-                 linux_redhat_el-3.8-em64t-gcc-64b-3.2.3-*-log.gz.txt" \
+process_results "Red Hat Enterprise Linux 4 Update 2" "IA64" "Intel C++ 9.1" \
+                "linux_redhat_el-4.2-ia64-icc-9.1-*-*-log.gz.txt" \
+                linux_redhat_el-4.2-ia64-icc-9.1.html
+
+# Red Hat Enterprise Linux 3 Update 8
+process_results "Red Hat Enterprise Linux 3 Update 8" "EM64T" "gcc 3.2.3" \
+                "linux_redhat_el-3.8-em64t-gcc-3.2.3-*-*-log.gz.txt" \
                 linux_redhat_el-3.8-em64t-gcc-3.2.3.html
 
 # Solaris ##############################################################
+process_results "Solaris 10" "SPARC" "EDG eccp 3.9" \
+                "solaris-10-sparc-eccp-3.9-*-*-log.gz.txt" \
+                solaris-10-sparc-eccp-3.9.html
+
+process_results "Solaris 10" "SPARC" "gcc 4.3.0" \
+                "solaris-10-sparc-gcc-4.3.0-*-*-log.gz.txt" \
+                solaris-10-sparc-gcc-4.3.0.html
+
 process_results "Solaris 10" "SPARC" "gcc 4.1.1" \
-                "solaris-10-sparc-gcc-*-4.1.1-*-*-log.gz.txt" \
+                "solaris-10-sparc-gcc-4.1.1-*-*-log.gz.txt" \
                 solaris-10-sparc-gcc-4.1.1.html
 
 process_results "Solaris 10" "SPARC" "Sun C++ 5.9" \
-                "solaris-10-sparc-sunpro-*-5.9-*-*-log.gz.txt" \
+                "solaris-10-sparc-sunpro-5.9-*-*-log.gz.txt" \
                 solaris-10-sparc-sunpro-5.9.html
 
 process_results "Solaris 10" "SPARC" "Sun C++ 5.8" \
-                "solaris-10-sparc-sunpro-*-5.8-*-*-log.gz.txt" \
+                "solaris-10-sparc-sunpro-5.8-*-*-log.gz.txt" \
                 solaris-10-sparc-sunpro-5.8.html
 
 process_results "Solaris 10" "SPARC" "Sun C++ 5.7" \
-                "solaris-10-sparc-sunpro-*-5.7-*-*-log.gz.txt" \
+                "solaris-10-sparc-sunpro-5.7-*-*-log.gz.txt" \
                 solaris-10-sparc-sunpro-5.7.html
 
+process_results "Solaris 9" "SPARC" "EDG eccp 3.9" \
+                "solaris-9-sparc-eccp-3.9-*-*-log.gz.txt" \
+                solaris-9-sparc-eccp-3.9.html
+
+process_results "Solaris 9" "SPARC" "Sun C++ 5.9" \
+                "solaris-9-sparc-sunpro-5.9-*-*-log.gz.txt" \
+                solaris-9-sparc-sunpro-5.9.html
+
 process_results "Solaris 9" "SPARC" "Sun C++ 5.6" \
-                "solaris-9-sparc-sunpro-*-5.6-*-*-log.gz.txt" \
+                "solaris-9-sparc-sunpro-5.6-*-*-log.gz.txt" \
                 solaris-9-sparc-sunpro-5.6.html
 
-# process_results "Solaris 9" "SPARC" "Sun C++ 5.5" \
-#                 "solaris-9-sparc-sunpro-*-5.5-*-*-log.gz.txt" \
-#                 solaris-9-sparc-sunpro-5.5.html
-
-process_results "Solaris 9" "SPARC" "EDG eccp 3.9" \
-                "solaris-9-sparc-eccp-*-3.9-*-*-log.gz.txt" \
-                solaris-9-sparc-eccp--3.9.html
-
-# process_results "Solaris 8" "SPARC" "Sun C++ 5.5" \
-#                 "solaris-8-sparc-sunpro-*-5.5-*-*-log.gz.txt" \
-#                 solaris-8-sparc-sunpro-5.5.html
+process_results "Solaris 8" "SPARC" "Sun C++ 5.8" \
+                "solaris-8-sparc-sunpro-5.8-*-*-log.gz.txt" \
+                solaris-8-sparc-sunpro-5.8.html
 
 process_results "Solaris 8" "SPARC" "Sun C++ 5.3" \
-                "solaris-8-sparc-sunpro-*-5.3-*-*-log.gz.txt" \
+                "solaris-8-sparc-sunpro-5.3-*-*-log.gz.txt" \
                 solaris-8-sparc-sunpro-5.3.html
 
+process_results "Solaris 10" "AMD64" "Sun C++ 5.9" \
+                "solaris-10-amd64-sunpro-5.9-*-*-log.gz.txt" \
+                solaris-10-amd64-sunpro-5.9.html
+
+process_results "Solaris 10" "AMD64" "Sun C++ 5.8" \
+                "solaris-10-amd64-sunpro-5.8-*-*-log.gz.txt" \
+                solaris-10-amd64-sunpro-5.8.html
+
 # SuSE Linux ###########################################################
-process_results "SuSE ES 10.0" "x86" "gcc 4.1.0" \
-                "linux_suse-10.0-em64t-gcc-*-4.1.0-*-*-log.gz.txt" \
+# SuSE Enterprise Server 10
+process_results "SuSE Enterprise Server 10.0" "EM64T" "EDG eccp 3.9" \
+                "linux_suse-10.0-em64t-eccp-3.9-*-*-log.gz.txt" \
+                linux_suse-10.0-em64t-eccp-3.9.html
+
+process_results "SuSE Enterprise Server 10.0" "EM64T" "gcc 4.3.0" \
+                "linux_suse-10.0-em64t-gcc-4.3.0-*-*-log.gz.txt" \
+                linux_suse-10.0-em64t-gcc-4.3.0.html
+
+process_results "SuSE Enterprise Server 10.0" "EM64T" "gcc 4.1.0" \
+                "linux_suse-10.0-em64t-gcc-4.1.0-*-*-log.gz.txt" \
                 linux_suse-10.0-em64t-gcc-4.1.0.html
 
-process_results "SuSE ES 9.1" "AMD64" "gcc 3.3.3" \
-                "linux_suse-9.1-amd64-gcc-3.3.3-43.28-*-*-log.gz.txt \
-                 linux_suse-9.1-amd64-gcc-64b-3.3.3-*-*-log.gz.txt" \
+process_results "SuSE Enterprise Server 10.0" "EM64T" "Intel C++ 10.0" \
+                "linux_suse-10.0-em64t-icc-10.0-*-*-log.gz.txt" \
+                linux_suse-10.0-em64t-icc-10.0.html
+
+process_results "SuSE Enterprise Server 10.0" "EM64T" "Intel C++ 9.1" \
+                "linux_suse-10.0-em64t-icc-9.1-*-*-log.gz.txt" \
+                linux_suse-10.0-em64t-icc-9.1.html
+
+# SuSE Enterprise Server 9.1
+process_results "SuSE Enterprise Server 9.1" "AMD64" "gcc 3.3.3" \
+                "linux_suse-9.1-amd64-gcc-3.3.3-*-*-log.gz.txt" \
                 linux_suse-9.1-amd64-gcc-3.3.3.html
+
+process_results "SuSE Enterprise Server 9.1" "AMD64" "Intel C++ 10.0" \
+                "linux_suse-9.1-amd64-icc-10.0-*-*-log.gz.txt" \
+                linux_suse-9.1-amd64-icc-10.0.html
+
+process_results "SuSE Enterprise Server 9.1" "AMD64" "Intel C++ 9.1" \
+                "linux_suse-9.1-amd64-icc-9.1-*-*-log.gz.txt" \
+                linux_suse-9.1-amd64-icc-9.1.html
+
+process_results "SuSE Enterprise Server 9.1" "AMD64" "EDG eccp 3.9" \
+                "linux_suse-9.1-amd64-eccp-3.9-*-*-log.gz.txt" \
+                linux_suse-9.1-amd64-eccp-3.9.html
+
+process_results "SuSE Enterprise Server 9.1" "AMD64" "Sun C++ 5.9" \
+                "linux_suse-9.1-amd64-sunpro-5.9-*-*-log.gz.txt" \
+                linux_suse-9.1-amd64-sunpro-5.9.html
+
+# Tru64 UNIX ###########################################################
+
+process_results "Tru64 UNIX 5.1" "Alpha" "HP C++ 7.1" \
+                "tru64-5.1-alpha-compaq-7.1-*-*-log.gz.txt" \
+                tru64-5.1-alpha-compaq-7.1.html
 
 # CygWin ###############################################################
 process_results "CygWin/Windows XP" "x86" "gcc 3.4.4" \
-                "win_xp-2-x86-gcc-*-3.4.4-*-*-log.gz.txt" \
+                "win_xp-2-x86-gcc-3.4.4-*-*-log.gz.txt" \
                  win_xp-2-x86-gcc-3.4.4.html
 
-cat<<EOF
+# Windows ##############################################################
+process_results "Windows Vista" "EM64T" "MSVC 9.0" \
+                "win_vista-0-em64t-msvc-9.0-*-*-log.gz.txt" \
+                 win_vista_0-em64t-msvc-9.0.html
+
+process_results "Windows Vista" "EM64T" "MSVC 8.0" \
+                "win_vista-0-em64t-msvc-8.0-*-*-log.gz.txt" \
+                 win_vista_0-em64t-msvc-8.0.html
+
+process_results "Windows Vista" "EM64T" "Intel C++ 10.0" \
+                "win_vista-0-em64t-icl-10.0-*-*-log.gz.txt" \
+                 win_vista_0-em64t-icl-10.0.html
+
+process_results "Windows XP, SP2" "x86" "MSVC 8.0" \
+                "win_xp-2-x86-msvc-8.0-*-*-log.gz.txt" \
+                 win_xp_2-x86-msvc-8.0.html
+
+process_results "Windows XP, SP2" "x86" "MSVC 7.1" \
+                "win_xp-2-x86-msvc-7.1-*-*-log.gz.txt" \
+                 win_xp_2-x86-msvc-7.1.html
+
+process_results "Windows XP, SP2" "x86" "Intel C++ 10.0" \
+                "win_xp-2-x86-icl-10.0-*-*-log.gz.txt" \
+                 win_xp_2-x86-icl-10.0.html
+
+process_results "Windows XP, SP2" "x86" "Intel C++ 9.1" \
+                "win_xp-2-x86-icl-9.1-*-*-log.gz.txt" \
+                 win_xp_2-x86-icl-9.1.html
+
+process_results "Windows XP, SP1" "EM64T" "MSVC 9.0" \
+                "win_xp-1-em64t-msvc-9.0-*-*-log.gz.txt" \
+                 win_xp_1-em64t-msvc-9.0.html
+
+process_results "Windows XP, SP1" "EM64T" "MSVC 8.0" \
+                "win_xp-1-em64t-msvc-8.0-*-*-log.gz.txt" \
+                 win_xp_1-em64t-msvc-8.0.html
+
+process_results "Windows XP, SP1" "EM64T" "Intel C++ 10.0" \
+                "win_xp-1-em64t-icl-10.0-*-*-log.gz.txt" \
+                 win_xp_1-em64t-icl-10.0.html
+
+process_results "Windows 2003, SP1" "EM64T" "MSVC 9.0" \
+                "win_2003-1-em64t-msvc-9.0-*-*-log.gz.txt" \
+                 win_2003_1-em64t-msvc-9.0.html
+
+process_results "Windows 2003, SP1" "EM64T" "MSVC 8.0" \
+                "win_2003-1-em64t-msvc-8.0-*-*-log.gz.txt" \
+                 win_2003_1-em64t-msvc-8.0.html
+
+process_results "Windows 2003, SP1" "EM64T" "Intel C++ 10.0" \
+                "win_2003-1-em64t-icl-10.0-*-*-log.gz.txt" \
+                 win_2003_1-em64t-icl-10.0.html
+
+process_results "Windows 2000, SP4" "x86" "MSVC 7.1" \
+                "win_2000-4-x86-msvc-7.1-*-*-log.gz.txt" \
+                 win_2000_4-x86-msvc-7.1.html
+
+process_results "Windows 2000, SP4" "x86" "Intel C++ 9.1" \
+                "win_2000-4-x86-icl-9.1-*-*-log.gz.txt" \
+                 win_2000_4-x86-icl-9.1.html
+
+
+# compute the number of seconds it took to process all logs
+readonly now=`date`
+processing_time=`$HOME/stdcxx/bin/duration "$start_time" "$now"`
+
+cat<<EOF | output
     </table>
+    <hr>
+    <i>Generated in $processing_time.</i>
   </body>
 </html>
 EOF

@@ -1,6 +1,10 @@
 #!/bin/sh
 #
-# $Id$
+<<<<<<< .working
+# $Id: xbuildgen 589895 2007-10-29 22:37:40Z sebor $
+=======
+# $Id: xbuildgen 601917 2007-12-06 23:46:48Z sebor $
+>>>>>>> .merge-right.r656504
 #
 ########################################################################
 #
@@ -20,7 +24,7 @@
 #  implied.   See  the License  for  the  specific language  governing
 #  permissions and limitations under the License.
 #
-#  Copyright 2007 Rogue Wave Software.
+#  Copyright 2007 - 2008 Rogue Wave Software, Inc.
 #
 ########################################################################
 #
@@ -49,6 +53,8 @@
 #          Generate a report for the specified list of example programs
 #          with examples listed in columns and builds in rows.
 #
+#     -h   Print help.
+#
 #     -l <list-of-locales>
 #          Generate a report for the specified list of locales with
 #          locales listed in columns and builds in rows.
@@ -57,12 +63,49 @@
 #          Specify the pathname of the output file. The utility will
 #          use stdout when no output file is specified.
 #
+#     -T <text>
+#          Specify the title for the page.
+#
 #     -t <list-of-tests>
 #          Generate a report for the specified list of tests with
 #          tests listed in columns and builds in rows.
 #
+#     -V <version>
+#          Stdcxx version (branch) to generate results for.
+#          When omitted, trunk is assumed.
+#
 ########################################################################
 
+if [ "$BASH" = "" ]; then
+    # this is not Bash; try to invoke it
+    if [ -x /usr/local/bin/bash ]; then
+        /usr/local/bin/bash $0 "$@"
+        exit $?
+    fi
+fi
+
+######################################################################
+# global constants
+
+# set program name (used in diagnostic messages)
+readonly myname=`basename $0`
+
+readonly today=`LC_ALL="C" date`
+
+# URL to the ViewVC directory
+readonly viewvc="http://svn.apache.org/viewvc"
+
+# URL to the revision number (use: "$revurl=$revno")
+readonly revurl="$viewvc?view=rev&rev"
+
+# URL to the trunk of the source repository
+readonly svnpath="$viewvc/stdcxx/trunk"
+
+# expected failures
+readonly xfailfile=$HOME/stdcxx/etc/config/xfail.txt
+
+######################################################################
+# global variables
 
 # by default, display one component (example, locale, or test) per row
 components_in_rows=1
@@ -70,10 +113,445 @@ components_in_rows=1
 # no verbosity by default
 verbose=0
 
-## process command line options
-while getopts ":nsv:e:l:o:t:" opt_name; do
+# default page title (unless overridden on the command line)
+title="Multi-platform Test Result View"
+
+# script's revision number
+myrev='$Revision$'
+myrev=${myrev#'$Revision: '}
+myrev=${myrev%' $'}
+
+# URL to this version of the script in the repository
+readonly myurl="$svnpath/bin/xbuildgen?view=markup&rev=$myrev"
+
+
+######################################################################
+
+print_help ()
+{
+    echo "NAME"
+    echo "    $myname - generate a cross-build result page"
+    echo
+    echo "SYNOPSIS"
+    echo "    $myname [option(s)...] [log-file(s)...]"
+    echo
+    echo "DESCRIPTION"
+    echo "    The $myname utility generates a build result in HTML format"
+    echo "    across multiple platforms or tests with builds in columns and"
+    echo "    components such as examples, locales, and tests in rows by"
+    echo "    default."
+    echo
+    echo "OPTIONS"
+    echo "     -n   No clean. Avoid removing temporary files."
+    echo
+    echo "     -s   Stylesheet. Create a style sheet named resultstyle.css in"
+    echo "          the same directory as the output file when the -o option"
+    echo "          is specified, or in the current working directory otherwise."
+    echo
+    echo "     -v   Verbose. Produce verbose output on stdout."
+    echo
+    echo "     -e <list-of-examples>"
+    echo "          Generate a report for the specified list of example programs"
+    echo "          with examples listed in columns and builds in rows."
+    echo
+    echo "     -h   Print help."
+    echo
+    echo "     -l <list-of-locales>"
+    echo "          Generate a report for the specified list of locales with"
+    echo "          locales listed in columns and builds in rows."
+    echo
+    echo "     -o <output-file>"
+    echo "          Specify the pathname of the output file. The utility will"
+    echo "          use stdout when no output file is specified."
+    echo
+    echo "     -T <text>"
+    echo "          Specify the title for the page."
+    echo
+    echo "     -t <list-of-tests>"
+    echo "          Generate a report for the specified list of tests with"
+    echo "          tests listed in columns and builds in rows."
+}
+
+######################################################################
+
+# extracts the real, user and system times for a specified stage
+# of the build process from the file given by the second argument
+# and writes them out to stdout
+get_times ()
+{
+    stage=$1
+    file=$2
+
+    pattern="^### real, user, system time ($stage):"
+
+    # extract the real, user and system times for the children
+    # of the shell that executed the commands from the log
+    # the format of the output is:
+    #   <real-time>
+    #   <times-output>
+    # with <real-time> looking like:
+    #   [1-9][0-9]*m[1-9][0-9]s
+    # and with <times-output> being the output of the POSIX standard
+    # times built-in utility, i.e., the first line giving the system
+    # and user times for the shell and the second line giving the
+    # system and user times for its children in the format:
+    #   "%dm%fs %dm%fs"
+    # we don't care about the shell times, just the times for its
+    # children, so we skip that line
+
+
+    stage_times=`  sed -n "/$pattern/{n;p;n;n;p;}" $file`
+
+    # strip newlines and fractional parts of seconds and replace
+    # 'm' with ':'
+    
+    stage_times=`  echo $stage_times \
+                 | sed -e "s/\.[0-9][0-9]*s//g" \
+                       -e "s/s//" \
+                       -e "s/m/:/g"`
+
+    # extract the real time (first)
+    real_time=${stage_times%% *}
+
+    # append a leading '0' to single-digit seconds
+    sec=${real_time##*:}
+    if [ ${#sec} -eq 1 ]; then
+        real_time=${real_time%:*}":0$sec"
+    fi
+
+    # extract the user time (middle)
+    user_time=${stage_times#* }
+    user_time=${user_time%% *}
+
+    # append a leading '0' to single-digit seconds
+    sec=${user_time##*:}
+    if [ ${#sec} -eq 1 ]; then
+        user_time=${user_time%:*}":0$sec"
+    fi
+
+    # extract the system time (last)
+    sys_time=${stage_times##* }
+
+    # append a leading '0' to single-digit seconds
+    sec=${sys_time##*:}
+    if [ ${#sec} -eq 1 ]; then
+        sys_time=${sys_time%:*}":0$sec"
+    fi
+
+    # output the three times
+    cat <<EOF
+    <td>$real_time</td>
+    <td>$user_time</td>
+    <td>$sys_time</td>
+EOF
+}
+
+######################################################################
+# extracts the date and time the build started from the file
+# given by the second argument
+get_build_date ()
+{
+    file=$1
+
+    # extract the date and time the build started
+    # the date is expected to be introduced by a line like this:
+    #   ### date:
+    date=`sed -n "/^##* *date *: *$/{n;p;q;}" $file`
+    if [ "$date" = "" ]; then
+        echo "$myname: warning: unable to extract date from $l" >&2
+        unset date
+    fi
+
+    # strip the year from the date
+    echo ${date% [1-9][0-9][0-9][0-9]}
+}
+
+
+######################################################################
+# formats a size value in an easy-to-read way
+format_size ()
+{
+    size=$1
+
+    if [ "$size" = "" ]; then
+        :
+    elif [ $size -ge 1000000000 ]; then
+        # over billion bytes, get size in gigabytes up to 2 decimal places
+        gbsize="$((size / 1073741824)).$(((size % 1073741) / 100000))"
+        size="<div title=\"$size bytes\">$gbsize GB</div>"
+    elif [ $size -ge 1000000 ]; then
+        # over million bytes, get size in megabytes up to 2 decimal places
+        mbsize="$((size / 1048576)).$(((size % 1048576) / 100000))"
+        size="<div title=\"$size bytes\">$mbsize MB</div>"
+    elif [ $size -ge 10000 ]; then
+        # over ten thoudand bytes, get even size in kilobytes
+        kbsize="$((size / 1024))"
+        size="<div title=\"$size bytes\">$kbsize kB</div>"
+    elif [ $size -ge 1000 ]; then
+        # over thoudand bytes, get size in kilobytes up to 2 decimal places
+        kbsize="$((size / 1024)).$(((size % 1024) / 100))"
+        size="<div title=\"$size bytes\">$kbsize kB</div>"
+    fi
+
+    echo $size
+}
+
+
+######################################################################
+# extracts the size of the library binary from the build log
+# being careful to avoid the symlink (in the case of a .so)
+get_lib_size ()
+{
+    file=$1
+
+    libsize=`awk '/build\/lib\/libstd[^ ]*\$/{ print $5 }' $file`
+    if [ "$libsize" = "" ]; then
+        # avoid warning for missing library size to reduce the noise
+        # in cases when it fails to build
+        # echo "$myname: warning: unable to extract library size from $l" >&2
+        unset libsize
+    fi
+
+    echo $libsize
+}
+
+
+######################################################################
+# extracts the build type from the string specified by the argument
+# (the name of the log)
+get_buildtype ()
+{
+    str=$1
+
+    # extract the build type from the name of the log, removing
+    # the name of thread library
+    buildtype=`  echo $str \
+               | sed "s/\(.*-[18][125]*[aAdDsS]\)-dce-\(.*\)/\1-\2/" \
+               | sed "s/\(.*-[18][125]*[aAdDsS]\)-solaris-\(.*\)/\1-\2/" \
+               | sed "s/\(.*-[18][125]*[aAdDsS]\)-win32-\(.*\)/\1-\2/" \
+               | sed "s/.*-\([18][125]*[aAdDsS]\)-[1-9][0-9]*-log.*/\1/"`
+    if [ "$buildtype" = "" ]; then
+        echo "$myname: warning: unable to extract build type from $str" >&2
+        unset buildtype
+    fi
+
+    echo $buildtype
+}
+
+######################################################################
+# extracts the operating system name and version from the log file
+get_os ()
+{
+    file=$1
+
+    uname=`sed -n "/^##* uname  *-a.*:$/{n;p;q;}" $file`
+
+    case "$uname" in
+        "AIX "*)
+            osname="AIX"
+            # extract the version number from AIX uname -a output:
+            #   "AIX <hostname> <minor> <major> ...
+            osver=${uname#* }   # remove AIX
+            osver=${osver#* }   # remove hostname
+            minor=${osver%% *}  # extract minor version
+            osver=${osver% *}   # remove gibberish at the end
+            osver=${osver#* }"."$minor
+            ;;
+
+        CYGWIN*)
+            osname="Cygwin"
+            osver=${uname#* }   # remove CYGWIN
+            osver=${osver#* }   # remove hostname
+            osver=${osver%%(*}  # extract version
+            ;;
+
+        *"FreeBSD "*)
+            osname="FreeBSD"
+            ;;
+
+        "HP-UX "*)
+            # for example
+            # HP-UX hostname B.11.23 U ia64 0025699549 unlimited-user license
+            osname="HP-UX"
+            osver=${uname#* }       # remove HP-UX
+            osver=${osver#* }       # remove hostname
+            osver=${osver%% *}      # extract full version
+            osver=${osver#[A-Z].}   # remove letter prefix
+            ;;
+
+        "IRIX64 "*)
+            ;;
+
+        "Linux "*)
+            # extract the Linux distron name from the contents
+            # of the /etc/*-release files
+            osname=`  sed -n "/^##* * cat  *\/etc\/.*-release /{n;p;n;p;}"   \
+                             $file                                           \
+                    | sed -e "/^ *LSB_VERSION *=/d" -e "/^ *VERSION *= */d"`
+
+            rhel="Red Hat Enterprise Linux"
+
+            # SuSE Linux 10
+            suse_Linux="SUSE Linux Enterprise Server"
+
+            # SuSE Linux 9 (sigh...)
+            suse_LINUX="SUSE LINUX Enterprise Server"
+
+            pfx="<div title=\"$osname\">"
+            sfx="</div>"
+
+            case "$osname" in
+                "$rhel "*)
+                    # remove the Red Hat code name including the release
+                    # and keep the distribution code name and update info:
+                    #   RHEL 5:      Tikanga (Update 1 through 2)
+                    #   RHEL 4:      Nahant (Update 1 through 6)
+                    #   RHEL 3:      Taroon (Update 1 through 9)
+                    #   RHEL 2.1 AS: Pensacola
+                    #   RHEL 2.1 ES: Panama
+                    oscode=${osname##* (}
+                    # append space (important below)
+                    oscode="${oscode%)} "
+
+                    update=${oscode#* }       # strip code name
+                    update=${update#* }       # strip the word "Update"
+
+                    osver=${osname#$rhel }    # strip the distro name
+                    ostype=${osver%% *}       # extract OS type (AS or Server)
+                    osver=${osver#* release } # strip OS type
+                    osver=${osver%% (*}
+                    
+                    # osver="[osver=$osver][oscode=$oscode][update=$update]"
+
+                    osname="RHEL"
+                    if [ "$update" != "" ]; then
+                        osver="$osver.$update"
+                    fi
+                    ;;
+
+                "$suse_Linux "*)
+                    osver=${osname#$suse_Linux }
+                    osver=${osver%% *}
+
+                    osname="SLES"
+                    ;;
+
+                "$suse_LINUX "*)
+                    osver=${osname#$suse_LINUX }
+                    osver=${osver%% *}
+
+                    osname="SLES"
+                    ;;
+                *)
+                    ;;
+            esac
+            ;;
+
+        "SunOS "*)
+            osname="SunOS"
+            osver=${uname#* }    # remove SunOS
+            osver=${osver#* }    # remove hostname
+            osver=${osver%% *}   # strip averything past version
+            ;;
+       
+        *)
+            osname=$uname
+            ;;
+    esac
+
+    echo "$pfx$osname $osver$sfx"
+}
+
+######################################################################
+# extracts the hardware architecture from the log file
+get_arch ()
+{
+    file=$1
+
+    uname=`sed -n "/^##* uname  *-a.*:$/{n;p;}" $file`
+
+    if [ "$uname" = "" -o "${uname%%_*}" = "CYGWIN" ]; then
+        # Windows or CygWin
+        id=`sed -n "s/^ *PROCESSOR_IDENTIFIER *= *\(.*\)/\1/p" $file`
+        arch=${id%% *}
+        arch="<div title=\"$id\">$arch</div>"
+    else
+        
+        case "$uname" in
+            # recent HP-UX machines always return 9000/800
+            "HP-UX "*" 9000/8"??" "*) arch="PA-RISC";;
+
+            *" i686 "*) arch="i686";;
+            *" i586 "*) arch="i586";;
+            *" i486 "*) arch="i486";;
+            *" i386 "*) arch="i386";;
+            *" i286 "*) arch="i286";;
+
+            *" ia64 "*) arch="IA64";;
+
+            *" sparc "*) arch="SPARC";;
+
+            *" x86_64 "*)
+                arch="x86_64"
+                model=`  sed -n "s/^model name.*: *\(.*\)/\1/p" $file \
+                       | sed 's/  */ /g' | head -n 1`
+                if [ ${model%% *} = "Intel(R)" ]; then
+                    arch="<div title=\"$model\">EM64T</div>"
+                else
+                    arch="<div title=\"$model\">AMD64</div>"
+                fi
+                ;;
+        esac
+    fi
+
+    echo $arch
+}
+
+######################################################################
+# extracts the compiler and version from the log file
+get_compiler ()
+{
+    file=$1
+
+    compiler=`  sed -n "/^configuring stdcxx /{p;q;}" $file \
+              | sed "s/.* for \([^ ][^ ]*\) .*/\1/"`
+
+    if [    "${compiler%%[-_]*}" = "xlCcore" ]; then
+        # replace xlCcore with XLC++ for IBM XLC/C++
+        compiler="XLC++ "${compiler#*-}
+    elif [ "${compiler%%-*}" = "aCC" ]; then
+        # remove the "A.0" version prefix from HP aCC version
+        compiler="aCC ${compiler#aCC-[A-Z].0}"
+    elif [ "$compiler" = "" ]; then
+        # this must be a Windoze compiler...
+        compiler=`  sed -n "/^ *CXX *=.*/{p;q;}" $file \
+                  | sed "s/^.*= *\(.*\)/\1/"`
+
+        if [ "$compiler" = "cl" ]; then
+            vs="Microsoft Visual Studio"
+
+            compiler=`  sed -n "/^ *Variables *: *$/{n;p;}" $file\
+                      | sed "s/ *VERSION= *\(.*\)/\1/"`
+            compiler="MSVC $compiler"
+        elif [ "$compiler" = "icl" ]; then
+            true
+        fi
+    fi
+
+    echo $compiler | sed "s/-/ /g"
+}
+
+######################################################################
+
+# process command line options
+while getopts ":hnsv:e:l:o:T:t:V:" opt_name; do
     case $opt_name in
         # options with no arguments 
+
+        h)  # print help and exit
+            print_help
+            exit
+            ;;
 
         n)  # avoid cleaning up temporary files
             no_clean=1
@@ -103,12 +581,23 @@ while getopts ":nsv:e:l:o:t:" opt_name; do
             outfile=$OPTARG
             ;;
 
+        T)  # argument is the title of the page
+            title=$OPTARG
+            ;;
+
         t)  # argument is a list of tests to process
             test_list=$OPTARG
             components_in_rows=0
             ;;
 
-        *) echo "unknown option : -$opt_name" >&2;
+        V)  # specify stdcxx branch/version to generate cross-build
+            # result views for (trunk by default)
+            version=$OPTARG
+            ;;
+
+        *) echo "$myname: unknown option : -$opt_name" >&2;
+           echo
+           print_help
            exit 1;;
      esac;
 done
@@ -116,13 +605,14 @@ done
 # remove command line options and their arguments from the command line
 shift $(($OPTIND - 1))
 
+
 # take the remaining command line arguments as the names of logs
 # to process
 gzlogs=$*
 
 
-# set the TMP variable to /tmp if not set
-[ -z $TMP ] && TMP=/tmp
+# set the TMPDIR variable to /tmp if not set
+[ -z $TMPDIR ] && TMPDIR=/tmp
 
 ######################################################################
 
@@ -164,167 +654,195 @@ if [ "$create_stylesheet" = "1" ]; then
     cat <<EOF >$dir/resultstyle.css
 
 table {
-    border-width:0px;
-    background:#000000;
-    font-size:smaller;
+    background:lightslategray;
+    font-family:courier;
+    font-size: 80%;
+}
+caption {
+    background:lightslategray;
+    color:lightgray;
+    font-weight:bold;
+    font-family:lucida mono;
+    font-size: 120%;
 }
 th {
-    font-family:fixed
-    font-size:smaller;
-    background:#cccccc;
+    background:lightgray;
     text-align:center;
+    font-family:lucida mono;
 }
 td {
-    font-family:fixed;
-    font-size:smaller;
-    padding: 3px;
+    padding: 2px;
     text-align: center;
-    background-color: lightblue;
+}
+tr {
+    background:powderblue;
 }
 td.rowno {
-    font-family:fixed;
-    font-size:smaller;
-    padding: 3px;
     text-align: right;
-    background-color:#cccccc;
+    background:lightgray;
 }
 td.name {
-    font-family:fixed;
-    font-size:smaller;
-    padding: 3px;
     text-align: left;
-    background-color:lightblue;
+    background:lightblue;
 }
 td.number {
-    font-family:fixed;
-    font-size:smaller;
-    padding: 3px;
     text-align: center;
-    background-color:lightblue;
+    background:lightblue;
 }
 td.na {
     background:white;
     text-align:left;
-    font-family:fixed
-    font-size:smaller;
 }
-td.header {
+.header {
     background:#cccccc;
     text-align:center;
-    font-family:fixed;
-    font-size:smaller;
+    font-weight:bold;
+    font-family:lucida mono;
+}
+td.total {
+    text-align:center;
     font-weight:bold;
 }
 td.OK {
     background:forestgreen;
     text-align:center;
-    font-family:fixed;
-    font-size:smaller;
+    font-weight:bold;
+}
+td.XPASS {
+    color:yellow;
+    background:forestgreen;
+    text-align:center;
     font-weight:bold;
 }
 td.BASE {
     background:lightgreen;
     text-align:center;
-    font-size:smaller;
     font-weight:bold;
-    font-family:fixed;
 }
 td.NOUT {
     background:lightgreen;
     text-align:center;
-    font-size:smaller;
     font-weight:bold;
-    font-family:fixed;
 }
 td.OUTPUT {
     background:lightgreen;
     text-align:center;
-    font-size:smaller;
     font-weight:bold;
-    font-family:fixed;
 }
-td.missing {
+td.MISS {
     color:white;
     background:lightgray;
     text-align:center;
-    font-size:smaller;
-    font-family:fixed;
     font-weight:bold;
 }
 td.WARN {
     color:red;
     background:#ffff99;
     text-align:center;
-    font-family:fixed
+    font-weight:bold;
+}
+td.XWARN {
+    color:tomato;
+    background:lightgreen;
+    text-align:center;
+    font-weight:bold;
 }
 td.EXIT {
     color:red;
     background:gold;
     text-align:center;
     font-weight:bold;
-    font-family:fixed;
-    font-size:smaller;
+}
+td.XEXIT {
+    color:tomato;
+    background:lightgreen;
+    text-align:center;
+    font-weight:bold;
 }
 td.FORMAT {
     background:#ffffcc;
     text-align:center;
-    font-family:fixed
-    font-size:smaller;
 }
 td.RUNWARN {
     color:black;
     background:#ffff99;
     text-align:center;
     font-weight:bold;
-    font-family:fixed;
-    font-size:smaller;
+}
+td.XRUNWARN {
+    color:dimgray;
+    background:lightgreen;
+    text-align:center;
+    font-weight:bold;
 }
 td.DIFF {
     color:red;
     background:#ffff99;
     font-weight:bold;
     text-align:center;
-    font-family:fixed;
-    font-size:smaller;
+}
+td.XDIFF {
+    color:tomato;
+    background:lightgreen;
+    font-weight:bold;
+    text-align:center;
 }
 td.ASSERT {
     color:red;
     background:#ffff99;
     font-weight:bold;
     text-align:center;
-    font-family:fixed;
-    font-size:smaller;
+}
+td.XASSERT {
+    color:tomato;
+    background:lightgreen;
+    font-weight:bold;
+    text-align:center;
 }
 td.SIGNAL {
     color:yellow;
     background:red;
     font-weight:bold;
     text-align:center;
-    font-family:fixed;
-    font-size:smaller;
+}
+td.XSIGNAL {
+    color:tomato;
+    background:lightgreen;
+    font-weight:bold;
+    text-align:center;
 }
 td.COMP {
     background:violet;
     font-weight:bold;
     text-align:center;
-    font-family:fixed;
-    font-size:smaller;
+}
+td.XCOMP {
+    color:violet;
+    background:lightgreen;
+    font-weight:bold;
+    text-align:center;
 }
 td.LINK {
     color:yellow;
     background:mediumpurple;
     font-weight:bold;
     text-align:center;
-    font-family:fixed;
-    font-size:smaller;
+}
+td.XLINK {
+    color:mediumpurple;
+    background:lightgreen;
+    font-weight:bold;
+    text-align:center;
 }
 td.xdep {
     color:yellow;
     background:gray;
     font-weight:bold;
     text-align:center;
-    font-family:fixed;
-    font-size:smaller;
+}
+tr.LIB {
+    background:pink;
+    color:black;
 }
 EOF
 
@@ -332,435 +850,104 @@ fi
 
 ######################################################################
 
+readonly scripturl="<a href=\"$myurl\"><code>$myname</code></a>"
+
 # output the initial portion of the HTML file
 cat <<EOF | output
 <html>
   <head>
+    <title>$title</title>
     <link rel="stylesheet" href="resultstyle.css" type="text/css"
           title="Cross-Build View Style Sheet">
   </head>
   <body>
 
-    <h1>Multi-platform Test Result View</h1>
-    Generated `date`
+    <h1>$title</h1>
+    Generated $today by $scripturl on `hostname` running `uname -sr`
     <hr>
 
     <h2>Index</h2>
 
     <ul>
-        <li><a href="#examples">Examples</a></li>
-        <li><a href="#tests">Tests</a></li>
-        <li><a href="#locales">Locales</a></li>
-        <li><a href="#codes">Codes and Colors</a></li>
-        <li><a href="#buildtypes">Build Types</a></li>
+      <li><a href="#logs">Logs and Columns</a></li>
+      <li><a href="#timings">Timings</a></li>
+      <li><a href="#examples">Examples</a></li>
+      <li><a href="#tests">Tests</a></li>
+      <li><a href="#locales">Locales</a></li>
+      <li><a href="#codes">Codes and Colors</a></li>
+      <li><a href="#buildtypes">Build Types</a></li>
     </ul>
     <hr>
 EOF
 
 ######################################################################
 
-# the location of the logs
-logdir="http://people.apache.org/~sebor/stdcxx/results"
+# the name of a temporary file containing the build timings
+timings_file=$TMPDIR/.stdcxx-timings.$$
 
-# the names of temporary files containing the list of components
-# (examples, locales, and tests) to process and include in the
-# generated report
-tests_file=$TMP/.stdcxx-tests.$$
-examples_file=$TMP/.stdcxx-examples.$$
-locales_file=$TMP/.stdcxx-locales.$$
-
-# remove temporary files in case they exist
-rm -f $tests_file $examples_file $locales_file
+# remove the temporary file
+rm -f timings_file
 
 if [ $? -ne 0 ]; then
     exit 2
 fi
 
-
-cat <<EOF | output
-    <h2>Logs and Columns</h2>
-    <ol>
-EOF
-
 ######################################################################
 # expand gzipped logs and extract the relevant portion from each into
-# a smaller text file for fast and easy processing
+# a smaller text file for fast and easy processing; the names of all
+# the text files are stored in the textlogs variable
 
-n=0
+# number of logs processed in loop below
+logcount=0
+
+# space-separated list of names of text logs processed in loop below
+textlogs=""
+logdir=""
+
 for l in $gzlogs; do
-    n=`expr $n + 1`
+    logcount=$((logcount + 1))
     fname=`basename $l`
 
     if [ $verbose -eq 1 ]; then
-        echo "processing $l"
+        echo "$myname: processing $l"
     fi
 
-    if [ $components_in_rows -ne 0 ]; then
-        # output one component per row with their results in columns
-        table_header="$table_header <th><div title=\"$fname\">$n</div></th>"
+    # set temporary variables (valid only within the loop)
+    txtlog=$TMPDIR/`basename $l .gz.txt`.txt.$$
 
-        output "      <li><a href=\"$logdir/$fname\">$fname</a></li>"
+    if [ "$logdir" = "" ]; then
+        logdir=`dirname $l`
+    elif [ $logdir != `dirname $l` ]; then
+        echo "$myname: not implemented: logs in multiple directories" >&2
     fi
 
-    # runlog=$TMP/.stdcxx-tmplog.$$.$n
-    runlog=$TMP/`basename $l`.$$
-    textlogs="$textlogs $runlog"
+    # append the name of the log to the list
+    textlogs="$textlogs $txtlog"
 
-    # unzip the log and cut the firt part up to the first table
-    gunzip -c $l | sed -e "1,/^NAME  *STATUS/d" > $runlog
+    # unzip the log into a temporary text file
+    gunzip -c $l > $txtlog
+    if [ $? -ne 0 ]; then
+        echo "$myname: error unzipping $l" >&2
 
-    status=$?
-
-    if [ $status -eq 0 ]; then
-
-        # extract the list of locales from the log
-
-             sed -e "/^PROGRAM SUMMARY:/,999999d" $runlog              \
-           | sed -e "s/^\([^ ][^ ]*\)  *.*/\1/"  >>$locales_file       \
-        && sed -e "1,/^NAME  *STATUS/d" $runlog > $runlog.next
-
-        status=$?
-
-        if [ $verbose -eq 1 ]; then
-            echo "  extracted locale results into $locales_file"
-        fi
-    else
-        exit 3
+        # continue processing the empty log below
     fi
-
-    if [ $status -eq 0 ]; then
-
-        # extract the list of tests from the log
-
-             sed -e "/^PROGRAM SUMMARY:/,999999d" $runlog.next          \
-           | sed -e "s/^\([^ ][^ ]*\)  *.*/\1/"  >>$tests_file          \
-        && sed -e "1,/^NAME  *STATUS/d" $runlog.next > $runlog.next.2   \
-        && mv $runlog.next.2 $runlog.next
-
-        status=$?
-
-        if [ $verbose -eq 1 ]; then
-            echo "  extracted test results into $tests_file"
-        fi
-    else
-        exit 3
-    fi
-
-    if [ $status -eq 0 ]; then
-
-        # extract the list of examples from the log
-
-             sed -e "/^PROGRAM SUMMARY:/,999999d" $runlog.next          \
-           | sed -e "s/^\([^ ][^ ]*\)  *.*/\1/"  >>$examples_file       \
-        && sed -e "1,/^NAME  *STATUS/d" $runlog > $runlog.next.2        \
-        && mv $runlog.next.2 $runlog.next
-
-        if [ $verbose -eq 1 ]; then
-            echo "  extracted example results into $examples_file"
-        fi
-    else
-        exit 3
-    fi
-
-    rm $runlog.next
 done
 
+######################################################################
 
-n=0
-if [ $components_in_rows -eq 0 ]; then
-
-    for c in $example_list $test_list $locale_list; do
-        n=`expr $n + 1`
-
-        # output one build per row, with components in columns
-        table_header="$table_header <th><div title=\"$c\">$n</div></th>"
-        output "      <li>$c</li>"
-    done
-fi
-
-output "    </ol>"
-output "    <hr>"
-
-if [ -s $locales_file ]; then
-    # if the list of locales non-empty sort it and weed out duplicates
-       sort $locales_file | uniq > $locales_file.2 \
-    && mv $locales_file.2 $locales_file
-fi
-
-if [ -s $examples_file ]; then
-    # if the list of examples is non-empty sort it and weed out duplicates
-       sort $examples_file | uniq > $examples_file.2 \
-    && mv $examples_file.2 $examples_file
-fi
-
-if [ -s $tests_file ]; then
-    # if list of tests file is non-empty sort it and weed out duplicates
-       sort $tests_file | uniq > $tests_file.2 \
-    && mv $tests_file.2 $tests_file
-fi
+# xcross-component script
+xcomp=$HOME/stdcxx/bin/xcomp.awk
 
 ######################################################################
 
-awkscript=$TMP/stdcxx-cross.$$.awk
-
-cat > $awkscript <<EOF
-BEGIN {
-    columns     = ""
-    compinx     = 0
-    count       = 0
-    max_asserts = 0
-    min_asserts = -1
-}
-\$0 ~ "^" name "  *[^-]" {
-
-    status = \$2
-
-    if (status == 0) {
-        if (comp == "example" || \$5 == 0) {
-            if (\$3 == 0) {
-                class = "OK"
-                value = "0"
-            }
-            else {
-                ++count;
-                ++nfailures [compinx]
-                class = "RUNWARN"
-                value = "(" \$3 ")"
-            }
-        }
-        else {
-            ++count
-            ++nfailures [compinx]
-
-            class   = "ASSERT"
-            # value = \$5 " / " \$4
-            value   = "(" \$5 ")"
-        }
-
-        if (comp == "test") {
-            asserts [n] = \$5
-
-            if (max_asserts < \$4) {
-                max_asserts = \$4
-            }
-
-            if (\$4 < min_asserts || min_asserts < 0) {
-                min_asserts = \$4
-            }
-        }
-    }
-    else if (0 < status && status < 256) {
-        ++count
-        ++nfailures [compinx]
-
-        class = "EXIT"
-        value = status
-    }
-    else if (status == "FORMAT" || status == "NOUT" || status == "OUTPUT") {
-        ++count
-
-        class = status
-        value = status
-    }
-    else if (status == "DIFF" || status == "COMP" || status == "LINK") {
-        ++count
-        ++nfailures [compinx]
-
-        class = status
-        value = status
-    }
-    else {
-        ++count
-        ++nfailures [compinx]
-
-        class = "SIGNAL"
-        value = status
-    }
-
-    columns = columns "\n        <td class=\"" class "\">" value "</td>"
-
-    ++compinx
-}
-
-function build_summary () {
-    if (verbose || count) {
-        print "      <tr>"
-        print "        <td class=\"rowno\">" n "</td>"
-        print "        <td class=\"name\"><a name=\"" name "\">" \
-                       name "</a></td>"
-
-        if (comp == "test") {
-            print "        <td class=\"number\">" max_asserts "</td>"
-        }
-
-        print columns;
-        print "      </tr>"
-    }
-
-    tmpfile = "$TMP/.stdcxx-failtotals.$$.txt"
-
-    if (count) {
-        getline < tmpfile
-        close(tmpfile)
-
-        ORS=" "
-        for (i = 0; i < compinx; ++i) {
-            print nfailures [i] + \$(i + 1) > tmpfile
-        }
-
-        ORS="\n"
-        print "" >> tmpfile
-        close(tmpfile)
-    }
-
-    if (FILENAME == "-") {
-
-        if (comp == "test") {
-            print "<td class=\"header\"></td>"
-        }
-
-        getline < tmpfile
-
-        for (i = 1; i < NF + 1; ++i) {
-            print "        <td class=\"header\">" \$(i) "</td>"
-        }
-
-        system("rm -f " tmpfile)
-    }
-}
-
-function component_summary () {
-    print columns;
-}
-
-END {
-    if (comp != "") {
-        build_summary()
-    }
-    else {
-        component_summary()
-    }
-}
-EOF
-
-######################################################################
-
-# process a list of components, one component per row
-process_components()
-{
-    component_name=$1
-    component_list=$2
-
-    if [ $component_name = "test" ]; then
-        column3="        <th><div title=\"maximum total assertions\">asserts</div></th>"
-    else
-        unset column3
-    fi
-
-    cat <<EOF | output
-    <h2>Results of ${component_name}s</h2>
-    <table>
-      <tr>
-        <th><div title="${component_name} number">###</div></th>
-        <th>
-          <a name="${component_name}s"></a>$component_name name
-        </th>
-        $column3
-        $table_header
-      </tr>
-EOF
-
-    n=0;
-    for c in $component_list; do
-
-        n=`expr $n + 1`
-
-          awk -f $awkscript \
-              n=$n name=$c verbose=$verbose comp=$component_name \
-              $textlogs \
-        | output
-
-    done
-    cat <<EOF | output
-      <tr>
-        <td class="rowno">$n</th>
-        <td class="header">
-          <div title="total number of ${component_name}s/failed number of ${component_name}s">total/failed</div>
-        </td>
-EOF
-
-    echo "" | awk -f $awkscript comp=$component_name | output
-
-    cat <<EOF | output
-      </tr>
-    </table>
-EOF
-}
-
-######################################################################
-
-# process a list of builds, one build per row
-process_builds()
-{
-    component_name=$1
-    component_list=$2
-
-    cat <<EOF | output
-    <h2>Results of ${component_name}s</h2>
-    <table>
-      <tr>
-        <th><a name="${component_name}s"></a>log</th>
-        $table_header
-      </tr>
-EOF
-
-    for l in $textlogs; do
-
-        fname=`basename $l .$$`
-        cat <<EOF | output
-      <tr>
-        <td class="name">
-            <a href="$logdir/$fname">$fname</a>
-        </td>
-EOF
-
-        for c in $component_list; do
-
-            line=`grep "^$c  *[^-]" $l`
-            if [ $? -eq 0 -a "$line" != "" ]; then
-                  echo $line \
-                | awk -f $awkscript component=$component_name \
-                      name=$c verbose=$verbose \
-                | output
-            else
-                output "        <td class=\"missing\">N/A</td>"
-            fi
-        done
-
-        output "      </tr>"
-    done
-    output "    </table>"
-}
-
-
-if [ $components_in_rows -ne 0 ]; then
-    process_components "example" "`cat $examples_file`"
-    process_components "test" "`cat $tests_file`"
-    process_components "locale" "`cat $locales_file`"
+# check to see 
+if [ -r $xfailfile ]; then
+    xfails=$xfailfile
 else
-    if [ "$examples_list" != "" ]; then
-        process_builds "example" "$examples_list"
-    fi
-
-    if [ "$test_list" != "" ]; then
-        process_builds "test" "$test_list"
-    fi
-
-    if [ "$locale_list" != "" ]; then
-        process_builds "locale" "$locale_list"
-    fi
+    xfails=""
 fi
 
+awk -f $xcomp bodyonly=1 logdir=$logdir $xfails $textlogs | output
 
 ######################################################################
 # output the rest of the HTML file
@@ -768,96 +955,154 @@ cat <<EOF | output
     <h2><a name="codes"></a>Codes and Colors</h2>
     <table>
       <thead>
+
         <tr>
-          <td class="header">Symbol</td>
-          <td class="header">Meaning</td>
+          <th colspan=4 class="header">Status</th>
+          <th rowspan=2 class="header">Meaning</th>
         </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td class="OK">OK</td>
-            <td class="na">
-              Component completed successfully and produced the expected
-              output.
-            </td>
-          </tr>
-          <tr>
-            <td class="NOUT">NOUT</td>
-            <td class="na">
-              Component completed successfully and produced no output.
-            </td>
-          </tr>
-          <tr>
-            <td class="BASE">BASE</td>
-            <td class="na">
-              Component completed successfully and matched the baseline.
-            </td>
-          </tr>
-          <tr>
-            <td class="missing">N/A</td>
-            <td class="na">Component was not tested.</td>
-          </tr>
-          <tr>
-            <td class="XDEP">XDEP</td>
-            <td class="na">
-                Component was not attempted due to a missing (or failed)
-                dependency.
-            </td>
-          </tr>
-          <tr>
-            <td class="COMP">COMP</td>
-            <td class="na">Component failed to compile.</td>
-          </tr>
-          <tr>
-            <td class="LINK">LINK</td>
-            <td class="na">
-                 Component compiled successfully but failed to link.
-            </td>
-          </tr>
-          <tr>
-            <td class="WARN">WARN</td>
-            <td class="na">
-               Component compiled and linked successfully but with warnings.
-            </td>
-          </tr>
-          <tr>
-            <td class="runwarn">(N)</td>
-            <td class="na">
-              Component compiled and linked successfully, exited with
-              a status of 0, but produced N warnings at runtime.
-            </td>
-          </tr>
-          <tr>
-            <td class="EXIT">N</td>
-            <td class="na">
-              Component compiled and linked successfully but exited with
-              a non-zero status of N.
-            </td>
-          </tr>
-          <tr>
-            <td class="DIFF">DIFF</td>
-            <td class="na">
-              Component compiled and linked successfully, exited with
-              a status of 0, but produced unexpected output.
-            </td>
-          </tr>
-          <tr>
-            <td class="SIGNAL">[SIG]&lt;name&gt;</td>
-            <td class="na">
-              Component compiled and linked successfully, but exited
-              with the named signal (for example, SIGABRT).
-            </td>
-          </tr>
-          <tr>
-            <td class="assert">(N)</td>
-            <td class="na">
-              Component compiled and linked successfully, exited with
-              a status of 0, but failed Nassertions at runtime.
-            </td>
-          </tr>
+        <tr>
+          <th class="header" title="Unexpected success or ordinary failure">
+            Unexpected
+          </th>
+          <th class="header">Severity</th>
+          <th class="header" title="Ordinary success or expected failure">
+            Expected
+          </th>
+          <th class="header">Severity</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr>
+          <td class="XPASS">XPASS</td>
+          <td class="na">Success</td>
+          <td class="OK">OK</td>
+          <td class="na">Success</td>
+          <td class="na">
+            Component completed successfully and produced the expected
+            output.
+          </td>
+        </tr>
+        <tr>
+          <td colspan=2 class="na"><center>Not Applicable</center></td>
+          <td class="NOUT">NOUT</td>
+          <td class="na">Success</td>
+          <td class="na">
+            Component completed successfully and produced no output.
+          </td>
+        </tr>
+        <tr>
+          <td colspan=2 class="na"><center>Not Applicable</center></td>
+          <td class="BASE">BASE</td>
+          <td class="na">Success</td>
+          <td class="na">
+            Component completed successfully and matched the baseline.
+          </td>
+        </tr>
+        <tr>
+          <td colspan=2 class="na"><center>Not Applicable</center></td>
+          <td class="FORMAT">FORMAT</td>
+          <td class="na">Success</td>
+          <td class="na">
+             Component completed successfully but produced unexpected
+             output.
+          </td>
+        </tr>
+        <tr>
+          <td class="MISS">N/A</td>
+          <td class="na">Success</td>
+          <td colspan=2 class="na"><center>Not Applicable</center></td>
+          <td class="na">Component was not tested.</td>
+        </tr>
+        <tr>
+          <td class="XDEP">XDEP</td>
+          <td class="na">Failure</td>
+          <td colspan=2 class="na"><center>Not Applicable</center></td>
+          <td class="na">
+              Component was not attempted due to a missing (or failed)
+              dependency.
+          </td>
+        </tr>
+        <tr>
+          <td class="COMP">COMP</td>
+          <td class="na">Failure</td>
+          <td class="XCOMP">XCOMP</td>
+          <td class="na">Success</td>
+          <td class="na">Component failed to compile.</td>
+        </tr>
+        <tr>
+          <td class="LINK">LINK</td>
+          <td class="na">Failure</td>
+          <td class="XLINK">XLINK</td>
+          <td class="na">Success</td>
+          <td class="na">
+               Component compiled successfully but failed to link.
+          </td>
+        </tr>
+        <tr>
+          <td class="WARN">WARN</td>
+          <td class="na">Success</td>
+          <td class="XWARN">XWARN</td>
+          <td class="na">Success</td>
+          <td class="na">
+             Component compiled and linked successfully but with warnings.
+          </td>
+        </tr>
+        <tr>
+          <td class="RUNWARN">(N)</td>
+          <td class="na">Success</td>
+          <td class="XRUNWARN">(N)</td>
+          <td class="na">Success</td>
+          <td class="na">
+
+            Component compiled and linked successfully, exited with
+            a status of 0, but produced N warnings at runtime.
+          </td>
+        </tr>
+        <tr>
+
+          <td class="EXIT">N</td> 
+          <td class="na">Failure</td>
+          <td class="XEXIT">N</td>
+          <td class="na">Success</td>
+          <td class="na">
+            Component compiled and linked successfully but exited with
+            a non-zero status of N.
+          </td>
+        </tr>
+        <tr>
+          <td class="DIFF">DIFF</td>
+          <td class="na">Failure</td>
+          <td class="XDIFF">XDIFF</td>
+          <td class="na">Success</td>
+          <td class="na">
+            Component compiled and linked successfully, exited with
+            a status of 0, but produced unexpected output.
+          </td>
+        </tr>
+        <tr>
+          <td class="SIGNAL">[SIG]&lt;name&gt;</td>
+          <td class="na">Failure</td>
+          <td class="XSIGNAL">X[SIG]&lt;name&gt;</td>
+          <td class="na">Success</td>
+          <td class="na">
+            Component compiled and linked successfully, but exited
+            with the named signal (for example, SIGABRT).
+          </td>
+        </tr>
+        <tr>
+          <td class="ASSERT">(N)</td>
+          <td class="na">Failure</td>
+          <td class="XASSERT">(N)</td>
+          <td class="na">Success</td>
+          <td class="na">
+            Component compiled and linked successfully, exited with
+            a status of 0, but failed N assertions at runtime.
+          </td>
+        </tr>
       </tbody>
     </table>
-    
+   
     <h2><a name="buildtypes"></a>Build Types</h2>
 
     <table>
@@ -973,9 +1218,10 @@ EOF
 
 if [ -z $no_clean ]; then
     # clean up
-    rm $awkscript $examples_file $tests_file $locales_file
 
-    for l in $textlogs; do
-        rm $l
-    done
+    if [ $verbose -eq 1 ]; then
+        echo "$myname: rm $textlogs $timings_file"
+    fi
+
+    rm -f $textlogs $timings_file
 fi
