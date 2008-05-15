@@ -86,6 +86,12 @@ fi
 # set program name (used in diagnostic messages)
 readonly myname=`basename $0`
 
+# the directory where the script is located to get a hold of other
+# files at locations relative to this one (assumes the script resides
+# within the stdcxx source tree)
+readonly mydir=`dirname $0`
+readonly rootdir=$mydir/..
+
 readonly today=`LC_ALL="C" date`
 
 # URL to the ViewVC directory
@@ -98,7 +104,10 @@ readonly revurl="$viewvc?view=rev&rev"
 readonly svnpath="$viewvc/stdcxx/trunk"
 
 # expected failures
-readonly xfailfile=$HOME/stdcxx/etc/config/xfail.txt
+readonly xfailfile=$rootdir/etc/config/xfail.txt
+
+# xcross-component awk script
+readonly xcomp=$mydir/xcomp.awk
 
 ######################################################################
 # global variables
@@ -931,11 +940,6 @@ done
 
 ######################################################################
 
-# xcross-component script
-xcomp=$HOME/stdcxx/bin/xcomp.awk
-
-######################################################################
-
 # check to see 
 if [ -r $xfailfile ]; then
     xfails=$xfailfile
@@ -943,7 +947,7 @@ else
     xfails=""
 fi
 
-awk -f $xcomp bodyonly=1 logdir=$logdir $xfails $textlogs | output
+$xcomp bodyonly=1 logdir=$logdir $xfails $textlogs | output
 
 ######################################################################
 # output the rest of the HTML file
