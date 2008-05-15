@@ -1777,7 +1777,7 @@ function get_gzlogfname(fname)
     # replace the trailing .txt suffix with .gz.txt
     sub("\\.txt$", ".gz.txt", fref)
 
-    return logdir "/" fref
+    return "logs/" fref
 }
 
 
