@@ -179,7 +179,7 @@ static wchar_t utf8_decode (const char* from, const char* to)
     const unsigned char* const ch_end =
         _RWSTD_REINTERPRET_CAST (const unsigned char*, to);
 
-    size_t num_bytes;
+    size_t num_bytes = 0;
 
     wchar_t ret = 0;
 
@@ -649,7 +649,7 @@ convert_sym_to_ucs (const std::string &sym) const
                     sym.c_str ());
     }
 
-    const unsigned long val = std::strtoul (&*++it, (char**)0, 16);
+    const unsigned long val = std::strtoul (&*it, (char**)0, 16);
 
     if (_RWSTD_WCHAR_MAX <= val)
         issue_diag (E_UCS, true, 0, 
@@ -690,18 +690,24 @@ bool Charmap::convert_to_ucs (const std::string &sym_name,
 
     if (0 != codepage_) {
         wchar_t ret[2] = {0};
-        MultiByteToWideChar (codepage_, 0, encoding.c_str(), -1, ret, 2);
-        if (ret[1] != 0)
+        const int res = MultiByteToWideChar (codepage_, 0,
+                                             encoding.c_str(), -1,
+                                             ret, 2);
+        if (!res && ERROR_INVALID_PARAMETER == GetLastError ()) {
+            // the required codepage conversion table is not installed
+            wc = convert_sym_to_ucs (sym_name);
+            return true;
+        }
+
+        if (!res || ret[1] != 0)
             return false;
 
         wc = ret[0];
         return true;
-    } else {
-        wc = convert_sym_to_ucs (sym_name);
-        return true;
     }
 
-    return false;
+    wc = convert_sym_to_ucs (sym_name);
+    return true;
 
 #endif  // _MSC_VER
 }
