@@ -334,7 +334,7 @@ function CreateProjectsDefs(copyDll, buildLocales, testLocales)
         " /PRJDIR:\"" + runtestsDef.VCProjDir + "\"" +
         " /CONFIG:\"%SOLUTION%\"" +
         " /LOGFILE:\"runtests.log\"" +
-        " /RUNFLAGS:\"--compat -x \'--compat -O -\' -t " + EXEC_TIMEOUT + "\"";
+        " /RUNFLAGS:\"--compat -x \'--no-popups --compat -O -\' -t " + EXEC_TIMEOUT + "\"";
     runtestsDef.CustomBuildOut = "$(OutDir)\\runtests.log";
     runtestsDef.CustomBuildDeps = "%FILES%";
     //runtestsDef.PrjDeps.push(alltestsDef);

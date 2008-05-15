@@ -243,6 +243,9 @@ function check_locale_m()
 
         var line = aout[i].replace("\r", "").replace("\n", "");
         
+        if (0 == line.length)
+            continue;
+
         if (0 > line.search(new RegExp(".cm")))
         {
             DebugOutLine(" incorrect.");
