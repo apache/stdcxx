@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: genxviews 601595 2007-12-06 01:33:50Z sebor $
+# $Id$
 #
 ########################################################################
 #
@@ -113,7 +113,7 @@ myrev=${myrev#'$Revision: '}   # strip leading text
 myrev=${myrev%' $'}            # strip trailing text
 
 # form the URL to this version of the script in the repository
-myurl='$HeadURL: http://svn.apache.org/repos/asf/stdcxx/trunk/bin/genxviews $'
+myurl='$HeadURL$'
 myurl=${myurl#'$HeadURL: '}   # strip leading text
 myurl=${myurl##*asf/}         # strip svn prefix
 myurl=${myurl%' $'}           # strip trailing text
