@@ -122,7 +122,7 @@ verbose=0
 title="Multi-platform Test Result View"
 
 # script's revision number
-myrev='$Revision: 656706 $'
+myrev='$Revision$'
 myrev=${myrev#'$Revision: '}
 myrev=${myrev%' $'}
 
