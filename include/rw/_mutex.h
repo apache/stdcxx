@@ -156,7 +156,12 @@ _RWSTD_NAMESPACE (__rw) {
 // fake critical section type
 union __rw_critical_section {
     long _C_pad;   // force alignment
+
+#    ifndef _WIN64
     char _C_buf [24 /* == sizeof (_RTL_CRITICAL_SECTION) */];
+#    else    // #ifdef _WIN64
+    char _C_buf [40 /* == sizeof (_RTL_CRITICAL_SECTION) */];
+#    endif   // _WIN64
 };
 
 #    define _RWSTD_MUTEX_T _RW::__rw_critical_section
