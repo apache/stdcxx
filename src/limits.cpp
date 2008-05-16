@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -31,12 +31,17 @@
 #include <rw/_defs.h>  
                        
 // define generic template and specializations
-#include <limits>
+// use the quoted form of the #include directive to fool Sun C++
+// otherwise the compiler fails to #include the header twice,
+// most likely because it makes assumptions about headers with
+// (C++) standard names
+#include "limits"
 
 #if _MSC_VER != 1300   // working around an MSVC 7.0 bug (PR #26562)
 #  undef _RWSTD_LIMITS_INCLUDED
 #  define _RWSTD_DEFINE_EXPORTS
 
    // define static data members of specializations
-#  include <limits>
+   // again, use the quoted form of the #include directive
+#  include "limits"
 #endif   // MSVC != 7.0
