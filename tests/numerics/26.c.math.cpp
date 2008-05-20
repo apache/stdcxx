@@ -160,6 +160,9 @@ test_behavior ()
         char buf [sizeof (long double) * 2];
     } u;
 
+#undef SIZE
+#define SIZE(x) _RWSTD_STATIC_CAST(unsigned, sizeof x)
+
 #if !defined (__SUNPRO_CC) || __SUNPRO_CC > 0x530
 
     // make sure functions do not overflow buffer
@@ -168,8 +171,8 @@ test_behavior ()
     const float f = std::modf (3.141592f, &u.f);
 
     rw_assert (   3000 == int (u.f * 1000) && 141592 == int (f * 1000000)
-               && check_bits (u.buf + sizeof u.f, sizeof u - sizeof u.f),
-               0, __LINE__, "float std::modf (float)");
+               && check_bits (u.buf + SIZE (u.f), SIZE (u) - SIZE (u.f)),
+               __FILE__, __LINE__, "float std::modf (float)");
 
 #endif   // SunPro > 5.3
 
@@ -177,8 +180,8 @@ test_behavior ()
     const double d = std::modf (3.1415926, &u.d);
 
     rw_assert (   3000 == int (u.d * 1000) && 1415926 == int (d * 10000000)
-               && check_bits (u.buf + sizeof u.d, sizeof u - sizeof u.d),
-               0, __LINE__, "double std::modf (double)");
+               && check_bits (u.buf + SIZE (u.d), SIZE (u) - SIZE (u.d)),
+               __FILE__, __LINE__, "double std::modf (double)");
 
 #ifndef _RWSTD_NO_LONG_DOUBLE
 
@@ -188,13 +191,14 @@ test_behavior ()
     const long double l = std::modf (3.1415926L, &u.l);
 
     rw_assert (   3000 == int (u.l * 1000) && 1415926 == int (l * 10000000)
-               && check_bits (u.buf + sizeof u.l, sizeof u - sizeof u.l),
-               0, __LINE__, "long double std::modf (long double)");
+               && check_bits (u.buf + SIZE (u.l), SIZE (u) - SIZE (u.l)),
+               __FILE__, __LINE__, "long double std::modf (long double)");
 
 #  endif   // SunPro > 5.3
 
 #endif   // _RWSTD_NO_LONG_DOUBLE
 
+#undef SIZE
 
     // check overloads of std::pow()
     for (int i = -10; i != 10; ++i) {
