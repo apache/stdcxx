@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -46,6 +46,16 @@
 
 
 #define TARGS_C   <char, _RWSTD_ISTREAMBUF_ITER (char) >
+
+
+#if 6 == _RWSTD_HP_aCC_MAJOR
+   // silence the useless HP aCC 6 remark 4244: extern storage class
+   // used with a function definition on the "extern _RWSTD_EXPORT"
+   // macro argument below where the redundant "extern" is there to
+   // silence HP aCC 3 Warning (suggestion) 933: Null macro argument #1
+#  pragma diag_suppress 4244
+#endif   // aCC 6
+
 
 _RWSTD_SPECIALIZE_FACET_ID (num_get, TARGS_C);
 _RWSTD_DEFINE_FACET_FACTORY (extern _RWSTD_EXPORT, num_get, TARGS_C, num_get);
