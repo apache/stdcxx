@@ -199,6 +199,9 @@ thread_func (void*)
 
     for (int i = 0; i < opt_nloops; ++i) {
 
+        if (rw_thread_pool_timeout_expired ())
+            break;
+
         const MyMessageData& data = my_message_data [i % nlocales];
 
         // construct a named locale, get a reference to the money_get
@@ -412,7 +415,7 @@ run_test (int, char**)
 
     int result = 
         rw_thread_pool (0, std::size_t (opt_nthreads), 0,
-                        thread_func, 0, opt_timeout);
+                        thread_func, 0, std::size_t (opt_timeout));
 
     rw_error (result == 0, 0, __LINE__,
               "rw_thread_pool(0, %d, 0, %{#f}, 0) failed",
@@ -429,7 +432,7 @@ run_test (int, char**)
 
     result = 
         rw_thread_pool (0, std::size_t (opt_nthreads), 0,
-                        thread_func, 0, opt_timeout);
+                        thread_func, 0, std::size_t (opt_timeout));
 
     rw_error (result == 0, 0, __LINE__,
               "rw_thread_pool(0, %d, 0, %{#f}, 0) failed",
@@ -445,7 +448,7 @@ run_test (int, char**)
 
     result = 
         rw_thread_pool (0, std::size_t (opt_nthreads), 0,
-                        thread_func, 0, opt_timeout);
+                        thread_func, 0, std::size_t (opt_timeout));
 
     rw_error (result == 0, 0, __LINE__,
               "rw_thread_pool(0, %d, 0, %{#f}, 0) failed",

@@ -520,7 +520,7 @@ run_test (int, char**)
 
         // create and start a pool of threads and wait for them to finish
         result = rw_thread_pool (0, std::size_t (opt_nthreads), 0,
-                                 test_has_facet, 0, opt_timeout);
+                                 test_has_facet, 0, std::size_t (opt_timeout));
 
         rw_error (result == 0, 0, __LINE__,
                   "rw_thread_pool(0, %d, 0, %{#f}, 0) failed",
@@ -564,7 +564,7 @@ run_test (int, char**)
 
         // create and start a pool of threads and wait for them to finish
         result = rw_thread_pool (0, std::size_t (opt_nthreads), 0,
-                                 test_use_facet, 0, opt_timeout);
+                                 test_use_facet, 0, std::size_t (opt_timeout));
 
         rw_error (result == 0, 0, __LINE__,
                   "rw_thread_pool(0, %d, 0, %{#f}, 0) failed",

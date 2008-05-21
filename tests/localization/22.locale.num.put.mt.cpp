@@ -401,7 +401,7 @@ run_test (int, char**)
     // create and start a pool of threads and wait for them to finish
     int result =
         rw_thread_pool (0, std::size_t (opt_nthreads), 0,
-                        thread_func, 0, opt_timeout);
+                        thread_func, 0, std::size_t (opt_timeout));
 
     rw_error (result == 0, 0, __LINE__,
               "rw_thread_pool(0, %d, 0, %{#f}, 0) failed",
@@ -417,7 +417,7 @@ run_test (int, char**)
     // start a pool of threads to exercise wstring thread safety
     result =
         rw_thread_pool (0, std::size_t (opt_nthreads), 0,
-                        thread_func, 0, opt_timeout);
+                        thread_func, 0, std::size_t (opt_timeout));
 
     rw_error (result == 0, 0, __LINE__,
               "rw_thread_pool(0, %d, 0, %{#f}, 0) failed",
@@ -435,7 +435,7 @@ run_test (int, char**)
     // start a pool of threads to exercise wstring thread safety
     result =
         rw_thread_pool (0, std::size_t (opt_nthreads), 0,
-                        thread_func, 0, opt_timeout);
+                        thread_func, 0, std::size_t (opt_timeout));
 
     rw_error (result == 0, 0, __LINE__,
               "rw_thread_pool(0, %d, 0, %{#f}, 0) failed",
