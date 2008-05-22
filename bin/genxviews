@@ -265,14 +265,9 @@ EOF
         done
     done
 
-    echo $outdir/$xfile >&2
-
     if [ -e $outdir/$xfile ]; then
         # count the number of logs that are newer than the cross-build file
         newlogs=`find $logdir/ -name "$alllogs" -newer $outdir/$xfile | wc -l`
-
-        echo "find $logdir/ -name $alllogs -newer $outdir/$xfile | wc -l" >&2
-        find $logdir/ -name $alllogs -newer $outdir/$xfile >&2
     else
         # cross-build file doesn't exist yet, all logs are considered new
         newlogs=$count
