@@ -1204,7 +1204,7 @@ _rw_fmtstringv (char **pbuf, size_t *pbufsize, const char *fmt, va_list va)
     else if (isdigit (UChar (*fmt))) {
         // process positional parameter or width
         char* end = 0;
-        const int arg = strtol (fmt, &end, 10);
+        const int arg = int (strtol (fmt, &end, 10));
         if ('$' == *end)
             paramno = arg;
         else

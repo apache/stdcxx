@@ -163,7 +163,7 @@ gen_wchar_tables (codecvt_offsets_map_t &tab,
 
             off_map->insert (std::make_pair (it->first, off));
 
-            off += it->first.size () + 1;
+            off += unsigned (it->first.size ()) + 1;
 
             std::string utf = utf8_encode (it->second);
 
@@ -337,7 +337,7 @@ gen_xlit_data ()
         std::list<std::string>::const_iterator sit = 
             it->second.begin ();
         for (; sit != it->second.end (); ++sit) {
-            data_offset += sit->size () + 1;
+            data_offset += unsigned (sit->size ()) + 1;
         }
         ++data_offset;
     }
@@ -401,7 +401,7 @@ gen_xlit_data ()
                     table.offset_table [i] = UINT_MAX;
 
                 // insert it into the map
-                unsigned int tmp = xlit_table_map_.size ();
+                unsigned int tmp = unsigned (xlit_table_map_.size ());
                 xlit_table_map_.insert (std::make_pair(tmp, table));
                 
                 // store its index at correct position in current table
@@ -468,29 +468,31 @@ write_codecvt (std::string dir_name)
     _RW::__rw_codecvt_t codecvt_out;
     std::memset (&codecvt_out, 0, sizeof codecvt_out);
 
+#define UINT(x) _RWSTD_STATIC_CAST(unsigned, x)
+
     // calculate byte offsets within the structure
     codecvt_out.n_to_w_tab_off = 0;
-    codecvt_out.w_to_n_tab_off = codecvt_out.n_to_w_tab_off
-        + mbchar_offs.size () * (UCHAR_MAX + 1) * sizeof (unsigned);
+    codecvt_out.w_to_n_tab_off = UINT (codecvt_out.n_to_w_tab_off
+        + mbchar_offs.size () * (UCHAR_MAX + 1) * sizeof (unsigned));
 
-    codecvt_out.utf8_to_ext_tab_off = codecvt_out.w_to_n_tab_off
-        + wchar_offs.size () * (UCHAR_MAX + 1) * sizeof (unsigned);
+    codecvt_out.utf8_to_ext_tab_off = UINT (codecvt_out.w_to_n_tab_off
+        + wchar_offs.size () * (UCHAR_MAX + 1) * sizeof (unsigned));
 
     // insert the transliteration tables here
-    codecvt_out.xliteration_off = codecvt_out.utf8_to_ext_tab_off
-        + uchar_offs.size () * (UCHAR_MAX + 1) * sizeof (unsigned);
+    codecvt_out.xliteration_off = UINT (codecvt_out.utf8_to_ext_tab_off
+        + uchar_offs.size () * (UCHAR_MAX + 1) * sizeof (unsigned));
 
-    codecvt_out.wchar_off = codecvt_out.xliteration_off
-        + xlit_table_map_.size () * (UCHAR_MAX + 1) * sizeof (unsigned);
+    codecvt_out.wchar_off = UINT (codecvt_out.xliteration_off
+        + xlit_table_map_.size () * (UCHAR_MAX + 1) * sizeof (unsigned));
 
-    codecvt_out.codeset_off = codecvt_out.wchar_off
-        + charmap_.get_mb_cmap ().size () * 2 * sizeof (wchar_t);
+    codecvt_out.codeset_off = UINT (codecvt_out.wchar_off
+        + charmap_.get_mb_cmap ().size () * 2 * sizeof (wchar_t));
 
-    codecvt_out.charmap_off = codecvt_out.codeset_off
-        + charmap_.get_code_set_name ().size () + 1 /* NUL */;
+    codecvt_out.charmap_off = UINT (codecvt_out.codeset_off
+        + charmap_.get_code_set_name ().size () + 1 /* NUL */);
             
-    const std::size_t mb_offset = codecvt_out.charmap_off
-        + charmap_.get_charmap_name ().size () + 1 /* NUL */;
+    const std::size_t mb_offset = UINT (codecvt_out.charmap_off
+        + charmap_.get_charmap_name ().size () + 1 /* NUL */);
 
     // compute the size of narrow strings map which added to 
     // mb_offset will give the start of the transliteration data
@@ -514,7 +516,7 @@ write_codecvt (std::string dir_name)
             if (xit->second.offset_table [i] & 0x80000000)
                 continue;
             // add the offset for xliteration data 
-            xit->second.offset_table [i] += xlit_data_offset;
+            xit->second.offset_table [i] += UINT (xlit_data_offset);
         }
     }
 
@@ -565,7 +567,7 @@ write_codecvt (std::string dir_name)
             unsigned off = it->second->off [i];
 
             if (!(off & 0x80000000))
-                off += mb_offset;
+                off += UINT (mb_offset);
 
             out.write ((const char*)&off, sizeof off);
         }
@@ -590,7 +592,7 @@ write_codecvt (std::string dir_name)
             unsigned off = it->second->off [i];
 
             if (!(off & 0x80000000))
-                off += mb_offset;
+                off += UINT (mb_offset);
 
             out.write ((const char*)&off, sizeof off);
         }

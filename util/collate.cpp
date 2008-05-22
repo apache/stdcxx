@@ -75,7 +75,7 @@ void Def::process_weights (collate_entry_t& entry)
 
     Weights_t* weights = new Weights_t[collate_out_.num_weights];
 
-    std::size_t i = 0;
+    int i = 0;
     for (i = 0; i < collate_out_.num_weights && w_it != entry.second.end (); 
          ++i, ++w_it){
         get_weight (*w_it, weights, i);
@@ -1179,7 +1179,8 @@ void Def::write_collate (std::string dir_name)
             // check to see of the largest_ce needs to be changed
             if (ce_mit->second.ce_wstr.size() + 1 
                 > collate_out_.largest_ce)
-                collate_out_.largest_ce = ce_mit->second.ce_wstr.size();
+                collate_out_.largest_ce =
+                    unsigned (ce_mit->second.ce_wstr.size());
             
             ce_strs.insert (it->first);
         }
@@ -1204,12 +1205,10 @@ void Def::write_collate (std::string dir_name)
     std::ofstream out (dir_name.c_str(), std::ios::binary);
     out.exceptions (std::ios::failbit | std::ios::badbit);
 
-    unsigned int i;
-
     // calculate the size of an individual weight element
     collate_out_.elm_size = collate_out_.num_weights 
-        * collate_out_.longest_weight * sizeof (unsigned int) + 
-        sizeof (unsigned int);
+        * collate_out_.longest_weight * unsigned (sizeof (unsigned int)) + 
+        unsigned (sizeof (unsigned int));
 
     // the first section of the collate database is the collating
     // element information
@@ -1219,7 +1218,8 @@ void Def::write_collate (std::string dir_name)
     for (n_ce_offs_it = n_ce_offs_.begin(); 
          n_ce_offs_it != n_ce_offs_.end (); ++n_ce_offs_it) {
         collate_out_.w_ce_tab_off += (n_ce_offs_it->second.last_offset 
-                                      - n_ce_offs_it->second.first_offset + 1)* sizeof (int);
+                                      - n_ce_offs_it->second.first_offset + 1)
+                                     * unsigned (sizeof (int));
     }
 
     // next comes the weight information
@@ -1228,12 +1228,13 @@ void Def::write_collate (std::string dir_name)
     for (w_ce_offs_it = w_ce_offs_.begin(); 
          w_ce_offs_it != w_ce_offs_.end(); ++w_ce_offs_it) {
         collate_out_.weight_tab_off += (w_ce_offs_it->second.last_offset 
-                                        - w_ce_offs_it->second.first_offset + 1)* sizeof (int);
+                                        - w_ce_offs_it->second.first_offset + 1)
+                                       * unsigned (sizeof (int));
     }
 
     coll_map_iter coll_map_pos;
 
-    collate_out_.num_elms = off_mapr_.size();
+    collate_out_.num_elms = unsigned (off_mapr_.size());
     if (collate_out_.undefined_optimization)
         ++collate_out_.num_elms;
 
@@ -1249,7 +1250,7 @@ void Def::write_collate (std::string dir_name)
          char_offs_it != char_offs_.end(); ++char_offs_it) {
         char_offs_size += (UCHAR_MAX + 1 
                            - char_offs_it->second.first_offset)
-            * sizeof (unsigned int);
+            * unsigned (sizeof (unsigned int));
     }
         
     collate_out_.w_char_tab_off = collate_out_.n_char_tab_off
@@ -1263,7 +1264,7 @@ void Def::write_collate (std::string dir_name)
          w_to_n_coll_it != w_to_n_coll_.end(); ++w_to_n_coll_it) {
         w_to_n_size += (UCHAR_MAX + 1 
                         - w_to_n_coll_it->second.first_offset)
-            * sizeof (unsigned int);
+            * unsigned (sizeof (unsigned int));
     }
 
     collate_out_.n_char_off_tab_off = collate_out_.w_char_tab_off
@@ -1271,53 +1272,54 @@ void Def::write_collate (std::string dir_name)
 
     // now calculate the offset for the wide character offset table
     collate_out_.w_char_off_tab_off = collate_out_.n_char_off_tab_off
-        + char_offs_.size() * sizeof (unsigned int);
+        + unsigned (char_offs_.size() * sizeof (unsigned int));
 
     // calculate the offset for the narrow collating element offset table
     collate_out_.n_ce_off_tab_off = collate_out_.w_char_off_tab_off
-        + w_to_n_coll_.size() * sizeof (unsigned int);
+        + unsigned (w_to_n_coll_.size() * sizeof (unsigned int));
 
     // calculate the offset for the wide collating element offset table
     collate_out_.w_ce_off_tab_off = collate_out_.n_ce_off_tab_off
-        + n_ce_offs_.size() * sizeof (unsigned int);
+        + unsigned (n_ce_offs_.size() * sizeof (unsigned int));
 
     // now calculate the offset of the first character information
     collate_out_.n_char_first_char_off = collate_out_.w_ce_off_tab_off
-        + w_ce_offs_.size() * sizeof (unsigned int);
+        + unsigned (w_ce_offs_.size() * sizeof (unsigned int));
         
     // now calculate the offset of the wide table first char info
     collate_out_.w_char_first_char_off = collate_out_.n_char_first_char_off
-        + char_offs_.size() * sizeof (unsigned char);
+        + unsigned (char_offs_.size() * sizeof (unsigned char));
         
     // now calculate the offset of the narrow ce first character info
     collate_out_.n_ce_first_char_off = collate_out_.w_char_first_char_off
-        + w_to_n_coll_.size() * sizeof (unsigned char);
+        + unsigned (w_to_n_coll_.size() * sizeof (unsigned char));
 
     // now calculate the offset of the wide ce first character info
     collate_out_.w_ce_first_char_off = collate_out_.n_ce_first_char_off
-        + n_ce_offs_.size() * sizeof (unsigned char);
+        + unsigned (n_ce_offs_.size() * sizeof (unsigned char));
 
     // now calculate the offset of the narrow ce last character info
     collate_out_.n_ce_last_char_off = collate_out_.w_ce_first_char_off
-        + w_ce_offs_.size() * sizeof (unsigned char);
+        + unsigned (w_ce_offs_.size() * sizeof (unsigned char));
 
     // now calculate the offset of the wide ce last character info
     collate_out_.w_ce_last_char_off = collate_out_.n_ce_last_char_off
-        + n_ce_offs_.size() * sizeof (unsigned char);
+        + unsigned (n_ce_offs_.size() * sizeof (unsigned char));
 
     // now calculate the offset of the codeset name
     collate_out_.codeset_off = collate_out_.w_ce_last_char_off
-        + w_ce_offs_.size() * sizeof (unsigned char);
+        + unsigned (w_ce_offs_.size() * sizeof (unsigned char));
 
     // finally calculate the offset of the charmap name
     collate_out_.charmap_off = collate_out_.codeset_off 
-        + charmap_.get_code_set_name().size() + 1;
+        + unsigned (charmap_.get_code_set_name().size()) + 1;
         
 
 
     // print out the collate struct
     out.write ((char*)&collate_out_, sizeof(collate_out_));
 
+    unsigned int i;
     for (n_ce_offs_it = n_ce_offs_.begin(); 
          n_ce_offs_it != n_ce_offs_.end(); ++n_ce_offs_it) {
         for (i = (unsigned int)n_ce_offs_it->second.first_offset; 
@@ -2096,14 +2098,14 @@ bool Def::get_weight ( token_t&     w,
 
         while (weight_num < collate_out_.num_weights) {
 
-            std::size_t c;
+            unsigned c;
 
             for (c = 0; *next_val && (!next_wt || next_val < next_wt); ++c) {
 
                 const char* end = 0;
 
                 weights [weight_num].weight [c] =
-                    scanner_.convert_escape (next_val, &end, true);
+                    unsigned (scanner_.convert_escape (next_val, &end, true));
 
                 assert (0 != end);
 
@@ -2196,7 +2198,7 @@ bool Def::get_weight ( token_t&     w,
                 const char*       end = 0;
 
                 weights [weight_num].weight [k++] =
-                    scanner_.convert_escape (beg, &end, true);
+                    unsigned (scanner_.convert_escape (beg, &end, true));
 
                 assert (0 != end);
 

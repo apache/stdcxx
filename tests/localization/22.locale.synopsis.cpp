@@ -527,7 +527,7 @@ test_locale ()
 
         bool success = true;
 
-        for (unsigned i = pcat - cats + 1; i < sizeof cats / sizeof *cats; ++i)
+        for (std::size_t i = pcat - cats + 1; i < sizeof cats / sizeof *cats; ++i)
             if (   *pcat != std::locale::all
                 && cats [i] != std::locale::all
                 && (*pcat & cats [i]))

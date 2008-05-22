@@ -845,18 +845,18 @@ write_ctype (std::string dir_name)
         
         // calculate the offsets for the wchar_t arrays
         ctype_out_.wtoupper_off = 0;
-        ctype_out_.wtolower_off = ctype_out_.wtoupper_off 
-            + upper_.size() * sizeof (_RW::__rw_upper_elm);
-        ctype_out_.wmask_off = ctype_out_.wtolower_off
-            + lower_.size() * sizeof (_RW::__rw_lower_elm);
-        ctype_out_.wmask_s = mask_.size();
+        ctype_out_.wtolower_off = unsigned (ctype_out_.wtoupper_off 
+            + upper_.size() * sizeof (_RW::__rw_upper_elm));
+        ctype_out_.wmask_off = unsigned (ctype_out_.wtolower_off
+            + lower_.size() * sizeof (_RW::__rw_lower_elm));
+        ctype_out_.wmask_s = unsigned (mask_.size());
 
         // calculate the offsets for the codeset name string and character
         // map name string
-        ctype_out_.codeset_off = ctype_out_.wmask_off
-            + mask_.size() * sizeof (_RW::__rw_mask_elm);
-        ctype_out_.charmap_off = ctype_out_.codeset_off 
-            + charmap_.get_code_set_name().size() + 1;
+        ctype_out_.codeset_off = unsigned (ctype_out_.wmask_off
+            + mask_.size() * sizeof (_RW::__rw_mask_elm));
+        ctype_out_.charmap_off = unsigned (ctype_out_.codeset_off 
+            + charmap_.get_code_set_name().size() + 1);
        
         ctype_out_.mb_cur_max = charmap_.get_mb_cur_max();
         std::size_t i;

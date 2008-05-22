@@ -186,7 +186,7 @@ void test_generate_n (std::size_t            N,
         const ForwardIterator begin =
             make_iter (buf, buf, buf_end, gen_iter);
 
-        const Size n (i, 0);
+        const Size n (int (i), 0);
         const Generator<T> gen (0, 0);
 
         // store the value of the next element

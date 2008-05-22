@@ -467,7 +467,7 @@ __rw_itoa (char *buf, unsigned long i, unsigned flags)
         j = 0;
 
     do {
-        const unsigned dig = (i >> (j * bits)) & basemask;
+        const unsigned dig = unsigned (i >> (j * bits)) & basemask);
 
         _RWSTD_ASSERT (dig <= basemask);
 

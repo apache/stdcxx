@@ -44,7 +44,7 @@ _TEST_EXPORT void
 rw_seed32 (_RWSTD_UINT32_T seed)
 {
     if (0xffffffffUL == seed)
-        seed = clock ();
+        seed = unsigned (clock ());
 
     table32 [TABLE_SIZE - 1] = seed;
 

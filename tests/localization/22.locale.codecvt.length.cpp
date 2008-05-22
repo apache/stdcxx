@@ -510,7 +510,7 @@ test_wcodecvt_byname_libc_based ()
 #undef TEST
 #define TEST(from, nc, maxi, res)                       \
     test_length (wchar_t (), __LINE__, 0, cvt_libc,     \
-                 from, std::size_t (nc), std::size_t (maxi), res)
+                 from, std::size_t (nc), maxi, res)
 
     TEST (0,      0, 0, 0);
     TEST ("",     0, 0, 0);

@@ -159,8 +159,8 @@ void exception_loop (int              line /* line number in caller*/,
         _RWSTD_ASSERT (n_copy);
         _RWSTD_ASSERT (n_asgn);
 
-        *n_copy = UserClass::n_total_copy_ctor_;
-        *n_asgn = UserClass::n_total_op_assign_;
+        *n_copy = int (UserClass::n_total_copy_ctor_);
+        *n_asgn = int (UserClass::n_total_op_assign_);
 
 #ifndef _RWSTD_NO_EXCEPTIONS
 
@@ -282,8 +282,8 @@ void exception_loop (int              line /* line number in caller*/,
 
     // compute the number of calls to UserClass copy ctor and assignment
     // operator and set `n_copy' and `n_assgn' to the value of the result
-    *n_copy = UserClass::n_total_copy_ctor_ - *n_copy;
-    *n_asgn = UserClass::n_total_op_assign_ - *n_asgn;
+    *n_copy = int (UserClass::n_total_copy_ctor_ - *n_copy);
+    *n_asgn = int (UserClass::n_total_op_assign_ - *n_asgn);
 }
 
 
@@ -359,8 +359,8 @@ void test_insert (int line, int exceptions,
                   nelems == -2, *ins, nelems == -1, 
                   int (inslen), -1, xins, nelems, *ins);
 
-    int n_copy = UserClass::n_total_copy_ctor_;
-    int n_asgn = UserClass::n_total_op_assign_;
+    int n_copy = int (UserClass::n_total_copy_ctor_);
+    int n_asgn = int (UserClass::n_total_op_assign_);
 
     if (-2 == nelems) {   // insert(iterator, const_reference)
 
@@ -872,8 +872,8 @@ void test_assign (int line, int exceptions,
                   asnlen, -1, xasn, 
                   nelems, *asn);
 
-    int n_copy = UserClass::n_total_copy_ctor_;
-    int n_asgn = UserClass::n_total_op_assign_;
+    int n_copy = int (UserClass::n_total_copy_ctor_);
+    int n_asgn = int (UserClass::n_total_op_assign_);
 
     // create a dummy deque iterator to pass to exception_loop
     // (the object will not be used by the functiuon)
@@ -1074,8 +1074,8 @@ void test_erase (int line,
     Deque deq = seqlen ? Deque (xseq, xseq + seqlen) : Deque ();
     const Deque::iterator start = deq.begin () + begoff;
  
-    int n_copy = UserClass::n_total_copy_ctor_;
-    int n_asgn = UserClass::n_total_op_assign_;
+    int n_copy = int (UserClass::n_total_copy_ctor_);
+    int n_asgn = int (UserClass::n_total_op_assign_);
 
     char* funcall = 0;
     std::size_t buflen = 0;
@@ -1109,7 +1109,8 @@ void test_erase (int line,
                       end - deq.begin ());
         
         exception_loop (line, EraseRange, funcall, 0,
-                        deq, start, len, 0, (UserClass*)0, (UserClass*)0,
+                        deq, start, int (len), 0,
+                        (UserClass*)0, (UserClass*)0,
                         &n_copy, &n_asgn);
 
     }

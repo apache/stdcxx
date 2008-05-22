@@ -380,7 +380,7 @@ get_signo (const char* signame)
 
     if (isdigit (signame [0])) {
         char *junk;
-        int trans = strtol (signame, &junk, 10);
+        int trans = int (strtol (signame, &junk, 10));
 
         if (0 == *junk && 0 == errno)
             return trans;
