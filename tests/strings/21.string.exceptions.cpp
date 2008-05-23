@@ -84,7 +84,7 @@ String::size_type String::max_size () const
 /* static */ void
 user_throw (int ex_id, char *what)
 {
-    delete[] what;
+    _RW::__rw_free_what_buf (what);
 
 #ifndef _RWSTD_NO_EXCEPTIONS
 
