@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -36,10 +36,15 @@ valarray<_TypeT> valarray<_TypeT>::shift (int __n) const
     if (0 == __n)
         return *this;
 
-    if (size () <= (_RWSTD_SIZE_T)(__n < 0 ? -__n : __n))
-        return valarray (_TypeT (0), size ());
+    const _RWSTD_SIZE_T __size = size ();
+
+    if (__size <= (_RWSTD_SIZE_T)(__n < 0 ? -__n : __n))
+        return valarray (__size);
         
-    _RW::__rw_array <_TypeT> __tmp (_TypeT (0), size ());
+    // use copy- rather than direct-initialization to work around
+    // a gcc 3.2 bug
+    _RW::__rw_array<_TypeT> __tmp =
+        _RW::__rw_array<_TypeT>(_TypeT (), __size);
 
     // 26.3.2.7, p5 - negative n shifts right, positive left
     if (__n < 0)
@@ -54,15 +59,20 @@ valarray<_TypeT> valarray<_TypeT>::shift (int __n) const
 template <class _TypeT>
 valarray<_TypeT> valarray<_TypeT>::cshift (int __n) const
 {
+    const _RWSTD_SIZE_T __size = size ();
+
     // compute non-negative modulus - the sign of (a % b) is
     // implementation-defined if either argument is negative (5.6, p4)
-    _RWSTD_PTRDIFF_T __mod = size () ? __n % _RWSTD_PTRDIFF_T (size ()) : 0;
+    _RWSTD_PTRDIFF_T __mod = __size ? __n % (_RWSTD_PTRDIFF_T)__size : 0;
     _RWSTD_SIZE_T    __rem = __mod < 0 ? -__mod : __mod;
 
     if (0 == __rem)
         return *this;
 
-    _RW::__rw_array<_TypeT> __tmp (_TypeT (0), size ());
+    // use copy- rather than direct-initialization to work around
+    // a gcc 3.2 bug
+    _RW::__rw_array<_TypeT> __tmp =
+        _RW::__rw_array<_TypeT>(_TypeT (), __size);
 
     // 26.3.2.7, p7 - negative n rotates right, positive left
     rotate_copy (_C_array.begin (),
