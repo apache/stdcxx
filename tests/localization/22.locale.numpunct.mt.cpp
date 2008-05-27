@@ -47,7 +47,7 @@ int opt_nthreads = 1;
 
 // the number of times each thread should iterate (unless specified
 // otherwise on the command line)
-int rw_opt_nloops = 200000;
+int opt_nloops = 200000;
 
 #if !defined (_RWSTD_OS_HP_UX) || defined (_ILP32)
 
@@ -65,6 +65,9 @@ int opt_nlocales = 10;
 // should all threads share the same set of locale objects instead
 // of creating their own?
 int opt_shared_locale;
+
+// default timeout used by each threaded section of this test
+int opt_timeout = 60;
 
 /**************************************************************************/
 
@@ -111,7 +114,10 @@ bool test_wchar;   // exercise num_put<wchar_t>
 static void*
 thread_func (void*)
 {
-    for (int i = 0; i != rw_opt_nloops; ++i) {
+    for (int i = 0; i != opt_nloops; ++i) {
+
+        if (rw_thread_pool_timeout_expired ())
+            break;
 
         const std::size_t inx = std::size_t (i) % nlocales;
 
@@ -120,7 +126,7 @@ thread_func (void*)
         // construct a named locale
         const std::locale loc =
             opt_shared_locale ? data.locale_
-                                 : std::locale (data.locale_name_);
+                              : std::locale (data.locale_name_);
 
         if (test_char) {
             // exercise the narrow char specialization of the facet
@@ -250,7 +256,7 @@ run_test (int, char**)
              "testing std::numpunct<charT> with %d thread%{?}s%{;}, "
              "%d iteration%{?}s%{;} each, in %zu locales { %{ .*A@} }",
              opt_nthreads, 1 != opt_nthreads,
-             rw_opt_nloops, 1 != rw_opt_nloops,
+             opt_nloops, 1 != opt_nloops,
              nlocales, int (nlocales), "%#s", locales);
 
     rw_info (0, 0, 0, "exercising std::numpunct<char>");
@@ -260,7 +266,8 @@ run_test (int, char**)
 
     // create and start a pool of threads and wait for them to finish
     int result =
-        rw_thread_pool (0, std::size_t (opt_nthreads), 0, thread_func, 0);
+        rw_thread_pool (0, std::size_t (opt_nthreads), 0,
+                        thread_func, 0, std::size_t (opt_timeout));
 
     rw_error (result == 0, 0, __LINE__,
               "rw_thread_pool(0, %d, 0, %{#f}, 0) failed",
@@ -276,7 +283,8 @@ run_test (int, char**)
     // start a pool of threads to exercise the thread safety
     // of the wchar_t specialization
     result =
-        rw_thread_pool (0, std::size_t (opt_nthreads), 0, thread_func, 0);
+        rw_thread_pool (0, std::size_t (opt_nthreads), 0,
+                        thread_func, 0, std::size_t (opt_timeout));
 
     rw_error (result == 0, 0, __LINE__,
               "rw_thread_pool(0, %d, 0, %{#f}, 0) failed",
@@ -293,7 +301,8 @@ run_test (int, char**)
 
     // start a pool of threads to exercise wstring thread safety
     result =
-        rw_thread_pool (0, std::size_t (opt_nthreads), 0, thread_func, 0);
+        rw_thread_pool (0, std::size_t (opt_nthreads), 0,
+                        thread_func, 0, std::size_t (opt_timeout));
 
     rw_error (result == 0, 0, __LINE__,
               "rw_thread_pool(0, %d, 0, %{#f}, 0) failed",
@@ -321,12 +330,14 @@ int main (int argc, char *argv[])
     return rw_test (argc, argv, __FILE__,
                     "lib.locale.numpunct",
                     "thread safety", run_test,
+                    "|-soft-timeout#0 "  // must be non-negative
                     "|-nloops#0 "       // must be non-negative
                     "|-nthreads#0-* "   // must be in [0, MAX_THREADS]
                     "|-nlocales#0 "     // arg must be non-negative
                     "|-locales= "       // must be provided
                     "|-shared-locale# ",
-                    &rw_opt_nloops,
+                    &opt_timeout,
+                    &opt_nloops,
                     int (MAX_THREADS),
                     &opt_nthreads,
                     &opt_nlocales,

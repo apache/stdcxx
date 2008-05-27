@@ -50,6 +50,9 @@ int opt_nloops = 20000;
 int opt_classic;
 int opt_global;
 
+// default timeout used by each threaded section of this test
+int opt_timeout = 60;
+
 /**************************************************************************/
 
 // array of locale objects to use for testing
@@ -92,6 +95,9 @@ test_global (void*)
 {
     for (std::size_t i = 0; i != opt_nloops; ++i) {
 
+        if (rw_thread_pool_timeout_expired ())
+            break;
+
         const std::size_t inx = i % nlocales;
 
         const std::locale last (std::locale::global (locales [inx]));
@@ -125,7 +131,7 @@ run_test (int, char**)
 
         // create and start a pool of threads and wait for them to finish
         result = rw_thread_pool (0, std::size_t (opt_nthreads), 0,
-                                 test_classic, 0);
+                                 test_classic, 0, std::size_t (opt_timeout));
     }
 
     if (rw_note (0 <= opt_global, 0, __LINE__,
@@ -161,7 +167,7 @@ run_test (int, char**)
 
         // create and start a pool of threads and wait for them to finish
         result = rw_thread_pool (0, std::size_t (opt_nthreads), 0,
-                                 test_global, 0);
+                                 test_global, 0, std::size_t (opt_timeout));
     }
 
     return result;
@@ -187,11 +193,13 @@ int main (int argc, char *argv[])
                     run_test,
                     "|-classic~ "
                     "|-global~ "
+                    "|-soft-timeout#0 "  // must be non-negative
                     "|-nloops#0 "        // arg must be non-negative
                     "|-nthreads#0-* "    // arg must be in [0, MAX_THREADS]
                     "|-locales= ",       // argument must be provided
                     &opt_classic,
                     &opt_global,
+                    &opt_timeout,
                     &opt_nloops,
                     int (MAX_THREADS),
                     &opt_nthreads,
