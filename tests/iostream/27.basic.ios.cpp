@@ -2,7 +2,7 @@
  *
  * 27.basic.ios.cpp - test exercising the class template basic_ios
  *
- * $Id: //stdcxx/trunk/tests/iostream/27_basic_ios.cpp#1 $
+ * $Id$
  *
  ***************************************************************************
  *
