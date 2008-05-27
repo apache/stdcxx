@@ -4,7 +4,7 @@
 *
 * https://issues.apache.org/jira/browse/STDCXX-632
 *
-* $Id: 21.string.insert.stdcxx-632.cpp 629551 2008-02-20 18:13:08Z faridz $
+* $Id$
 *
 ***************************************************************************
 *
