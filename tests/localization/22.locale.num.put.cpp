@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2001-2006 Rogue Wave Software.
+ * Copyright 2001-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -328,7 +328,12 @@ void do_test (charT           /* dummy */,
 
 #endif   // _RWSTD_LDBL_MAX_10_EXP
 
-    const charT* const bufend = np.put (buf, ios, fill, val);
+    // cast the narrow fill character to unsigned char before
+    // converting it to charT to avoid potential sign extension
+    typedef unsigned char UChar;
+    const charT wfill = charT (UChar (fill));
+
+    const charT* const bufend = np.put (buf, ios, wfill, val);
 
     // verify 22.2.2.2.2, p21
     if (ios.width ()) {
@@ -1171,7 +1176,7 @@ void long_test (charT, const char *cname)
 
     // locale 3.0 extension
 
-#define BASE(n)   ((n)  << _RWSTD_IOS_BASEOFF)
+#define BASE(n)   int (unsigned (n)  << _RWSTD_IOS_BASEOFF)
 
     // bases 0 and 10 are both base 10
     // base 1 is roman (values 1 through 4999)

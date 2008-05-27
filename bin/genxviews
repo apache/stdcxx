@@ -205,12 +205,14 @@ cat<<EOF | output
           <th>Operating System</td>
           <th>Architecture</td>
           <th>Compiler</td>
-          <th>Build Results</td>
-          <th>Logs</td>
-          <th>Time<br>(sec)</td>
+          <th title="Cross-build result page">Build Results</td>
+          <th title="Total number of logs">Logs</td>
+          <th title="Number of logs added since the last run">New</td>
+          <th title="Timestamp of oldest log">Age</td>
+          <th title="Time to process all logs">Time<br>(sec)</td>
         </tr>
-        </thead>
-        <tbody>
+      </thead>
+      <tbody>
 EOF
 
 
@@ -228,10 +230,10 @@ process_results ()
     fi
 
     cat<<EOF | output
-          <tr>
-            <td>$osname</td>
-            <td>$arch</td>
-            <td>$compiler</td>
+        <tr>
+          <td>$osname</td>
+          <td>$arch</td>
+          <td>$compiler</td>
 EOF
 
     # build types:
@@ -247,6 +249,8 @@ EOF
     suffixes="a A d D s S"
 
     unset buildlogs
+    unset oldest
+
     count=0
 
     for b in $btypes; do
@@ -261,8 +265,16 @@ EOF
         done
     done
 
+    if [ -e $outdir/$xfile ]; then
+        # count the number of logs that are newer than the cross-build file
+        newlogs=`find $logdir/ -name "$alllogs" -newer $outdir/$xfile | wc -l`
+    else
+        # cross-build file doesn't exist yet, all logs are considered new
+        newlogs=$count
+    fi
+
     if [ $verbose -ne 0 ]; then
-        echo "$myname: found $count logs: $buildlogs"
+        echo "$myname: found $count logs ($newlogs new): $buildlogs"
     fi
 
     # create a title for the page
@@ -273,16 +285,26 @@ EOF
 
     if [ "$buildlogs" = "" ]; then
         # format missing logs in italics
-        output "            <td><i>$xfile</i></td>"
+        output "          <td><i>$xfile</i></td>"
     else
-        if [ $verbose -ne 0 ]; then
-            echo "$myname: $XBUILDGEN $verarg -s -o$outdir/$xfile -T\"$title\" $buildlogs"
-        fi
+        output "          <td><a href=\"$xfile\">$xfile</a></td>"
 
-        output "            <td><a href=\"$xfile\">$xfile</a></td>"
+        oldest=`  cd $logdir && ls -lrt $buildlogs | head -n 1 \
+                | awk '{ print $6 " " $7 " " $8 }'`
 
-        if [ $dryrun -eq 0 ]; then
-            $XBUILDGEN $verarg -s -o$outdir/$xfile -T"$title" $buildlogs
+        if [ $newlogs -gt 0 ]; then
+
+            # only invoken xbuildgen when there are new logs to proecess
+            # otherwise simply point at the previously generated cross
+            # build file
+
+            if [ $verbose -ne 0 ]; then
+                echo "$myname: $XBUILDGEN $verarg -s -o$outdir/$xfile -T\"$title\" $buildlogs"
+            fi
+
+            if [ $dryrun -eq 0 ]; then
+                $XBUILDGEN $verarg -s -o$outdir/$xfile -T"$title" $buildlogs
+            fi
         fi
     fi
 
@@ -297,9 +319,11 @@ EOF
     duration=`expr $end - $duration`
 
     cat<<EOF | output
-        <td>$count</td>
-        <td>$duration</td>
-    </tr>
+          <td>$count</td>
+          <td>$newlogs</td>
+          <td>$oldest</td>
+          <td>$duration</td>
+        </tr>
 EOF
 }
 

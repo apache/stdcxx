@@ -405,10 +405,15 @@ void do_test (int             lineno,  // line number containing tests
 
     std::ostreambuf_iterator<charT> it (&sb);
 
+    // convert the narrow fill character to the generic charT
+    // being careful to avoid (potential) sign extension
+    typedef unsigned char UChar;
+    const charT wfill = charT (UChar (fill));
+
     if (patend - pat == 2 && '%' == pat [0]) {
 
         // format character, no modifier
-        *tp.put (it, ios, fill, tmb, char (wpat [1])) = charT ();
+        *tp.put (it, ios, wfill, tmb, char (wpat [1])) = charT ();
 
         const bool success = 0 == rw_strncmp (buf, result);
 
@@ -425,7 +430,7 @@ void do_test (int             lineno,  // line number containing tests
     else if (patend - pat == 3 && '%' == pat [0]) {
 
         // format character preceded by a format modifier
-        *tp.put (it, ios, fill, tmb, char (wpat [2]), char (wpat [1])) =
+        *tp.put (it, ios, wfill, tmb, char (wpat [2]), char (wpat [1])) =
             charT ();
 
         const bool success = 0 == rw_strncmp (buf, result);
@@ -442,7 +447,7 @@ void do_test (int             lineno,  // line number containing tests
     sb.pubsetp (buf, buf + sizeof buf / sizeof *buf);
 
     // format string
-    *tp.put (it, ios, fill, tmb, wpat, wpat + (patend - pat)) = charT ();
+    *tp.put (it, ios, wfill, tmb, wpat, wpat + (patend - pat)) = charT ();
 
     const bool success = 0 == rw_strncmp (buf, result);
 
@@ -507,6 +512,8 @@ const char* make_LC_TIME (const time_data *td)
         return 0;
 
     std::FILE *fout = std::fopen (srcfname, "w");
+    if (0 == fout)
+        return 0;
 
     std::fprintf (fout, "LC_TIME\n");
 
@@ -643,6 +650,9 @@ const char* make_LC_TIME (const time_data *td)
         return 0;
 
     fout = std::fopen (cmfname, "w");
+    if (0 == fout)
+        return 0;
+
     pcs_write (fout, 0);
 
     std::fclose (fout);
