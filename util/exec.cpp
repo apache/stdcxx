@@ -89,6 +89,9 @@
 #endif
 
 
+#ifndef ENOENT
+#  define ENOENT     1   /* Linux value */
+#endif
 #ifndef ESRCH
 #  define ESRCH      3   /* Linux value */
 #endif
@@ -866,10 +869,12 @@ void exec_file (const struct target_opts* options, struct target_status* result)
 
         execv (options->argv [0], options->argv);
 
-        fprintf (error_file, "%s (%s): execv (\"%s\", ...) error: %s\n",
-                 exe_name, target_name, options->argv [0], strerror (errno));
+        /* POSIX specifies status of 127 when the executable doesn't
+         * exist and 126 for all other exec failures
+         */
+        if (ENOENT == errno)
+            exit (127);
 
-        /* POSIX specifies status of 126 for exec failures */
         exit (126);
     }
 
