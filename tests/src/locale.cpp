@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2001-2007 Rogue Wave Software, Inc.
+ * Copyright 2001-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -215,8 +215,22 @@ rw_localedef (const char *args,
 
     // otherwise, try to create the locale database
 
+    // fallback for when TOPDIR is unset or empty
+    char topdir_path_buf [] = __FILE__;
+
     // use TOPDIR to determine the root of the source tree
-    const char* const topdir = getenv (TOPDIR);
+    const char* topdir = getenv (TOPDIR);
+    if (!topdir || !*topdir) {
+
+        // try to get TOPDIR from __FILE__
+        char* const slash = strrchr (topdir_path_buf, _RWSTD_PATH_SEP);
+
+        if (slash) {
+            slash [-1] = '\0';
+            topdir     = topdir_path_buf;
+        }
+    }
+
     if (!topdir || !*topdir) {
         rw_error (0, __FILE__, __LINE__,
                   "the environment variable %s is %s",
@@ -1097,8 +1111,22 @@ _rw_all_locales ()
         _rw_lookup_table_t countries_map;
         _rw_lookup_table_t encodings_map;
 
+        // fallback for when TOPDIR is unset or empty
+        char topdir_path_buf [] = __FILE__;
+
         // use TOPDIR to determine the root of the source tree
-        const char* const topdir = getenv (TOPDIR);
+        const char* topdir = getenv (TOPDIR);
+        if (!topdir || !*topdir) {
+
+            // try to get TOPDIR from __FILE__
+            char* const slash = strrchr (topdir_path_buf, _RWSTD_PATH_SEP);
+
+            if (slash) {
+                slash [-1] = '\0';
+                topdir     = topdir_path_buf;
+            }
+        }
+
         if (!topdir || !*topdir) {
             rw_error (0, __FILE__, __LINE__,
                       "the environment variable %s is %s",

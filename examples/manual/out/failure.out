@@ -1,1 +1,5 @@
-Caught an exception: std::cin: stream object has set ios::eofbit
+a 1234
+Caught std::ios::failbit_set: std::cin: stream object has set ios::failbit
+c 2345
+Caught std::ios::failbit_set: std::cin: stream object has set ios::failbit
+Caught std::ios::failure: std::cin: stream object has set failbit, eofbit

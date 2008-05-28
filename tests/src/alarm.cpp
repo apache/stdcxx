@@ -44,16 +44,16 @@
 // exported/imported
 
 /* extern _TEST_EXPORT */ rw_signal_handler_t* const
-rw_sig_dfl = (rw_signal_handler_t*)-1;
+rw_sig_dfl = (rw_signal_handler_t*)0;
 
 /* extern _TEST_EXPORT */ rw_signal_handler_t* const
-rw_sig_ign = (rw_signal_handler_t*)-2;
+rw_sig_ign = (rw_signal_handler_t*)1;
 
 /* extern _TEST_EXPORT */ rw_signal_handler_t* const
-rw_sig_hold = (rw_signal_handler_t*)-3;
+rw_sig_hold = (rw_signal_handler_t*)2;
 
 /* extern _TEST_EXPORT */ rw_signal_handler_t* const
-rw_sig_restore = (rw_signal_handler_t*)-4;
+rw_sig_restore = (rw_signal_handler_t*)3;
 
 
 // may point to a user-defined handler for the alarm
@@ -133,7 +133,7 @@ rw_alarm (unsigned int nsec, rw_signal_handler_t* handler /* = 0 */)
 #  endif
 
 #  ifndef SIG_DFL
-#    define SIG_IGN (rw_signal_handler_t*)0
+#    define SIG_DFL (rw_signal_handler_t*)0
 #  endif   // SIG_DFL
 
 #  ifndef SIG_IGN

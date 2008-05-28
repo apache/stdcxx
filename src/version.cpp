@@ -35,6 +35,7 @@ _RWSTD_NAMESPACE (__rw) {
 #ifdef _RWSTD_VER_STR
 
 extern const char __rw_ident[] = {
+    // %Z% keyword ("@(#)") retrieved by the POSIX what utility
     "@(#) Apache C++ Standard Library version " _RWSTD_VER_STR
 };
 

@@ -33,6 +33,8 @@
 
 
 extern "C" {
+    typedef void* rw_thread_proc (void*);
+}    // extern "C"
 
 struct rw_thread_attr_t;
 
@@ -48,7 +50,7 @@ struct rw_thread_t
 _TEST_EXPORT int
 rw_thread_create (rw_thread_t*,
                   rw_thread_attr_t*,
-                  void* (*)(void*),
+                  rw_thread_proc*,
                   void*);
 
 
@@ -62,6 +64,13 @@ rw_thread_join (rw_thread_t, void**);
 // array with their id's; if (tidarray == 0), waits for all
 // threads to join and fills the aragarray with the result
 // returned from each thread
+// if (timeout != 0), then a timer will be started, and the function
+// rw_thread_pool_timeout_expired() will return true after that number
+// of seconds has passed. there is only one timer, so use timeouts
+// with caution. if you provide tidarray, you should join threads
+// before starting another pool, otherwise threads from the first
+// pool may not exit until the threads from a later second pool are
+// signalled to stop.
 // if (nthreads == SIZE_MAX), sets nthreads to the positive result
 // of rw_get_processors() plus 1, or to 2 otherwise
 // returns 0 on success, or a non-zero value indicating the thread
@@ -70,15 +79,20 @@ _TEST_EXPORT int
 rw_thread_pool (rw_thread_t*      /* tidarray */,
                 _RWSTD_SIZE_T     /* nthreads */,
                 rw_thread_attr_t* /* attr */,
-                void* (*)(void*)  /* thr_proc */,
-                void**            /* argarray */);
+                rw_thread_proc*   /* thr_proc */,
+                void**            /* argarray */,
+                _RWSTD_SIZE_T     /* timeout  */ = 0);
+
+// returns non-zero if the thread timeout flag has been set. should
+// be polled periodically by threads created by rw_thread_pool() so
+// that they know that the soft timeout has expired
+// see notes above for details
+_TEST_EXPORT int
+rw_thread_pool_timeout_expired ();
 
 // returns the number of logical processors/cores on the system,
 // or -1 on error
 _TEST_EXPORT int
 rw_get_cpus ();
-
-
-}   // extern "C"
 
 #endif   // RW_RWTHREAD_H_INCLUDED

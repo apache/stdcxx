@@ -30,6 +30,7 @@
 #define _RWSTD_TEST_SRC
 
 #include <rw_thread.h>
+#include <rw_alarm.h>   // for rw_alarm()
 #include <stddef.h>     // for size_t
 #include <string.h>     // for memset()
 
@@ -52,16 +53,41 @@ FILE* popen (const char*, const char*);
 
 static long maxthreads;
 
+/************************************************************************/
+
+static volatile int
+_rw_timeout_expired = 0;
+
+/************************************************************************/
+
+_TEST_EXPORT int
+rw_thread_pool_timeout_expired ()
+{
+    return _rw_timeout_expired != 0;
+}
+
+/************************************************************************/
+
+extern "C" {
+
+static void
+_rw_timeout_handler (int)
+{
+    _rw_timeout_expired = 1;
+}
+
+}    // extern "C"
+
+/************************************************************************/
+
 
 #if defined (_RWSTD_POSIX_THREADS)
 #  include <pthread.h>
 
-extern "C" {
-
 _TEST_EXPORT int
 rw_thread_create (rw_thread_t *thr_id,
                   rw_thread_attr_t*,
-                  void* (*thr_proc)(void*),
+                  rw_thread_proc *thr_proc,
                   void *thr_arg)
 {
 #ifdef _RWSTD_OS_SUNOS
@@ -109,19 +135,15 @@ rw_thread_join (rw_thread_t thr_id, void **parg)
     return result;
 }
 
-}   // extern "C"
-
 /**************************************************************************/
 
 #elif defined (_RWSTD_SOLARIS_THREADS)
 #  include <thread.h>
 
-extern "C" {
-
 _TEST_EXPORT int
 rw_thread_create (rw_thread_t *thr_id,
                   rw_thread_attr_t*,
-                  void* (*thr_proc)(void*),
+                  rw_thread_proc *thr_proc,
                   void *thr_arg)
 {
     static int concurrency_set;
@@ -170,8 +192,6 @@ rw_thread_join (rw_thread_t thr_id, void **parg)
     return result;
 }
 
-}   // extern "C"
-
 /**************************************************************************/
 
 #elif defined (_RWSTD_DEC_THREADS)
@@ -179,13 +199,10 @@ rw_thread_join (rw_thread_t thr_id, void **parg)
 #  include <setjmp.h>
 #  include <cma.h>
 
-
-extern "C" {
-
 _TEST_EXPORT int
 rw_thread_create (rw_thread_t *thr_id,
                   rw_thread_attr_t*,
-                  void* (*thr_proc)(void*),
+                  rw_thread_proc *thr_proc,
                   void *thr_arg)
 {
     rw_thread_t tmpid;
@@ -244,19 +261,15 @@ rw_thread_join (rw_thread_t thr_id, void **parg)
     return status;
 }
 
-}   // extern "C"
-
 /**************************************************************************/
 
 #elif defined (_WIN32) && defined (_MT)
 #  include <process.h>    // for _beginthreadex()
 
-extern "C" {
-
 _TEST_EXPORT int
 rw_thread_create (rw_thread_t *thr_id,
                   rw_thread_attr_t*,
-                  void* (*thr_proc)(void*),
+                  rw_thread_proc *thr_proc,
                   void *thr_arg)
 {
     int result = 0;
@@ -324,8 +337,6 @@ rw_thread_join (rw_thread_t thr_id, void **parg)
     return result;
 }
 
-}   // extern "C"
-
 /**************************************************************************/
 
 #else   // unknown/missing threads environment
@@ -352,12 +363,10 @@ rw_thread_join (rw_thread_t thr_id, void **parg)
 #    endif
 #  endif   // ENOTSUP
 
-extern "C" {
-
 _TEST_EXPORT int
 rw_thread_create (rw_thread_t*,
                   rw_thread_attr_t*,
-                  void* (*)(void*),
+                  rw_thread_proc*,
                   void*)
 {
     _RWSTD_UNUSED (maxthreads);
@@ -371,8 +380,6 @@ rw_thread_join (rw_thread_t, void**)
 {
     return ENOTSUP;
 }
-
-}   // extern "C"
 
 #endif   // threads environment
 
@@ -471,16 +478,20 @@ rw_get_cpus ()
 
 /**************************************************************************/
 
-extern "C" {
-
-
 _TEST_EXPORT int
 rw_thread_pool (rw_thread_t        *thr_id,
                 size_t              nthrs,
                 rw_thread_attr_t*,
-                void*             (*thr_proc)(void*),
-                void*              *thr_arg)
+                rw_thread_proc     *thr_proc,
+                void*              *thr_arg,
+                size_t              timeout)
 {
+    // apply timeout if one was specified
+    if (0 != timeout) {
+        _rw_timeout_expired = 0;
+        rw_alarm (timeout, _rw_timeout_handler);
+    }
+
     // small buffer for thread ids when invoked with (thr_id == 0)
     rw_thread_t id_buf [16];
 
@@ -575,5 +586,3 @@ rw_thread_pool (rw_thread_t        *thr_id,
 
     return 0;
 }
-
-}   // extern "C"

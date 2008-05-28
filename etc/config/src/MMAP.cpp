@@ -1,10 +1,6 @@
+// checking for mmap() and munmap() in <sys/mman.h>
+
 /***************************************************************************
- *
- * limits.cpp - Source for the Standard Library limits class
- *
- * $Id$
- *
- ***************************************************************************
  *
  * Licensed to the Apache Software  Foundation (ASF) under one or more
  * contributor  license agreements.  See  the NOTICE  file distributed
@@ -22,26 +18,29 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2008 Rogue Wave Software, Inc.
+ * Copyright 2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
-#define _RWSTD_LIB_SRC
+#include <sys/mman.h>
+#include <sys/types.h>
 
-#include <rw/_defs.h>  
-                       
-// define generic template and specializations
-// use the quoted form of the #include directive to fool Sun C++
-// otherwise the compiler fails to #include the header twice,
-// most likely because it makes assumptions about headers with
-// (C++) standard names
-#include "limits"
 
-#if _MSC_VER != 1300   // working around an MSVC 7.0 bug (PR #26562)
-#  undef _RWSTD_LIMITS_INCLUDED
-#  define _RWSTD_DEFINE_EXPORTS
+void* map_file (int fd)
+{
+    return mmap (0, 4096, PROT_READ, MAP_PRIVATE, fd, 0);
+}
 
-   // define static data members of specializations
-   // again, use the quoted form of the #include directive
-#  include "limits"
-#endif   // MSVC != 7.0
+
+int main (int argc, char *argv[])
+{
+    // avoid executing the code except when one or more command
+    // line arguments have been specified
+    if (argc < 2)
+        return 0;
+
+    void *p = map_file (argc);
+    munmap (p, 0);
+
+    return 0;
+}
