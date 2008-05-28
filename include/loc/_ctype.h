@@ -25,7 +25,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2001-2005 Rogue Wave Software.
+ * Copyright 2001-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -541,7 +541,11 @@ private:
 inline char
 ctype<wchar_t>::narrow (char_type __c, char __dfault) const
 {
-    const _RWSTD_SIZE_T __inx = _RWSTD_STATIC_CAST (_RWSTD_UWCHAR_INT_T, __c);
+    // carefully convert wchar_t to the unsigned form of its
+    // underlying integer type, avoiding sign extension and
+    // similar issues
+    const _RWSTD_UWCHAR_INT_T __inx =
+        _RWSTD_STATIC_CAST (_RWSTD_UWCHAR_INT_T, __c);
 
     // optimize away all but the first call to the virtual do_widen()
     if (   __inx < sizeof _C_narrow_tab / sizeof *_C_narrow_tab

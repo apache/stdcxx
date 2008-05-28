@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -936,10 +936,30 @@ _C_assign (const char *whatstr, size_t len /* = ~0 */)
 }
 
 
-// outline to reduce code bloat caused by compilers that emit the vtbl
-// in every translation unit containing the definition of the class
+// trivial dtors outlined to reduce code bloat caused by compilers that
+// emit the vtbl in every translation unit containing the definition of
+// the class
+
 // virtual dtor
 /* virtual */ __rw_failure::~__rw_failure () _THROWS (())
+{
+    // no-op
+}
+
+
+/* virtual */ __rw_badbit_set::~__rw_badbit_set () _THROWS (())
+{
+    // no-op
+}
+
+
+/* virtual */ __rw_eofbit_set::~__rw_eofbit_set () _THROWS (())
+{
+    // no-op
+}
+
+
+/* virtual */ __rw_failbit_set::~__rw_failbit_set () _THROWS (())
 {
     // no-op
 }

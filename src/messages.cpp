@@ -70,6 +70,14 @@ struct __rw_open_cat_data
     } loc;
 };
 
+struct __rw_open_cat_page
+{
+    static const size_t _C_size = 8;
+
+    __rw_open_cat_page* _C_next; // next page
+    __rw_open_cat_data _C_data [_C_size];
+};
+
 
 // manages a global, per-process repository of open catalogs according
 // to the following table:
@@ -90,21 +98,25 @@ struct __rw_open_cat_data
 static __rw_open_cat_data*
 __rw_manage_cat_data (int &cat,  __rw_open_cat_data *pcat_data)
 {
-    // a per-process array of catalog data structs
-    static __rw_open_cat_data  catalog_buf [8];
-    static __rw_open_cat_data* catalogs = catalog_buf;
+    // a per-process array of pointers to catalog data structs
+    static __rw_open_cat_data* catalog_buf [__rw_open_cat_page::_C_size];
+    static __rw_open_cat_data** catalogs = 0;
+
+    // first page of a per-process list of pages of catalog data structs
+    static __rw_open_cat_page  catalog_page;
 
     static size_t n_catalogs      = 0;
     static size_t catalog_bufsize = sizeof catalog_buf / sizeof *catalog_buf;
     static size_t largest_cat     = 0;
-    static int    init            = 0;
 
- 
-    if (0 == init) {
+    if (!catalogs) {
+        
         for (size_t i = 0; i < catalog_bufsize; ++i) {
-            catalogs [i].catd = _RWSTD_BAD_CATD;
+            catalog_page._C_data [i].catd = _RWSTD_BAD_CATD;
+            catalog_buf [i] = &catalog_page._C_data [i];
         }
-        init = 1;
+
+        catalogs = catalog_buf;
     }
 
     if (-1 == cat) {
@@ -115,27 +127,40 @@ __rw_manage_cat_data (int &cat,  __rw_open_cat_data *pcat_data)
         if (pcat_data) {
              if (n_catalogs == catalog_bufsize) {
 
-                // reallocate buffer of facet pointers
-                __rw_open_cat_data* const tmp =
-                    new __rw_open_cat_data[n_catalogs * 2];
+                // allocate new page of catalog data
+                __rw_open_cat_page* const page =
+                    new __rw_open_cat_page;
 
-                memcpy (tmp, catalogs, n_catalogs * sizeof *tmp);
+                // insert new page into singly-linked page list
+                page->_C_next = catalog_page._C_next;
+                catalog_page._C_next = page;
+
+                // initialize new page
+                for (size_t i = 0; i < __rw_open_cat_page::_C_size; ++i) {
+                    page->_C_data [i].catd = _RWSTD_BAD_CATD;
+                }
+
+                // rwallocate buffer of catalog data pointers
+                __rw_open_cat_data** const data =
+                    new __rw_open_cat_data* [n_catalogs + __rw_open_cat_page::_C_size];
+
+                memcpy (data, catalogs, n_catalogs * sizeof *data);
                  
                 if (catalogs != catalog_buf)
                     delete[] catalogs;
 
-                catalogs         = tmp;
-                catalog_bufsize *= 2;
+                catalogs         = data;
+                catalog_bufsize += __rw_open_cat_page::_C_size;
 
-                for (size_t i = n_catalogs; i < catalog_bufsize; ++i) {
-                    catalogs [i].catd = _RWSTD_BAD_CATD;
+                for (size_t i = 0; i < __rw_open_cat_page::_C_size; ++i) {
+                    catalogs [n_catalogs + i] = &page->_C_data [i];
                 }
 
                 cat = int (n_catalogs);
-                memcpy (&catalogs [cat].loc, &pcat_data->loc,
-                        sizeof (_STD::locale));
 
-                catalogs [cat].catd = pcat_data->catd;
+                catalogs [cat]->catd = pcat_data->catd;
+                memcpy (&catalogs [cat]->loc, &pcat_data->loc,
+                        sizeof (_STD::locale));
 
                 if (size_t (cat) > largest_cat)
                     largest_cat = size_t (cat);
@@ -145,38 +170,42 @@ __rw_manage_cat_data (int &cat,  __rw_open_cat_data *pcat_data)
             else {
                 // find the first open slot and use it.
                 cat = 0;
-                while (catalogs [cat].catd != _RWSTD_BAD_CATD) {
+                while (catalogs [cat]->catd != _RWSTD_BAD_CATD) {
                     ++cat;
                 }
+
+                catalogs [cat]->catd = pcat_data->catd;
+                memcpy (&catalogs [cat]->loc, &pcat_data->loc,
+                        sizeof (_STD::locale));
 
                 if (size_t (cat) > largest_cat)
                     largest_cat = size_t (cat);
 
-                memcpy (&catalogs [cat].loc, &pcat_data->loc,
-                        sizeof (_STD::locale));
-
-                catalogs [cat].catd = pcat_data->catd;
                 ++n_catalogs;
             }
         }
     }
     else {
+
         if (0 == pcat_data) {
             // find struct and return it
             if (size_t (cat) < catalog_bufsize)
-                return catalogs + cat;
+                return catalogs [cat];
 
             return 0;
         }
 
         // initialize the struct to an invalid state
         --n_catalogs;
-        catalogs [cat].catd = _RWSTD_BAD_CATD;
+        catalogs [cat]->catd = _RWSTD_BAD_CATD;
+
         if (size_t (cat) == largest_cat) {
 
             // find the next smallest valid slot
+            largest_cat = 0;
+
             for (int i = cat; i >= 0; --i) {
-                if (catalogs [i].catd != _RWSTD_BAD_CATD) {
+                if (catalogs [i]->catd != _RWSTD_BAD_CATD) {
                     largest_cat = size_t (i);
                     break;
                 }
@@ -186,11 +215,9 @@ __rw_manage_cat_data (int &cat,  __rw_open_cat_data *pcat_data)
                 sizeof catalog_buf / sizeof *catalog_buf;
 
             if ((largest_cat < bufsize / 2) && (catalogs != catalog_buf)) {
-
                 // when there are no more open catalogs indexed beyond
-                // second half of the statically allocated repository, copy
-                // the open catalogs back into the statically allocated
-                // repository.
+                // second half of the static pointer repository, copy
+                // the open catalog pointers back into the repository.
 
                 catalog_bufsize = bufsize;
 
@@ -198,7 +225,19 @@ __rw_manage_cat_data (int &cat,  __rw_open_cat_data *pcat_data)
                         catalog_bufsize * sizeof (*catalogs));
 
                 delete[] catalogs;
+
                 catalogs = catalog_buf;
+
+                // remove all pages, they're not in use
+                while (catalog_page._C_next)
+                {
+                    // remove next page from page list
+                    __rw_open_cat_page* page = catalog_page._C_next;
+                    catalog_page._C_next = page->_C_next;
+
+                    // deallocate that page
+                    delete page;
+                }
             }
         }
     }

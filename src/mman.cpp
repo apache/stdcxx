@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2001-2006 Rogue Wave Software.
+ * Copyright 2001-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -36,9 +36,9 @@
 
 #include <sys/stat.h>
 
-#ifndef _MSC_VER
+#ifndef _RWSTD_NO_MMAP
 #  include <sys/mman.h>
-#else
+#elif defined (_WIN32)
 #  include <windows.h>
 #  include <io.h>
 #endif   // _MSC_VER
@@ -69,11 +69,16 @@ void* __rw_mmap (const char* fname, _RWSTD_SIZE_T *size)
 
     *size = sb.st_size;
 
-#if !defined(_MSC_VER)
-    const int fd = open (fname, O_RDONLY);
 
+#ifndef _WIN32
+    const int fd = open (fname, O_RDONLY);
+   
     if (-1 == fd)
         return 0;
+
+#endif   // _WIN32
+
+#ifndef _RWSTD_NO_MMAP
 
     // On HPUX systems MAP_SHARED will prevent a second mapping of the same
     // file if the regions are overlapping; one solution is to make the 
@@ -92,7 +97,9 @@ void* __rw_mmap (const char* fname, _RWSTD_SIZE_T *size)
 
     if (MAP_FAILED == data)   // failure
         return 0;
-#else
+
+#elif defined (_WIN32)
+
     HANDLE mmf = 
         CreateFile (fname, GENERIC_READ, FILE_SHARE_READ, NULL,
                     OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
@@ -114,6 +121,23 @@ void* __rw_mmap (const char* fname, _RWSTD_SIZE_T *size)
     CloseHandle (mmf);
     CloseHandle (mmfv);
 
+#else   // no mmap() or equivalent
+
+#  ifndef _RWSTD_NO_MUNMAP
+#    define _RWSTD_NO_MUNMAP
+#  endif   // _RWSTD_NO_MUNMAP
+
+    // read() takes a size_t argument, convert off_t to it
+    const size_t mapsize = size_t (sb.st_size);
+
+    void* data = operator new (mapsize);
+    const ssize_t nread = read (fd, data, mapsize);
+
+    if (size_t (nread) != mapsize) {
+        operator delete (data);
+        data = 0;
+    }
+
 #endif  // _MSC_VER
 
     return data;
@@ -128,10 +152,12 @@ void __rw_munmap (const void* pcv, _RWSTD_SIZE_T size)
     void* pv = _RWSTD_CONST_CAST (void*, pcv);
 
     // POSIX munmap() takes a void*, but not all platforms conform
-#ifndef _MSC_VER
+#ifndef _RWSTD_NO_MUNMAP
     munmap (_RWSTD_STATIC_CAST (_RWSTD_MUNMAP_ARG1_T, pv), size);
-#else
+#elif defined (_WIN32)
     UnmapViewOfFile (pv);
+#else   // no munmap()
+    operator delete (pv);
 #endif  // _MSC_VER
 }
 

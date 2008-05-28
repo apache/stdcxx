@@ -50,6 +50,9 @@ int opt_nloops = 20000;
 // command line option
 int opt_combine;
 
+// default timeout used by each threaded section of this test
+int opt_timeout = 60;
+
 /**************************************************************************/
 
 // array of locale names to use for testing
@@ -84,6 +87,9 @@ test_ctors (void*)
     std::locale next (locales [0]);
 
     for (int i = 0; i != opt_nloops; ++i) {
+
+        if (rw_thread_pool_timeout_expired ())
+            break;
 
         // compute an index into the array of locales
         const std::size_t linx = i % nlocales;
@@ -183,7 +189,7 @@ run_test (int, char**)
 
     // create and start a pool of threads and wait for them to finish
     result = rw_thread_pool (0, std::size_t (opt_nthreads), 0,
-                                 test_ctors, 0);
+                             test_ctors, 0, std::size_t (opt_timeout));
 
     rw_error (result == 0, 0, __LINE__,
               "rw_thread_pool(0, %d, 0, %{#f}, 0) failed",
@@ -210,10 +216,12 @@ int main (int argc, char *argv[])
                     "lib.locale.cons",
                     "thread safety", run_test,
                     "|-combine~ "
+                    "|-soft-timeout#0 "  // must be non-negative
                     "|-nloops#0 "        // must be non-negative
                     "|-nthreads#0-* "    // must be in [0, MAX_THREADS]
                     "|-locales=",        // must be provided
                     &opt_combine,
+                    &opt_timeout,
                     &opt_nloops,
                     int (MAX_THREADS),
                     &opt_nthreads,

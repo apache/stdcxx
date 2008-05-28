@@ -140,6 +140,8 @@ int catclose(nl_catd catd)
       __rw_catlist[j-1] = __rw_catlist[j];
     if (j < __rw_catlist.size())
       __rw_catlist[j] = 0;
+    else
+      __rw_catlist[__rw_catlist.size () - 1] = 0;
     return 0;
   }
   return -1;

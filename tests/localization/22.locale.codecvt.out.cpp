@@ -197,7 +197,7 @@ get_mb_char (wchar_t *wchar, char *mbchar, std::size_t bytes)
 struct WideCode
 {
     wchar_t wchar;
-    char    mbchar [MB_LEN_MAX];
+    char    mbchar [MB_LEN_MAX + 1];
 };
 
 typedef WideCode mb_char_array_t [MB_LEN_MAX];

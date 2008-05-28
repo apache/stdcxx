@@ -67,6 +67,9 @@ int opt_nlocales = 10;
 // of creating their own?
 int opt_shared_locale;
 
+// default timeout used by each threaded section of this test
+int opt_timeout = 60;
+
 /**************************************************************************/
 
 // array of locale names to use for testing
@@ -157,6 +160,9 @@ thread_func (void*)
 
     for (int i = 0; i != opt_nloops; ++i) {
 
+        if (rw_thread_pool_timeout_expired ())
+            break;
+
         // save the name of the locale
         const MyTimeData& data = my_time_data [i % nlocales];
 
@@ -165,7 +171,7 @@ thread_func (void*)
         // using a random conversion specifier
         const std::locale loc =
             opt_shared_locale ? data.locale_
-                                 : std::locale (data.locale_name_);
+                              : std::locale (data.locale_name_);
 
         if (test_char) {
             // exercise the narrow char specialization of the facet
@@ -331,7 +337,8 @@ run_test (int, char**)
 
     // create and start a pool of threads and wait for them to finish
     int result =
-        rw_thread_pool (0, std::size_t (opt_nthreads), 0, thread_func, 0);
+        rw_thread_pool (0, std::size_t (opt_nthreads), 0,
+                        thread_func, 0, std::size_t (opt_timeout));
 
     rw_error (result == 0, 0, __LINE__,
               "rw_thread_pool(0, %d, 0, %{#f}, 0) failed",
@@ -346,7 +353,8 @@ run_test (int, char**)
 
     // start a pool of threads to exercise wstring thread safety
     result =
-        rw_thread_pool (0, std::size_t (opt_nthreads), 0, thread_func, 0);
+        rw_thread_pool (0, std::size_t (opt_nthreads), 0,
+                        thread_func, 0, std::size_t (opt_timeout));
 
     rw_error (result == 0, 0, __LINE__,
               "rw_thread_pool(0, %d, 0, %{#f}, 0) failed",
@@ -363,7 +371,8 @@ run_test (int, char**)
 
     // start a pool of threads to exercise wstring thread safety
     result =
-        rw_thread_pool (0, std::size_t (opt_nthreads), 0, thread_func, 0);
+        rw_thread_pool (0, std::size_t (opt_nthreads), 0,
+                        thread_func, 0, std::size_t (opt_timeout));
 
     rw_error (result == 0, 0, __LINE__,
               "rw_thread_pool(0, %d, 0, %{#f}, 0) failed",
@@ -391,11 +400,13 @@ int main (int argc, char *argv[])
     return rw_test (argc, argv, __FILE__,
                     "lib.locale.time.put",
                     "thread safety", run_test,
+                    "|-soft-timeout#0 "  // must be non-negative
                     "|-nloops#0 "       // must be non-negative
                     "|-nthreads#0-* "   // must be in [0, MAX_THREADS]
                     "|-nlocales#0 "     // arg must be non-negative
                     "|-locales= "       // must be provided
                     "|-shared-locale# ",
+                    &opt_timeout,
                     &opt_nloops,
                     int (MAX_THREADS),
                     &opt_nthreads,

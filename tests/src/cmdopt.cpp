@@ -20,7 +20,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2005-2006 Rogue Wave Software.
+ * Copyright 2005-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -518,6 +518,8 @@ rw_vsetopts (const char *opts, va_list va)
                 lopt = lastopt->loptbuf_;
             else {
                 lopt = (char*)malloc (optlen + 1);
+                if (0 == lopt)
+                    return -1;   // error
                 lastopt->lopt_ = lopt;
             }
 
@@ -533,6 +535,8 @@ rw_vsetopts (const char *opts, va_list va)
         lastopt->maxcount_ = 1;
 
         int arg_is_callback = true;
+
+        RW_ASSERT (0 != next);
 
         if ('#' == *next) {
             // examples of option specification:
