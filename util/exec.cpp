@@ -329,22 +329,6 @@ static const struct {
 };
 
 /**
-   Compare two characters in a case-insensitive manner
-
-   @param c1 first character to compare
-   @param c2 second character to compare
-   @return an integer less than, equal to, or greater than 0, coresponding
-   to whether c1 is less than, equal to, or greater than c2 when compared
-   in a case insensitive manner.
-*/
-static int
-rw_charcasecmp (char c1, char c2)
-{
-    typedef unsigned char UChar; 
-    return tolower ((UChar)c1) - tolower ((UChar)c2);
-}
-
-/**
    Reimplementation of the POSIX strcasecmp function.
 
    This is a simplistic (re)implementation of the strcasecmp function
@@ -361,14 +345,18 @@ rw_strcasecmp (const char* s1, const char* s2)
 {
     int delta;
 
+    typedef unsigned char UChar;
+
     assert (0 != s1);
     assert (0 != s2);
 
-    for (delta = rw_charcasecmp (*s1, *s2); 
-         *s1 && *s2 && 0 == delta; 
-         delta = rw_charcasecmp (*(++s1), *(++s2)));
+    do {
+        delta = tolower ((UChar)*s1) - tolower ((UChar)*s2);
+    } while (*s1++ && *s2++ && 0 == delta);
+
     return delta;
 }
+
 
 int
 get_signo (const char* signame)
@@ -529,12 +517,21 @@ wait_for_child (pid_t child_pid, int timeout, struct target_status* result)
         if (child_pid == wait_pid) {
             if (WIFEXITED (status)) {
                 result->exit = WEXITSTATUS (status);
+
+                /* from POSIX, 2.8.2 Exit Status for Commands:
+                 *
+                 * If a command is not found, the exit status shall be 127.
+                 * If the command name is found, but it is not an executable
+                 * utility, the exit status shall be 126. Applications that
+                 * invoke utilities without using the shell should use these
+                 * exit status values to report similar errors.
+                 */
                 switch (result->exit) {
                 case 126:
-                    result->status = ST_EXIST;
+                    result->status = ST_EXECUTE;
                     break;
                 case 127:
-                    result->status = ST_EXECUTE;
+                    result->status = ST_EXIST;
                     break;
                 }
                 break; /*we've got an exit state, so let's bail*/
@@ -791,7 +788,7 @@ calculate_usage (struct target_status* result, const clock_t h_clk,
 
     c_clk = times (&c_tms);
 
-    if (-1 == c_clk) {
+    if ((clock_t)-1 == c_clk) {
         warn ("Failed to retrieve ending times: %s", strerror (errno));
         return;
     }
@@ -872,7 +869,8 @@ void exec_file (const struct target_opts* options, struct target_status* result)
         fprintf (error_file, "%s (%s): execv (\"%s\", ...) error: %s\n",
                  exe_name, target_name, options->argv [0], strerror (errno));
 
-        exit (1);
+        /* POSIX specifies status of 126 for exec failures */
+        exit (126);
     }
 
     if (-1 == child_pid) {
@@ -885,7 +883,7 @@ void exec_file (const struct target_opts* options, struct target_status* result)
         struct tms h_tms;
         clock_t h_clk = times (&h_tms);
         wait_for_child (child_pid, options->timeout, result);
-        if (-1 != h_clk)
+        if ((clock_t)-1 != h_clk)
             calculate_usage (result, h_clk, &h_tms);
         else
             warn ("Failed to retrieve start times: %s", strerror (errno));
