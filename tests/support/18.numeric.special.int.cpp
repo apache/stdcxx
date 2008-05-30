@@ -583,9 +583,6 @@ void run_test (T*, const char *tname, const char *fmt)
                "std::numeric_limits<%s>::is_modulo == %#b",
                tname, Traits::is_modulo ());
 
-    // 18.2.1.2, p59
-    ASSERT_0 (traps, "%b");
-
     // 18.2.1.2, p61
     ASSERT_0 (tinyness_before, "%b");
         
