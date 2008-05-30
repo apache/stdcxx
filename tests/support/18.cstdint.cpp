@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /***************************************************************************
  *
- * 8.cstdint.cpp - test exercising tr.c99.cstdint
+ * 18.cstdint.cpp - test exercising cstdint
  *
  * $Id$
  *
@@ -23,11 +23,12 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2006 Rogue Wave Software.
+ * Copyright 1994-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
-enum {
+
+enum macros {
     // these are expected to be hidden by macros #defined in <cstdint>
     // #included below; references to macros that are not #defined in
     // the header will silently use these enumerators and prevent
@@ -67,9 +68,12 @@ enum {
 };
 
 
-#include <tr1/cstdint>
-
 #include <driver.h>
+
+#ifndef _RWSTD_NO_EXT_CXX_0X
+
+#include <ansi/cstdint>
+
 
 /**************************************************************************/
 
@@ -401,14 +405,12 @@ namespace std {
 // define test functions in namespace std to detect the presece
 // or absence of the required types
 
-namespace tr1 {
-
 namespace Nested {
 
 using namespace Fallback;
 
-// each test_xxx_t typedef aliases std::tr1::xxx_t if the corresponding
-// type is defined in namespace std::tr1, or Fallback::xxx_t otherwise
+// each test_xxx_t typedef aliases std::xxx_t if the corresponding
+// type is defined in namespace std, or Fallback::xxx_t otherwise
 
 typedef int8_t         test_int8_t;
 typedef uint8_t        test_uint8_t;
@@ -445,42 +447,40 @@ typedef uintptr_t      test_uintptr_t;
 
 }   // namespace Nested
 
-}   // namespace tr1
-
 }   // namespace std
 
-typedef std::tr1::Nested::test_int8_t         test_int8_t;
-typedef std::tr1::Nested::test_uint8_t        test_uint8_t;
-typedef std::tr1::Nested::test_int_least8_t   test_int_least8_t;
-typedef std::tr1::Nested::test_uint_least8_t  test_uint_least8_t;
-typedef std::tr1::Nested::test_int_fast8_t    test_int_fast8_t;
-typedef std::tr1::Nested::test_uint_fast8_t   test_uint_fast8_t;
+typedef std::Nested::test_int8_t         test_int8_t;
+typedef std::Nested::test_uint8_t        test_uint8_t;
+typedef std::Nested::test_int_least8_t   test_int_least8_t;
+typedef std::Nested::test_uint_least8_t  test_uint_least8_t;
+typedef std::Nested::test_int_fast8_t    test_int_fast8_t;
+typedef std::Nested::test_uint_fast8_t   test_uint_fast8_t;
 
-typedef std::tr1::Nested::test_int16_t        test_int16_t;
-typedef std::tr1::Nested::test_uint16_t       test_uint16_t;
-typedef std::tr1::Nested::test_int_least16_t  test_int_least16_t;
-typedef std::tr1::Nested::test_uint_least16_t test_uint_least16_t;
-typedef std::tr1::Nested::test_int_fast16_t   test_int_fast16_t;
-typedef std::tr1::Nested::test_uint_fast16_t  test_uint_fast16_t;
+typedef std::Nested::test_int16_t        test_int16_t;
+typedef std::Nested::test_uint16_t       test_uint16_t;
+typedef std::Nested::test_int_least16_t  test_int_least16_t;
+typedef std::Nested::test_uint_least16_t test_uint_least16_t;
+typedef std::Nested::test_int_fast16_t   test_int_fast16_t;
+typedef std::Nested::test_uint_fast16_t  test_uint_fast16_t;
 
-typedef std::tr1::Nested::test_int32_t        test_int32_t;
-typedef std::tr1::Nested::test_uint32_t       test_uint32_t;
-typedef std::tr1::Nested::test_int_least32_t  test_int_least32_t;
-typedef std::tr1::Nested::test_uint_least32_t test_uint_least32_t;
-typedef std::tr1::Nested::test_int_fast32_t   test_int_fast32_t;
-typedef std::tr1::Nested::test_uint_fast32_t  test_uint_fast32_t;
+typedef std::Nested::test_int32_t        test_int32_t;
+typedef std::Nested::test_uint32_t       test_uint32_t;
+typedef std::Nested::test_int_least32_t  test_int_least32_t;
+typedef std::Nested::test_uint_least32_t test_uint_least32_t;
+typedef std::Nested::test_int_fast32_t   test_int_fast32_t;
+typedef std::Nested::test_uint_fast32_t  test_uint_fast32_t;
 
-typedef std::tr1::Nested::test_int64_t        test_int64_t;
-typedef std::tr1::Nested::test_uint64_t       test_uint64_t;
-typedef std::tr1::Nested::test_int_least64_t  test_int_least64_t;
-typedef std::tr1::Nested::test_uint_least64_t test_uint_least64_t;
-typedef std::tr1::Nested::test_int_fast64_t   test_int_fast64_t;
-typedef std::tr1::Nested::test_uint_fast64_t  test_uint_fast64_t;
+typedef std::Nested::test_int64_t        test_int64_t;
+typedef std::Nested::test_uint64_t       test_uint64_t;
+typedef std::Nested::test_int_least64_t  test_int_least64_t;
+typedef std::Nested::test_uint_least64_t test_uint_least64_t;
+typedef std::Nested::test_int_fast64_t   test_int_fast64_t;
+typedef std::Nested::test_uint_fast64_t  test_uint_fast64_t;
 
-typedef std::tr1::Nested::test_intmax_t       test_intmax_t;
-typedef std::tr1::Nested::test_uintmax_t      test_uintmax_t;
-typedef std::tr1::Nested::test_intptr_t       test_intptr_t;
-typedef std::tr1::Nested::test_uintptr_t      test_uintptr_t;
+typedef std::Nested::test_intmax_t       test_intmax_t;
+typedef std::Nested::test_uintmax_t      test_uintmax_t;
+typedef std::Nested::test_intptr_t       test_intptr_t;
+typedef std::Nested::test_uintptr_t      test_uintptr_t;
 
 /**************************************************************************/
 
@@ -495,8 +495,8 @@ void test_bits (int         line,             // line number
 {
     static volatile intT zero         = intT (0);
     static volatile intT one          = intT (1);
-    static volatile intT minus_one    = zero - one;
-    static volatile intT all_bits_set = ~zero;
+    static volatile intT minus_one    = intT (zero - one);
+    static volatile intT all_bits_set = intT (~zero);
 
     const bool is_signed = minus_one < zero;
 
@@ -515,8 +515,8 @@ void test_bits (int         line,             // line number
         else
             break;
 
-        maximum = maximum * intT (2);
-        minimum = maximum * intT (2);
+        maximum = intT (maximum * 2);
+        minimum = intT (maximum * 2);
     }
 
     if (macro_name) {
@@ -568,12 +568,12 @@ test_types ()
 {
 #define TEST_REQUIRED_TYPE(name, bits, exact)                           \
     do {                                                                \
-        rw_info (0, 0, __LINE__, "std::tr1::%s (required)", # name);    \
+        rw_info (0, 0, __LINE__, "std::%s (required)", # name);         \
         const bool type_defined =                                       \
             sizeof (test_ ## name) != sizeof (Fallback::name);          \
         rw_assert (type_defined, 0, __LINE__,                           \
                    "required type %s not defined in namespace "         \
-                   "std::tr1", #name);                                  \
+                   "std", #name);                                       \
         if (type_defined)                                               \
             test_bits (__LINE__, test_ ## name (0),                     \
                        bits, exact, #name);                             \
@@ -581,12 +581,12 @@ test_types ()
 
 #define TEST_OPTIONAL_TYPE(name, bits, exact)                           \
     do {                                                                \
-        rw_info (0, 0, __LINE__, "std::tr1::%s (optional)", # name);    \
+        rw_info (0, 0, __LINE__, "std::%s (optional)", # name);         \
         const bool type_defined =                                       \
             sizeof (test_ ## name) != sizeof (Fallback::name);          \
         rw_warn (type_defined, 0, __LINE__,                             \
                  "optional type %s not defined in namespace "           \
-                 "std::tr1", #name);                                    \
+                 "std", #name);                                         \
         if (type_defined)                                               \
             test_bits (__LINE__, test_ ## name (0),                     \
                        bits, exact, #name);                             \
@@ -758,7 +758,7 @@ run_test (int, char*[])
 int main (int argc, char *argv[])
 {
     return rw_test (argc, argv, __FILE__,
-                    "tr.c99.cstdint",
+                    "cstdint",
                     0 /* no comment */,
                     run_test,
                     "|-no-macros# "
@@ -768,3 +768,24 @@ int main (int argc, char *argv[])
                     &rw_opt_no_types,
                     &rw_opt_no_64_bit);
 }
+
+#else    // _RWSTD_NO_CXX_0X
+
+static int
+run_test (int, char*[])
+{
+    rw_warn (0, 0, __LINE__,
+	         "test disabled because _RWSTD_NO_EXT_CXX_0X is defined");
+    return 0;
+}
+
+int main (int argc, char *argv[])
+{
+    return rw_test (argc, argv, __FILE__,
+                    "cstdint",
+                    0 /* no comment */,
+                    run_test,
+                    0);
+}
+
+#endif   // _RWSTD_NO_CXX_0X

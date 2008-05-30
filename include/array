@@ -27,22 +27,23 @@
  * 
  **************************************************************************/
 
-#ifndef _RWSTD_TR1_ARRAY_INCLUDED
-#define _RWSTD_TR1_ARRAY_INCLUDED
+#ifndef _RWSTD_ARRAY_INCLUDED
+#define _RWSTD_ARRAY_INCLUDED
 
+#include <rw/_defs.h>
+
+#ifdef _RWSTD_NO_EXT_CXX_0X
+#  error _RWSTD_NO_EXT_CXX_0X defined and C++0x header included
+#endif   // _RWSTD_NO_EXT_CXX_0X
 
 #include <rw/_algobase.h>
 #include <rw/_error.h>
 #include <rw/_iterator.h>
-#include <rw/_defs.h>
 
 
 _RWSTD_NAMESPACE (std) {
 
-_RWSTD_NAMESPACE (tr1) {
-
-
-// 6.2.2 -- class template array
+// [array] -- class template array
 template <class _TypeT, _RWSTD_SIZE_T _Size>
 struct array
 {
@@ -335,7 +336,7 @@ operator<= (const array<_TypeT, _Size> &__lhs,
 }
 
 
-// 6.2.2.2 -- specialized algorithms
+// [array.special] -- specialized algorithms
 template <class _TypeT, _RWSTD_SIZE_T _Size >
 inline void
 swap (array<_TypeT, _Size> &__lhs, array<_TypeT, _Size> &__rhs)
@@ -344,12 +345,12 @@ swap (array<_TypeT, _Size> &__lhs, array<_TypeT, _Size> &__rhs)
 }
 
 
-// 6.2.2.5 -- tuple interface to class template array
+// [array.tuple] -- tuple interface to class template array
 template <class _TypeT>
-class tuple_size;   // defined in <tr1/tuple>
+class tuple_size;   // defined in <tuple>
 
 template <int I, class _TypeT>
-class tuple_element;   // defined in <tr1/tuple>
+class tuple_element;   // defined in <tuple>
 
 template <class _TypeT, _RWSTD_SIZE_T _Size>
 struct tuple_size<array<_TypeT, _Size> >;
@@ -363,10 +364,7 @@ _TypeT& get (array<_TypeT, _Size>&);
 template <int I, class _TypeT, _RWSTD_SIZE_T _Size>
 const _TypeT& get (const array<_TypeT, _Size>&);
 
-
-}   // namespace tr1
-
 }   // namespace std
 
+#endif   // _RWSTD_ARRAY_INCLUDED
 
-#endif   // _RWSTD_TR1_ARRAY_INCLUDED

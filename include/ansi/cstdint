@@ -1,0 +1,174 @@
+// -*- C++ -*-
+/***************************************************************************
+ *
+ * cstdint - C++ Standard library interface to the ANSI C header stdint.h
+ *
+ * $Id$
+ *
+ ***************************************************************************
+ *
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 1994-2006 Rogue Wave Software.
+ * 
+ **************************************************************************/
+
+#include <rw/_defs.h>
+
+#ifdef _RWSTD_NO_EXT_CXX_0X
+#  error _RWSTD_NO_EXT_CXX_0X defined and C++0x header included
+#endif
+
+#ifndef _RWSTD_NO_PURE_C_HEADERS
+#  include <ansi/_cstdint.h>
+#else
+
+#ifdef _RWSTD_OS_LINUX
+   // stdint.h doesn't define any of the expected macros unless
+   // the following macro is defined before it is included
+#  define __STDC_LIMIT_MACROS
+#endif   // _RWSTD_OS_LINUX
+
+#ifndef _RWSTD_NO_DEPRECATED_C_HEADERS
+
+#ifndef _RWSTD_NAMESPACE_STD_OPEN
+#define _RWSTD_NAMESPACE_STD_OPEN 19
+
+_RWSTD_NAMESPACE (std) { 
+
+#endif   // _RWSTD_NAMESPACE_STD_OPEN
+
+#include _RWSTD_ANSI_C_STDINT_H
+
+
+#if _RWSTD_NAMESPACE_STD_OPEN == 19
+#  undef _RWSTD_NAMESPACE_STD_OPEN
+
+}   // namespace std
+
+#endif   // _RWSTD_NAMESPACE_STD_OPEN == 19
+
+#else   // if defined (_RWSTD_NO_DEPRECATED_C_HEADERS)
+
+#ifndef _RWSTD_CSTDINT_INCLUDED
+#define _RWSTD_CSTDINT_INCLUDED
+
+#include _RWSTD_ANSI_C_STDINT_H
+
+#if !defined (_RWSTD_NO_NAMESPACE) && !defined (_RWSTD_NO_HONOR_STD) && \
+    !defined (_RWSTD_NO_USING_LIBC_IN_STD)
+
+namespace std {
+
+#ifdef _RWSTD_INT8_T
+    using ::int8_t;
+#endif   // _RWSTD_INT8_T
+
+#ifdef _RWSTD_UINT8_T
+    using ::uint8_t;
+#endif   // _RWSTD_UINT8_T
+
+#ifdef _RWSTD_INT16_T
+    using ::int16_t;
+#endif   // _RWSTD_INT16_T
+
+#ifdef _RWSTD_UINT16_T
+    using ::uint16_t;
+#endif   // _RWSTD_UINT16_T
+
+#ifdef _RWSTD_INT32_T
+    using ::int32_t;
+#endif   // _RWSTD_INT32_T
+
+#ifdef _RWSTD_UINT32_T
+    using ::uint32_t;
+#endif   // _RWSTD_UINT32_T
+
+#ifdef _RWSTD_INT64_T
+    using ::int64_t;
+#endif   // _RWSTD_INT64_T
+
+#ifdef _RWSTD_UINT64_T
+    using ::uint64_t;
+#endif   // _RWSTD_UINT64_T
+
+    using ::intmax_t;
+    using ::uintmax_t;
+
+    using ::intptr_t;
+    using ::uintptr_t;
+
+#ifdef _RWSTD_INT_LEAST8_T
+    using ::int_least8_t;
+    using ::int_fast8_t;
+#endif   // _RWSTD_INT_LEAST8_T
+
+#ifdef _RWSTD_UINT_LEAST8_T
+    using ::uint_least8_t;
+    using ::uint_fast8_t;
+#endif   // _RWSTD_UINT_LEAST8_T
+
+#ifdef _RWSTD_INT_LEAST16_T
+    using ::int_least16_t;
+    using ::int_fast16_t;
+#endif   // _RWSTD_UINT_LEAST16_T
+
+#ifdef _RWSTD_UINT_LEAST16_T
+    using ::uint_least16_t;
+    using ::uint_fast16_t;
+#endif   // _RWSTD_UINT_LEAST16_T
+
+#ifdef _RWSTD_INT_LEAST32_T
+    using ::int_least32_t;
+    using ::int_fast32_t;
+#endif   // _RWSTD_UINT_LEAST32_T
+
+#ifdef _RWSTD_UINT_LEAST32_T
+    using ::uint_least32_t;
+    using ::uint_fast32_t;
+#endif   // _RWSTD_UINT_LEAST32_T
+
+#ifdef _RWSTD_INT_LEAST64_T
+    using ::int_least64_t;
+    using ::int_fast64_t;
+#endif   // _RWSTD_INT_LEAST64_T
+
+#ifdef _RWSTD_UINT_LEAST64_T
+    using ::uint_least64_t;
+    using ::uint_fast64_t;
+#endif   // _RWSTD_UINT_LEAST64_T
+
+#ifdef _RWSTD_INT_LEAST128_T
+    using ::int_least128_t;
+    using ::int_fast128_t;
+#endif   // _RWSTD_INT_LEAST128_T
+
+#ifdef _RWSTD_UINT_LEAST128_T
+    using ::uint_least128_t;
+    using ::uint_fast128_t;
+#endif   // _RWSTD_UINT_LEAST128_T
+
+}   // std
+
+#endif   // !_RWSTD_NO_NAMESPACE && !_RWSTD_NO_HONOR_STD && !_RWSTD_NO_USING_LIBC_IN_STD
+
+#endif   // _RWSTD_CSTDINT_INCLUDED
+
+#endif   // _RWSTD_NO_DEPRECATED_C_HEADERS
+
+#endif   // _RWSTD_NO_PURE_C_HEADERS
+

@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /***************************************************************************
  *
- * 2.smartptr.weak.cpp - test exercising class template weak_ptr
+ * 20.smartptr.weak.cpp - test exercising class template weak_ptr
  *
  * $Id$
  *
@@ -23,14 +23,16 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
-#include <cassert>
-#include <tr1/_smartptr.h>
-
 #include <driver.h>
+
+// compile out all test code if extensions disabled
+#ifndef _RWSTD_NO_EXT_CXX_0X
+
+#include <rw/_smartptr.h>
 
 /**************************************************************************/
 
@@ -122,46 +124,46 @@ int Deleter<T>::n_funcalls;
 static void
 test_ctor ()
 {
-    rw_info (0, "tr.util.smartptr.weak.cons", 0,
+    rw_info (0, "util.smartptr.weak.cons", 0,
              "weak_ptr constructors");
 
     {   // default ctor
-        std::tr1::weak_ptr<char> weak;
+        std::weak_ptr<char> weak;
         rw_assert (0 == weak.use_count (), 0, __LINE__, "");
     }
 
     {   // shared_ptr converting ctor
-        std::tr1::shared_ptr<char> shared;
-        std::tr1::weak_ptr<char>   weak (shared);
+        std::shared_ptr<char> shared;
+        std::weak_ptr<char>   weak (shared);
         rw_assert (0 == weak.use_count (), 0, __LINE__, "");
     }
 
     {   // shared_ptr converting ctor
-        std::tr1::shared_ptr<char> shared;
-        std::tr1::weak_ptr<void>   weak (shared);
+        std::shared_ptr<char> shared;
+        std::weak_ptr<void>   weak (shared);
         rw_assert (0 == weak.use_count (), 0, __LINE__, "");
     }
 
     {   // shared_ptr converting ctor
         int* const p = new int (__LINE__);
-        std::tr1::shared_ptr<int> shared (p);
-        std::tr1::weak_ptr<int>   weak (shared);
+        std::shared_ptr<int> shared (p);
+        std::weak_ptr<int>   weak (shared);
         rw_assert (shared.use_count () == weak.use_count (), 0, __LINE__, "");
     }
 
     {   // shared_ptr converting ctor
         int* const p = new int (__LINE__);
-        std::tr1::shared_ptr<int> shared0 (p);
-        std::tr1::shared_ptr<int> shared1 (shared0);
-        std::tr1::weak_ptr<int>   weak (shared1);
+        std::shared_ptr<int> shared0 (p);
+        std::shared_ptr<int> shared1 (shared0);
+        std::weak_ptr<int>   weak (shared1);
         rw_assert (shared1.use_count () == weak.use_count (), 0, __LINE__, "");
     }
 
 
     {   // shared_ptr converting ctor
         int* const p = new int (__LINE__);
-        std::tr1::shared_ptr<int> shared (p);
-        std::tr1::weak_ptr<void>  weak (shared);
+        std::shared_ptr<int> shared (p);
+        std::weak_ptr<void>  weak (shared);
         shared.reset ();
 
         rw_assert (0 == weak.use_count (), 0, __LINE__, "");
@@ -169,8 +171,8 @@ test_ctor ()
 
     {   // shared_ptr converting ctor
         Derived<int>* const p = new Derived<int>;
-        std::tr1::shared_ptr<Derived<int> > shared (p);
-        std::tr1::weak_ptr<Base<int> >      weak (shared);
+        std::shared_ptr<Derived<int> > shared (p);
+        std::weak_ptr<Base<int> >      weak (shared);
         shared.reset ();
 
         rw_assert (0 == weak.use_count (), 0, __LINE__, "");
@@ -182,13 +184,13 @@ test_ctor ()
 static void
 test_copy_ctor ()
 {
-    rw_info (0, "tr.util.smartptr.weak.copy", 0,
+    rw_info (0, "util.smartptr.weak.copy", 0,
              "weak_ptr copy constructors");
 
     {
         // weak_ptr (const weak_ptr&)
-        std::tr1::weak_ptr<void> weak;
-        std::tr1::weak_ptr<void> copy (weak);
+        std::weak_ptr<void> weak;
+        std::weak_ptr<void> copy (weak);
         rw_assert (0 == weak.use_count (), 0, __LINE__, "");
         rw_assert (0 == copy.use_count (), 0, __LINE__, "");
     }
@@ -196,9 +198,9 @@ test_copy_ctor ()
     {
         // weak_ptr (const weak_ptr&)
         int* const p = new int (__LINE__);
-        std::tr1::shared_ptr<int> shared (p);
-        std::tr1::weak_ptr<int>   weak (shared);
-        std::tr1::weak_ptr<int>   copy (weak);
+        std::shared_ptr<int> shared (p);
+        std::weak_ptr<int>   weak (shared);
+        std::weak_ptr<int>   copy (weak);
 
         rw_assert (weak.use_count () == shared.use_count (), 0, __LINE__, "");
         rw_assert (copy.use_count () == shared.use_count (), 0, __LINE__, "");
@@ -207,10 +209,10 @@ test_copy_ctor ()
     {
         // weak_ptr (const weak_ptr&)
         int* const p = new int (__LINE__);
-        std::tr1::shared_ptr<int> shared0 (p);
-        std::tr1::shared_ptr<int> shared1 (shared0);
-        std::tr1::weak_ptr<int>   weak (shared1);
-        std::tr1::weak_ptr<int>   copy (weak);
+        std::shared_ptr<int> shared0 (p);
+        std::shared_ptr<int> shared1 (shared0);
+        std::weak_ptr<int>   weak (shared1);
+        std::weak_ptr<int>   copy (weak);
 
         rw_assert (weak.use_count () == shared1.use_count (), 0, __LINE__, "");
         rw_assert (copy.use_count () == shared1.use_count (), 0, __LINE__, "");
@@ -219,10 +221,10 @@ test_copy_ctor ()
     {
         // weak_ptr (const weak_ptr&)
         int* const p = new int (__LINE__);
-        std::tr1::shared_ptr<int> shared0 (p);
-        std::tr1::shared_ptr<int> shared1 (shared0);
-        std::tr1::weak_ptr<int>   weak (shared1);
-        std::tr1::weak_ptr<void>  copy (weak);
+        std::shared_ptr<int> shared0 (p);
+        std::shared_ptr<int> shared1 (shared0);
+        std::weak_ptr<int>   weak (shared1);
+        std::weak_ptr<void>  copy (weak);
 
         rw_assert (weak.use_count () == shared1.use_count (), 0, __LINE__, "");
         rw_assert (copy.use_count () == shared1.use_count (), 0, __LINE__, "");
@@ -231,10 +233,10 @@ test_copy_ctor ()
     {
         // weak_ptr (const weak_ptr&)
         Derived<int>* const p = new Derived<int>;
-        std::tr1::shared_ptr<Derived<int> > shared0 (p);
-        std::tr1::shared_ptr<Derived<int> > shared1 (shared0);
-        std::tr1::weak_ptr<Derived<int> >   weak (shared1);
-        std::tr1::weak_ptr<Base<int> >      copy (weak);
+        std::shared_ptr<Derived<int> > shared0 (p);
+        std::shared_ptr<Derived<int> > shared1 (shared0);
+        std::weak_ptr<Derived<int> >   weak (shared1);
+        std::weak_ptr<Base<int> >      copy (weak);
 
         rw_assert (weak.use_count () == shared1.use_count (), 0, __LINE__, "");
         rw_assert (copy.use_count () == shared1.use_count (), 0, __LINE__, "");
@@ -254,14 +256,14 @@ test_copy_ctor ()
 static void
 test_dtor ()
 {
-    rw_info (0, "tr.util.smartptr.weak.dest", 0,
+    rw_info (0, "util.smartptr.weak.dest", 0,
              "weak_ptr destructor");
 
     {
         // ~weak_ptr()
         const int base_dtors = Base<int>::n_dtors;
         {
-            std::tr1::weak_ptr<Base<int> > weak;
+            std::weak_ptr<Base<int> > weak;
         }
         rw_assert (base_dtors == Base<int>::n_dtors, 0, __LINE__, "");
     }
@@ -270,9 +272,9 @@ test_dtor ()
         // ~weak_ptr()
         const int base_dtors = Base<int>::n_dtors;
         Base<int>* const p = new Base<int>;
-        std::tr1::shared_ptr<Base<int> > shared (p);
+        std::shared_ptr<Base<int> > shared (p);
         {
-            std::tr1::weak_ptr<Base<int> > weak (shared);
+            std::weak_ptr<Base<int> > weak (shared);
         }
         rw_assert (base_dtors == Base<int>::n_dtors, 0, __LINE__, "");
     }
@@ -283,10 +285,10 @@ test_dtor ()
         const int derived_dtors = Derived<int>::n_dtors;
 
         Derived<int>* const p = new Derived<int>;
-        std::tr1::shared_ptr<Derived<int> > shared (p);
+        std::shared_ptr<Derived<int> > shared (p);
 
         {
-            std::tr1::weak_ptr<Base<int> > weak (shared);
+            std::weak_ptr<Base<int> > weak (shared);
         }
         rw_assert (base_dtors    == Base<int>::n_dtors, 0, __LINE__, "");
         rw_assert (derived_dtors == Derived<int>::n_dtors, 0, __LINE__, "");
@@ -298,11 +300,11 @@ test_dtor ()
         const int derived_dtors = Derived<int>::n_dtors;
 
         Derived<int>* const p = new Derived<int>;
-        std::tr1::shared_ptr<Derived<int> > shared (p);
+        std::shared_ptr<Derived<int> > shared (p);
 
         {
-            std::tr1::weak_ptr<Base<int> > weak (shared);
-            std::tr1::weak_ptr<Base<int> > copy (shared);
+            std::weak_ptr<Base<int> > weak (shared);
+            std::weak_ptr<Base<int> > copy (shared);
         }
         rw_assert (base_dtors    == Base<int>::n_dtors, 0, __LINE__, "");
         rw_assert (derived_dtors == Derived<int>::n_dtors, 0, __LINE__, "");
@@ -314,10 +316,10 @@ test_dtor ()
         const int derived_dtors = Derived<int>::n_dtors;
 
         Derived<int>* const p = new Derived<int>;
-        std::tr1::shared_ptr<Derived<int> > shared (p);
+        std::shared_ptr<Derived<int> > shared (p);
 
         {
-            std::tr1::weak_ptr<Base<int> > weak (shared);
+            std::weak_ptr<Base<int> > weak (shared);
             shared.reset ();
         }
         rw_assert (base_dtors + 1    == Base<int>::n_dtors, 0, __LINE__, "");
@@ -329,11 +331,11 @@ test_dtor ()
         const int base_dtors    = Base<int>::n_dtors;
         const int derived_dtors = Derived<int>::n_dtors;
 
-        std::tr1::weak_ptr<Derived<int> > weak;
+        std::weak_ptr<Derived<int> > weak;
 
         {
             Derived<int>* const p = new Derived<int>;
-            std::tr1::shared_ptr<Derived<int> > shared (p);
+            std::shared_ptr<Derived<int> > shared (p);
 
             weak = shared;
         }
@@ -347,14 +349,14 @@ test_dtor ()
 static void
 test_assign ()
 {
-    rw_info (0, "tr.util.smartptr.weak.assign", 0,
+    rw_info (0, "util.smartptr.weak.assign", 0,
              "weak_ptr assignment operators");
 
 #if 0
 
     {   // operator=(const weak_ptr&)
-        std::tr1::weak_ptr<void> ptr0;
-        std::tr1::weak_ptr<void> ptr1;
+        std::weak_ptr<void> ptr0;
+        std::weak_ptr<void> ptr1;
 
         ptr1 = ptr0;
 
@@ -364,8 +366,8 @@ test_assign ()
 
     {   // operator=(const weak_ptr&)
         int* const p = new int (__LINE__);
-        std::tr1::weak_ptr<int> ptr0 (p);
-        std::tr1::weak_ptr<int> ptr1;
+        std::weak_ptr<int> ptr0 (p);
+        std::weak_ptr<int> ptr1;
 
         ptr1 = ptr0;
 
@@ -375,8 +377,8 @@ test_assign ()
 
     {   // template <class U> operator=(const weak_ptr<U>&)
         int* const p = new int (__LINE__);
-        std::tr1::weak_ptr<int> ptr0 (p);
-        std::tr1::weak_ptr<void> ptr1;
+        std::weak_ptr<int> ptr0 (p);
+        std::weak_ptr<void> ptr1;
 
         ptr1 = ptr0;
 
@@ -386,8 +388,8 @@ test_assign ()
 
     {   // template <class U> operator=(const weak_ptr<U>&)
         Derived<int>* const p = new Derived<int>;
-        std::tr1::weak_ptr<Derived<int> > ptr0 (p);
-        std::tr1::weak_ptr<Base<int> > ptr1;
+        std::weak_ptr<Derived<int> > ptr0 (p);
+        std::weak_ptr<Base<int> > ptr1;
 
         ptr1 = ptr0;
 
@@ -397,8 +399,8 @@ test_assign ()
 
     {   // template <class U> operator=(const weak_ptr<U>&)
         Derived<int>* const p = new Derived<int>;
-        std::tr1::weak_ptr<Base<int> > ptr0 (p);
-        std::tr1::weak_ptr<void>       ptr1;
+        std::weak_ptr<Base<int> > ptr0 (p);
+        std::weak_ptr<void>       ptr1;
 
         ptr1 = ptr0;
 
@@ -415,7 +417,7 @@ test_assign ()
 static void
 test_modifiers ()
 {
-    rw_info (0, "tr.util.smartptr.weak.mod", 0,
+    rw_info (0, "util.smartptr.weak.mod", 0,
              "weak_ptr modifiers");
 
     rw_warn (0, 0, 0,
@@ -427,43 +429,43 @@ test_modifiers ()
 static void
 test_observers ()
 {
-    rw_info (0, "tr.util.smartptr.weak.obs", 0,
+    rw_info (0, "util.smartptr.weak.obs", 0,
              "weak_ptr observers");
 
     {   // use_count()
-        std::tr1::weak_ptr<void> weak;
+        std::weak_ptr<void> weak;
         rw_assert (0 == weak.use_count (), 0, __LINE__, "");
     }
 
     {   // expired()
-        std::tr1::weak_ptr<void> weak;
+        std::weak_ptr<void> weak;
         rw_assert (weak.expired (), 0, __LINE__, "");
     }
 
     {   // expired()
-        std::tr1::shared_ptr<void> shared;
-        std::tr1::weak_ptr<void>   weak (shared);
+        std::shared_ptr<void> shared;
+        std::weak_ptr<void>   weak (shared);
         rw_assert (weak.expired (), 0, __LINE__, "");
     }
 
     {   // expired()
         int* const p = new int (__LINE__);
-        std::tr1::shared_ptr<void> shared (p);
-        std::tr1::weak_ptr<void>   weak (shared);
+        std::shared_ptr<void> shared (p);
+        std::weak_ptr<void>   weak (shared);
         rw_assert (!weak.expired (), 0, __LINE__, "");
     }
 
     {   // expired()
         int* const p = new int (__LINE__);
-        std::tr1::shared_ptr<void> shared (p);
-        std::tr1::weak_ptr<void>   weak (shared);
+        std::shared_ptr<void> shared (p);
+        std::weak_ptr<void>   weak (shared);
         shared.reset ();
         rw_assert (weak.expired (), 0, __LINE__, "");
     }
 
     {   // lock()
-        std::tr1::weak_ptr<void>   weak;
-        std::tr1::shared_ptr<void> shared (weak.lock ());
+        std::weak_ptr<void>   weak;
+        std::shared_ptr<void> shared (weak.lock ());
         
         rw_assert (0 == weak.use_count (), 0, __LINE__,
                    "weak_ptr<void>::use_count() == 1, got %ld",
@@ -475,9 +477,9 @@ test_observers ()
 
     {   // lock()
         int* const p = new int (__LINE__);
-        std::tr1::shared_ptr<void> shared0 (p);
-        std::tr1::weak_ptr<void>   weak (shared0);
-        std::tr1::shared_ptr<void> shared1 (weak.lock ());
+        std::shared_ptr<void> shared0 (p);
+        std::weak_ptr<void>   weak (shared0);
+        std::shared_ptr<void> shared1 (weak.lock ());
         
         rw_assert (2 == weak.use_count (), 0, __LINE__,
                    "weak_ptr<void>::use_count() == 2, got %ld",
@@ -489,10 +491,10 @@ test_observers ()
 
     {   // lock()
         int* const p = new int (__LINE__);
-        std::tr1::shared_ptr<void> shared0 (p);
-        std::tr1::weak_ptr<void>   weak (shared0);
-        std::tr1::shared_ptr<void> shared1 (weak.lock ());
-        std::tr1::shared_ptr<void> shared2 (shared1);
+        std::shared_ptr<void> shared0 (p);
+        std::weak_ptr<void>   weak (shared0);
+        std::shared_ptr<void> shared1 (weak.lock ());
+        std::shared_ptr<void> shared2 (shared1);
         
         rw_assert (3 == weak.use_count (), 0, __LINE__,
                    "weak_ptr<void>::use_count() == 3, got %ld",
@@ -526,7 +528,7 @@ test_observers ()
 static void
 test_comparison ()
 {
-    rw_info (0, "tr.util.smartptr.weak.cmp", 0,
+    rw_info (0, "util.smartptr.weak.cmp", 0,
              "weak_ptr comparison");
 
     rw_warn (0, 0, 0,
@@ -538,7 +540,7 @@ test_comparison ()
 static void
 test_specialized ()
 {
-    rw_info (0, "tr.util.smartptr.weak.spec", 0,
+    rw_info (0, "util.smartptr.weak.spec", 0,
              "weak_ptr specialized algorithms");
 
     rw_warn (0, 0, 0,
@@ -585,7 +587,7 @@ run_test (int, char*[])
 int main (int argc, char *argv[])
 {
     return rw_test (argc, argv, __FILE__,
-                    "tr.util.smartptr.weak",
+                    "util.smartptr.weak",
                     0 /* no comment */, run_test,
                     "|-no-ctor# "
                     "|-no-copy_ctor# "
@@ -604,3 +606,24 @@ int main (int argc, char *argv[])
                     &no_comparison, 
                     &no_specialized);
 }
+
+#else   // _RWSTD_NO_EXT_CXX_0X
+
+static int
+run_test (int, char* [])
+{
+    rw_warn (0, 0, __LINE__,
+             "test disabled because _RWSTD_NO_EXT_CXX_0X is defined");
+    return 0;
+}
+
+int main (int argc, char *argv[])
+{
+    return rw_test (argc, argv, __FILE__,
+                    "util.smartptr.weak",
+                    0 /* no comment */,
+                    run_test,
+                    0); 
+}
+
+#endif  // _RWSTD_NO_EXT_CXX_0X

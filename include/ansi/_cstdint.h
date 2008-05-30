@@ -27,16 +27,14 @@
  * 
  **************************************************************************/
 
-#ifndef _RWSTD_TR1_CSTDINT_INCLUDED
-#define _RWSTD_TR1_CSTDINT_INCLUDED
+#ifndef _RWSTD_CSTDINT_H_INCLUDED
+#define _RWSTD_CSTDINT_H_INCLUDED
 
 
 #include <rw/_defs.h>
 
 
 _RWSTD_NAMESPACE (std) {
-
-_RWSTD_NAMESPACE (tr1) {
 
 #ifndef _RWSTD_BNO_TWOS_COMPLEMENT
 #  define _RWSTD_T_MIN(tmax)   (-(tmax) - 1)
@@ -351,9 +349,7 @@ typedef _RWSTD_UINT_LEAST128_T    uint_fast128_t;
 #define INT_FAST32_MIN      _RWSTD_T_MIN (INT_FAST32_MAX)
 #define INT_FAST64_MIN      _RWSTD_T_MIN (INT_FAST64_MAX)
 
-}   // namespace tr1
-
 }   // namespace std
 
 
-#endif   // _RWSTD_TR1_CSTDINT_INCLUDED
+#endif   // _RWSTD_CSTDINT_H_INCLUDED
