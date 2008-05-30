@@ -27,8 +27,8 @@
  * 
  **************************************************************************/
 
-#ifndef _RWSTD_TR1_SMARTPTR_INCLUDED
-#define _RWSTD_TR1_SMARTPTR_INCLUDED
+#ifndef _RWSTD_SMARTPTR_INCLUDED
+#define _RWSTD_SMARTPTR_INCLUDED
 
 
 #include <rw/_autoptr.h>
@@ -143,10 +143,8 @@ private:
 
 _RWSTD_NAMESPACE (std) {
 
-_RWSTD_NAMESPACE (tr1) {
 
-
-// 2.2.2 - class bad_weak_ptr
+// [util.smartptr.weakptr] - class bad_weak_ptr
 struct bad_weak_ptr: _RW::__rw_exception
 {
     bad_weak_ptr (): _RW::__rw_exception () { }
@@ -157,7 +155,7 @@ template <class _TypeT>
 class weak_ptr;
 
 
-// 2.2.3 - class template shared_ptr
+// [util.smartptr.shared] - class template shared_ptr
 template <class _TypeT>
 class shared_ptr
 {
@@ -190,7 +188,7 @@ public:
 
     typedef _TypeT element_type;
 
-    // [2.2.3.1] constructors
+    // [util.smartptr.shared.const] constructors
 
     shared_ptr (): _C_pbody (0), _C_ptr (0) { }
 
@@ -233,7 +231,7 @@ public:
     _EXPLICIT
     shared_ptr (auto_ptr<_TypeU>&);
 
-    // [2.2.3.2] destructor
+    // [util.smartptr.shared.dest] destructor
     ~shared_ptr () {
         if (_C_pbody)
             _C_pbody->_C_unref ();
@@ -244,7 +242,7 @@ public:
 #endif   // _RWSTDDEBUG
     }
 
-    // [2.2.3.3] assignment
+    // [util.smartptr.shared.assign] assignment
 
     shared_ptr& operator= (const shared_ptr &__rhs) {
         if (__rhs._C_pbody)
@@ -279,7 +277,7 @@ public:
         return *this;
     }
 
-    // [2.2.3.4] modifiers
+    // [util.smartptr.shared.mod] modifiers
 
     void swap (shared_ptr &__other) {
         _C_base* const __body = _C_pbody;
@@ -308,7 +306,7 @@ public:
         shared_ptr<_TypeU>(__ptr, __del).swap (*this);
     }
 
-    // [2.2.3.5] observers
+    // [util.smartptr.shared.obs] observers
 
     element_type* get () const {
         return _C_ptr;
@@ -355,7 +353,7 @@ private:
 };
 
 
-// 2.2.3.6 - shared_ptr comparisons
+// [util.smartptr.shared.cmp] - shared_ptr comparisons
 template <class _TypeT, class _TypeU>
 inline bool
 operator== (const shared_ptr<_TypeT> &__lhs, const shared_ptr<_TypeU> &__rhs)
@@ -380,7 +378,7 @@ operator< (const shared_ptr<_TypeT> &__lhs, const shared_ptr<_TypeU> &__rhs)
 }
 
 
-// 2.2.3.8 - shared_ptr specialized algorithms
+// [util.smartptr.shared.spec] - shared_ptr specialized algorithms
 template <class _TypeT>
 inline void
 swap (shared_ptr<_TypeT> &__lhs, shared_ptr<_TypeT> &__rhs)
@@ -389,7 +387,7 @@ swap (shared_ptr<_TypeT> &__lhs, shared_ptr<_TypeT> &__rhs)
 }
 
 
-// 2.2.3.9 - shared_ptr casts
+// [util.smartptr.shared.cast] - shared_ptr casts
 template <class _TypeT, class _TypeU>
 inline shared_ptr<_TypeT>
 static_pointer_cast (const shared_ptr<_TypeU> &__src)
@@ -428,7 +426,7 @@ const_pointer_cast (const shared_ptr<_TypeU> &__src)
 
 #if 0   // NOT IMPLEMENTED YET
 
-// 2.2.3.7 - shared_ptr I/O
+// [util.smartptr.shared.io] - shared_ptr I/O
 template <class _CharT, class _Traits, class _TypeT>
 inline basic_ostream<_CharT, _TypeT>&
 operator<< (basic_ostream<_CharT, _Traits>&, const shared_ptr<_TypeT>&);
@@ -436,7 +434,7 @@ operator<< (basic_ostream<_CharT, _Traits>&, const shared_ptr<_TypeT>&);
 #endif   // 0/1
 
 
-// 2.2.3.10 - shared_ptr get_deleter
+// [util.smartptr.shared.getdeleter] - shared_ptr get_deleter
 template <class _Deleter, class _TypeT>
 _Deleter*
 get_deleter (const shared_ptr<_TypeT> &__ptr)
@@ -445,7 +443,7 @@ get_deleter (const shared_ptr<_TypeT> &__ptr)
 }
 
 
-// 2.2.4 - class template weak_ptr
+// [util.smartptr.weak] - class template weak_ptr
 template <class _TypeT>
 class weak_ptr
 {
@@ -566,7 +564,7 @@ public:
                           : shared_ptr<element_type>(*this);
     }
 
-    // implements 2.2.4.6 - non-member template operator<
+    // implements 20.6.12.3.6 - non-member template operator<
     template <class _TypeU>
     bool operator< (const weak_ptr<_TypeU> __rhs) const {
         return _C_pbody < __rhs._C_pbody;
@@ -580,7 +578,7 @@ private:
 };
 
 
-// 2.2.4.6 - weak_ptr comparison
+// [util.smartptr.weak.cmp] - weak_ptr comparison
 template <class _TypeT, class _TypeU>
 inline bool
 operator< (const weak_ptr<_TypeT> &__lhs, const weak_ptr<_TypeU> &__rhs)
@@ -589,7 +587,7 @@ operator< (const weak_ptr<_TypeT> &__lhs, const weak_ptr<_TypeU> &__rhs)
 }
 
 
-// 2.2.4.7 - weak_ptr specialized algorithms
+// [util.smartptr.weak.spec] - weak_ptr specialized algorithms
 template <class _TypeT>
 inline void
 swap (weak_ptr<_TypeT> &__lhs, weak_ptr<_TypeT> &__rhs)
@@ -598,14 +596,12 @@ swap (weak_ptr<_TypeT> &__lhs, weak_ptr<_TypeT> &__rhs)
 }
 
 
-// 2.2.5 - class enable_shared_from_this
+// [util.smartptr.enab] - class enable_shared_from_this
 template <class _TypeT>
 class enable_shared_from_this;
 
 
-}   // namespace tr1
-
 }   // namespace std
 
 
-#endif   // _RWSTD_TR1_SMARTPTR_INCLUDED
+#endif   // _RWSTD_SMARTPTR_INCLUDED

@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /***************************************************************************
  *
- * 2.smartptr.shared.cpp - test exercising class template shared_ptr
+ * 20.smartptr.shared.cpp - test exercising class template shared_ptr
  *
  * $Id$
  *
@@ -27,9 +27,12 @@
  * 
  **************************************************************************/
 
-#include <tr1/_smartptr.h>
-
 #include <driver.h>
+
+// compile out all test code if extensions disabled
+#ifndef _RWSTD_NO_EXT_CXX_0X
+
+#include <rw/_smartptr.h>
 
 /**************************************************************************/
 
@@ -159,57 +162,57 @@ int Deleter<T>::n_funcalls;
 static void
 test_ctor ()
 {
-    rw_info (0, "tr.util.smartptr.shared.cons", 0,
+    rw_info (0, "util.smartptr.shared.cons", 0,
              "shared_ptr constructors");
 
     {   // default ctor
-        std::tr1::shared_ptr<char> ptr;
+        std::shared_ptr<char> ptr;
         rw_assert (0 == ptr.get (), 0, __LINE__, "");
         rw_assert (0 == ptr.use_count (), 0, __LINE__, "");
     }
 
     {   // default ctor
-        std::tr1::shared_ptr<const short> ptr;
+        std::shared_ptr<const short> ptr;
         rw_assert (0 == ptr.get (), 0, __LINE__, "");
         rw_assert (0 == ptr.use_count (), 0, __LINE__, "");
     }
 
     {   // default ctor
-        std::tr1::shared_ptr<volatile int> ptr;
+        std::shared_ptr<volatile int> ptr;
         rw_assert (0 == ptr.get (), 0, __LINE__, "");
         rw_assert (0 == ptr.use_count (), 0, __LINE__, "");
     }
 
     {   // default ctor
-        std::tr1::shared_ptr<const volatile long> ptr;
+        std::shared_ptr<const volatile long> ptr;
         rw_assert (0 == ptr.get (), 0, __LINE__, "");
         rw_assert (0 == ptr.use_count (), 0, __LINE__, "");
     }
 
     {   // template <class U> shared_ptr(U*)
         const char* const p = new char ('A');
-        std::tr1::shared_ptr<const char> ptr (p);
+        std::shared_ptr<const char> ptr (p);
         rw_assert (p == ptr.get (), 0, __LINE__, "");
         rw_assert (1 == ptr.use_count (), 0, __LINE__, "");
     }
 
     {   // template <class U> shared_ptr(U*)
         const char* const p = new char ('A');
-        std::tr1::shared_ptr<const void> ptr (p);
+        std::shared_ptr<const void> ptr (p);
         rw_assert (p == ptr.get (), 0, __LINE__, "");
         rw_assert (1 == ptr.use_count (), 0, __LINE__, "");
     }
 
     {   // template <class U> shared_ptr(U*)
         short* const p = new short (__LINE__);
-        std::tr1::shared_ptr<volatile void> ptr (p);
+        std::shared_ptr<volatile void> ptr (p);
         rw_assert (p == ptr.get (), 0, __LINE__, "");
         rw_assert (1 == ptr.use_count (), 0, __LINE__, "");
     }
 
     {   // template <class U> shared_ptr(U*)
         double* const p = new double ();
-        std::tr1::shared_ptr<const volatile void> ptr (p);
+        std::shared_ptr<const volatile void> ptr (p);
         rw_assert (p == ptr.get (), 0, __LINE__, "");
         rw_assert (1 == ptr.use_count (), 0, __LINE__, "");
     }
@@ -218,7 +221,7 @@ test_ctor ()
 
     {   // template <class U> shared_ptr(U*)
         char* const p = new char ('A');
-        std::tr1::shared_ptr<int> ptr (p);
+        std::shared_ptr<int> ptr (p);
     }
 
 #endif   // ILL_FORMED
@@ -229,10 +232,10 @@ test_ctor ()
         Derived<int>* const pd2 = new Derived<int>;
         Derived<int>* const pd3 = new Derived<int>;
 
-        std::tr1::shared_ptr<const Derived<int> > ptr_d (pd0);
-        std::tr1::shared_ptr<const Base_0<int> >  ptr_0 (pd1);
-        std::tr1::shared_ptr<const Base_1<int> >  ptr_1 (pd2);
-        std::tr1::shared_ptr<const Base<int> >    ptr_b (pd3);
+        std::shared_ptr<const Derived<int> > ptr_d (pd0);
+        std::shared_ptr<const Base_0<int> >  ptr_0 (pd1);
+        std::shared_ptr<const Base_1<int> >  ptr_1 (pd2);
+        std::shared_ptr<const Base<int> >    ptr_b (pd3);
 
         rw_assert (pd0 == ptr_d.get (), 0, __LINE__,
                    "shared_ptr<Derived>(Derived* = %#p).get() == %#p, got %#p",
@@ -259,7 +262,7 @@ test_ctor ()
     {   // template <class U, class D> shared_ptr(U*, D)
         int* const p = new int (__LINE__);
         Deleter<int> d;
-        std::tr1::shared_ptr<int> ptr (p, d);
+        std::shared_ptr<int> ptr (p, d);
         rw_assert (p == ptr.get (), 0, __LINE__, "");
         rw_assert (1 == ptr.use_count (), 0, __LINE__, "");
     }
@@ -270,13 +273,13 @@ test_ctor ()
 static void
 test_copy_ctor ()
 {
-    rw_info (0, "tr.util.smartptr.shared.copy", 0,
+    rw_info (0, "util.smartptr.shared.copy", 0,
              "shared_ptr copy constructors");
 
     {
         // shared_ptr (const shared_ptr&)
-        std::tr1::shared_ptr<void> ptr;
-        std::tr1::shared_ptr<void> cpy (ptr);
+        std::shared_ptr<void> ptr;
+        std::shared_ptr<void> cpy (ptr);
         rw_assert (0 == ptr.get (), 0, __LINE__, "");
         rw_assert (0 == cpy.get (), 0, __LINE__, "");
         rw_assert (0 == ptr.use_count (), 0, __LINE__, "");
@@ -285,8 +288,8 @@ test_copy_ctor ()
 
     {
         // shared_ptr (const shared_ptr&)
-        std::tr1::shared_ptr<double> ptr;
-        std::tr1::shared_ptr<double> cpy (ptr);
+        std::shared_ptr<double> ptr;
+        std::shared_ptr<double> cpy (ptr);
         rw_assert (ptr.get () == cpy.get (), 0, __LINE__, "");
         rw_assert (ptr.use_count () == cpy.use_count (), 0, __LINE__, "");
     }
@@ -294,8 +297,8 @@ test_copy_ctor ()
     {
         // shared_ptr (const shared_ptr&)
         int* const p = new int (__LINE__);
-        std::tr1::shared_ptr<int> ptr (p);
-        std::tr1::shared_ptr<int> cpy (ptr);
+        std::shared_ptr<int> ptr (p);
+        std::shared_ptr<int> cpy (ptr);
         rw_assert (ptr.get () == cpy.get (), 0, __LINE__, "");
         rw_assert (ptr.use_count () == cpy.use_count (), 0, __LINE__, "");
     }
@@ -303,8 +306,8 @@ test_copy_ctor ()
     {
         // shared_ptr (const shared_ptr&)
         int* const p = new int (__LINE__);
-        std::tr1::shared_ptr<int> ptr (p);
-        std::tr1::shared_ptr<void> cpy (ptr);
+        std::shared_ptr<int> ptr (p);
+        std::shared_ptr<void> cpy (ptr);
         rw_assert (ptr.get () == cpy.get (), 0, __LINE__, "");
         rw_assert (ptr.use_count () == cpy.use_count (), 0, __LINE__, "");
     }
@@ -314,8 +317,8 @@ test_copy_ctor ()
     {
         // shared_ptr (const shared_ptr&)
         int* const p = new int (__LINE__);
-        std::tr1::shared_ptr<void> ptr (p);
-        std::tr1::shared_ptr<int> cpy (ptr);
+        std::shared_ptr<void> ptr (p);
+        std::shared_ptr<int> cpy (ptr);
         rw_assert (ptr.get () == cpy.get (), 0, __LINE__, "");
         rw_assert (ptr.use_count () == cpy.use_count (), 0, __LINE__, "");
     }
@@ -347,10 +350,10 @@ test_copy_ctor ()
 
 #endif   // HP aCC
 
-        std::tr1::shared_ptr<v_Derived_i> ptr_d (pd);
-        std::tr1::shared_ptr<v_Base_0_i>  ptr_0 (ptr_d);
-        std::tr1::shared_ptr<v_Base_1_i>  ptr_1 (ptr_d);
-        std::tr1::shared_ptr<v_Base_i>    ptr_b (ptr_d);
+        std::shared_ptr<v_Derived_i> ptr_d (pd);
+        std::shared_ptr<v_Base_0_i>  ptr_0 (ptr_d);
+        std::shared_ptr<v_Base_1_i>  ptr_1 (ptr_d);
+        std::shared_ptr<v_Base_i>    ptr_b (ptr_d);
 
         rw_assert (pd == ptr_d.get (), 0, __LINE__,
                    "shared_ptr<Derived>(Derived* = %#p).get() == %#p, got %#p",
@@ -386,14 +389,14 @@ test_copy_ctor ()
 static void
 test_dtor ()
 {
-    rw_info (0, "tr.util.smartptr.shared.dest", 0,
+    rw_info (0, "util.smartptr.shared.dest", 0,
              "shared_ptr destructor");
 
     {
         // ~shared_ptr()
         const int base_dtors = Base<int>::n_dtors;
         {
-            std::tr1::shared_ptr<Base<int> > ptr;
+            std::shared_ptr<Base<int> > ptr;
         }
         rw_assert (base_dtors == Base<int>::n_dtors, 0, __LINE__, "");
     }
@@ -402,7 +405,7 @@ test_dtor ()
         // ~shared_ptr()
         const int base_dtors = Base<int>::n_dtors;
         {
-            std::tr1::shared_ptr<Base<int> > ptr (new Base<int>);
+            std::shared_ptr<Base<int> > ptr (new Base<int>);
         }
         rw_assert (base_dtors + 1 == Base<int>::n_dtors, 0, __LINE__, "");
     }
@@ -412,18 +415,7 @@ test_dtor ()
         const int base_dtors    = Base<int>::n_dtors;
         const int derived_dtors = Derived<int>::n_dtors;
         {
-            std::tr1::shared_ptr<Derived<int> > ptr (new Derived<int>);
-        }
-        rw_assert (base_dtors + 1 == Base<int>::n_dtors, 0, __LINE__, "");
-        rw_assert (derived_dtors + 1 == Derived<int>::n_dtors, 0, __LINE__, "");
-    }
-
-    {
-        // ~shared_ptr()
-        const int base_dtors    = Base<int>::n_dtors;
-        const int derived_dtors = Derived<int>::n_dtors;
-        {
-            std::tr1::shared_ptr<Base<int> > ptr (new Derived<int>);
+            std::shared_ptr<Derived<int> > ptr (new Derived<int>);
         }
         rw_assert (base_dtors + 1 == Base<int>::n_dtors, 0, __LINE__, "");
         rw_assert (derived_dtors + 1 == Derived<int>::n_dtors, 0, __LINE__, "");
@@ -434,7 +426,18 @@ test_dtor ()
         const int base_dtors    = Base<int>::n_dtors;
         const int derived_dtors = Derived<int>::n_dtors;
         {
-            std::tr1::shared_ptr<void> ptr (new Derived<int>);
+            std::shared_ptr<Base<int> > ptr (new Derived<int>);
+        }
+        rw_assert (base_dtors + 1 == Base<int>::n_dtors, 0, __LINE__, "");
+        rw_assert (derived_dtors + 1 == Derived<int>::n_dtors, 0, __LINE__, "");
+    }
+
+    {
+        // ~shared_ptr()
+        const int base_dtors    = Base<int>::n_dtors;
+        const int derived_dtors = Derived<int>::n_dtors;
+        {
+            std::shared_ptr<void> ptr (new Derived<int>);
         }
         rw_assert (base_dtors + 1 == Base<int>::n_dtors, 0, __LINE__, "");
         rw_assert (derived_dtors + 1 == Derived<int>::n_dtors, 0, __LINE__, "");
@@ -445,9 +448,9 @@ test_dtor ()
         Deleter<int> d;
         const int funcalls = Deleter<int>::n_funcalls;
         {
-            std::tr1::shared_ptr<int> ptr ((int*)0, d);
+            std::shared_ptr<int> ptr ((int*)0, d);
             {
-                std::tr1::shared_ptr<int> cpy (ptr);
+                std::shared_ptr<int> cpy (ptr);
                 _RWSTD_UNUSED (cpy);
             }
             rw_assert (funcalls == Deleter<int>::n_funcalls, 0, __LINE__, "");
@@ -460,7 +463,7 @@ test_dtor ()
         Deleter<int> d;
         const int funcalls = Deleter<int>::n_funcalls;
         {
-            std::tr1::shared_ptr<int> ptr ((int*)0, d);
+            std::shared_ptr<int> ptr ((int*)0, d);
             _RWSTD_UNUSED (ptr);
         }
         rw_assert (funcalls + 1 == Deleter<int>::n_funcalls, 0, __LINE__, "");
@@ -472,7 +475,7 @@ test_dtor ()
         Deleter<int> d;
         const int funcalls = Deleter<int>::n_funcalls;
         {
-            std::tr1::shared_ptr<int> ptr (p, d);
+            std::shared_ptr<int> ptr (p, d);
         }
         rw_assert (funcalls + 1 == Deleter<int>::n_funcalls, 0, __LINE__, "");
     }
@@ -487,7 +490,7 @@ test_dtor ()
         int b_dtors  = Base<int>::n_dtors;
 
         {
-            std::tr1::shared_ptr<Derived<int> >(new Derived<int>);
+            std::shared_ptr<Derived<int> >(new Derived<int>);
         }
 
         rw_assert (1 == Derived<int>::n_dtors - d_dtors, 0, __LINE__,
@@ -505,7 +508,7 @@ test_dtor ()
         b_dtors  = Base<int>::n_dtors;
 
         {
-            std::tr1::shared_ptr<Base_1<int> >(new Derived<int>);
+            std::shared_ptr<Base_1<int> >(new Derived<int>);
         }
 
         rw_assert (1 == Derived<int>::n_dtors - d_dtors, 0, __LINE__,
@@ -523,7 +526,7 @@ test_dtor ()
         b_dtors  = Base<int>::n_dtors;
 
         {
-            std::tr1::shared_ptr<Base_0<int> >(new Derived<int>);
+            std::shared_ptr<Base_0<int> >(new Derived<int>);
         }
 
         rw_assert (1 == Derived<int>::n_dtors - d_dtors, 0, __LINE__,
@@ -541,7 +544,7 @@ test_dtor ()
         b_dtors  = Base<int>::n_dtors;
 
         {
-            std::tr1::shared_ptr<Base<int> >(new Derived<int>);
+            std::shared_ptr<Base<int> >(new Derived<int>);
         }
 
         rw_assert (1 == Derived<int>::n_dtors - d_dtors, 0, __LINE__,
@@ -559,7 +562,7 @@ test_dtor ()
         b_dtors  = Base<int>::n_dtors;
 
         {
-            std::tr1::shared_ptr<void>(new Derived<int>);
+            std::shared_ptr<void>(new Derived<int>);
         }
 
         rw_assert (1 == Derived<int>::n_dtors - d_dtors, 0, __LINE__,
@@ -578,12 +581,12 @@ test_dtor ()
 static void
 test_assign ()
 {
-    rw_info (0, "tr.util.smartptr.shared.assign", 0,
+    rw_info (0, "util.smartptr.shared.assign", 0,
              "shared_ptr assignment operators");
 
     {   // operator=(const shared_ptr&)
-        std::tr1::shared_ptr<void> ptr0;
-        std::tr1::shared_ptr<void> ptr1;
+        std::shared_ptr<void> ptr0;
+        std::shared_ptr<void> ptr1;
 
         ptr1 = ptr0;
 
@@ -593,8 +596,8 @@ test_assign ()
 
     {   // operator=(const shared_ptr&)
         int* const p = new int (__LINE__);
-        std::tr1::shared_ptr<int> ptr0 (p);
-        std::tr1::shared_ptr<int> ptr1;
+        std::shared_ptr<int> ptr0 (p);
+        std::shared_ptr<int> ptr1;
 
         ptr1 = ptr0;
 
@@ -604,8 +607,8 @@ test_assign ()
 
     {   // template <class U> operator=(const shared_ptr<U>&)
         int* const p = new int (__LINE__);
-        std::tr1::shared_ptr<int>  ptr0 (p);
-        std::tr1::shared_ptr<void> ptr1;
+        std::shared_ptr<int>  ptr0 (p);
+        std::shared_ptr<void> ptr1;
 
         ptr1 = ptr0;
 
@@ -616,8 +619,8 @@ test_assign ()
     {   // template <class U> operator=(const shared_ptr<U>&)
         Derived<int>* const p = new Derived<int>;
 
-        std::tr1::shared_ptr<Derived<int> > ptr0 (p);
-        std::tr1::shared_ptr<Base<int> >    ptr1;
+        std::shared_ptr<Derived<int> > ptr0 (p);
+        std::shared_ptr<Base<int> >    ptr1;
 
         ptr1 = ptr0;
 
@@ -630,12 +633,12 @@ test_assign ()
     {   // template <class U> shared_ptr(U*)
         Derived<int>* const pd = new Derived<int>;
 
-        const std::tr1::shared_ptr<Derived<int> > ptr_d (pd);
+        const std::shared_ptr<Derived<int> > ptr_d (pd);
 
-        std::tr1::shared_ptr<Base_0<int> > ptr_0;
-        std::tr1::shared_ptr<Base_1<int> > ptr_1;
-        std::tr1::shared_ptr<Base<int> >   ptr_b;
-        std::tr1::shared_ptr<void>         ptr_v;
+        std::shared_ptr<Base_0<int> > ptr_0;
+        std::shared_ptr<Base_1<int> > ptr_1;
+        std::shared_ptr<Base<int> >   ptr_b;
+        std::shared_ptr<void>         ptr_v;
 
         ptr_0 = ptr_d;
         ptr_1 = ptr_d;
@@ -675,7 +678,7 @@ test_assign ()
 static void
 test_modifiers ()
 {
-    rw_info (0, "tr.util.smartptr.shared.mod", 0,
+    rw_info (0, "util.smartptr.shared.mod", 0,
              "shared_ptr modifiers");
 
     rw_warn (0, 0, 0,
@@ -687,11 +690,11 @@ test_modifiers ()
 static void
 test_observers ()
 {
-    rw_info (0, "tr.util.smartptr.shared.obs", 0,
+    rw_info (0, "util.smartptr.shared.obs", 0,
              "shared_ptr observers");
 
     {   // operator*()
-        std::tr1::shared_ptr<void> ptr;
+        std::shared_ptr<void> ptr;
         rw_assert (0 == ptr.get (), 0, __LINE__, "");
         rw_assert (0 == ptr.use_count (), 0, __LINE__, "");
     }
@@ -705,19 +708,19 @@ test_observers ()
 static void
 test_comparison ()
 {
-    rw_info (0, "tr.util.smartptr.shared.cmp", 0,
+    rw_info (0, "util.smartptr.shared.cmp", 0,
              "shared_ptr comparison");
 
     {   // operator==
-        std::tr1::shared_ptr<void> ptr;
+        std::shared_ptr<void> ptr;
         rw_assert (ptr == ptr, 0, __LINE__, "");
 
         rw_assert (!(ptr != ptr), 0, __LINE__, "");
     }
 
     {   // operator==
-        std::tr1::shared_ptr<void> ptr0;
-        std::tr1::shared_ptr<int>  ptr1;
+        std::shared_ptr<void> ptr0;
+        std::shared_ptr<int>  ptr1;
         rw_assert (ptr0 == ptr1, 0, __LINE__, "");
         rw_assert (ptr1 == ptr0, 0, __LINE__, "");
 
@@ -728,8 +731,8 @@ test_comparison ()
 #if ILL_FORMED == -1 || ILL_FORMED == __LINE__
 
     {
-        std::tr1::shared_ptr<char> ptr0;
-        std::tr1::shared_ptr<int>  ptr1;
+        std::shared_ptr<char> ptr0;
+        std::shared_ptr<int>  ptr1;
 
         rw_assert (ptr0 == ptr1, 0, __LINE__, "");
         rw_assert (ptr1 == ptr0, 0, __LINE__, "");
@@ -742,8 +745,8 @@ test_comparison ()
 
     {   // operator==
         int* const p = new int (__LINE__);
-        std::tr1::shared_ptr<int> ptr0 (p);
-        std::tr1::shared_ptr<int> ptr1 (ptr0);
+        std::shared_ptr<int> ptr0 (p);
+        std::shared_ptr<int> ptr1 (ptr0);
 
         rw_assert (ptr0 == ptr1, 0, __LINE__, "");
         rw_assert (ptr1 == ptr0, 0, __LINE__, "");
@@ -755,8 +758,8 @@ test_comparison ()
     {   // operator==
         int* const p0 = new int (__LINE__);
         int* const p1 = new int (__LINE__);
-        std::tr1::shared_ptr<int> ptr0 (p0);
-        std::tr1::shared_ptr<int> ptr1 (p1);
+        std::shared_ptr<int> ptr0 (p0);
+        std::shared_ptr<int> ptr1 (p1);
 
         rw_assert (!(ptr0 == ptr1), 0, __LINE__, "");
         rw_assert (!(ptr1 == ptr0), 0, __LINE__, "");
@@ -768,11 +771,11 @@ test_comparison ()
     {   // operator<
         Derived<int>* const p = new Derived<int>;
 
-        std::tr1::shared_ptr<Derived<int> > ptr2 (p);
-        std::tr1::shared_ptr<Base_1<int> >  ptr1 (ptr2);
-        std::tr1::shared_ptr<Base_0<int> >  ptr0 (ptr2);
-        std::tr1::shared_ptr<Base<int> >    ptr_b1 (ptr1);
-        std::tr1::shared_ptr<Base<int> >    ptr_b0 (ptr0);
+        std::shared_ptr<Derived<int> > ptr2 (p);
+        std::shared_ptr<Base_1<int> >  ptr1 (ptr2);
+        std::shared_ptr<Base_0<int> >  ptr0 (ptr2);
+        std::shared_ptr<Base<int> >    ptr_b1 (ptr1);
+        std::shared_ptr<Base<int> >    ptr_b0 (ptr0);
 
         const bool eq_1_2 = (ptr1.get () == ptr2.get ()) == (ptr1 == ptr2);
         const bool eq_0_2 = (ptr0.get () == ptr2.get ()) == (ptr0 == ptr2);
@@ -783,22 +786,22 @@ test_comparison ()
     }
 
     {   // operator<
-        std::tr1::shared_ptr<void> ptr;
+        std::shared_ptr<void> ptr;
 
         rw_assert (!(ptr < ptr), 0, __LINE__, "");
     }
 
     {   // operator<
-        std::tr1::shared_ptr<void> ptr;
-        std::tr1::shared_ptr<void> cpy (ptr);
+        std::shared_ptr<void> ptr;
+        std::shared_ptr<void> cpy (ptr);
 
         rw_assert (!(ptr < cpy) && !(cpy < ptr), 0, __LINE__, "");
     }
 
     {   // operator<
         int* const p = new int (__LINE__);
-        std::tr1::shared_ptr<void> ptr (p);
-        std::tr1::shared_ptr<void> cpy (ptr);
+        std::shared_ptr<void> ptr (p);
+        std::shared_ptr<void> cpy (ptr);
 
         rw_assert (!(ptr < cpy) && !(cpy < ptr), 0, __LINE__, "");
     }
@@ -806,10 +809,10 @@ test_comparison ()
     {   // operator<
         Derived<int>* const p = new Derived<int>;
 
-        std::tr1::shared_ptr<Derived<int> > ptr2 (p);
-        std::tr1::shared_ptr<Base_1<int> >  ptr1 (ptr2);
-        std::tr1::shared_ptr<Base_0<int> >  ptr0 (ptr2);
-        std::tr1::shared_ptr<void>          ptr  (ptr0);
+        std::shared_ptr<Derived<int> > ptr2 (p);
+        std::shared_ptr<Base_1<int> >  ptr1 (ptr2);
+        std::shared_ptr<Base_0<int> >  ptr0 (ptr2);
+        std::shared_ptr<void>          ptr  (ptr0);
 
         rw_assert (!(ptr  < ptr0) && !(ptr0 < ptr),  0, __LINE__, "");
         rw_assert (!(ptr  < ptr1) && !(ptr1 < ptr),  0, __LINE__, "");
@@ -823,8 +826,8 @@ test_comparison ()
         short* const p0 = new short (__LINE__);
         float* const p1 = new float (__LINE__);
 
-        std::tr1::shared_ptr<short> ptr0 (p0);
-        std::tr1::shared_ptr<float> ptr1 (p1);
+        std::shared_ptr<short> ptr0 (p0);
+        std::shared_ptr<float> ptr1 (p1);
 
         rw_assert (ptr0 < ptr1 || ptr1 < ptr0, 0, __LINE__, "");
     }
@@ -835,7 +838,7 @@ test_comparison ()
 static void
 test_io ()
 {
-    rw_info (0, "tr.util.smartptr.shared.io", 0,
+    rw_info (0, "util.smartptr.shared.io", 0,
              "shared_ptr I/O");
 
     rw_warn (0, 0, 0,
@@ -847,7 +850,7 @@ test_io ()
 static void
 test_specialized ()
 {
-    rw_info (0, "tr.util.smartptr.shared.spec", 0,
+    rw_info (0, "util.smartptr.shared.spec", 0,
              "shared_ptr specialized algorithms");
 
     rw_warn (0, 0, 0,
@@ -859,7 +862,7 @@ test_specialized ()
 static void
 test_casts ()
 {
-    rw_info (0, "tr.util.smartptr.shared.cast", 0,
+    rw_info (0, "util.smartptr.shared.cast", 0,
              "shared_ptr casts");
 
     {
@@ -876,7 +879,7 @@ test_casts ()
 static void
 test_deleter ()
 {
-    rw_info (0, "tr.util.smartptr.shared.getdeleter", 0,
+    rw_info (0, "util.smartptr.shared.getdeleter", 0,
              "shared_ptr get_deleter");
 
     rw_warn (0, 0, 0,
@@ -929,7 +932,7 @@ run_test (int, char*[])
 int main (int argc, char *argv[])
 {
     return rw_test (argc, argv, __FILE__,
-                    "tr.util.smartptr.shared",
+                    "util.smartptr.shared",
                     0 /* no comment */, run_test,
                     "|-no-ctor# "
                     "|-no-copy_ctor# "
@@ -954,3 +957,24 @@ int main (int argc, char *argv[])
                     &no_casts, 
                     &no_deleter);
 }
+
+#else   // _RWSTD_NO_EXT_CXX_0X
+
+static int
+run_test (int, char*[])
+{
+    rw_warn (0, 0, __LINE__,
+	         "test disabled because _RWSTD_NO_EXT_CXX_0X is defined");
+    return 0;
+}
+
+int main (int argc, char *argv[])
+{
+    return rw_test (argc, argv, __FILE__,
+                    "util.smartptr.shared",
+                    0 /* no comment */,
+                    run_test,
+                    0);
+}
+
+#endif   // _RWSTD_NO_EXT_CXX_0X
