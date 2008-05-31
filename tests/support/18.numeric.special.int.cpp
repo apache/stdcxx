@@ -487,106 +487,104 @@ void run_test (T*, const char *tname, const char *fmt)
 
     ASSERT (is_specialized, "%#b");
 
-    // 18.2.1.2, p1
-    rw_info (0, 0, __LINE__,
-             "std::numeric_limits<%s>::min() == %{@}",
-             tname, fmt, (Traits::min ()));
-
+    // [numeric.special], p1
     rw_assert ((limT::min)() == (Traits::min)(), 0, __LINE__,
                "std::numeric_limits<%s>::min() == %{@}, got %{@}",
                tname, fmt, (Traits::min)(), fmt, (limT::min)());
 
-    // 18.2.1.2, p4
-    rw_info (0, 0, __LINE__,
-             "std::numeric_limits<%s>::max() == %{@}",
-             tname, fmt, (Traits::max ()));
-
+    // [numeric.special], p4
     rw_assert ((limT::max)() == (Traits::max)(), 0, __LINE__,
                "std::numeric_limits<%s>::max() == %{@}, got %{@}",
                tname, fmt, (Traits::max)(), fmt, (limT::max)());
 
-    // 18.2.1.2, p6
+    // [numeric.special], p6
     ASSERT (digits, "%d");
 
-    // 18.2.1.2, p9
+    // [numeric.special], p9
     ASSERT (digits10, "%d");
 
     rw_assert (limT::digits10 == Traits::compute_digits10 (), 0, __LINE__,
                "std::numeric_limits<%s>::digits10 == %d (computed), got %d",
                tname, Traits::compute_digits10 (), limT::digits10);
 
-    // 18.2.1.2, p11
+    // [numeric.special], p11
     ASSERT (is_signed, "%b");
 
-    // 18.2.1.2, p13
+    // [numeric.special], p13
     ASSERT (is_integer, "%b");
 
-    // 18.2.1.2, p15
+    // [numeric.special], p15
     ASSERT (is_exact, "%b");
 
-    // 18.2.1.2, p17
+    // [numeric.special], p17
     ASSERT (radix, "%i");
 
-    // 18.2.1.2, p20
+    // [numeric.special], p20
     ASSERT_0 (epsilon (), fmt);
 
-    // 18.2.1.2, p22
+    // [numeric.special], p22
     ASSERT_0 (round_error (), fmt);
         
-    // 18.2.1.2, p23
+    // [numeric.special], p23
     ASSERT_0 (min_exponent, "%i");
 
-    // 18.2.1.2, p25
+    // [numeric.special], p25
     ASSERT_0 (min_exponent10, "%i");
 
-    // 18.2.1.2, p27
+    // [numeric.special], p27
     ASSERT_0 (max_exponent, "%i");
 
-    // 18.2.1.2, p29
+    // [numeric.special], p29
     ASSERT_0 (max_exponent10, "%i");
 
-    // 18.2.1.2, p31
+    // [numeric.special], p31
     ASSERT_0 (has_infinity, "%b");
 
-    // 18.2.1.2, p34
+    // [numeric.special], p34
     ASSERT_0 (has_quiet_NaN, "%b");
 
-    // 18.2.1.2, p37
+    // [numeric.special], p37
     ASSERT_0 (has_signaling_NaN, "%b");
 
-    // 18.2.1.2, p40
+    // [numeric.special], p40
     ASSERT_0 (has_denorm, "%b");
 
-    // 18.2.1.2, p42
+    // [numeric.special], p42
     ASSERT_0 (has_denorm_loss, "%b");
 
-    // 18.2.1.2, p43
+    // [numeric.special], p43
     ASSERT_0 (infinity (), fmt);
 
-    // 18.2.1.2, p45
+    // [numeric.special], p45
     ASSERT_0 (quiet_NaN (), fmt);
 
-    // 18.2.1.2, p47
+    // [numeric.special], p47
     ASSERT_0 (signaling_NaN (), fmt);
 
-    // 18.2.1.2, p49
+    // [numeric.special], p49
     ASSERT_0 (denorm_min (), fmt);
 
-    // 18.2.1.2, p52
+    // [numeric.special], p52
     ASSERT_0 (is_iec559, "%b");
 
-    // 18.2.1.2, p54
+    // [numeric.special], p54
     ASSERT (is_bounded, "%b");
 
-    // 18.2.1.2, p56
+    // [numeric.special], p56
     rw_assert (limT::is_modulo == Traits::is_modulo (), 0, __LINE__,
                "std::numeric_limits<%s>::is_modulo == %#b",
                tname, Traits::is_modulo ());
 
-    // 18.2.1.2, p61
+    // [numeric.special], p59
+    // numeric_limits::traps exercised separately in 18.limits.traps.cpp
+    // to prevent runtime errors (SIGFPE) from hiding potential assertion
+    // failures in the rest of the test
+    // ASSERT_0 (traps, "%b");
+
+    // [numeric.special], p61
     ASSERT_0 (tinyness_before, "%b");
         
-    // 18.2.1.2, p63
+    // [numeric.special], p63
     rw_assert (limT::round_style == int (std::round_toward_zero), 0, __LINE__,
                "std::numeric_limits<%s>::round_style == %d",
                tname, std::round_toward_zero);
@@ -621,8 +619,8 @@ run_test (int, char**)
 
 #ifdef _RWSTD_LONG_LONG
 
-    TEST (_RWSTD_LONG_LONG, "%lli");
-    TEST (unsigned _RWSTD_LONG_LONG, "%llu");
+    run_test ((_RWSTD_LONG_LONG*)0, "long long", "%lli");
+    run_test ((unsigned _RWSTD_LONG_LONG*)0, "unsigned long long", "%llu");
 
 #endif   // _RWSTD_LONG_LONG
 
