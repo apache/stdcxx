@@ -250,7 +250,7 @@ void Def::preprocess_collation_definitions()
             csm_it->second = coll_value++;
     }
 
-    static typename token_list_t::size_type max_orders = 0;
+    static token_list_t::size_type max_orders = 0;
 
     std::list<collate_section_t>::iterator s_it = section_list_.begin ();
 
