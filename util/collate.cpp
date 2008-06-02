@@ -125,7 +125,7 @@ void Def::process_weights (collate_entry_t& entry)
 unsigned int Def::process_order_stmt (collate_section_t& section)
 {
     // number of orders in the section
-    collate_out_.num_weights = section.order.size ();
+    collate_out_.num_weights = unsigned (section.order.size ());
     if (collate_out_.num_weights == 0) {
         collate_out_.num_weights = 1;
         collate_out_.weight_type[0] = 0;
@@ -243,14 +243,14 @@ void Def::preprocess_collation_definitions()
     std::string prev_elm;
     std::string next_elm;
 
-    static unsigned int max_orders = 0;
-
     token_list_t::iterator cs_it = sym_list_.begin ();
     for (; cs_it != sym_list_.end (); ++cs_it) {
         cs_map_iter csm_it = cs_map_.find (cs_it->name);
         if (csm_it != cs_map_.end ())
             csm_it->second = coll_value++;
     }
+
+    static typename token_list_t::size_type max_orders = 0;
 
     std::list<collate_section_t>::iterator s_it = section_list_.begin ();
 

@@ -825,7 +825,7 @@ int compare (const charT str[], const char s[], const char bits [2])
             return int (s - beg);
     }
 
-    return *str ? s - beg : -1;
+    return *str ? int (s - beg) : -1;
 }
 
 // compare two strings, return the offset of the first mismatch
@@ -840,7 +840,7 @@ int compare (const UserChar str[], const char s[], const char bits [2])
             return int (s - beg);
     }
 
-    return str->c ? s - beg : -1;
+    return str->c ? int (s - beg) : -1;
 }
 
 
