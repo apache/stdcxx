@@ -198,7 +198,7 @@ get_short_val (char* const* argv, int* idx)
     @param offset length of option name (including leading --)
 */
 static char*
-get_long_val (char* const* argv, int* idx, unsigned offset)
+get_long_val (char* const* argv, int* idx, size_t offset)
 {
     assert (0 != argv);
     assert (0 != idx);
@@ -567,7 +567,7 @@ eval_options (int argc, char **argv, struct target_opts* defaults,
                      && !memcmp (opt_exit, argv [i], sizeof opt_exit - 1)) {
                 /* exit immediately with the specified status */
                 optname = opt_exit;
-                optarg  = get_long_val (argv, &i, unsigned (sizeof opt_exit - 1));
+                optarg  = get_long_val (argv, &i, sizeof opt_exit - 1);
                 if (optarg && *optarg) {
                     if (!isdigit (*optarg))
                         bad_value (optname, optarg);
@@ -589,7 +589,7 @@ eval_options (int argc, char **argv, struct target_opts* defaults,
                      && !memcmp (opt_sleep, argv [i], sizeof opt_sleep - 1)) {
                 /* sleep for the specified number of seconds */ 
                 optname = opt_sleep;
-                optarg  = get_long_val (argv, &i, unsigned (sizeof opt_sleep - 1));
+                optarg  = get_long_val (argv, &i, sizeof opt_sleep - 1);
                 if (optarg && *optarg) {
                     if (!isdigit (*optarg))
                         bad_value (optname, optarg);
@@ -606,7 +606,7 @@ eval_options (int argc, char **argv, struct target_opts* defaults,
                      && !memcmp (opt_signal, argv [i], sizeof opt_signal - 1)) {
                 /* send ourselves the specified signal */
                 optname = opt_signal;
-                optarg  = get_long_val (argv, &i, unsigned (sizeof opt_signal - 1));
+                optarg  = get_long_val (argv, &i, sizeof opt_signal - 1);
                 if (optarg && *optarg) {
                     const int signo = get_signo (optarg);
                     if (0 <= signo) {
@@ -621,7 +621,7 @@ eval_options (int argc, char **argv, struct target_opts* defaults,
                      && !memcmp (opt_ignore, argv [i], sizeof opt_ignore - 1)) {
                 /* ignore the specified signal */
                 optname = opt_ignore;
-                optarg  = get_long_val (argv, &i, unsigned (sizeof opt_ignore - 1));
+                optarg  = get_long_val (argv, &i, sizeof opt_ignore - 1);
                 if (optarg && *optarg) {
                     const int signo = get_signo (optarg);
                     if (0 <= signo) {
@@ -636,7 +636,7 @@ eval_options (int argc, char **argv, struct target_opts* defaults,
                      && !memcmp (opt_ulimit, argv [i], sizeof opt_ulimit - 1)) {
                 /* set child process resource utilization limits */
                 optname = opt_ulimit;
-                optarg  = get_long_val (argv, &i, unsigned (sizeof opt_ulimit - 1));
+                optarg  = get_long_val (argv, &i, sizeof opt_ulimit - 1);
                 if (optarg && *optarg) {
                     if (!parse_limit_opts (optarg, defaults)) {
                         break;
@@ -647,7 +647,7 @@ eval_options (int argc, char **argv, struct target_opts* defaults,
                      && !memcmp (opt_warn, argv [i], sizeof opt_warn - 1)) {
                 /* set compiler warning mode */
                 optname = opt_warn;
-                optarg  = get_long_val (argv, &i, unsigned (sizeof opt_warn - 1));
+                optarg  = get_long_val (argv, &i, sizeof opt_warn - 1);
                 if (optarg && *optarg) {
                     if (!parse_warn_opts (optarg, defaults)) {
                         break;
