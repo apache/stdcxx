@@ -79,17 +79,19 @@ int main ()
     bool trapped = false;
 
     // if this traps (generates SIGFPE), verify (in the signal handler)
-    // that integer arithmetic is expected to trap
+    // that integer arithmetic is expected to trap. if this doesn't trap
+    // then we are either on windows, or traps are disabled.
     TRY {
         result  = non_zero / zero;
         result += non_zero % zero;
     }
     EXCEPT (1) {
+        // windows structured exception caught
         trapped = true;
     }
 
-    // if we get this far, verify that integer arithmetic is known not
-    // to trap
+    // if we get this far, verify that we have caught a structured
+    // exception or integer arithmetic is known not to trap
     assert (trapped == std::numeric_limits<int>::traps);
 
     (void)&result;
