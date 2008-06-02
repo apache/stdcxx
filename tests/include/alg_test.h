@@ -342,6 +342,8 @@ struct const_cvt : T
 template <class IntegralT>
 struct Size
 {
+    typedef IntegralT IntegralType;
+
     // dummy argument provided to prevent Size from being constructible
     // by conversion from IntegralT
     Size (IntegralT val, int /* dummy */ )

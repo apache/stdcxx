@@ -174,7 +174,7 @@ _rw_sigcat (char **pbuf, size_t *pbufsize,
     const bool is_member = 0 != (Ids::bit_member & which);
 
     // get the bitmap describing the function's argument types
-    int argmap = (int (which) & ~Ids::bit_member) >> Ids::fid_bits;
+    int argmap = int ((which & ~Ids::bit_member) >> Ids::fid_bits);
 
     // determine whether the function is a const member function
     bool is_const_member =
@@ -327,8 +327,8 @@ static int
 _rw_argno (size_t which, int arg)
 {
     // get the bitmap describing the function's argument types
-    int argmap = (int (which) & ~ContainerIds::bit_member)
-                 >> ContainerIds::fid_bits;
+    int argmap = int ((which & ~ContainerIds::bit_member)
+                      >> ContainerIds::fid_bits);
 
     int argno = 0;
 
