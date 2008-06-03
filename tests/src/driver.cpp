@@ -42,7 +42,7 @@
 #include <setjmp.h>    // for longjmp, setjmp, ...
 #include <stdarg.h>    // for va_list
 #include <stdio.h>     // for fileno
-#include <stdlib.h>    // for free
+#include <stdlib.h>    // for free, _set_invalid_parameter_handler()
 #include <string.h>    // for strchr, strcpy
 
 #ifdef _WIN32
@@ -925,6 +925,20 @@ _rw_setopts_compat ()
 
 #ifdef _WIN32
 
+#  if defined (_MSC_VER) && _MSC_VER >= 1400
+
+static void
+_rw_invalid_parameter (const wchar_t* /*expression*/,
+                       const wchar_t* /*function*/,
+                       const wchar_t* /*file*/,
+                       unsigned int   /*line*/,
+                       uintptr_t      /*pReserved*/)
+{
+    // empty handler - ignore invalid parameter validation
+}
+
+#  endif   // MSVC 8.0 and later
+
 static int
 _rw_opt_no_popups (int argc, char *argv[])
 {
@@ -954,6 +968,10 @@ _rw_opt_no_popups (int argc, char *argv[])
     SetErrorMode (SEM_FAILCRITICALERRORS | SEM_NOGPFAULTERRORBOX);
 
 #  ifdef _MSC_VER
+#    if _MSC_VER >= 1400
+    _set_invalid_parameter_handler (_rw_invalid_parameter);
+#    endif   // MSVC 8.0 and later
+
     _CrtSetReportMode (_CRT_WARN, _CRTDBG_MODE_FILE | _CRTDBG_MODE_DEBUG);
     _CrtSetReportFile (_CRT_WARN, _CRTDBG_FILE_STDERR);
     _CrtSetReportMode (_CRT_ERROR, _CRTDBG_MODE_FILE | _CRTDBG_MODE_DEBUG);
