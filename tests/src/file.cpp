@@ -50,6 +50,9 @@
 #  include <unistd.h>     // for close(), open()
 #else
 #  include <io.h>         // for _commit()
+#  ifdef _MSC_VER
+#    include <crtdbg.h>   // for _CrtSetReportMode()
+#  endif
 #endif
 
 #include <assert.h>   // for assert
@@ -480,6 +483,12 @@ rw_nextfd (int *count)
 
 #if defined (_WIN32) || defined (_WIN64)
 
+#  ifdef _MSC_VER
+        // save the report mode and disable "Invalid file descriptor"
+        // CRT assertions from _commit()
+        const int prev_mode = _CrtSetReportMode (_CRT_ASSERT, 0);
+#  endif
+
         for (int i = 0; i != 256; ++i) {
 
             const int ret = _commit (i);
@@ -487,6 +496,13 @@ rw_nextfd (int *count)
             if (-1 != ret || EBADF != errno)
                 ++*count;
         }
+
+#  ifdef _MSC_VER
+        // restore the previous mode
+        if (-1 != prev_mode)
+            _CrtSetReportMode (_CRT_ASSERT, prev_mode);
+#  endif
+
 #else   // if not Windoze
 
         for (int i = 0; i != 256; ++i) {
