@@ -63,8 +63,8 @@
 #include <cstring>   // for memset(), strcmp(), strlen()
 #include <cwchar>    // for mbstate_t
 
-#include <driver.h>
-#include <file.h>
+#include <rw_driver.h>
+#include <rw_file.h>
 
 /**************************************************************************/
 

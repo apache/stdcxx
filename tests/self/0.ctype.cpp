@@ -29,7 +29,7 @@
 #include <rw_char.h>     // for UserChar
 #include <rw_ctype.h>    // for UserCtype
 #include <rw_printf.h>   // for rw_printf
-#include <driver.h>
+#include <rw_driver.h>
 
 #include <stdlib.h>      // for free()
 #include <string.h>      // for memset(), size_t, strlen()

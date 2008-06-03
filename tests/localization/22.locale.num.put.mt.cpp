@@ -34,8 +34,8 @@
 
 #include <rw_locale.h>
 #include <rw_thread.h>   // for rw_get_processors (), rw_thread_pool()
-#include <driver.h>
-#include <valcmp.h>
+#include <rw_driver.h>
+#include <rw_valcmp.h>
 
 #define MAX_THREADS      32
 #define MAX_LOOPS    100000

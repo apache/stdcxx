@@ -34,7 +34,7 @@
 #include "opt_trace.h"
 #include "opt_types.h"
 
-#include <cmdopt.h>    // for rw_setopts()
+#include <rw_cmdopt.h> // for rw_setopts()
 #include <rw_printf.h> // for rw_snprintfa()
 
 #include <assert.h>    // for assert
@@ -79,7 +79,7 @@ _RWSTD_DLLIMPORT int (fileno)(FILE*) _LIBC_THROWS ();
 
 // expand _TEST_EXPORT macros
 #define _RWSTD_TEST_SRC
-#include <driver.h>
+#include <rw_driver.h>
 
 /************************************************************************/
 

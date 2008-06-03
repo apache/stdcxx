@@ -27,7 +27,7 @@
 #ifndef RW_23_CONTAINERS_H_INCLUDED
 #define RW_23_CONTAINERS_H_INCLUDED
 
-#include <testdefs.h>
+#include <rw_testdefs.h>
 #include <rw_value.h>       // for UserClass, UserPOD
 #include <rw_char.h>        // for rw_expand ()
 

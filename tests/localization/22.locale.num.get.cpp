@@ -68,13 +68,13 @@
 #include <limits>
 #include <locale>
 
-#include <alg_test.h>    // for InputIter
-#include <any.h>         // for rw_any_t
-#include <cmdopt.h>      // for rw_enabled()
-#include <driver.h>      // for rw_test(), ...
-#include <rw_char.h>     // for rw_widen()
-#include <rw_locale.h>   // for rw_locales()
-#include <valcmp.h>      // for rw_equal()
+#include <rw_alg_test.h>    // for InputIter
+#include <rw_any.h>         // for rw_any_t
+#include <rw_cmdopt.h>      // for rw_enabled()
+#include <rw_driver.h>      // for rw_test(), ...
+#include <rw_char.h>        // for rw_widen()
+#include <rw_locale.h>      // for rw_locales()
+#include <rw_valcmp.h>      // for rw_equal()
 
 /**************************************************************************/
 

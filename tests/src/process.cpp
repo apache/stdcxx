@@ -27,8 +27,6 @@
 // expand _TEST_EXPORT macros
 #define _RWSTD_TEST_SRC
 
-#include <rw_process.h>
-
 #include <ctype.h>        // for isspace()
 #include <errno.h>        // for EACCES, errno
 #include <signal.h>       // for SIGXXX, kill()
@@ -39,7 +37,8 @@
 
 #include <sys/types.h>    // for pid_t
 
-#include <driver.h>       // for rw_note(), ...
+#include <rw_process.h>
+#include <rw_driver.h>    // for rw_note(), ...
 #include <rw_printf.h>    // for rw_fprintf()
 
 #ifdef __CYGWIN__

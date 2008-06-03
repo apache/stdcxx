@@ -34,9 +34,9 @@
 #include <crtdbg.h>     // for _CrtSetReportMode()
 #endif
 
-#include <alg_test.h>   // for OutputIter
-#include <rw_value.h>   // for UserClass
-#include <driver.h>     // for rw_test(), ...
+#include <rw_alg_test.h>   // for OutputIter
+#include <rw_value.h>      // for UserClass
+#include <rw_driver.h>     // for rw_test(), ...
 
 /***********************************************************************/
 

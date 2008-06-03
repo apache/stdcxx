@@ -47,8 +47,9 @@ void foo ()
 
 
 #include <typeinfo>
-#include <driver.h>
-#include <valcmp.h>
+
+#include <rw_driver.h>
+#include <rw_valcmp.h>
 
 // polymorphic classes (10.3, p1) used in tests below
 struct B { virtual ~B () { } };

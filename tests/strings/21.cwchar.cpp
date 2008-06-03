@@ -88,8 +88,9 @@ enum {
 /**************************************************************************/
 
 #include <cwchar>
-#include <any.h>      // for rw_any_t
-#include <driver.h>   // for rw_test(), ...
+
+#include <rw_any.h>      // for rw_any_t
+#include <rw_driver.h>   // for rw_test(), ...
 
 /**************************************************************************/
 
@@ -991,7 +992,8 @@ void test_functions ()
 // included here to avoid namespace pollution
 #include <cstdarg>       // for va_list
 #include <cstdio>        // for FILE, fopen()
-#include <file.h>        // for DEV_NUL
+
+#include <rw_file.h>     // for DEV_NUL
 #include <rw_printf.h>   // for rw_stdout
 
 namespace std {

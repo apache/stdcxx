@@ -30,7 +30,7 @@
 #include <cassert>
 #include <tr1/_smartptr.h>
 
-#include <driver.h>
+#include <rw_driver.h>
 
 /**************************************************************************/
 

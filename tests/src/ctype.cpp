@@ -26,6 +26,7 @@
 
 // expand _TEST_EXPORT macros
 #define _RWSTD_TEST_SRC
+
 #include <rw_ctype.h>
 
 #include <stdarg.h>   // for va_arg(), va_list

@@ -29,8 +29,8 @@
 #include <cstddef>    // for size_t
 #include <deque>      // for deque
 
-#include <driver.h>   // for rw_test()
-#include <alg_test.h>
+#include <rw_driver.h>   // for rw_test()
+#include <rw_alg_test.h>
 
 #ifndef _RWSTD_NO_REPLACEABLE_NEW_DELETE
    // disabled for compilers that can't reliably replace the operators

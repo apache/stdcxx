@@ -47,11 +47,11 @@
 #include <cstdio>    // for sprintf()
 #include <cstring>   // for strcmp(), strlen()
 
-#include <any.h>         // for TOSTR()
-#include <cmdopt.h>      // for rw_enabled
-#include <driver.h>      // for rw_test
-#include <rw_locale.h>   // for rw_locales
-#include <valcmp.h>      // for rw_equal
+#include <rw_any.h>         // for TOSTR()
+#include <rw_cmdopt.h>      // for rw_enabled
+#include <rw_driver.h>      // for rw_test
+#include <rw_locale.h>      // for rw_locales
+#include <rw_valcmp.h>      // for rw_equal
 
 /**************************************************************************/
 

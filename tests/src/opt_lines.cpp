@@ -31,7 +31,7 @@
 
 #include "opt_lines.h"
 
-#include <cmdopt.h>
+#include <rw_cmdopt.h>
 
 #include <assert.h>
 #include <stdio.h>

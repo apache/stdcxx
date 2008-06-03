@@ -31,8 +31,8 @@
 #include <ostream>        // for ostream
 #include <locale>         // for locale
 
-#include <21.strings.h>   // for StringMembers
-#include <driver.h>       // for rw_test()
+#include <rw_strings.h>   // for StringMembers
+#include <rw_driver.h>    // for rw_test()
 #include <rw_allocator.h> // for UserAlloc
 #include <rw_char.h>      // for rw_expand()
 #include <rw_ctype.h>     // for UserCtype

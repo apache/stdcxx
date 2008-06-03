@@ -27,8 +27,8 @@
 #include <sstream>     // for stringbuf
 #include <cstring>     // for size_t, strchr()
 
-#include <cmdopt.h>    // for rw_enabled()
-#include <driver.h>    // for rw_assert(), ...
+#include <rw_cmdopt.h> // for rw_enabled()
+#include <rw_driver.h> // for rw_assert(), ...
 #include <rw_char.h>   // for rw_expand(), rw_match()
 
 /**************************************************************************/

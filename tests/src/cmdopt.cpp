@@ -27,7 +27,7 @@
 // expand _TEST_EXPORT macros
 #define _RWSTD_TEST_SRC
 
-#include <cmdopt.h>
+#include <rw_cmdopt.h>
 
 #include <ctype.h>    // isdigit(), isspace()
 #include <errno.h>    // for errno

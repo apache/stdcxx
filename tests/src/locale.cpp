@@ -31,14 +31,13 @@
 
 
 #include <rw_locale.h>
-
-#include <environ.h>      // for rw_putenv()
-#include <file.h>         // for SHELL_RM_RF, rw_tmpnam
+#include <rw_environ.h>   // for rw_putenv()
+#include <rw_file.h>      // for SHELL_RM_RF, rw_tmpnam
 #include <rw_process.h>   // for rw_system()
 #include <rw_printf.h>    // for rw_snprintf()
 #include <rw_fnmatch.h>   // for rw_fnmatch()
 #include <rw_braceexp.h>  // for rw_shell_expand()
-#include <driver.h>       // for rw_error()
+#include <rw_driver.h>    // for rw_error()
 
 #ifdef _RWSTD_OS_LINUX
 #  ifdef _RWSTD_NO_PURE_C_HEADERS

@@ -32,7 +32,7 @@
 #include <sstream>
 #include <cstddef>          // for size_t
 
-#include <driver.h>         // for rw_test(), ...
+#include <rw_driver.h>      // for rw_test(), ...
 #include <rw_char.h>        // for UserTraits
 #include <rw_streambuf.h>   // for MyStreambuf
 

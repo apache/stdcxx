@@ -31,7 +31,7 @@
 #define RW_CMDOPT_H_INCLUDED
 
 
-#include <testdefs.h>   // for test config macros
+#include <rw_testdefs.h>   // for test config macros
 
 
 /**

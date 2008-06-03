@@ -31,10 +31,10 @@
 
 #include <cstdio>     // for sscanf()
 
-#include <cmdopt.h>   // for rw_enabled()
-#include <driver.h>   // for rw_assert(), rw_test(), ...
-#include <rw_char.h>  // for rw_expand()
-#include <valcmp.h>   // for rw_ldblcmp()
+#include <rw_cmdopt.h>   // for rw_enabled()
+#include <rw_driver.h>   // for rw_assert(), rw_test(), ...
+#include <rw_char.h>     // for rw_expand()
+#include <rw_valcmp.h>   // for rw_ldblcmp()
 
 
 #ifndef _RWSTD_NO_LONG_DOUBLE

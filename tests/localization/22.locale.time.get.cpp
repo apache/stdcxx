@@ -36,8 +36,8 @@
 #include <cstring>   // for memcmp(), strlen()
 #include <ctime>     // for struct tm
 
-#include <driver.h>      // for rw_test()
-#include <file.h>        // for rw_nextfd()
+#include <rw_driver.h>   // for rw_test()
+#include <rw_file.h>     // for rw_nextfd()
 #include <rw_locale.h>   // for rw_locale_query()
 #include <rw_printf.h>   // for rw_snprintf()
 

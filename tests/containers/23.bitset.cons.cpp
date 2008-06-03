@@ -33,7 +33,7 @@
 #include <cstddef>     // for size_t
 
 #include <rw_char.h>   // for UserChar, UserTraits
-#include <driver.h>    // for rw_test(), ...
+#include <rw_driver.h> // for rw_test(), ...
 
 /**************************************************************************/
 
