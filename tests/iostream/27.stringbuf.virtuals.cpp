@@ -98,7 +98,7 @@ struct PubBuf: std::basic_stringbuf<charT, Traits>
         Base buf (std::ios::out);
         while (n--)
             buf.sputc ('c');
-        return ((PubBuf&)buf).Epptr () - ((PubBuf&)buf).Pbase ();
+        return int (((PubBuf&)buf).Epptr () - ((PubBuf&)buf).Pbase ());
     }
 };
 
@@ -236,14 +236,14 @@ void test_virtual (charT, Traits, const VFun *pfid,
         if (pfid->strarg_) {
             rw_expand (warg, pfid->strarg_, _RWSTD_SIZE_MAX, &warg_len);
             if (std::strchr (pfid->strarg_, '@'))
-                arg0 = warg_len;
+                arg0 = int (warg_len);
 
             RW_ASSERT (std::size_t (arg0) < sizeof wstr / sizeof *wstr);
-            ret = pbuf->sputn (warg, arg0);
+            ret = int (pbuf->sputn (warg, std::streamsize (arg0)));
         }
         else {
             // invoke sputn() with pbase as an argument
-            ret = pbuf->sputn (pbuf->Pbase (), arg0);
+            ret = int (pbuf->sputn (pbuf->Pbase (), std::streamsize (arg0)));
         }
 
         break;
@@ -463,7 +463,7 @@ test_xsputn (VFun *pfid)
 #define TEST(str, mode, gbump, sarg, result, pback, read, write)        \
     pfid->strarg_ = sarg;                                                \
     test_virtual (pfid, __LINE__, str, sizeof str - 1, mode,            \
-                  gbump, sizeof sarg - 1, IGN, IGN, result,             \
+                  gbump, int (sizeof sarg - 1), IGN, IGN, result,       \
                   pback, read, write)
 
     //    +-------------------------------------------- initial sequence

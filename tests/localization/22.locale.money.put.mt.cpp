@@ -125,7 +125,7 @@ struct MyMoneyData
     PutId type_;
 
     // index into string array [n,w]_money_vals
-    unsigned money_index_;
+    std::size_t money_index_;
 
     // narrow representations of money_
     char ncs_ [BufferSize];

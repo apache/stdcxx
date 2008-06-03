@@ -205,14 +205,14 @@ test_ws (const Traits*           /* dummy */,
         // have the stream buffer object's underflow() fail (by throwing
         // an exception if possible) after j characters have been extracted
         // (this object calls underflow() for every char)
-        sb.throw_after_ = err_after;
+        sb.throw_after_ = int (err_after);
         err_type        = "threw";
     }
     else {
         // have the stream buffer object's underflow() fail by returning
         // eof after j characters have been extracted (this object calls
         // underflow() for every char)
-        sb.fail_after_ = err_after;
+        sb.fail_after_ = int (err_after);
         err_type       = "returned EOF";
     }
 

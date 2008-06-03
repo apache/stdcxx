@@ -930,7 +930,7 @@ void test_english (charT, const char *cname, const char *locname)
         // Tru64 UNIX)
         char buf [32];
         const std::tm tmb = mktm (0, 0, 1);
-        len = std::strftime (buf, sizeof buf, "%X", &tmb);
+        len = int (std::strftime (buf, sizeof buf, "%X", &tmb));
     }
 
     const int hour = 11 == len ? 12 : 0;

@@ -581,7 +581,7 @@ cformat::do_length (state_type&,
     do_in (st, from, from_end, from_next,
            to_next, to_next + max, to_next);
 
-    return to_next - (intern_type*)0;
+    return int (to_next - (intern_type*)0);
 }
 
 /***********************************************************************/
@@ -1059,7 +1059,7 @@ run_test (int, char*[])
     // will be populated with file offsets and escape sequences
     char buffer [4096] = { '\0' };
 
-    int buflen = 0;
+    std::size_t buflen = 0;
 
     // generate file contents using UD conversion
     if (1) {

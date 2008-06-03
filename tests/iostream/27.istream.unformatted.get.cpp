@@ -98,7 +98,7 @@ check_failure (const MyStreambuf<charT, Traits>&  sb,
         // verify that the original gcount of 0 was unaffected
         // (for non-array forms of unformatted input functions)
         // or that it increased exactly `fail_when_'
-        const int actual = strm.gcount () - gcount;
+        const std::streamsize actual = strm.gcount () - gcount;
 
         rw_assert (!actual || actual == sb.fail_when_ - 1, 0, lineno,
                    "line %d: basic_istream<%s>::%s changed "
@@ -121,7 +121,7 @@ check_failure (const MyStreambuf<charT, Traits>&  sb,
 
         // verify that gcount has the expected value
 
-        const int actual = strm.gcount () - gcount;
+        const std::streamsize actual = strm.gcount () - gcount;
 
         rw_assert (nexpect == actual, 0, lineno,
                    "line %d: basic_istream<%s>::%s changed "
@@ -205,8 +205,8 @@ test_get_void (charT, const char *cname,
 
     TRY_GET (got = strm.get ());
 
-    check_failure (sb, cname, lineno, "get()", strm, gcount, !rdstate,
-                   rdstate, exceptions, caught);
+    check_failure (sb, cname, lineno, "get()", strm, int (gcount),
+                   !rdstate, rdstate, exceptions, caught);
 
     // verify that the extracted value is the one expected
 
@@ -316,7 +316,7 @@ void test_get_char (charT, const char* cname,
     TRY_GET (strm.get (got));
 
     check_failure (sb, cname, lineno, "get(char_type&)", strm,
-                   gcount, !rdstate, rdstate, exceptions, caught);
+                   int (gcount), !rdstate, rdstate, exceptions, caught);
 
     // verify that the extracted value is the one expected
 
@@ -456,7 +456,7 @@ void test_get_char_array (charT, const char* cname,
         TRY_GET (strm.get (got, std::streamsize (nread)));
     }
 
-    check_failure (sb, cname, lineno, fun, strm, gcount, nexpect,
+    check_failure (sb, cname, lineno, fun, strm, int (gcount), nexpect,
                    rdstate, exceptions, caught);
 
     // verify that number and values of the extracted characters
@@ -539,10 +539,10 @@ void test_get_char_array (charT, const char *cname)
     TEST (T, "ghij",  4, 4, eof, 3, Good,       Bad,  Underflow | Throw, 4);
     TEST (T, "hijk",  4, 5, eof, 3, Bad,        Bad,  Underflow | Throw, 4);
 
-    const std::streamsize N = std::streamsize (MAXCHARS);
+    const int N = int (MAXCHARS);
     char *buf = new char [N];
 
-    for (std::streamsize i = 0; i != N; ++i) {
+    for (int i = 0; i != N; ++i) {
         buf [i] = char (i);
     }
 
@@ -557,7 +557,7 @@ void test_get_char_array (charT, const char *cname)
     TEST (T, "12347", 5, 6, eof, 5, Good, Good, 0, -1);
     TEST (T, "12348", 5, 7, eof, 5, Eof,  Good, 0, -1);
     
-    for (std::streamsize i = 0; i < N; i += 256) {
+    for (int i = 0; i < N; i += 256) {
         TEST (T, buf, N, N, eof, '\n' + i, Good, Good, 0, -1);
 
         buf ['\n' + i] = '\0';
@@ -646,8 +646,8 @@ void test_get_streambuf (charT, const char* cname,
         TRY_GET (strm.get (outbuf));
     }
 
-    check_failure (inbuf, cname, lineno, fun, strm, gcount, nexpect,
-                   rdstate, exceptions, caught);
+    check_failure (inbuf, cname, lineno, fun, strm, int (gcount),
+                   nexpect, rdstate, exceptions, caught);
 
     // verify that number and values of the extracted characters
     // matches the expected number and values

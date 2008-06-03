@@ -322,7 +322,7 @@ thread_func (void*)
         if (rw_thread_pool_timeout_expired ())
             break;
 
-        const int inx = i % nlocales;
+        const std::size_t inx = i % nlocales;
         const MyCodecvtData& data = my_codecvt_data [inx];
 
         // construct a named locale, get a reference to the codecvt
