@@ -2039,10 +2039,12 @@ inline _RWSTD_SIZE_T gslice::ind_numb() const
     if (_C_length.size () == 0)
         return 0;
 
-    _RWSTD_SIZE_T __inx = 1;
+    _RWSTD_SIZE_T __inx = _C_length [0] != 0;
 
-    for(_RWSTD_SIZE_T __i = 0; __i < _C_length.size (); ++__i)
-        __inx *= _C_length [__i];
+    for(_RWSTD_SIZE_T __i = 0; __i < _C_length.size (); ++__i) {
+        if (_C_length [__i])
+            __inx *= _C_length [__i];
+    }
 
     return __inx;
 }
