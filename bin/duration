@@ -194,10 +194,83 @@ get ()
 }
 
 
+# converts date in the Windows "Day MM/DD/YYYY" format
+# to POSIX %c
+convert_windows_date()
+{
+    date=$1
+
+    wday=${date%% *}
+    date=${date#* }
+
+    mon=${date%%/*}
+    date=${date#*/}
+
+    mday=${date%%/*}
+    year=${date#*/}
+
+    case $mon in
+        01) mon="Jan";;
+        02) mon="Feb";;
+        03) mon="Mar";;
+        04) mon="Apr";;
+        05) mon="May";;
+        06) mon="Jun";;
+        07) mon="Jul";;
+        08) mon="Aug";;
+        09) mon="Sep";;
+        10) mon="Oct";;
+        11) mon="Nov";;
+        12) mon="Dec";;
+    esac
+
+    func_return_value="$wday $mon $mday 00:00:00 UTC $year"
+}
+
+
+# converts date in the ls -l format to POSIX %c
+convert_ls_date()
+{
+    date=$1
+
+    mon=${date%% *}
+    date=${date#* }
+
+    mday=${date%% *}
+    time=${date#* }
+
+    if [ ${#time} -eq 4 ]; then
+        year=$time
+        time="00:00:00"
+    else
+        year=`date "+%Y"`
+        time="$time:00"
+    fi
+
+    func_return_value="Mon $mon $mday $time UTC $year"
+}
+
+
 # computes the number of seconds from the Epoch (1/1/1970)
 seconds_from_epoch()
 {
     date=$1
+
+    # remove all leading and trailing whitespace
+    date=${date## }
+    date=${date%% }
+
+    datelen=${#date}
+
+    # check the length to see if the date is in the POSIX %c format
+    if [ $datelen -eq 11 -o $datelen -eq 12 ]; then
+        # assume ls -l format (i.e., "+%b %e %H:%M" or "+%b %e %Y"
+        # POSIX date format)
+        convert_ls_date "$date"; date=$func_return_value
+    elif [ $datelen -eq 14 ]; then
+        # assume Day MM/DD/YYYY
+        convert_windows_date "$date"; date=$func_return_value
+    fi
 
     # extract the year, the 1-based month and day of month, hours,
     # minutes, and seconds (normalized to the GMT time zone) from

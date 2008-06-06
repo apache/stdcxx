@@ -32,6 +32,9 @@ fi
 
 readonly www_stdcxx_dir="/www/stdcxx.apache.org/builds"
 
+# current date and time to compute log ages
+readonly now=`date`
+
 XBUILDGEN=`which xbuildgen 2>/dev/null`
 
 if [ "$XBUILDGEN" = "" ]; then
@@ -73,6 +76,9 @@ while getopts "dvD:L:o:V:" opt_name; do
 
         o)  # argument is the name of output file (stdout by default)
             outfile=$OPTARG
+
+            # temporary output file (will replace outfile when done)
+            tmpout=$outfile.$$
             ;;
 
         V)  # specify stdcxx branch/version to generate cross-build
@@ -152,16 +158,16 @@ fi
 output ()
 {
     if [ $# -eq 0 ]; then
-        # no arguments provided, copy its own stdin to outfile
-        if [ -z $outfile ]; then
+        # no arguments provided, copy its own stdin to tmpout
+        if [ -z $tmpout ]; then
             cat
         else
-            cat >>$outfile
+            cat >>$tmpout
         fi
-    elif [ -z $outfile ]; then
+    elif [ -z $tmpout ]; then
         echo "$*"
     else
-        echo "$*" >>$outfile
+        echo "$*" >>$tmpout
     fi
 }
 
@@ -249,7 +255,8 @@ EOF
     suffixes="a A d D s S"
 
     unset buildlogs
-    unset oldest
+    unset oldest_age
+    unset oldest_time
 
     count=0
 
@@ -289,8 +296,8 @@ EOF
     else
         output "          <td><a href=\"$xfile\">$xfile</a></td>"
 
-        oldest=`  cd $logdir && ls -lrt $buildlogs | head -n 1 \
-                | awk '{ print $6 " " $7 " " $8 }'`
+        oldest_time=`  cd $logdir && LANG=C ls -lrt $buildlogs | head -n 1 \
+                    | awk '{ print $6 " " $7 " " $8 }'`
 
         if [ $newlogs -gt 0 ]; then
 
@@ -316,12 +323,18 @@ EOF
         end=`expr $end + 60`
     fi
 
+    # compute the amount of time it took to process this batch
     duration=`expr $end - $duration`
+
+    # compute the age of the oldest log
+    if [ "$oldest_time" != "" ]; then
+        oldest_age=`duration "$oldest_time" "$now"`
+    fi
 
     cat<<EOF | output
           <td>$count</td>
           <td>$newlogs</td>
-          <td>$oldest</td>
+          <td title="$oldest_time">$oldest_age</td>
           <td>$duration</td>
         </tr>
 EOF
@@ -634,7 +647,6 @@ process_results "Windows 2000, SP4" "x86" "Intel C++ 9.1" \
 
 
 # compute the number of seconds it took to process all logs
-readonly now=`date`
 processing_time=`duration "$start_time" "$now"`
 
 cat<<EOF | output
@@ -644,3 +656,9 @@ cat<<EOF | output
   </body>
 </html>
 EOF
+
+# rerame the temporary output file to $outfile, possibly replacing
+# the original $outfile if it exists
+if [ -f "$tmpout" ]; then
+    mv $tmpout $outfile
+fi
