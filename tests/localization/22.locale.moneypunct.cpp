@@ -34,8 +34,8 @@
 #include <cstdlib>       // for getenv()
 #include <cstring>       // for memcmp(), strerror()
 
-#include <driver.h>      // for rw_test()
-#include <environ.h>     // for rw_putenv()
+#include <rw_driver.h>   // for rw_test()
+#include <rw_environ.h>  // for rw_putenv()
 #include <rw_locale.h>   // for rw_locales()
 #include <rw_printf.h>   // for rw_fprintf()
 

@@ -30,7 +30,7 @@
 #define RW_OPT_TYPES_H_INCLUDED
 
 
-#include <testdefs.h>
+#include <rw_testdefs.h>
 
 
 int _rw_setopts_types ();

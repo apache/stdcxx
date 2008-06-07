@@ -29,7 +29,7 @@
 #ifndef RW_PRINTF_H_INCLUDED
 #define RW_PRINTF_H_INCLUDED
 
-#include <testdefs.h>
+#include <rw_testdefs.h>
 
 struct rw_file;
 

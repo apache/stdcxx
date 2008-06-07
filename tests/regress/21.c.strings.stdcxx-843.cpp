@@ -29,6 +29,13 @@
 #include <cassert>
 #include <cwchar>
 
+#ifndef _RWSTD_MBSTATE_T_SIZE
+   // explicitly include our own <rw/_defs.h> in case neither
+   // of the two above is ours (i.e., we're using the compiler's
+   // C++ C headers)
+#  include <rw/_defs.h>
+#endif   // _RWSTD_MBSTATE_T_SIZE
+
 
 // known mbstate_t sizes on major platforms
 #ifdef _RWSTD_OS_AIX

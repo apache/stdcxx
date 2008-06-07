@@ -28,8 +28,8 @@
 #define RW_21_STRINGS_H_INCLUDED
 
 #include <rw_char.h>        // for rw_expand()
-#include <testdefs.h>
-#include <23.containers.h>  // for ContainerIds
+#include <rw_testdefs.h>
+#include <rw_containers.h>  // for ContainerIds
 
 /**************************************************************************/
 

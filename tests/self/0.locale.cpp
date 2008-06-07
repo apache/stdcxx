@@ -29,9 +29,9 @@
 #include <cstdio>        // for remove()
 #include <cstdlib>       // for getenv()
 
-#include <environ.h>     // for rw_putenv()
-#include <file.h>        // for rw_fwrite()
-#include <driver.h>      // for rw_test(), etc.
+#include <rw_environ.h>  // for rw_putenv()
+#include <rw_file.h>     // for rw_fwrite()
+#include <rw_driver.h>   // for rw_test(), etc.
 #include <rw_locale.h>   // for rw_localedef()
 #include <rw_printf.h>   // for rw_fprintf()
 

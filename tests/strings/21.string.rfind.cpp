@@ -30,8 +30,8 @@
 #include <cstdlib>          // for free(), size_t
 #include <exception>        // for exception
 
-#include <21.strings.h>     // for StringIds
-#include <driver.h>         // for rw_test()
+#include <rw_strings.h>     // for StringIds
+#include <rw_driver.h>      // for rw_test()
 #include <rw_allocator.h>   // for UserAlloc
 #include <rw_char.h>        // for rw_expand()
 

@@ -88,8 +88,8 @@ TEST_CLASS_DEF (auto_ptr, <int>);
 
 /**************************************************************************/
 
-#include <cmdopt.h>   // for rw_enabled()
-#include <driver.h>   // for rw_assert(), rw_test(), ...
+#include <rw_cmdopt.h>   // for rw_enabled()
+#include <rw_driver.h>   // for rw_assert(), rw_test(), ...
 
 /**************************************************************************/
 

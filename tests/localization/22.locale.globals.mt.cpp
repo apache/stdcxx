@@ -33,7 +33,7 @@
 
 #include <rw_locale.h>   // for rw_locales()
 #include <rw_thread.h>   // for rw_get_processors(), rw_thread_pool()
-#include <driver.h>      // for rw_test()
+#include <rw_driver.h>   // for rw_test()
 
 
 // maximum number of threads allowed by the command line interface

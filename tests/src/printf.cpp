@@ -31,7 +31,7 @@
 #include "fmt_defs.h"
 
 #include <rw_printf.h>
-#include <environ.h>
+#include <rw_environ.h>
 
 #include <ctype.h>    // for isalpha(), ...
 #include <errno.h>    // for errno, errno constants

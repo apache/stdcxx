@@ -87,7 +87,13 @@ TARGET := $(patsubst %.cpp,%,$(SRCS))
 TARGET += $(patsubst %.cpp,%.o,$(wildcard *.cpp))
 
 ifneq ($(RPATH),)
-  LDFLAGS += $(RPATH)$(LIBDIR):$(BUILDDIR)/rwtest
+  ifneq ($(shell uname),Darwin)
+    # this form doesn't work on Darwin
+    LDFLAGS += $(RPATH)$(LIBDIR):$(BUILDDIR)/rwtest
+  else
+    # but this form does
+    LDFLAGS += $(RPATH)$(LIBDIR) $(RPATH)$(BUILDDIR)/rwtest
+  endif
 endif
 
 RUNFLAGS += --compat -x "--compat -O -" --ulimit=as:1073741824

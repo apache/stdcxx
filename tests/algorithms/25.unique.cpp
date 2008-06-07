@@ -29,9 +29,9 @@
 #include <algorithm>    // for unique, unique_copy
 #include <cstring>      // for strlen
 
-#include <alg_test.h>   // for BinaryPredicate
-#include <rw_value.h>   // for UserClass
-#include <driver.h>     // for rw_test()
+#include <rw_alg_test.h>   // for BinaryPredicate
+#include <rw_value.h>      // for UserClass
+#include <rw_driver.h>     // for rw_test()
 
 /**************************************************************************/
 

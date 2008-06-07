@@ -40,8 +40,8 @@
 #include <iostream>
 
 // rwtest headers
-#include <driver.h>
-#include <file.h>
+#include <rw_driver.h>
+#include <rw_file.h>
 
 #if !defined _WIN32 && !defined _WIN64
 

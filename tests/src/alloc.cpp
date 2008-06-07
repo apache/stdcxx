@@ -31,7 +31,7 @@
 #include <string.h>   // for memset()
 
 #include <rw_alloc.h>
-#include <driver.h>   // for rw_error(), rw_fatal()
+#include <rw_driver.h>   // for rw_error(), rw_fatal()
 
 
 #ifdef __CYGWIN__

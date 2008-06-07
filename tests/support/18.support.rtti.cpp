@@ -47,8 +47,9 @@ void foo ()
 
 
 #include <typeinfo>
-#include <driver.h>
-#include <valcmp.h>
+
+#include <rw_driver.h>
+#include <rw_valcmp.h>
 
 // polymorphic classes (10.3, p1) used in tests below
 struct B { virtual ~B () { } };
@@ -95,6 +96,13 @@ run_test (int, char* [])
         _RWSTD_UNUSED (p_before);
         _RWSTD_UNUSED (p_name);
     }
+
+#if defined (__IBMCPP__) && !defined (__RTTI_TYPE_INFO__)
+
+    rw_warn (0, 0, __LINE__,
+             "not testing type_info; rtti is disabled");
+
+#else   // !__IBMCPP__ || __RTTI_TYPE_INFO__
 
     if (1) {
         // exercise 18.5.1, class type_info functionality
@@ -177,6 +185,8 @@ run_test (int, char* [])
                    "std::type_info::name (): \"%s\" == \"%s\"",
                    d1_name, d2_name);
     }
+
+#endif   // !__IBMCPP__ || __RTTI_TYPE_INFO__
 
     if (1) {
         // exercise 18.5.2, class bad_cast interface

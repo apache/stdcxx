@@ -32,7 +32,7 @@
 
 #include <rw_printf.h>
 #include <rw_process.h> // for rw_pid_t
-#include <environ.h>    // for rw_putenv()
+#include <rw_environ.h> // for rw_putenv()
 
 #include <bitset>       // for bitset
 #include <ios>          // for ios::iostate, ios::openmode, ios::seekdir

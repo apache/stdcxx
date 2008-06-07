@@ -26,8 +26,8 @@
 
 // expand _TEST_EXPORT macros
 #define _RWSTD_TEST_SRC
-#include <rw_char.h>
 
+#include <rw_char.h>
 #include <rw_printf.h>   // for rw_snprintfa()
 
 #include <ctype.h>       // for isdigit()

@@ -31,7 +31,7 @@
 #define RW_ANY_H_INCLUDED
 
 
-#include <testdefs.h>
+#include <rw_testdefs.h>
 
 
 class _TEST_EXPORT rw_any_t

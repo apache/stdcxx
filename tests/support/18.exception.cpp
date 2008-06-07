@@ -48,7 +48,7 @@
 # include <sys/resource.h>   // for setrlimit()
 #endif   // _RWSTD_NO_SETRLIMIT
 
-#include <driver.h>
+#include <rw_driver.h>
 
 
 #ifdef _RWSTD_OS_LINUX
