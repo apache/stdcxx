@@ -117,7 +117,7 @@ test_op_assign (void*,
     RW_ASSERT (lhs_va.size () == res_va.size ());
 
     // take a gslice of lhs_va, this is the lhs of the assignment
-    std::gslice_array<std::size_t>& lhs_ga = lhs_va [gsl];
+    std::gslice_array<std::size_t> lhs_ga = lhs_va [gsl];
 
     char*       fname = 0;
     std::size_t size  = 0;
