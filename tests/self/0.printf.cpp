@@ -2966,7 +2966,7 @@ user_fun_va (const char *fun_name,   // name of calling function
     if (isdigit (*fmt)) {
         // process positional parameter
         char* end = 0;
-        arg = strtol (fmt, &end, 10);
+        arg = int (strtol (fmt, &end, 10));
         if ('$' != *end)
             arg = -1;
         else if (memcmp (fun_name, end + 1, funlen) || ':' != end [funlen + 1])

@@ -2,7 +2,7 @@
  *
  * 18.limits.traps.stdcxx-624.cpp - regression test for STDCXX-624
  *
- * $Id:$
+ * $Id$
  *
  ***************************************************************************
  *
@@ -50,6 +50,16 @@ void handle_FPE (int)
 }   // extern "C"
 
 
+#ifdef _MSC_VER
+   // use Structured Exception Handling to detect arithmetic exceptions
+#  define TRY           __try
+#  define EXCEPT(arg)   __except (arg)
+#else
+#  define TRY              if (1)
+#  define EXCEPT(ignore)   else if (0)
+#endif   // _MSC_VER
+
+
 int main ()
 {
     // prevent clever optimizers from figuring out that (zero == 0)
@@ -66,14 +76,23 @@ int main ()
     if (std::numeric_limits<int>::traps)
         std::signal (SIGFPE, handle_FPE);
 
-    // if this traps (generates SIGFPE), verify (in the signal handler)
-    // that integer arithmetic is expected to trap
-    result  = non_zero / zero;
-    result += non_zero % zero;
+    bool trapped = false;
 
-    // if we get this far, verify that integer arithmetic is known not
-    // to trap
-    assert (!std::numeric_limits<int>::traps);
+    // if this traps (generates SIGFPE), verify (in the signal handler)
+    // that integer arithmetic is expected to trap. if this doesn't trap
+    // then we are either on windows, or traps are disabled.
+    TRY {
+        result  = non_zero / zero;
+        result += non_zero % zero;
+    }
+    EXCEPT (1) {
+        // windows structured exception caught
+        trapped = true;
+    }
+
+    // if we get this far, verify that we have caught a structured
+    // exception or integer arithmetic is known not to trap
+    assert (trapped == std::numeric_limits<int>::traps);
 
     (void)&result;
 

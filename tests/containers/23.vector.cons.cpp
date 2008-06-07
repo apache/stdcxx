@@ -618,7 +618,7 @@ void test_ctors (Vector*, T*, Alloc alloc)
         for (typename Vector::size_type i = 0; i != rw_opt_nloops; ++i) {
 
             // construct an element at then end of array
-            alloc.construct (vals + i, i);
+            alloc.construct (vals + i, typename Alloc::value_type (i));
 
             // verify ctor with a strict InputIterator
             InputIter<T> first (vals,     vals,     vals + i);
