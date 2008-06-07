@@ -172,7 +172,7 @@ _rw_setopt_trace_mask (int argc, char *argv[])
         parg = end;
 
         if (0 <= first && first < severity) {
-            for (int i = first; i != severity; ++i)
+            for (long i = first; i != severity; ++i)
                 diag_set |= 1 << i;
             severity = -1;
         }

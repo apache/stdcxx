@@ -454,7 +454,7 @@ rw_locales (int loc_cat, const char* grep_exp, bool prepend_c_loc)
         }
 
         // if successful, construct a char array with the locales
-        while (fgets (linebuf, sizeof linebuf, file)) {
+        while (fgets (linebuf, int (sizeof linebuf), file)) {
 
             const size_t linelen = strlen (linebuf);
 
@@ -1147,7 +1147,7 @@ _rw_all_locales ()
         }
 
         char locale [128];
-        while (fgets (locale, sizeof (locale), file)) {
+        while (fgets (locale, int (sizeof (locale)), file)) {
 
             // ensure sufficient space in array
             if (! (size < capacity)) {

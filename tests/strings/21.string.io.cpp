@@ -994,14 +994,15 @@ void test_io (charT*, Traits*, Allocator*,
         else if (0 == tcase.bthrow) {
             // set on which call of which method to throw
             sbuf.throw_when_ [sbuf.memfun_inx (
-                test_inserter ? Overflow : Underflow) ] = throw_on [throw_inx];
+                test_inserter ? Overflow : Underflow) ] =
+                int (throw_on [throw_inx]);
 
             sbuf.throw_when_ [sbuf.memfun_inx (Xsgetn)] = 
-                throw_count [0];
+                int (throw_count [0]);
             sbuf.throw_when_ [sbuf.memfun_inx (Sync)] = 
-                throw_count [1];
+                int (throw_count [1]);
             sbuf.throw_when_ [sbuf.memfun_inx (Xsputn)] = 
-                throw_count [2];
+                int (throw_count [2]);
         }
         else {
             // exceptions disabled for this test case

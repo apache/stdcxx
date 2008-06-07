@@ -1184,7 +1184,7 @@ print_toupper (const char *keyword, int print_cat)
 
         const std::size_t count = ctype_st->wtoupper_s ();
 
-        nchars += count;
+        nchars += int (count);
 
         // print out each pair in the toupper table.
         // the wide char table is used because it contains all characters
@@ -1236,7 +1236,7 @@ print_tolower (const char *keyword, int print_cat)
 
         const std::size_t count = ctype_st->wtolower_s ();
 
-        nchars += count;
+        nchars += int (count);
 
         for (std::size_t j = 0; j < count; ++j) {
             out += '(';
@@ -2569,7 +2569,7 @@ print_charmap (const __rw::__rw_codecvt_t *cvt,
     unsigned last_wchar [2] = { 0, 0 };
 
     // print out all multibyte characters in this map
-    for (std::size_t i = 0; i != UCHAR_MAX + 1U; ++i) {
+    for (unsigned i = 0; i != UCHAR_MAX + 1U; ++i) {
 
         if (tab [i] & 0x80000000) {
 

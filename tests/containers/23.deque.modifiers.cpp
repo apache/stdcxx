@@ -1107,7 +1107,8 @@ void test_erase (int line,
                       end - deq.begin ());
         
         exception_loop (line, EraseRange, funcall, 0,
-                        deq, start, len, 0, (UserClass*)0, (UserClass*)0,
+                        deq, start, int (len), 0,
+                        (UserClass*)0, (UserClass*)0,
                         &n_copy, &n_asgn);
 
     }

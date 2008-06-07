@@ -740,7 +740,7 @@ _rw_fmtxarrayv (char **pbuf, size_t *pbufsize, const char *fmt, va_list va)
     else if (isdigit (*fmt)) {
         // process positional parameter or width
         char* end = 0;
-        const int arg = strtol (fmt, &end, 10);
+        const int arg = int (strtol (fmt, &end, 10));
         if ('$' != *end)
             nelems = arg;
 
@@ -774,7 +774,7 @@ _rw_fmtxarrayv (char **pbuf, size_t *pbufsize, const char *fmt, va_list va)
         }
         else if (isdigit (*fmt)) {
             char* end = 0;
-            cursor = strtol (fmt, &end, 10);
+            cursor = int (strtol (fmt, &end, 10));
 
             fmt = end;
         }

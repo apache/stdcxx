@@ -359,7 +359,8 @@ void test_string_ctor (std::bitset<N>*,
     };
 
     // compute which exception, if any, the ctor is expected to throw
-    const int except = bitstr - (char*)0 < 3 ? bitstr - (char*)0 : 0;
+    const int except = int (bitstr - (char*)0) < 3 ?
+                       int (bitstr - (char*)0) : 0;
 
     if (except && opt_no_exceptions)
         return;
