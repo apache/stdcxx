@@ -26,13 +26,13 @@
  * 
  **************************************************************************/
 
-#ifdef _MSC_VER
+#ifdef _RWSTD_MSVC
    // shut up the dumb MSVC warning C4345:
    // behavior change: an object with POD type constructed with
    // an initializer of the form () will be default-initialized
 #  pragma warning (push)
 #  pragma warning (disable: 4345)
-#endif   // _MSC_VER
+#endif   // _RWSTD_MSVC
 
 
 _RWSTD_NAMESPACE (std) {
@@ -921,6 +921,6 @@ compare (size_type __pos, size_type __n1,
 }   // namespace std
 
 
-#ifdef _MSC_VER
+#ifdef _RWSTD_MSVC
 #  pragma warning (pop)
-#endif   // _MSC_VER
+#endif   // _RWSTD_MSVC

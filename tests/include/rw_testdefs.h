@@ -43,7 +43,7 @@
 #endif   // _RWSTD_TEST_SRC
 
 
-#if defined (_WIN32) && (defined (RWDLL) || defined (_RWSHARED))
+#if defined (_MSC_VER) && (defined (RWDLL) || defined (_RWSHARED))
 #  ifndef _RWSTD_TEST_SRC
      // using a shared lib, import names
 #    define _TEST_EXPORT   __declspec (dllimport)

@@ -72,11 +72,11 @@ extern "C" long double strtold (const char*, char**);
 #endif   // NO_STRTOLD && !NO_STRTOLD_IN_LIBC
 
 
-#ifdef _MSC_VER
+#ifdef _RWSTD_MSVC
     // shut up useless MSVC warning: unary minus operator
     // applied to unsigned type, result still unsigned
 #  pragma warning (disable: 4146)
-#endif   // _MSC_VER
+#endif   // _RWSTD_MSVC
 
 
 _RWSTD_NAMESPACE (__rw) { 

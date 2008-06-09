@@ -62,11 +62,11 @@
 #include <rw/_defs.h>
 
 
-#ifdef _MSC_VER
+#ifdef _RWSTD_MSVC
    // shut up the braindead warning C4146: unary minus operator
    // applied to unsigned type, result still unsigned
 #  pragma warning (disable: 4146)
-#endif   // _MSC_VER
+#endif   // _RWSTD_MSVC
 
 
 #if     defined (_RWSTD_NO_MKSTEMP) && !defined (_RWSTD_NO_MKSTEMP_IN_LIBC) \
@@ -472,7 +472,7 @@ __rw_fmode (void *file, int flags)
 }
 
 
-#ifdef _WIN64
+#if defined (_RWSTD_MSVC) && defined (_WIN64)
 // disable MSVC warning: conversion from '__int64' to 'long', possible loss of data
 #pragma warning (disable: 4244)
 #endif
@@ -525,7 +525,7 @@ __rw_fwrite (void *file, int flags, const void *buf, _RWSTD_SIZE_T size)
     return write (fd, buf, size);
 }
 
-#ifdef _WIN64
+#if defined (_RWSTD_MSVC) && defined (_WIN64)
 // restore MSVC warning: conversion from '__int64' to 'long', possible loss of data
 #pragma warning (default: 4244)
 #endif

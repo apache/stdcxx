@@ -466,11 +466,11 @@
       _RW::__rw_new_capacity<T>(from, what)
 #endif   // HP aCC
 
-// set up Win32/64 DLL export/import directives
+// set up MSVC DLL export/import directives
 // _DLL - defined by the compiler when either -MD or -MDd is used
 // RWDLL - defined for all Rogue Wave(R) products built as shared libs
 // _RWSHARED - defined for libstd built/used as a shared lib
-#if defined (_WIN32) && (defined (RWDLL) || defined (_RWSHARED))
+#if defined (_MSC_VER) && (defined (RWDLL) || defined (_RWSHARED))
 
 #  ifdef _RWSTD_LIB_SRC
 #    define _RWSTD_EXPORT            __declspec (dllexport)
@@ -481,11 +481,11 @@
 #    define _RWSTD_CLASS_EXPORT    _RWSTD_EXPORT
 #    define _RWSTD_MEMBER_EXPORT   /* empty */
 #else
-   // disable Windows hacks
+   // disable MSVC hacks
 #  define _RWSTD_EXPORT          /* empty */
 #  define _RWSTD_CLASS_EXPORT    /* empty */
 #  define _RWSTD_MEMBER_EXPORT   /* empty */
-#endif // _WIN32
+#endif // _MSC_VER
 
 #ifdef _RWSTD_NO_BOOL
 #  define bool    int
