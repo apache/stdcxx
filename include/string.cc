@@ -39,7 +39,7 @@ _RWSTD_NAMESPACE (std) {
 
 
 #ifndef _RWSTD_NO_STATIC_CONST_MEMBER_INIT
-#  if !defined (_MSC_VER) || _MSC_VER > 1300 || defined (__INTEL_COMPILER)
+#  if !defined (_RWSTD_MSVC) || _RWSTD_MSVC > 1300
    // MSVC 7.0 allows initializers for static const integral members
    // but out-of-line definitions cause multiply defined symbol errors
    // (see PR #26562)

@@ -237,6 +237,7 @@
 /*** MSVC *****************************************************************/
 
 #if defined (_MSC_VER) && !defined (__INTEL_COMPILER)
+#  define _RWSTD_MSVC _MSC_VER
 #  include "_config-msvc.h"
 #endif   // _MSC_VER && !__INTEL_COMPILER
 
