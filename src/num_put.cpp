@@ -802,7 +802,13 @@ __rw_put_num (char **pbuf, _RWSTD_SIZE_T bufsize,
     case __rw_facet::_C_short:
     case __rw_facet::_C_int:
     case __rw_facet::_C_long:
+#if defined (__INTEL_COMPILER) && defined (_WIN64)
+#  pragma warning (disable: 810)
+#endif
         len = __rw_itoa (buf, _RWSTD_REINTERPRET_CAST (long, pval), flags);
+#if defined (__INTEL_COMPILER) && defined (_WIN64)
+#  pragma warning (default: 810)
+#endif
         break;
 
     case __rw_facet::_C_ushort:
@@ -813,8 +819,14 @@ __rw_put_num (char **pbuf, _RWSTD_SIZE_T bufsize,
         // sign is only used in signed conversions; 7.19 6.1, p6
         // of C99: The result of a signed conversion always begins
         // with a plus or minus sign.)
+#if defined (__INTEL_COMPILER) && defined (_WIN64)
+#  pragma warning (disable: 810)
+#endif
         len = __rw_itoa (buf, _RWSTD_REINTERPRET_CAST (unsigned long, pval),
                          flags & ~_RWSTD_IOS_SHOWPOS);
+#if defined (__INTEL_COMPILER) && defined (_WIN64)
+#  pragma warning (default: 810)
+#endif
         break;
 
 #ifdef _RWSTD_LONG_LONG

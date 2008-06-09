@@ -133,8 +133,17 @@ _RWSTD_NAMESPACE (__rw) {
 
 extern "C" {
 
+#ifndef _RWSTD_MSVC
+
 _RWSTD_EXPORT int
 __rw_once (__rw_once_t*, void (*)());
+
+#else
+
+_RWSTD_EXPORT int
+__rw_once (__rw_once_t*, void (*)() throw (...)) throw (...);
+
+#endif
 
 }   // extern "C"
 

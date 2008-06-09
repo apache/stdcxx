@@ -111,8 +111,13 @@ __rw_once (__rw_once_t *once, void (*func)())
 
 
 // implementation that uses atomic operations
+#ifndef _RWSTD_MSVC
 _RWSTD_EXPORT int
 __rw_once (__rw_once_t *once, void (*func)())
+#else
+_RWSTD_EXPORT int
+__rw_once (__rw_once_t *once, void (*func)() throw (...)) throw (...)
+#endif
 {
     _RWSTD_ASSERT (0 != once && 0 != func);
 
