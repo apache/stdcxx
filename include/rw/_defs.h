@@ -470,8 +470,7 @@
 // _DLL - defined by the compiler when either -MD or -MDd is used
 // RWDLL - defined for all Rogue Wave(R) products built as shared libs
 // _RWSHARED - defined for libstd built/used as a shared lib
-#if (defined (_WIN32) || defined (_WIN64)) && \
-    (defined (RWDLL)  || defined (_RWSHARED))
+#if defined (_WIN32) && (defined (RWDLL) || defined (_RWSHARED))
 
 #  ifdef _RWSTD_LIB_SRC
 #    define _RWSTD_EXPORT            __declspec (dllexport)
@@ -486,7 +485,7 @@
 #  define _RWSTD_EXPORT          /* empty */
 #  define _RWSTD_CLASS_EXPORT    /* empty */
 #  define _RWSTD_MEMBER_EXPORT   /* empty */
-#endif // _WIN32 || _WIN64
+#endif // _WIN32
 
 #ifdef _RWSTD_NO_BOOL
 #  define bool    int

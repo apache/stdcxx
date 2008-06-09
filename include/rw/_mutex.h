@@ -120,7 +120,7 @@
 #  define _RWSTD_MUTEX_UNLOCK(mutex)    pthread_mutex_unlock (&mutex)
 #  define _RWSTD_MUTEX_T                pthread_mutex_t
 
-#elif defined (_WIN32) || defined (_WIN64)
+#elif defined (_WIN32)
 
 #  ifdef _RWSTD_NO_FWD_DECLARATIONS
 

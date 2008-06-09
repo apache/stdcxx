@@ -34,7 +34,7 @@
 #include <limits.h>     /* for PATH_MAX */
 #include <sys/types.h>
 #include <sys/stat.h>
-#if !defined (_WIN32) && !defined (_WIN64)
+#ifndef _WIN32
 #  include <sys/wait.h>   /* for WIFEXITED(), ... */
 #endif
 
@@ -397,11 +397,11 @@ rw_basename (const char* path)
     assert (0 != path);
 
     for (mark = pos = path; '\0' != *pos; ++pos)
-#if !defined (_WIN32) && !defined (_WIN64)
+#ifndef _WIN32
         mark = (default_path_sep == *pos) ? pos + 1 : mark;
 #else
         mark = (default_path_sep == *pos || '/' == *pos) ? pos + 1 : mark;
-#endif   /* _WIN{32,64} */
+#endif   /* _WIN32 */
 
     return mark;
 }

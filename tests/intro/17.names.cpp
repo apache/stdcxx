@@ -78,7 +78,7 @@
 // include system headers included by the library
 #include <fcntl.h>
 
-#if defined (_WIN32) || defined (_WIN64)
+#ifdef _WIN32
 #  include <io.h>
 #else
 #  include <unistd.h>

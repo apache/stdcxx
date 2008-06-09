@@ -235,7 +235,7 @@ get_pathname (const std::string &fname,
 
 int makedir (const char *name)
 {
-#if defined (_WIN32) || defined (_WIN64)
+#ifdef _WIN32
 
    if (   0 == CreateDirectory (name, NULL)
         && GetLastError () != ERROR_ALREADY_EXISTS) {
@@ -257,7 +257,7 @@ int makedir (const char *name)
         return -1;
     }
     
-#else   // if !defined (_WIN{32,64})
+#else   // ifndef _WIN32
 
    if (-1 == mkdir (name, 0755)) {
 
@@ -274,7 +274,7 @@ int makedir (const char *name)
 
    }
 
-#endif   // _WIN{32,64}
+#endif   // _WIN32
 
     return 0;
 }

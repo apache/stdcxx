@@ -43,7 +43,7 @@
 #include <rw_driver.h>
 #include <rw_file.h>
 
-#if !defined _WIN32 && !defined _WIN64
+#ifndef _WIN32
 
 #  include <fcntl.h>
 #  include <unistd.h>
@@ -52,7 +52,7 @@
 
 #  define DEV_TTY   "/dev/tty"
 
-#else   // if defined _WIN32 || defined _WIN64
+#else   // ifdef _WIN32
 
 #  include <fcntl.h>
 #  include <io.h>
@@ -65,7 +65,7 @@
 
 #  define DEV_TTY   "CON:"
 
-#endif   // _WIN{32,64}
+#endif   // _WIN32
 
 
 // use buffers larger than L_tmpnam with rw_tmpnam()
@@ -405,7 +405,7 @@ run_test (int /* unused */, char* /* unused */ [])
         return 1;
     }
 
-#if !defined (_WIN32) && !defined (_WIN64)
+#ifndef _WIN32
 
     // create three child process and have each redirect
     // its stdout, stderr, and both, respectively, to
@@ -443,7 +443,7 @@ run_test (int /* unused */, char* /* unused */ [])
         }
     }
 
-#endif   // _WIN{32,64}
+#endif   // _WIN32
 
     do_test ();
 

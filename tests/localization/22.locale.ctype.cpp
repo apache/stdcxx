@@ -1111,7 +1111,7 @@ void test_is_ch (charT, const char *cname)
                    "{ %s}, got { %s}",
                    uch, locname, is_C, is_CXX2);
 
-#if !defined (_WIN32) && !defined (_WIN64)
+#ifndef _WIN32
 
         // exercise POSIX requirements only on POSIX platforms
 

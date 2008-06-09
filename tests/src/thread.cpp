@@ -357,7 +357,7 @@ rw_thread_join (rw_thread_t thr_id, void **parg)
 #      define ENOTSUP     99
 #    elif defined (_RWSTD_OS_SUNOS)
 #      define ENOTSUP     48
-#    elif defined (_WIN32) || defined (_WIN64)
+#    elif defined (_WIN32)
 #      define ENOTSUP ENOSYS
 #    else
 #      define ENOTSUP   9999

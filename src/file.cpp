@@ -43,15 +43,15 @@
 #include <ctype.h>    // for isalpha(), isspace(), toupper()
 
 
-#if (defined (_WIN32) || defined (_WIN64)) && !defined (__CYGWIN__)
+#if defined (_WIN32) && !defined (__CYGWIN__)
 #  include <fcntl.h>
 #  include <io.h>
 #else
 #  include <unistd.h>
 #  include <fcntl.h>
-#endif   // _WIN32 || _WIN64
+#endif   // _WIN32
 
-#if defined (_WIN32) || defined (_WIN64)
+#ifdef _WIN32
 #  define _BINARY _O_BINARY
 #else
 #  define _BINARY 0
@@ -267,7 +267,7 @@ __rw_mkstemp (int modebits, long prot)
 
     modebits |= _RWSTD_O_EXCL | _RWSTD_O_CREAT;
 
-#if defined (_WIN32) || defined (_WIN64)
+#ifdef _WIN32
 
     // tempnam(const char *dir, const char *prefix) will generate
     // a unique file name for a directory chosen by the following rules:
@@ -305,7 +305,7 @@ __rw_mkstemp (int modebits, long prot)
     // deallocate storage allocated by tempnam()
     free (fname);
     
-#  else   // if !(defined (_WIN32) || defined (_WIN64))
+#  else   // ifndef _WIN32
 
     char tmpbuf [L_tmpnam];
 
@@ -321,7 +321,7 @@ __rw_mkstemp (int modebits, long prot)
     if (fd >= 0)
         unlink (fname);
 
-#  endif   // _WIN{32,64}
+#  endif   // _WIN32
 #endif   // _RWSTD_NO_MKSTEMP
 
     return fd;
@@ -429,14 +429,14 @@ _RWSTD_EXPORT int
 __rw_fdmode (int fd)
 {
 // FIXME -- need to have equivalent of fcntl() on win32.
-#if defined (_WIN32) || defined (_WIN64)
+#ifdef _WIN32
 
     return fd == _RWSTD_STDIN_FILENO
                ? _RWSTD_IOS_IN
                : fd == _RWSTD_STDOUT_FILENO || fd == _RWSTD_STDERR_FILENO
                    ? _RWSTD_IOS_OUT : _RWSTD_IOS_OUT | _RWSTD_IOS_IN;
 
-#else   // if !defined (_WIN{32,64})
+#else   // ifndef _WIN32
 
    const int m = fcntl (fd, _RWSTD_F_GETFL);
 

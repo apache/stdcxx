@@ -274,7 +274,7 @@
 
 /*** Win{32,64} ***********************************************************/
 
-#if defined (_WIN32) || defined (_WIN64)
+#ifdef _WIN32
 #  define _RWSTD_NO_STATIC_MUTEX_INIT
 #  define _RWSTD_PATH_SEP '\\'
 #endif   // _WIN32
@@ -303,9 +303,9 @@
 
    // default to POSIX threads except on Win32 or Win64
 
-#    if !defined (_WIN32) && !defined (_WIN64)
+#    ifndef _WIN32
 #      define _RWSTD_POSIX_THREADS
-#    endif   // _WIN{32,64}
+#    endif   // _WIN32
 #  endif   // _RWSTD_*_THREADS
 #endif   // _RWSTD_REENTRANT
 

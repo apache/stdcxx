@@ -22,13 +22,13 @@
  * 
  **************************************************************************/
 
-#if (defined (_WIN32) || defined (_WIN64)) && !defined (__CYGWIN__)
+#if defined (_WIN32) && !defined (__CYGWIN__)
 #  define TRY             __try
 #  define EXCEPT(expr)    __except (expr)
 #else   // not Windows
 #  define TRY               if (1)
 #  define EXCEPT(ignore)    else if (0)
-#endif   // _WIN{32,64}
+#endif   // _WIN32
 
 
 int get_int (int);

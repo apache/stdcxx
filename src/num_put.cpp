@@ -618,7 +618,7 @@ static inline void
 __rw_fix_flt (char *&end, _RWSTD_SIZE_T &len,
               unsigned flags, _RWSTD_STREAMSIZE prec)
 {
-#if defined (_WIN32) || defined (_WIN64)
+#ifdef _WIN32
 
     char* beg = end - len;
 
@@ -768,7 +768,7 @@ __rw_fix_flt (char *&end, _RWSTD_SIZE_T &len,
     if (sgn)
         ++len;
 
-#endif   // _WIN{32,64}
+#endif   // _WIN32
 
 }
 

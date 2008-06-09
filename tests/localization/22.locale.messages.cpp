@@ -570,13 +570,13 @@ void test_get (const char *loc_name,
 #endif   // _RWSTD_NO_EXCEPTIONS
 
     // Bad set id
-#if !defined (_WIN32) && !defined (_WIN64)
+#ifndef _WIN32
     // When we use resource files for the message catalogs
     // the set ids are ignored.
     rw_assert (msgs.get (cat, 777, 1, def) == def, 0, __LINE__,
                "messages<%s>::get(%d, 777, 1, %{#*Ac}) == %{#*Ac}",
                cname, cat, int (sizeof *def), def, int (sizeof *def), def);
-#endif   // !defined (_WIN32) && !defined (_WIN64)
+#endif   // _WIN32
 
     // Bad message id
     rw_assert (msgs.get (cat, 1, 777, def) == def, 0, __LINE__,
