@@ -140,6 +140,13 @@ __rw_once (__rw_once_t*, void (*)());
 
 #else
 
+    // MSVC by default assumes that C function doesn't throws any exception
+    // and issues warning "function assumed not to throw an exception but does".
+    // Explicitly specified exception specification resolves this problem
+    // Note: any C function, passed as parameter in __rw_once() also should be defined
+    // with appropriate exception specification if it throws an exception, to avoid
+    // resourse leaks due to not invoked destructors of automatic objects, located
+    // in this function.
 _RWSTD_EXPORT int
 __rw_once (__rw_once_t*, void (*)() throw (...)) throw (...);
 
