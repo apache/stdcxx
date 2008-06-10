@@ -42,7 +42,7 @@
 #include <cwchar>    // for mbsinit()
 
 #ifndef _RWSTD_NO_NEW_HEADER
-#  if defined (_MSC_VER)
+#  if defined (_WIN32)
 #    include <io.h>          // for _open()
 #    include <direct.h>      // for getcwd()
 #  else

@@ -26,7 +26,7 @@
  * 
  **************************************************************************/
 
-#ifndef _MSC_VER
+#ifndef _WIN32
 #  ifdef __linux__
      // for symlink()
 #    ifndef _XOPEN_SOURCE
@@ -45,7 +45,7 @@
 #  include <windows.h>     // for _getcwd()
 #  include <sys/types.h>
 #  include <sys/stat.h>    // for struct stat, stat()
-#endif  // _MSC_VER
+#endif  // _WIN32
 
 
 #include "path.h"
@@ -69,7 +69,7 @@ static char* get_cwd (char* s, std::size_t l)
 }
 
 
-#ifndef _MSC_VER
+#ifndef _WIN32
 
 void
 create_symlink (const std::string &dir, 
@@ -112,7 +112,7 @@ create_symlink (const std::string &dir,
     }
 }
 
-#endif  // _MSC_VER
+#endif  // _WIN32
 
 
 inline int
@@ -130,7 +130,7 @@ get_pathname (const std::string &fname,
               const std::string &other /* = std::string () */)
 {
     // use absolute path as given by fname
-#if !defined (_MSC_VER)
+#if !defined (_WIN32)
     if (fname.size () && _RWSTD_PATH_SEP == fname [0]) 
 #else
     if (fname.size () && 
@@ -144,7 +144,7 @@ get_pathname (const std::string &fname,
         other.substr (0,other.rfind (_RWSTD_PATH_SEP) + 1));
 
     // OR use the path given through "other", be it relative or absolute
-#if !defined (_MSC_VER)
+#if !defined (_WIN32)
     if (other.size () && _RWSTD_PATH_SEP == other [0]) {
 #else
     if (other.size () && 

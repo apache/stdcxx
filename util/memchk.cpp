@@ -26,14 +26,14 @@
  * 
  **************************************************************************/
 
-#ifndef _MSC_VER
+#ifndef _WIN32
 #  include <fcntl.h>     // for open()
 #  include <unistd.h>    // for getpagesize(), write()
-#else   // if MSVC
+#else   // if Windows
 #  include <fcntl.h>     // for POSIX compatibility APIs
 #  include <io.h>        // ditto
 #  include <windows.h>   // for all of Win32 junk
-#endif   // MSVC
+#endif   // _WIN32
 
 #include <errno.h>       // for errno, EINTR
 #include <stddef.h>      // for size_t

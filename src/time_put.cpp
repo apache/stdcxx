@@ -2815,7 +2815,7 @@ __rw_put_time (const __rw_facet *facet, wchar_t *wbuf, _RWSTD_SIZE_T bufsize,
         const wchar_t *fmtstr = 'z' == fmt ? L"%+*.*d" : L"%*.*d";
 
         res = swprintf (wbuf, 
-#if !defined (_MSC_VER) || 1400 <= _MSC_VER
+#if !defined (__MINGW32__) && (!defined (_MSC_VER) || 1400 <= _MSC_VER)
                         // MSVC 8.0 changed swprintf() to conform
                         // to the C standard signature
                         bufsize,

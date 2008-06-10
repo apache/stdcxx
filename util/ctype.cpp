@@ -690,7 +690,7 @@ process_ctype ()
             if (next.token != Scanner::tok_string)
                 issue_diag (E_SYNTAX, true, &next,
                             "expected string following \"copy\" directive\n"); 
-#ifndef _MSC_VER           
+#ifndef _WIN32
 
             ctype_symlink_ = true;
 
@@ -712,7 +712,7 @@ process_ctype ()
                 continue;
             }
 
-#endif  // _MSC_VER            
+#endif  // _WIN32
 
             // bump up the nesting level
             nesting_level++;
@@ -891,7 +891,7 @@ write_ctype (std::string dir_name)
     
     }
 
-#ifndef _MSC_VER
+#ifndef _WIN32
     
     if (ctype_symlink_) {
 
@@ -909,6 +909,6 @@ write_ctype (std::string dir_name)
         return;
     }
 
-#endif  // _MSC_VER
+#endif  // _WIN32
 
 }

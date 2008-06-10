@@ -59,12 +59,12 @@
 #include <cwctype>    // for iswxxx()
 
 
-#if !defined (_MSC_VER)
+#if !defined (_WIN32)
 #  if !defined (LC_MESSAGES)
 #    define LC_MESSAGES _RWSTD_LC_MESSAGES
 #  endif   // LC_MESSAGES
 #  include <langinfo.h>
-#endif  // _MSC_VER
+#endif  // _WIN32
 
 #include <rw_driver.h>
 #include <rw_file.h>        // for SLASH

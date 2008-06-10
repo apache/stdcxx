@@ -265,6 +265,9 @@ rw_thread_join (rw_thread_t thr_id, void **parg)
 /**************************************************************************/
 
 #elif defined (_WIN32) && defined (_MT)
+#  ifdef __MINGW32__
+#    include <stdint.h>   // for uintptr_t
+#  endif
 #  include <process.h>    // for _beginthreadex()
 
 _TEST_EXPORT int

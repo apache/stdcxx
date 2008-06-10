@@ -22,13 +22,16 @@
  * 
  **************************************************************************/
 
-#if defined (_WIN32) && !defined (__CYGWIN__)
+#include "nodbg.h"
+
+
+#if defined (_MSC_VER)
 #  define TRY             __try
 #  define EXCEPT(expr)    __except (expr)
-#else   // not Windows
+#else   // not MSVC
 #  define TRY               if (1)
 #  define EXCEPT(ignore)    else if (0)
-#endif   // _WIN32
+#endif   // _MSC_VER
 
 
 int get_int (int);
@@ -40,6 +43,8 @@ volatile int int_one;
 
 int main (int argc, char*[])
 {
+    nodbg ();
+
     // test expects to be called with no command line arguments
     // i.e., (argc < 2) is expected to hold
 
