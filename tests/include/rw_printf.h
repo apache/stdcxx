@@ -79,7 +79,7 @@ rw_snprintf (char*, _RWSTD_SIZE_T, const char*, ...);
 /**
  * Prints to a dynamically allocated character buffer.
  *
- * @param fmt  Format specifier.
+ * @param fmt  Format specifier.  See rwtest-fmtspec page for details.
  *
  * @return  On success, returns a pointer to the dynamically allocated
  *          character buffer. Otherwise, returns 0.
@@ -94,6 +94,7 @@ rw_sprintfa (const char* fmt, ...);
  * @param buf  A pointer to character buffer where the function should
  *        store its output.
  * @param bufise  The size of the character buffer in bytes.
+ * @param fmt  Format specifier.  See rwtest-fmtspec page for details.
  *
  * @return  On success, if the size of the supplied buffer was sufficient
  *          to format all characters including the terminating NUL, returns
@@ -124,34 +125,7 @@ rw_snprintfa (char *buf, _RWSTD_SIZE_T bufsize, const char* fmt, ...);
  *        to by this argument to the size of the dynamically allocated
  *        character buffer, or leaves it unchanged if it doesn't allocate
  *        any buffer.
- * @param fmt  Format specifier.
- *        The format specifier string has the same syntax as C99 sprintf
- *        (see 7.19.6.1 of ISO/IEC 9899:1999) with the following extensions:
- *
- *        %n$          where n is a integer (see IEEE Std 1003.1)
- *        %m           the value of strerror(errno)
- *
- *        %{?}         if clause (extracts an int)
- *        %{:}         else clause
- *        %{;}         end of if/else clause
- *
- *        %{Ac}        quoted array of narrow characters
- *        %{*Ac}       quoted array of characters of width '*' each
- *                     where '*' is an int argument extracted from
- *                     the argument list
- *        %{#s}        quoted narrow character string
- *        %{#ls}       quoted wide character string
- *        %{$envvar}   value of an environment variable envvar
- *        %{f}         function pointer
- *        %{K}         signal name (such as "SIGABRT")
- *        %{M}         member pointer
- *        %{#m}        name of the errno constant (such as "EINVAL")
- *        %{n}         buffer size
- *        %{S}         pointer to std::string
- *        %{lS}        pointer to std::wstring
- *        %{tm}        pointer to struct tm
- *        %{InJ}       where n is one of { 8, 16, 32, 64 }
- *                     and J is one of { d, o, x, X }
+ * @param fmt  Format specifier.  See rwtest-fmtspec page for details.
  *
  * @return  On success, returns the number of characters formatted into
  *          the buffer, otherwise -1.
@@ -173,6 +147,9 @@ rw_asnprintf (char** pbuf, _RWSTD_SIZE_T *pbufsize, const char *fmt, ...);
  * directives and conversions.  Directives that accept a pointer argument
  * will convert a null pointer into the string literal <tt>(null)</tt>.
  *
+ * Specifiers within formatting directives are denoted by angle brackets.
+ * The specifiers are placeholders whose range of possible values are
+ * listed in the description of the directive.
  *
  * @section rwtest-fmtspec-c89 C89 Directives
  *
@@ -197,6 +174,16 @@ rw_asnprintf (char** pbuf, _RWSTD_SIZE_T *pbufsize, const char *fmt, ...);
  * The argument is a value convertible to \c bool type.  If the value
  * of the argument is nonzero, the value is converted to the string
  * literal \c true.  Otherwise, the value converts to \c false.
+ *
+ * @subsection rwtest-fmtspec-ext-funptr Function Pointer \%{f}
+ *
+ * The argument is a pointer to a function.  The conversion and formatting
+ * is performed as specified by the \c \%p directive.
+ *
+ * @subsection rwtest-fmtspec-ext-memptr Member Pointer \%{M}
+ *
+ * The argument is a pointer to a composite member.  The conversion and
+ * formatting is performed as specified by the \c \%p directive.
  *
  * @subsection rwtest-fmtspec-ext-esc-c Escaped Character \%{c} \%{\#c}
  *
@@ -245,19 +232,29 @@ rw_asnprintf (char** pbuf, _RWSTD_SIZE_T *pbufsize, const char *fmt, ...);
  *
  * @subsection rwtest-fmtspec-ext-bits Bitset \%{b}
  *
- * The argument is a pointer to an array of \c char.  NOT YET COMPLETE
+ * The argument is a pointer to an array of \c char.  Each bit in the
+ * array, ordered from MSB of the first element to LSB of the last
+ * element is converted into a sequence of '0' or '1' characters.
  *
- * @subsection rwtest-fmtspec-ext-Ai Integer Array \%{Ao} \%{Ad} \%{Ax}
+ * @subsection rwtest-fmtspec-ext-Ai Integer Array \%{Ac} \%{Ao} \%{Ad} \%{Ax}
  *
  * The argument is a pointer to an array of integer type.  The resulting
  * output is formatted as a string of comma-separated integer values.
- * The notation of each integer value is specified by <tt>o</tt> for
- * octal, <tt>d</tt> for decimal, or <tt>x</tt> for hexadcimal.  An
- * optional field width specifies the size of elements in the array
- * (defaults to 1).  An optional precision specifies the length of the
- * array.  In the alternate form, the resulting output for octal and
- * hexidecimal integer values are prefixed with string literals
- * <tt>0</tt> and <tt>0x</tt> respectively.
+ * The notation of each integer value is specified by <tt>c</tt> for
+ * characters, <<tt>o</tt> for octal, <tt>d</tt> for decimal, or
+ * <tt>x</tt> for hexadcimal.  An optional field width specifies the
+ * size of elements in the array (defaults to 1).  An optional precision
+ * specifies the length of the array.  In the alternate form, the
+ * resulting output for octal and hexidecimal integer values are
+ * prefixed with string literals <tt>0</tt> and <tt>0x</tt> respectively.
+ *
+ * @subsection rwtest-fmtspec-ext-I Fixed-Width Integers \%{I<wn>}
+ *
+ * The argument is a value of an integer type.  The directive requires
+ * two specifiers: the <tt>w</tt> specifier is one of 8, 16, 32, or 64
+ * specifying the width of the integer value.  The <tt>n</tt> specifier
+ * is one of \c d, \c o, \c x, or \c X specifying the notation of the
+ * resulting output.
  *
  * @subsection rwtest-fmtspec-ext-Is Stream State \%{Is} \%{\#Is}
  *
@@ -321,10 +318,15 @@ rw_asnprintf (char** pbuf, _RWSTD_SIZE_T *pbufsize, const char *fmt, ...);
  * @subsection rwtest-fmtspec-ext-str String \%{S}
  *
  * The argument is a pointer to an object of the \c std::string class.
- * If the pointer is null, the resulting output is the string literal
- * <tt>(null)</tt>.  Otherwise, the pointer \c P is converted by calling
- * the \c P->c_str() function and the result is formatted identical to
- * the <tt>%s</tt> character string directive.
+ * Otherwise, the pointer \c P is converted by calling the \c P->c_str()
+ * function and the result is formatted identical to the <tt>%s</tt>
+ * character string directive.
+ *
+ * @subsection rwtest-fmtspec-ext-wstr Wide String \%{lS}
+ *
+ * The argument is a pointer to an object of the \c std::wstring class.
+ * Conversion and formatting is performed as stated for the \c \%{S}
+ * directive.
  *
  * @subsection rwtest-fmtspec-ext-tm Time Structure \%{t} \%{\#t}
  *
@@ -340,6 +342,19 @@ rw_asnprintf (char** pbuf, _RWSTD_SIZE_T *pbufsize, const char *fmt, ...);
  * "[range]" is only shown if the value is not in the valid range for
  * the respective member.
  *
+ * @subsection rwtest-fmtspec-ext-other Other Directives
+ *
+ * The following directives are also recognized by RWTest output
+ * functions but are heretofore undocumented.
+ *
+ * <ul>
+ * <li> \%{<n>} buffer size
+ * <li> \%{<n>$} positional parameter
+ * <li> \%{$<s>} environment variable
+ * <li> \%{?} \%{:} \%{;} conditionals
+ * <li> \%{@} nested format
+ * <li> \%{!} user-defined format
+ * </ul>
  */
 
 #endif   // RW_PRINTF_H_INCLUDED
