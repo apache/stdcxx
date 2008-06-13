@@ -1,0 +1,490 @@
+/***************************************************************************
+ *
+ * This is an internal header file used to implement the C++ Standard
+ * Library. It should never be #included directly by a program.
+ *
+ * $Id$
+ *
+ ***************************************************************************
+ *
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 2008 Rogue Wave Software, Inc.
+ *
+ **************************************************************************/
+
+#ifndef _RWSTD_META_UNARY_PROP_H_INCLUDED
+#define _RWSTD_META_UNARY_PROP_H_INCLUDED
+
+#include <rw/_defs.h>
+#include <rw/_meta_cat.h>
+#include <rw/_meta_arr.h>
+#include <rw/_meta_cv.h>
+#include <rw/_static_assert.h>
+
+_RWSTD_NAMESPACE (__rw) {
+
+template <class _TypeT, bool = __rw_is_integral<_TypeT>::value,
+                        bool = __rw_is_floating_point<_TypeT>::value>
+struct __rw_is_unsigned_impl
+{
+    enum { _C_value = 0 };
+};
+
+template <class _TypeT>
+struct __rw_is_unsigned_impl<_TypeT, false, true>
+{
+    enum { _C_value = 0 };
+};
+
+template <class _TypeT>
+struct __rw_is_unsigned_impl<_TypeT, true, false>
+{
+    typedef typename __rw_remove_cv<_TypeT>::type _TypeU;
+    enum { _C_value = _TypeU (0) < _TypeU (-1) };
+};
+
+template <class _TypeT, bool = __rw_is_integral<_TypeT>::value,
+                        bool = __rw_is_floating_point<_TypeT>::value>
+struct __rw_is_signed_impl
+{
+    enum { _C_value = 0 };
+};
+
+template <class _TypeT>
+struct __rw_is_signed_impl<_TypeT, false, true>
+{
+    enum { _C_value = 1 };
+};
+
+template <class _TypeT>
+struct __rw_is_signed_impl<_TypeT, true, false>
+{
+    typedef typename __rw_remove_cv<_TypeT>::type _TypeU;
+    enum { _C_value = _TypeU (-1) < _TypeU (0) };
+};
+
+
+
+/**
+ * UnaryTypeTrait indicates that _TypeT is const-qualified.
+ */
+template <class _TypeT>
+struct __rw_is_const : __rw_false_type
+{
+};
+
+template <class _TypeT>
+struct __rw_is_const<const _TypeT> : __rw_true_type
+{
+};
+
+/**
+ * UnaryTypeTrait indicates that _TypeT is volatile-qualified.
+ */
+template <class _TypeT>
+struct __rw_is_volatile : __rw_false_type
+{
+};
+
+template <class _TypeT>
+struct __rw_is_volatile<volatile _TypeT> : __rw_true_type
+{
+};
+
+
+#ifdef _MSC_VER
+
+// msvc hacks
+
+template <class _TypeT>
+struct __rw_is_standard_layout_impl
+{
+    typedef typename __rw_remove_all_extents<_TypeT>::type _TypeU;
+    enum { _C_value = __rw_is_scalar<_TypeU>::value };
+};
+
+template <class _TypeT>
+struct __rw_is_pod_impl
+{
+    typedef typename __rw_remove_all_extents<_TypeT>::type _TypeU;
+
+    enum { _C_value =    __rw_is_scalar<_TypeU>::value
+#ifdef _RWSTD_TT_IS_POD
+                      || _RWSTD_TT_IS_POD(_TypeU)
+#endif
+    };
+};
+
+template <class _TypeT>
+struct __rw_is_empty_impl
+{
+    enum { _C_value =    __rw_is_class<_TypeT>::value
+#ifdef _RWSTD_TT_IS_EMPTY
+                      && _RWSTD_TT_IS_EMPTY(_TypeT)
+#endif
+    };
+};
+
+#undef _RWSTD_TT_IS_STDANDARD_LAYOUT
+#define _RWSTD_TT_IS_STDANDARD_LAYOUT(T) __rw_is_standard_layout_impl<T>::_C_value
+
+#undef _RWSTD_TT_IS_POD
+#define _RWSTD_TT_IS_POD(T) __rw_is_pod_impl<T>::_C_value
+
+#undef _RWSTD_TT_IS_EMPTY
+#define _RWSTD_TT_IS_EMPTY(T) __rw_is_empty_impl<T>::_C_value
+
+#endif // _MSC_VER
+
+
+
+
+
+/**
+ * UnaryTypeTrait indicates that _TypeT is a standard layout type.
+ *
+ * _TypeT shall be a complete type, an array of unknown bound, or void
+ * (possibly cv-qualified)
+ */
+template <class _TypeT>
+struct __rw_is_standard_layout
+    : __rw_integral_constant<bool, _RWSTD_TT_IS_STDANDARD_LAYOUT(_TypeT)>
+{
+    //_RWSTD_COMPILE_ASSERT (   _RWSTD_IS_COMPLETE (_TypeT)
+    //                       || _RWSTD_IS_ARRAY (_TypeT)
+    //                       || _RWSTD_IS_VOID (_TypeT));
+};
+
+/**
+ * UnaryTypeTrait indicates that _TypeT is a pod type.
+ *
+ * _TypeT shall be a complete type, an array of unknown bound, or void
+ * (possibly cv-qualified)
+ */
+template <class _TypeT>
+struct __rw_is_pod
+    : __rw_integral_constant<bool, _RWSTD_TT_IS_POD(_TypeT)>
+{
+    //_RWSTD_COMPILE_ASSERT (   _RWSTD_IS_COMPLETE (_TypeT)
+    //                       || _RWSTD_IS_ARRAY (_TypeT)
+    //                       || _RWSTD_IS_VOID (_TypeT));
+};
+
+/**
+ * UnaryTypeTrait indicates that _TypeT is an empty type.
+ *
+ * _TypeT shall be a complete type, an array of unknown bound, or void
+ * (possibly cv-qualified).
+ */
+template <class _TypeT>
+struct __rw_is_empty
+    : __rw_integral_constant<bool, _RWSTD_TT_IS_EMPTY(_TypeT)>
+{
+    //_RWSTD_COMPILE_ASSERT (   _RWSTD_IS_COMPLETE (_TypeT)
+    //                       || _RWSTD_IS_ARRAY (_TypeT)
+    //                       || _RWSTD_IS_VOID (_TypeT));
+};
+
+/**
+ * UnaryTypeTrait indicates that _TypeT is a polymorphic type.
+ *
+ * _TypeT shall be a complete type, an array of unknown bound, or void
+ * (possibly cv-qualified).
+ */
+template <class _TypeT>
+struct __rw_is_polymorphic
+    : __rw_integral_constant<bool, _RWSTD_TT_IS_POLYMORPHIC(_TypeT)>
+{
+    //_RWSTD_COMPILE_ASSERT (   _RWSTD_IS_COMPLETE (_TypeT)
+    //                       || _RWSTD_IS_ARRAY (_TypeT)
+    //                       || _RWSTD_IS_VOID (_TypeT));
+};
+
+/**
+ * UnaryTypeTrait indicates that _TypeT is an abstract type.
+ *
+ * _TypeT shall be a complete type, an array of unknown bound, or void
+ * (possibly cv-qualified).
+ */
+template <class _TypeT>
+struct __rw_is_abstract
+    : __rw_integral_constant<bool, _RWSTD_TT_IS_ABSTRACT(_TypeT)>
+{
+    //_RWSTD_COMPILE_ASSERT (   _RWSTD_IS_COMPLETE (_TypeT)
+    //                       || _RWSTD_IS_ARRAY (_TypeT)
+    //                       || _RWSTD_IS_VOID (_TypeT));
+};
+
+/**
+ * UnaryTypeTrait indicates that _TypeT has a trivial default constructor.
+ *
+ * _TypeT shall be a complete type, an array of unknown bound, or void
+ * (possibly cv-qualified).
+ */
+template <class _TypeT>
+struct __rw_has_trivial_ctor
+    : __rw_integral_constant<bool, _RWSTD_TT_HAS_TRIVIAL_CTOR(_TypeT)>
+{
+    //_RWSTD_COMPILE_ASSERT (   _RWSTD_IS_COMPLETE (_TypeT)
+    //                       || _RWSTD_IS_ARRAY (_TypeT)
+    //                       || _RWSTD_IS_VOID (_TypeT));
+};
+
+/**
+ * UnaryTypeTrait indicates that _TypeT has a trivial copy constructor.
+ *
+ * _TypeT shall be a complete type, an array of unknown bound, or void
+ * (possibly cv-qualified).
+ */
+template <class _TypeT>
+struct __rw_has_trivial_copy
+    : __rw_integral_constant<bool, _RWSTD_TT_HAS_TRIVIAL_COPY(_TypeT)>
+{
+    //_RWSTD_COMPILE_ASSERT (   _RWSTD_IS_COMPLETE (_TypeT)
+    //                       || _RWSTD_IS_ARRAY (_TypeT)
+    //                       || _RWSTD_IS_VOID (_TypeT));
+};
+
+/**
+ * UnaryTypeTrait indicates that _TypeT has a trivial assignment operator.
+ *
+ * _TypeT shall be a complete type, an array of unknown bound, or void
+ * (possibly cv-qualified).
+ */
+template <class _TypeT>
+struct __rw_has_trivial_assign
+    : __rw_integral_constant<bool, _RWSTD_TT_HAS_TRIVIAL_ASSIGN(_TypeT)>
+{
+    //_RWSTD_COMPILE_ASSERT (   _RWSTD_IS_COMPLETE (_TypeT)
+    //                       || _RWSTD_IS_ARRAY (_TypeT)
+    //                       || _RWSTD_IS_VOID (_TypeT));
+};
+
+/**
+ * UnaryTypeTrait indicates that _TypeT has a trivial destructor.
+ *
+ * _TypeT shall be a complete type, an array of unknown bound, or void
+ * (possibly cv-qualified).
+ */
+template <class _TypeT>
+struct __rw_has_trivial_dtor
+    : __rw_integral_constant<bool, _RWSTD_TT_HAS_TRIVIAL_DTOR(_TypeT)>
+{
+    //_RWSTD_COMPILE_ASSERT (   _RWSTD_IS_COMPLETE (_TypeT)
+    //                       || _RWSTD_IS_ARRAY (_TypeT)
+    //                       || _RWSTD_IS_VOID (_TypeT));
+};
+
+/**
+ * UnaryTypeTrait indicates that _TypeT is a trivial type or
+ * an array of trivial type.
+ */
+template <class _TypeT>
+struct __rw_is_trivial_impl
+{
+    typedef typename __rw_remove_all_extents<_TypeT>::type _TypeU;
+
+    enum { _C_value =    __rw_is_scalar<_TypeU>::value
+                      || __rw_has_trivial_ctor<_TypeU>::value
+                      && __rw_has_trivial_copy<_TypeU>::value
+                      && __rw_has_trivial_dtor<_TypeU>::value
+                      && __rw_has_trivial_assign<_TypeU>::value
+                      && (__rw_is_class<_TypeU>::value || __rw_is_union<_TypeU>::value) };
+};
+
+/**
+ * UnaryTypeTrait indicates that _TypeT is a trivial type or an array of
+ * trivial type.
+ *
+ * Trivial types include scalar types, and trivial class types. A trivial
+ * class type has a trivial default ctor, copy ctor, operator= and dtor.
+ *
+ * _TypeT shall be a complete type, an array of unknown bound, or void
+ * (possibly cv-qualified).
+ */
+template <class _TypeT>
+struct __rw_is_trivial
+    : __rw_integral_constant<bool, __rw_is_trivial_impl<_TypeT>::_C_value>
+{
+    //_RWSTD_COMPILE_ASSERT (   _RWSTD_IS_COMPLETE (_TypeT)
+    //                       || _RWSTD_IS_ARRAY (_TypeT)
+    //                       || _RWSTD_IS_VOID (_TypeT));
+};
+
+/**
+ * UnaryTypeTrait to determine if _TypeT has a nothrow default constructor.
+ *
+ * _TypeT shall be a complete type, an array of unknown bound, or void
+ * (possibly cv-qualified).
+ */
+template <class _TypeT>
+struct __rw_has_nothrow_ctor
+    : __rw_integral_constant<bool, _RWSTD_TT_HAS_NOTHROW_CTOR(_TypeT)>
+{
+    //_RWSTD_COMPILE_ASSERT (   _RWSTD_IS_COMPLETE (_TypeT)
+    //                       || _RWSTD_IS_ARRAY (_TypeT)
+    //                       || _RWSTD_IS_VOID (_TypeT));
+};
+
+/**
+ * UnaryTypeTrait indicates that _TypeT has a nothrow copy constructor.
+ *
+ * _TypeT shall be a complete type, an array of unknown bound, or void
+ * (possibly cv-qualified).
+ */
+template <class _TypeT>
+struct __rw_has_nothrow_copy
+    : __rw_integral_constant<bool, _RWSTD_TT_HAS_NOTHROW_COPY(_TypeT)>
+{
+    //_RWSTD_COMPILE_ASSERT (   _RWSTD_IS_COMPLETE (_TypeT)
+    //                       || _RWSTD_IS_ARRAY (_TypeT)
+    //                       || _RWSTD_IS_VOID (_TypeT));
+};
+
+/**
+ * UnaryTypeTrait indicates that _TypeT has a nothrow assignment operator.
+ *
+ * _TypeT shall be a complete type, an array of unknown bound, or void
+ * (possibly cv-qualified).
+ */
+template <class _TypeT>
+struct __rw_has_nothrow_assign
+    : __rw_integral_constant<bool, _RWSTD_TT_HAS_NOTHROW_ASSIGN(_TypeT)>
+{
+    //_RWSTD_COMPILE_ASSERT (   _RWSTD_IS_COMPLETE (_TypeT)
+    //                       || _RWSTD_IS_ARRAY (_TypeT)
+    //                       || _RWSTD_IS_VOID (_TypeT));
+};
+
+/**
+ * UnaryTypeTrait indicates that _TypeT has a virtual destructor.
+ *
+ * _TypeT shall be a complete type, an array of unknown bound, or void
+ * (possibly cv-qualified).
+ */
+template <class _TypeT>
+struct __rw_has_virtual_dtor
+    : __rw_integral_constant<bool, _RWSTD_TT_HAS_VIRTUAL_DTOR(_TypeT)>
+{
+    //_RWSTD_COMPILE_ASSERT (   _RWSTD_IS_COMPLETE (_TypeT)
+    //                       || _RWSTD_IS_ARRAY (_TypeT)
+    //                       || _RWSTD_IS_VOID (_TypeT));
+};
+
+/**
+ * UnaryTypeTrait that indicates that _TypeT is an unsigned type.
+ */
+template <class _TypeT>
+struct __rw_is_unsigned
+    : __rw_integral_constant<bool, __rw_is_unsigned_impl<_TypeT>::_C_value>
+{
+};
+
+
+/**
+ * UnaryTypeTrait that indicates that _TypeT is a signed type.
+ */
+template <class _TypeT>
+struct __rw_is_signed
+    : __rw_integral_constant<bool, __rw_is_signed_impl<_TypeT>::_C_value>
+{
+};
+
+/**
+ * UnaryTypeTrait that gets the alignment of _TypeT.
+ */
+template <class _TypeT>
+struct __rw_alignment_of
+    : __rw_integral_constant<_RWSTD_SIZE_T, _RWSTD_TT_ALIGN_OF(_TypeT)>
+{
+    //_RWSTD_COMPILE_ASSERT (   _RWSTD_IS_COMPLETE (_TypeT)
+    //                       || _RWSTD_IS_ARRAY (_TypeT)
+    //                       || _RWSTD_IS_VOID (_TypeT));
+};
+
+/**
+ * UnaryTypeTrait gives the number of dimensions of the type _TypeT, if
+ * _TypeT is an array, otherwise 0. The primary template is for non-array
+ * types.
+ */
+template <class _TypeT>
+struct __rw_rank
+    : __rw_integral_constant<_RWSTD_SIZE_T, 0>
+{
+};
+
+/**
+ * UnaryTypeTrait gives the number of dimensions of the type _TypeT, if
+ * _TypeT is an array, otherwise 0. The primary template is for bounded
+ * -array types.
+ */
+template <class _TypeT, size_t _Size>
+struct __rw_rank<_TypeT [_Size]>
+    : __rw_integral_constant<_RWSTD_SIZE_T, 1 + __rw_rank<_TypeT>::value>
+{
+};
+
+/**
+ * UnaryTypeTrait gives the number of dimensions of the type _TypeT, if
+ * _TypeT is an array, otherwise 0. The primary template is for unbounded
+ * -array types.
+ */
+template <class _TypeT>
+struct __rw_rank<_TypeT []>
+    : __rw_integral_constant<_RWSTD_SIZE_T, 1 + __rw_rank<_TypeT>::value>
+{
+};
+
+
+/**
+ * UnaryTypeTrait gives the size of the _Depth dimension of _TypeT.
+ */
+template <class _TypeT, _RWSTD_SIZE_T _Depth>
+struct __rw_extent
+    : __rw_integral_constant<_RWSTD_SIZE_T, 0>
+{
+};
+
+template <class _TypeT, _RWSTD_SIZE_T _Size, _RWSTD_SIZE_T _Depth>
+struct __rw_extent<_TypeT [_Size], _Depth>
+    : __rw_integral_constant<_RWSTD_SIZE_T, __rw_extent<_TypeT, _Depth - 1>::value>
+{
+};
+
+template <class _TypeT, _RWSTD_SIZE_T _Depth>
+struct __rw_extent<_TypeT [], _Depth>
+    : __rw_integral_constant<_RWSTD_SIZE_T, __rw_extent<_TypeT, _Depth - 1>::value>
+{
+};
+
+template <class _TypeT, _RWSTD_SIZE_T _Size>
+struct __rw_extent<_TypeT [_Size], 0>
+    : __rw_integral_constant<_RWSTD_SIZE_T, _Size>
+{
+};
+
+template <class _TypeT>
+struct __rw_extent<_TypeT [], 0>
+    : __rw_integral_constant<_RWSTD_SIZE_T, 0>
+{
+};
+
+} // namespace __rw
+
+
+#endif   // _RWSTD_META_UNARY_PROP_H_INCLUDED

@@ -1274,6 +1274,20 @@ __rw_assert_fail (const char*, const char*, int, const char*)
 #  endif
 #endif   // _RWSTD_SSIZE_T
 
+// _RWSTD_SWCHAR_INT_T is "signed wchar_t"
+#ifndef _RWSTD_SWCHAR_INT_T
+#  if _RWSTD_CHAR_SIZE == _RWSTD_WCHAR_SIZE
+#    define _RWSTD_SWCHAR_INT_T   signed char
+#  elif _RWSTD_SHRT_SIZE == _RWSTD_WCHAR_SIZE
+#    define _RWSTD_SWCHAR_INT_T   signed short
+#  elif _RWSTD_INT_SIZE == _RWSTD_WCHAR_SIZE
+#    define _RWSTD_SWCHAR_INT_T   signed int
+#  elif _RWSTD_LONG_SIZE == _RWSTD_WCHAR_SIZE
+#    define _RWSTD_SWCHAR_INT_T   signed long
+#  else
+#    define _RWSTD_SWCHAR_INT_T   signed long long
+#  endif
+#endif   // _RWSTD_SWCHAR_INT_T
 
 // _RWSTD_UWCHAR_INT_T is "unsigned wchar_t"
 #ifndef _RWSTD_UWCHAR_INT_T
@@ -1283,8 +1297,10 @@ __rw_assert_fail (const char*, const char*, int, const char*)
 #    define _RWSTD_UWCHAR_INT_T unsigned short
 #  elif _RWSTD_INT_SIZE == _RWSTD_WCHAR_SIZE
 #    define _RWSTD_UWCHAR_INT_T unsigned int
+#  elif _RWSTD_LONG_SIZE == _RWSTD_WCHAR_SIZE
+#    define _RWSTD_UWCHAR_INT_T unsigned long
 #  else
-#    define _RWSTD_UWCHAR_INT_T _RWSTD_SIZE_T
+#    define _RWSTD_UWCHAR_INT_T unsigned long long
 #  endif
 #endif   // _RWSTD_UWCHAR_INT_T
 
@@ -1614,5 +1630,40 @@ _RWSTD_NAMESPACE (std) {
 #  define _RWSTD_VA_COPY(va_dst, va_src) \
           memcpy (va_dst, va_src, sizeof (va_list))
 #endif   // _RWSTD_NO_VA_LIST_ARRAY
+
+#if 0
+//
+//   http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2008/n2518.html
+//
+#  define _RWSTD_TT_IS_MEMBER_OBJECT_POINTER(T)   __is_member_object_pointer(T)
+#  define _RWSTD_TT_IS_MEMBER_FUNCTION_POINTER(T) __is_member_function_pointer(T)
+#  define _RWSTD_TT_IS_ENUM(T)                    __is_enum(T)
+#  define _RWSTD_TT_IS_UNION(T)                   __is_union(T)
+#  define _RWSTD_TT_IS_CLASS(T)                   __is_class(T)
+#  define _RWSTD_TT_IS_FUNCTION(T)                __is_function(T)
+#  define _RWSTD_TT_IS_STANDARD_LAYOUT(T)         __is_standard_layout(T)
+#  define _RWSTD_TT_IS_POD(T)                     __is_pod(T)
+#  define _RWSTD_TT_IS_EMPTY(T)                   __is_empty(T)
+#  define _RWSTD_TT_IS_POLYMORPHIC(T)             __is_polymorphic(T)
+#  define _RWSTD_TT_IS_ABSTRACT(T)                __is_abstract(T)
+
+#  define _RWSTD_TT_HAS_TRIVIAL_CTOR(T)           __has_trivial_default_ctor(T)
+#  define _RWSTD_TT_HAS_TRIVIAL_COPY(T)           __has_trivial_copy_ctor(T)
+#  define _RWSTD_TT_HAS_TRIVIAL_ASSIGN(T)         __has_trivial_assign(T)
+#  define _RWSTD_TT_HAS_TRIVIAL_DTOR(T)           __has_trivial_dtor(T)
+
+#  define _RWSTD_TT_HAS_NOTHROW_CTOR(T)           __has_nothrow_default_ctor(T)
+#  define _RWSTD_TT_HAS_NOTHROW_COPY(T)           __has_nothrow_copy_ctor(T)
+#  define _RWSTD_TT_HAS_NOTHROW_ASSIGN(T)         __has_nothrow_assign(T)
+
+#  define _RWSTD_TT_HAS_VIRTUAL_DTOR(T)           __has_virtual_destructor(T)
+
+#  define _RWSTD_TT_IS_BASE_OF(T)                 __is_base_of(T,U)
+#  define _RWSTD_TT_IS_CONVERTIBLE(T)             __is_convertible(T,U)
+
+#  define _RWSTD_TT_ALIGN_OF(T)                   __alignof(T)
+#  define _RWSTD_TT_ALIGNED_POD(N)                __aligned_pod(N)
+#  define _RWSTD_TT_MAX_ALIGNMENT                 __max_alignment()
+#endif   // 0
 
 #endif   // _RWSTD_RW_DEFS_H_INCLUDED

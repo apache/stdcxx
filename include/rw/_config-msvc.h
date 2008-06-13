@@ -82,3 +82,38 @@
 
 // disable "'function': was declared deprecated"
 #pragma warning (disable: 4996)
+
+// type trait helpers provided by msvc
+#if defined (_MSC_FULL_VER) && (_MSC_FULL_VER >= 140050215)
+#  define _RWSTD_TT_HAS_NOTHROW_ASSIGN(T)  __has_nothrow_assign(T) 
+#  define _RWSTD_TT_HAS_NOTHROW_CTOR(T)    __has_nothrow_constructor(T) 
+#  define _RWSTD_TT_HAS_NOTHROW_COPY(T)    __has_nothrow_copy(T) 
+
+#  define _RWSTD_TT_HAS_TRIVIAL_ASSIGN(T)  __has_trivial_assign(T) 
+#  define _RWSTD_TT_HAS_TRIVIAL_CTOR(T)    __has_trivial_constructor(T) 
+#  define _RWSTD_TT_HAS_TRIVIAL_COPY(T)    __has_trivial_copy(T) 
+#  define _RWSTD_TT_HAS_TRIVIAL_DTOR(T)    __has_trivial_destructor(T) 
+
+#  define _RWSTD_TT_HAS_VIRTUAL_DTOR(T)    __has_virtual_destructor(T) 
+
+#  define _RWSTD_TT_IS_ABSTRACT(T)         __is_abstract(T) 
+#  define _RWSTD_TT_IS_BASE_OF(T,U)        __is_base_of(T,U)
+#  define _RWSTD_TT_IS_CLASS(T)            __is_class(T) 
+#  define _RWSTD_TT_IS_CONVERTIBLE(T,U)    __is_convertible_to(T,U) 
+#  define _RWSTD_TT_IS_EMPTY(T)            __is_empty(T) 
+#  define _RWSTD_TT_IS_ENUM(T)             __is_enum(T) 
+#  define _RWSTD_TT_IS_POLYMORPHIC(T)      __is_polymorphic(T) 
+#  define _RWSTD_TT_IS_UNION(T)            __is_union(T) 
+
+#  define _RWSTD_TT_ALIGN_OF(T)            __alignof(T)
+#  define _RWSTD_TT_ALIGNED_POD(N)         struct { __declspec(align(N)) char __fill; }
+#  define _RWSTD_TT_MAX_ALIGNMENT          16
+//#  define _RWSTD_TT_MAX_ALIGNMENT          8192
+
+// __is_pod only seems to work for pod-class and pod-union types according
+// to the old definition of pod. it needs to exclude scalar types, as well
+// as types which are both trivial and standard layout. so, we work around
+// that by using our fallback.
+#  define _RWSTD_TT_IS_POD(T)              __is_pod(T)
+
+#endif // _MSC_VER
