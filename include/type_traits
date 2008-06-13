@@ -1,4 +1,4 @@
-	// -*- C++ -*-
+// -*- C++ -*-
 /***************************************************************************
  *
  * type_traits - definition of type_traits types
@@ -197,7 +197,7 @@ _RWSTD_NAMESPACE (std) {
  * interface for various type traits.
  */
 template <class _TypeT, _TypeT _Value>
-struct integral_constant : _RW::__rw_integral_constant<_TypeT, _Value>
+struct integral_constant
 {
     /**
      * Describes the type of this integral_constant.
@@ -209,10 +209,10 @@ struct integral_constant : _RW::__rw_integral_constant<_TypeT, _Value>
      */
     typedef _TypeT value_type;
 
-    ///**
-    // * The actual integral constant value.
-    // */
-    //static const _TypeT value = _Value;
+    /**
+     * The actual integral constant value.
+     */
+    static const _TypeT value = _Value;
 };
 
 #ifndef _RWSTD_NO_STATIC_CONST_MEMBER_DEFINITION

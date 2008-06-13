@@ -208,14 +208,15 @@ void test_trait (int line, bool value, bool expect,
 
 void test_trait (int line,
                  const char* trait, const char* type,
-                 size_t value, size_t expect)
+                 _RWSTD_SIZE_T value, _RWSTD_SIZE_T expect)
 {
     rw_assert (value == expect, 0, line,
                "%s<%s>::value is %zu, expected %zu",
                trait, type, value, expect);
 }
 
-void test_trait (int line, size_t depth, size_t value, size_t expect,
+void test_trait (int line, _RWSTD_SIZE_T depth,
+                 _RWSTD_SIZE_T value, _RWSTD_SIZE_T expect,
                  const char* trait, const char* type)
 {
     rw_assert (value == expect, 0, line,
@@ -280,9 +281,9 @@ void test_is_const ()
 
     // array types
     TEST (std::is_const,    int [2], false);
-    TEST (std::is_const, C  int [2], false);
+    TEST (std::is_const, C  int [2], true);
     TEST (std::is_const,  V int [2], false);
-    TEST (std::is_const, CV int [2], false);
+    TEST (std::is_const, CV int [2], true);
 }
 
 void test_is_volatile ()
@@ -327,18 +328,92 @@ void test_is_volatile ()
     // array types
     TEST (std::is_volatile,    int [2], false);
     TEST (std::is_volatile, C  int [2], false);
-    TEST (std::is_volatile,  V int [2], false);
-    TEST (std::is_volatile, CV int [2], false);
+    TEST (std::is_volatile,  V int [2], true);
+    TEST (std::is_volatile, CV int [2], true);
 }
+
+static void test_has_trivial_assign ()
+{
+    TEST (std::has_trivial_assign, long, true);
+    TEST (std::has_trivial_assign, C long, false);
+    TEST (std::has_trivial_assign, V long, true);
+    TEST (std::has_trivial_assign, CV long, false);
+
+    TEST (std::has_trivial_assign, long&, false);
+    TEST (std::has_trivial_assign, C long&, false);
+    TEST (std::has_trivial_assign, V long&, false);
+    TEST (std::has_trivial_assign, CV long&, false);
+
+    TEST (std::has_trivial_assign, long[2], true);
+
+    TEST (std::has_trivial_assign, struct_t, true);
+
+    TEST (std::has_trivial_assign, no_trivial_assign_t, false);
+    TEST (std::has_trivial_assign, public_derived_t<no_trivial_assign_t>, false);
+}
+
+static void test_has_nothrow_assign ()
+{
+    TEST (std::has_nothrow_assign, long, true);
+    TEST (std::has_nothrow_assign, C long, false);
+    TEST (std::has_nothrow_assign, V long, true);
+    TEST (std::has_nothrow_assign, CV long, false);
+
+    TEST (std::has_nothrow_assign, long&, false);
+    TEST (std::has_nothrow_assign, C long&, false);
+    TEST (std::has_nothrow_assign, V long&, false);
+    TEST (std::has_nothrow_assign, CV long&, false);
+
+    TEST (std::has_nothrow_assign, long[2], true);
+
+    TEST (std::has_nothrow_assign, struct_t, true);
+    TEST (std::has_nothrow_assign, no_trivial_assign_t, true);
+    TEST (std::has_nothrow_assign, throwing_assign_t, false);
+}
+
+static void test_is_trivial ()
+{
+    TEST (std::is_trivial, long, true);
+    TEST (std::is_trivial, C long, false);
+    TEST (std::is_trivial, V long, true);
+    TEST (std::is_trivial, CV long, false);
+
+    TEST (std::is_trivial, long&, false);
+    TEST (std::is_trivial, C long&, false);
+    TEST (std::is_trivial, V long&, false);
+    TEST (std::is_trivial, CV long&, false);
+
+    TEST (std::is_trivial, class_t, true);
+    TEST (std::is_trivial, struct_t, true);
+    TEST (std::is_trivial, union_t, true);
+
+    TEST (std::is_trivial, empty_t, true);
+    TEST (std::is_trivial, public_derived_t<empty_t>, true);
+
+    TEST (std::is_trivial, non_empty_t, true);
+    TEST (std::is_trivial, public_derived_t<non_empty_t>, true);
+
+    TEST (std::is_trivial, abstract_t, false);
+    TEST (std::is_trivial, public_derived_t<abstract_t>, false);
+
+    TEST (std::is_trivial, polymorphic_t, false);
+    TEST (std::is_trivial, public_derived_t<polymorphic_t>, false);
+
+    TEST (std::is_trivial, no_trivial_ctor_t, false);
+    TEST (std::is_trivial, no_trivial_copy_t, false);
+    TEST (std::is_trivial, no_trivial_assign_t, false);
+    TEST (std::is_trivial, no_trivial_dtor_t, false);
+}
+
 
 // use traits to avoid warnings on gcc when adding qualifiers to some
 // types
 #undef TEST
 #define TEST(Trait,Type,Expect)                                      \
     _TEST(Trait, Type, Expect);                                      \
-    _TEST(Trait, _TYPENAME std::add_const<Type>::type, Expect);      \
-    _TEST(Trait, _TYPENAME std::add_volatile<Type>::type, Expect);   \
-    _TEST(Trait, _TYPENAME std::add_cv<Type>::type, Expect)
+    _TEST(Trait, std::add_const<Type>::type, Expect);                \
+    _TEST(Trait, std::add_volatile<Type>::type, Expect);             \
+    _TEST(Trait, std::add_cv<Type>::type, Expect)
 
 static void test_is_standard_layout ()
 {
@@ -391,30 +466,6 @@ static void test_is_standard_layout ()
     // everything else should be good to go
     TEST (std::is_standard_layout, member_t<int>, false);
     TEST (std::is_standard_layout, member_t<member_t<int> >, false);
-}
-
-static void test_is_trivial ()
-{
-    TEST (std::is_trivial, class_t, true);
-    TEST (std::is_trivial, struct_t, true);
-    TEST (std::is_trivial, union_t, true);
-
-    TEST (std::is_trivial, empty_t, true);
-    TEST (std::is_trivial, public_derived_t<empty_t>, true);
-
-    TEST (std::is_trivial, non_empty_t, true);
-    TEST (std::is_trivial, public_derived_t<non_empty_t>, true);
-
-    TEST (std::is_trivial, abstract_t, false);
-    TEST (std::is_trivial, public_derived_t<abstract_t>, false);
-
-    TEST (std::is_trivial, polymorphic_t, false);
-    TEST (std::is_trivial, public_derived_t<polymorphic_t>, false);
-
-    TEST (std::is_trivial, no_trivial_ctor_t, false);
-    TEST (std::is_trivial, no_trivial_copy_t, false);
-    TEST (std::is_trivial, no_trivial_assign_t, false);
-    TEST (std::is_trivial, no_trivial_dtor_t, false);
 }
 
 static void test_is_pod ()
@@ -505,7 +556,9 @@ static void test_is_abstract ()
 
 static void test_has_trivial_constructor ()
 {
-    TEST (std::has_trivial_default_constructor, long, false);
+    TEST (std::has_trivial_default_constructor, long, true);
+    TEST (std::has_trivial_default_constructor, long&, false);
+    TEST (std::has_trivial_default_constructor, long[2], true);
     TEST (std::has_trivial_default_constructor, struct_t, true);
 
     TEST (std::has_trivial_default_constructor, no_trivial_ctor_t, false);
@@ -514,25 +567,21 @@ static void test_has_trivial_constructor ()
 
 static void test_has_trivial_copy ()
 {
-    TEST (std::has_trivial_copy_constructor, long, false);
+    TEST (std::has_trivial_copy_constructor, long, true);
+    TEST (std::has_trivial_copy_constructor, long&, true);
+    TEST (std::has_trivial_copy_constructor, long[2], true);
+
     TEST (std::has_trivial_copy_constructor, struct_t, true);
 
     TEST (std::has_trivial_copy_constructor, no_trivial_copy_t, false);
     TEST (std::has_trivial_copy_constructor, public_derived_t<no_trivial_copy_t>, false);
 }
 
-static void test_has_trivial_assign ()
-{
-    TEST (std::has_trivial_assign, long, false);
-    TEST (std::has_trivial_assign, struct_t, true);
-
-    TEST (std::has_trivial_assign, no_trivial_assign_t, false);
-    TEST (std::has_trivial_assign, public_derived_t<no_trivial_assign_t>, false);
-}
-
 static void test_has_trivial_destructor ()
 {
-    TEST (std::has_trivial_destructor, long, false);
+    TEST (std::has_trivial_destructor, long, true);
+    TEST (std::has_trivial_destructor, long&, true);
+    TEST (std::has_trivial_destructor, long[2], true);
     TEST (std::has_trivial_destructor, struct_t, true);
 
     TEST (std::has_trivial_destructor, no_trivial_dtor_t, false);
@@ -541,22 +590,22 @@ static void test_has_trivial_destructor ()
 
 static void test_has_nothrow_constructor ()
 {
-    TEST (std::has_nothrow_default_constructor, long, false);
+    TEST (std::has_nothrow_default_constructor, long, true);
+    TEST (std::has_nothrow_default_constructor, long&, false);
+    TEST (std::has_nothrow_default_constructor, long[2], true);
+
     TEST (std::has_nothrow_default_constructor, struct_t, true);
     TEST (std::has_nothrow_default_constructor, throwing_ctor_t, false);
 }
 
 static void test_has_nothrow_copy ()
 {
-    TEST (std::has_nothrow_copy_constructor, long, false);
+    TEST (std::has_nothrow_copy_constructor, long, true);
+    TEST (std::has_nothrow_copy_constructor, long&, true);
+    TEST (std::has_nothrow_copy_constructor, long[2], true);
+
     TEST (std::has_nothrow_copy_constructor, struct_t, true);
     TEST (std::has_nothrow_copy_constructor, throwing_copy_t, false);
-}
-
-static void test_has_nothrow_assign ()
-{
-    TEST (std::has_nothrow_assign, struct_t, true);
-    TEST (std::has_nothrow_assign, throwing_assign_t, false);
 }
 
 static void test_has_virtual_destructor ()

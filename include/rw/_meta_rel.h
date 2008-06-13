@@ -32,10 +32,10 @@
 
 #include <rw/_defs.h>
 
-//#include <rw/_meta_ptr.h>
-//#include <rw/_meta_ref.h>
-//#include <rw/_meta_cat.h>
-//#include <rw/_meta_cv.h>
+#include <rw/_meta_ptr.h>
+#include <rw/_meta_ref.h>
+#include <rw/_meta_cat.h>
+#include <rw/_meta_cv.h>
 
 _RWSTD_NAMESPACE (__rw) {
 
@@ -63,8 +63,8 @@ struct __rw_is_same<_TypeT, _TypeT> : __rw_true_type
 {
 };
 
-//#define _RWSTD_IS_SAME(T,U)                                           \
-//    __rw_is_same<T,U>::value
+#define _RWSTD_IS_SAME(T,U)                                           \
+    __rw_is_same<T,U>::value
 
 /**
  * BinaryTypeTrait indicates that _TypeT is a base class of _TypeU
@@ -84,8 +84,8 @@ struct __rw_is_base_of
     //               ||
 };
 
-//#define _RWSTD_IS_BASE_OF(T,U)                                        \
-//    __rw_is_base_of<T,U>::value
+#define _RWSTD_IS_BASE_OF(T,U)                                        \
+    __rw_is_base_of<T,U>::value
 
 
 /**
@@ -110,73 +110,73 @@ struct __rw_is_convertible_impl
 
 
 
-//template <class _TypeT, class _TypeU, bool = __rw_is_array<_TypeT>::value,
-//                                      bool = __rw_is_function<_TypeT>::value>
-//struct __rw_is_convertible_3
-//{
-//    // _TypeT is neither an array nor a function type, so just do a
-//    // straight conversion test
-//    enum { _C_value = __rw_is_convertible_impl<_TypeT, _TypeU>::_C_value };
-//};
-//
-//template <class _TypeT, class _TypeU>
-//struct __rw_is_convertible_3<_TypeT,_TypeU,true,false>
-//{
-//    // _TypeT is an array type, see if we can convert it to a _TypeU*
-//    typedef _TYPENAME __rw_remove_extent<_TypeT>::type _TypeV;
-//    typedef _TYPENAME __rw_add_pointer<_TypeV>::type _TypeT_Ptr;
-//
-//    enum { _C_value = __rw_is_convertible_impl<_TypeT_Ptr, _TypeU>::_C_value };
-//};
-//
-//template <class _TypeT, class _TypeU>
-//struct __rw_is_convertible_3<_TypeT,_TypeU,false,true>
-//{
-//    // _TypeT is an function type, try to convert to reference or pointer
-//    typedef _TYPENAME __rw_add_lvalue_reference<_TypeT>::type _TypeT_Ref;
-//    typedef _TYPENAME __rw_add_pointer<_TypeT>::type _TypeT_Ptr;
-//
-//    enum { _C_value =    __rw_is_convertible_impl<_TypeT_Ref, _TypeU>::_C_value
-//                      || __rw_is_convertible_impl<_TypeT_Ptr, _TypeU>::_C_value };
-//};
-//        
-//template <class _TypeT, class _TypeU, bool =   __rw_is_array<_TypeU>::value
-//                                             ||__rw_is_function<_TypeU>::value>
-//struct __rw_is_convertible_2
-//{
-//    // _TypeU is neither an array nor a function type
-//    enum { _C_value = __rw_is_convertible_3<_TypeT, _TypeU>::_C_value };
-//};
-//
-//template <class _TypeT, class _TypeU>
-//struct __rw_is_convertible_2<_TypeT, _TypeU, true>
-//{
-//    // _TypeU is either an array or a function type, and we can't convert to
-//    // either of those.
-//    enum { _C_value = 0 };
-//};
-//        
-//template <class _TypeT, class _TypeU, bool = __rw_is_void<_TypeT>::value,
-//                                      bool = __rw_is_void<_TypeU>::value>
-//struct __rw_is_convertible_1
-//{
-//    // void-to-non-void or non-void to void
-//    enum { _C_value = 0 };
-//};
-//
-//template <class _TypeT, class _TypeU>
-//struct __rw_is_convertible_1<_TypeT, _TypeU, false, false>
-//{
-//    // neither is _TypeT or _TypeU is (possibly cv-qualified) void
-//    enum { _C_value = __rw_is_convertible_2<_TypeT,_TypeU>::_C_value };
-//};
-//
-//template <class _TypeT, class _TypeU>
-//struct __rw_is_convertible_1<_TypeT, _TypeU, true, true>
-//{
-//    // both _TypeT and _TypeU are (possibly cv-qualified) void
-//    enum { _C_value = 1 };
-//};
+template <class _TypeT, class _TypeU, bool = __rw_is_array<_TypeT>::value,
+                                      bool = __rw_is_function<_TypeT>::value>
+struct __rw_is_convertible_3
+{
+    // _TypeT is neither an array nor a function type, so just do a
+    // straight conversion test
+    enum { _C_value = __rw_is_convertible_impl<_TypeT, _TypeU>::_C_value };
+};
+
+template <class _TypeT, class _TypeU>
+struct __rw_is_convertible_3<_TypeT,_TypeU,true,false>
+{
+    // _TypeT is an array type, see if we can convert it to a _TypeU*
+    typedef _TYPENAME __rw_remove_extent<_TypeT>::type _TypeV;
+    typedef _TYPENAME __rw_add_pointer<_TypeV>::type _TypeT_Ptr;
+
+    enum { _C_value = __rw_is_convertible_impl<_TypeT_Ptr, _TypeU>::_C_value };
+};
+
+template <class _TypeT, class _TypeU>
+struct __rw_is_convertible_3<_TypeT,_TypeU,false,true>
+{
+    // _TypeT is an function type, try to convert to reference or pointer
+    typedef _TYPENAME __rw_add_lvalue_reference<_TypeT>::type _TypeT_Ref;
+    typedef _TYPENAME __rw_add_pointer<_TypeT>::type _TypeT_Ptr;
+
+    enum { _C_value =    __rw_is_convertible_impl<_TypeT_Ref, _TypeU>::_C_value
+                      || __rw_is_convertible_impl<_TypeT_Ptr, _TypeU>::_C_value };
+};
+        
+template <class _TypeT, class _TypeU, bool =   __rw_is_array<_TypeU>::value
+                                             ||__rw_is_function<_TypeU>::value>
+struct __rw_is_convertible_2
+{
+    // _TypeU is neither an array nor a function type
+    enum { _C_value = __rw_is_convertible_3<_TypeT, _TypeU>::_C_value };
+};
+
+template <class _TypeT, class _TypeU>
+struct __rw_is_convertible_2<_TypeT, _TypeU, true>
+{
+    // _TypeU is either an array or a function type, and we can't convert to
+    // either of those.
+    enum { _C_value = 0 };
+};
+        
+template <class _TypeT, class _TypeU, bool = __rw_is_void<_TypeT>::value,
+                                      bool = __rw_is_void<_TypeU>::value>
+struct __rw_is_convertible_1
+{
+    // void-to-non-void or non-void to void
+    enum { _C_value = 0 };
+};
+
+template <class _TypeT, class _TypeU>
+struct __rw_is_convertible_1<_TypeT, _TypeU, false, false>
+{
+    // neither is _TypeT or _TypeU is (possibly cv-qualified) void
+    enum { _C_value = __rw_is_convertible_2<_TypeT,_TypeU>::_C_value };
+};
+
+template <class _TypeT, class _TypeU>
+struct __rw_is_convertible_1<_TypeT, _TypeU, true, true>
+{
+    // both _TypeT and _TypeU are (possibly cv-qualified) void
+    enum { _C_value = 1 };
+};
 
 /**
  * BinaryTypeTrait indicates that _TypeT is convertible to _TypeU
@@ -187,15 +187,20 @@ struct __rw_is_convertible_impl
  */
 template <class _TypeT, class _TypeU>
 struct __rw_is_convertible
+#ifdef _RWSTD_TT_IS_CONVERTIBLE
     : __rw_integral_constant<bool, _RWSTD_TT_IS_CONVERTIBLE(_TypeT,_TypeU)>
+#else
+    : __rw_integral_constant<bool,
+                             __rw_is_convertible_1<_TypeT, _TypeU>::_C_value>
+#endif
 {
     //_RWSTD_COMPILE_ASSERT (   _RWSTD_IS_COMPLETE (_TypeT)
     //                       || _RWSTD_IS_ARRAY (_TypeT)
     //                       || _RWSTD_IS_VOID (_TypeT));
 };
 
-//#define _RWSTD_IS_CONVERTIBLE(T,U)                                    \
-//    __rw_is_convertible<T,U>::value
+#define _RWSTD_IS_CONVERTIBLE(T,U)                                    \
+    __rw_is_convertible<T,U>::value
 
 } // namespace __rw
 

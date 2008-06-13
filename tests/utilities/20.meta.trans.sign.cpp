@@ -81,7 +81,7 @@ enum enum_LU { Elu_v = _RWSTD_ULONG_MAX };
 const char* get_type_name (const volatile void*)
 {
     return "unknown";
-};
+}
 
 #define _RETURN_TYPE_NAME(T)                                         \
     const char* get_type_name (T*) { return #T; }
@@ -143,7 +143,7 @@ void test_trait (int line, bool same,
 void test_sign_and_cv (int line,
                        const char* trait_name,
                        const char* type_name,
-                       size_t got_size, size_t exp_size,
+                       _RWSTD_SIZE_T got_size, _RWSTD_SIZE_T exp_size,
                        bool got_sign, bool exp_sign,
                        bool got_c, bool exp_c,
                        bool got_v, bool exp_v)
@@ -227,21 +227,21 @@ static void test_make_signed ()
 
 static void test_make_unsigned ()
 {
-    TEST (std::make_unsigned,   unsigned char, unsigned char);
-    TEST (std::make_unsigned, ununsigned char, unsigned char);
+    TEST (std::make_unsigned,   signed char, unsigned char);
+    TEST (std::make_unsigned, unsigned char, unsigned char);
 
-    TEST (std::make_unsigned,   unsigned short, unsigned short);
-    TEST (std::make_unsigned, ununsigned short, unsigned short);
+    TEST (std::make_unsigned,   signed short, unsigned short);
+    TEST (std::make_unsigned, unsigned short, unsigned short);
 
-    TEST (std::make_unsigned,   unsigned int, unsigned int);
-    TEST (std::make_unsigned, ununsigned int, unsigned int);
+    TEST (std::make_unsigned,   signed int, unsigned int);
+    TEST (std::make_unsigned, unsigned int, unsigned int);
 
-    TEST (std::make_unsigned,   unsigned long, unsigned long);
-    TEST (std::make_unsigned, ununsigned long, unsigned long);
+    TEST (std::make_unsigned,   signed long, unsigned long);
+    TEST (std::make_unsigned, unsigned long, unsigned long);
 
 #ifndef _RWSTD_NO_LONG_LONG
-    TEST (std::make_unsigned,   unsigned long long, unsigned long long);
-    TEST (std::make_unsigned, ununsigned long long, unsigned long long);
+    TEST (std::make_unsigned,   signed long long, unsigned long long);
+    TEST (std::make_unsigned, unsigned long long, unsigned long long);
 #endif   // _RWSTD_NO_LONG_LONG
 
     TEST_MAKE_UNSIGNED (char);

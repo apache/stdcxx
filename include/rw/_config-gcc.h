@@ -185,7 +185,7 @@
 #  define _RWSTD_TT_IS_POLYMORPHIC(T)             __is_polymorphic(T)
 #  define _RWSTD_TT_IS_ABSTRACT(T)                __is_abstract(T)
 #  define _RWSTD_TT_IS_BASE_OF(T,U)               __is_base_of(T,U)
-#  define _RWSTD_TT_IS_CONVERTIBLE(T,U)           __is_convertible(T,U)
+//#  define _RWSTD_TT_IS_CONVERTIBLE(T,U)           __is_convertible(T,U)
 
 #  define _RWSTD_TT_HAS_TRIVIAL_CTOR(T)           __has_trivial_constructor(T)
 #  define _RWSTD_TT_HAS_TRIVIAL_COPY(T)           __has_trivial_copy(T)

@@ -38,47 +38,11 @@
 
 _RWSTD_NAMESPACE (__rw) {
 
-template <class _TypeT, bool = __rw_is_integral<_TypeT>::value,
-                        bool = __rw_is_floating_point<_TypeT>::value>
-struct __rw_is_unsigned_impl
-{
-    enum { _C_value = 0 };
-};
-
-template <class _TypeT>
-struct __rw_is_unsigned_impl<_TypeT, false, true>
-{
-    enum { _C_value = 0 };
-};
-
-template <class _TypeT>
-struct __rw_is_unsigned_impl<_TypeT, true, false>
-{
-    typedef typename __rw_remove_cv<_TypeT>::type _TypeU;
-    enum { _C_value = _TypeU (0) < _TypeU (-1) };
-};
-
-template <class _TypeT, bool = __rw_is_integral<_TypeT>::value,
-                        bool = __rw_is_floating_point<_TypeT>::value>
-struct __rw_is_signed_impl
-{
-    enum { _C_value = 0 };
-};
-
-template <class _TypeT>
-struct __rw_is_signed_impl<_TypeT, false, true>
-{
-    enum { _C_value = 1 };
-};
-
-template <class _TypeT>
-struct __rw_is_signed_impl<_TypeT, true, false>
-{
-    typedef typename __rw_remove_cv<_TypeT>::type _TypeU;
-    enum { _C_value = _TypeU (-1) < _TypeU (0) };
-};
-
-
+#define _RWSTD_TRAIT_SPEC_0_CV(Trait,Type)                           \
+  template <> struct Trait<Type> : __rw_true_type { };               \
+  template <> struct Trait<Type const > : __rw_true_type { };        \
+  template <> struct Trait<Type volatile> : __rw_true_type { };      \
+  template <> struct Trait<Type const volatile> : __rw_true_type { }
 
 /**
  * UnaryTypeTrait indicates that _TypeT is const-qualified.
@@ -106,10 +70,6 @@ struct __rw_is_volatile<volatile _TypeT> : __rw_true_type
 {
 };
 
-
-#ifdef _MSC_VER
-
-// msvc hacks
 
 template <class _TypeT>
 struct __rw_is_standard_layout_impl
@@ -143,15 +103,15 @@ struct __rw_is_empty_impl
 #undef _RWSTD_TT_IS_STDANDARD_LAYOUT
 #define _RWSTD_TT_IS_STDANDARD_LAYOUT(T) __rw_is_standard_layout_impl<T>::_C_value
 
-#undef _RWSTD_TT_IS_POD
-#define _RWSTD_TT_IS_POD(T) __rw_is_pod_impl<T>::_C_value
+#ifdef _MSC_VER
 
-#undef _RWSTD_TT_IS_EMPTY
-#define _RWSTD_TT_IS_EMPTY(T) __rw_is_empty_impl<T>::_C_value
+#  undef _RWSTD_TT_IS_POD
+#  define _RWSTD_TT_IS_POD(T) __rw_is_pod_impl<T>::_C_value
 
-#endif // _MSC_VER
+#  undef _RWSTD_TT_IS_EMPTY
+#  define _RWSTD_TT_IS_EMPTY(T) __rw_is_empty_impl<T>::_C_value
 
-
+#endif   // _MSC_VER
 
 
 
@@ -390,20 +350,48 @@ struct __rw_has_virtual_dtor
  * UnaryTypeTrait that indicates that _TypeT is an unsigned type.
  */
 template <class _TypeT>
-struct __rw_is_unsigned
-    : __rw_integral_constant<bool, __rw_is_unsigned_impl<_TypeT>::_C_value>
+struct __rw_is_unsigned : __rw_false_type
 {
 };
-
 
 /**
  * UnaryTypeTrait that indicates that _TypeT is a signed type.
  */
 template <class _TypeT>
-struct __rw_is_signed
-    : __rw_integral_constant<bool, __rw_is_signed_impl<_TypeT>::_C_value>
+struct __rw_is_signed : __rw_false_type
 {
 };
+
+#if (_RWSTD_CHAR_MIN < 0)
+_RWSTD_TRAIT_SPEC_0_CV(__rw_is_signed,   char);
+#else
+_RWSTD_TRAIT_SPEC_0_CV(__rw_is_unsigned, char);
+#endif
+
+#ifndef _RWSTD_NO_NATIVE_WCHAR_T
+#  if (_RWSTD_WCHAR_MIN < 0)
+_RWSTD_TRAIT_SPEC_0_CV(__rw_is_signed,   wchar_t);
+#  else
+_RWSTD_TRAIT_SPEC_0_CV(__rw_is_unsigned, wchar_t);
+#  endif
+#endif   // _RWSTD_NO_NATIVE_WCHAR_T
+
+_RWSTD_TRAIT_SPEC_0_CV(__rw_is_signed,     signed char);
+_RWSTD_TRAIT_SPEC_0_CV(__rw_is_unsigned, unsigned char);
+
+_RWSTD_TRAIT_SPEC_0_CV(__rw_is_signed,     signed short);
+_RWSTD_TRAIT_SPEC_0_CV(__rw_is_unsigned, unsigned short);
+
+_RWSTD_TRAIT_SPEC_0_CV(__rw_is_signed,     signed int);
+_RWSTD_TRAIT_SPEC_0_CV(__rw_is_unsigned, unsigned int);
+
+_RWSTD_TRAIT_SPEC_0_CV(__rw_is_signed,     signed long);
+_RWSTD_TRAIT_SPEC_0_CV(__rw_is_unsigned, unsigned long);
+
+#ifndef _RWSTD_NO_LONG_LONG
+_RWSTD_TRAIT_SPEC_0_CV(__rw_is_signed,     signed long long);
+_RWSTD_TRAIT_SPEC_0_CV(__rw_is_unsigned, unsigned long long);
+#endif   // _RWSTD_NO_LONG_LONG
 
 /**
  * UnaryTypeTrait that gets the alignment of _TypeT.
@@ -433,7 +421,7 @@ struct __rw_rank
  * _TypeT is an array, otherwise 0. The primary template is for bounded
  * -array types.
  */
-template <class _TypeT, size_t _Size>
+template <class _TypeT, _RWSTD_SIZE_T _Size>
 struct __rw_rank<_TypeT [_Size]>
     : __rw_integral_constant<_RWSTD_SIZE_T, 1 + __rw_rank<_TypeT>::value>
 {

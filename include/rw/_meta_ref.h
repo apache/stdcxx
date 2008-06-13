@@ -97,7 +97,7 @@ struct __rw_add_lvalue_reference_impl<_TypeT, false, true>
 {
     // for rval reference types, _C_type shall become the corresponding
     // lvalue reference type
-    typedef _TYPENAME __rw_remove_reference<_TypeT>& _C_type;
+    typedef _TYPENAME __rw_remove_reference<_TypeT>::type& _C_type;
 };
 
 /**

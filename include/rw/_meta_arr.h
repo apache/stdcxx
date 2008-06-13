@@ -49,7 +49,7 @@ struct __rw_remove_extent
  * other types as-is. This specialization is for array types of bounded
  * size.
  */
-template <class _TypeT, size_t _Size>
+template <class _TypeT, _RWSTD_SIZE_T _Size>
 struct __rw_remove_extent<_TypeT [_Size]>
 {
     typedef _TypeT type;
@@ -84,7 +84,7 @@ struct __rw_remove_all_extents
  * other types as-is. This specialization is for array types of bounded
  * size.
  */
-template <class _TypeT, size_t _Size>
+template <class _TypeT, _RWSTD_SIZE_T _Size>
 struct __rw_remove_all_extents<_TypeT [_Size]>
 {
     typedef typename __rw_remove_all_extents<_TypeT>::type type;
