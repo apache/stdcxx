@@ -36,11 +36,9 @@ void f ()
 
 static_assert (1, "pass");
 
-int main ()
+void g ()
 {
     S<1> s1;
     f<1>();
     static_assert (1, "pass");
-
-    return 0;
 }

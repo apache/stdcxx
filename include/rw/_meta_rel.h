@@ -32,6 +32,7 @@
 
 #include <rw/_defs.h>
 
+#include <rw/_meta_arr.h>
 #include <rw/_meta_ptr.h>
 #include <rw/_meta_ref.h>
 #include <rw/_meta_cat.h>

@@ -31,6 +31,7 @@
 #define _RWSTD_META_UNARY_CAT_H_INCLUDED
 
 #include <rw/_defs.h>
+#include <rw/_meta_help.h>
 
 _RWSTD_NAMESPACE (__rw) {
 
