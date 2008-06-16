@@ -202,3 +202,4 @@
 #  define _RWSTD_TT_ALIGNED_POD(N)                struct { char __fill __attribute__ ((aligned (N))); }
 #  define _RWSTD_TT_MAX_ALIGNMENT                 16
 #endif   // __GNUC__ >= 4.3
+

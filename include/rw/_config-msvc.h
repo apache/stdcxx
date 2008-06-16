@@ -116,4 +116,5 @@
 // that by using our fallback.
 #  define _RWSTD_TT_IS_POD(T)              __is_pod(T)
 
-#endif // _MSC_VER
+#endif // _MSC_FULL_VER >= 140050215
+
