@@ -27,6 +27,8 @@
  *
  **************************************************************************/
 
+#include <stddef.h>
+
 #include <rw_driver.h>
 
 // compile out all test code if extensions disabled
@@ -208,15 +210,15 @@ void test_trait (int line, bool value, bool expect,
 
 void test_trait (int line,
                  const char* trait, const char* type,
-                 _RWSTD_SIZE_T value, _RWSTD_SIZE_T expect)
+                 size_t value, size_t expect)
 {
     rw_assert (value == expect, 0, line,
                "%s<%s>::value is %zu, expected %zu",
                trait, type, value, expect);
 }
 
-void test_trait (int line, _RWSTD_SIZE_T depth,
-                 _RWSTD_SIZE_T value, _RWSTD_SIZE_T expect,
+void test_trait (int line, size_t depth,
+                 size_t value, size_t expect,
                  const char* trait, const char* type)
 {
     rw_assert (value == expect, 0, line,
@@ -374,9 +376,9 @@ static void test_has_nothrow_assign ()
 static void test_is_trivial ()
 {
     TEST (std::is_trivial, long, true);
-    TEST (std::is_trivial, C long, false);
+    TEST (std::is_trivial, C long, true);
     TEST (std::is_trivial, V long, true);
-    TEST (std::is_trivial, CV long, false);
+    TEST (std::is_trivial, CV long, true);
 
     TEST (std::is_trivial, long&, false);
     TEST (std::is_trivial, C long&, false);
@@ -418,6 +420,7 @@ static void test_is_trivial ()
 static void test_is_standard_layout ()
 {
     TEST (std::is_standard_layout, long, true);
+    TEST (std::is_standard_layout, non_empty_t, true);
 
     // no non-static data members of non-standard-layout type
     TEST (std::is_standard_layout, member_t<access_controlled_t>, false);
