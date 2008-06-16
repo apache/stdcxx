@@ -184,21 +184,17 @@ static void test_is_base_of ()
     TEST (std::is_base_of, derived_<class_B>,
                             derived_<class_B>, true);
 
-    TEST (std::is_base_of, union_C, union_C, true);
+    TEST (std::is_base_of, union_C, union_C, false);
 
     // public inheritance
     TEST (std::is_base_of, struct_A, derived_<struct_A>, true);
     TEST (std::is_base_of, class_B, derived_<class_B>, true);
 
     // protected inheritance
-    TEST (std::is_convertible, derived_protected_<struct_A> , struct_A , true); // slice
-    TEST (std::is_convertible, derived_protected_<struct_A>*, struct_A*, true);
-    TEST (std::is_convertible, derived_protected_<struct_A>&, struct_A&, true);
+    TEST (std::is_base_of, derived_protected_<struct_A> , struct_A , true);
 
     // private inheritance
-    TEST (std::is_convertible, derived_private_<struct_A> , struct_A , true); // slice
-    TEST (std::is_convertible, derived_private_<struct_A>*, struct_A*, true);
-    TEST (std::is_convertible, derived_private_<struct_A>&, struct_A&, true);
+    TEST (std::is_base_of, derived_private_<struct_A> , struct_A , true);
 
     // other combinations should fail
     TEST (std::is_base_of, signed char, char, false);
@@ -234,16 +230,6 @@ static void test_is_convertible ()
     TEST (std::is_convertible, derived_<struct_A> , struct_A , true); // slice
     TEST (std::is_convertible, derived_<struct_A>*, struct_A*, true);
     TEST (std::is_convertible, derived_<struct_A>&, struct_A&, true);
-
-    // protected inheritance
-    TEST (std::is_convertible, derived_protected_<struct_A> , struct_A , false); // slice
-    TEST (std::is_convertible, derived_protected_<struct_A>*, struct_A*, false);
-    TEST (std::is_convertible, derived_protected_<struct_A>&, struct_A&, false);
-
-    // private inheritance
-    TEST (std::is_convertible, derived_private_<struct_A> , struct_A , false); // slice
-    TEST (std::is_convertible, derived_private_<struct_A>*, struct_A*, false);
-    TEST (std::is_convertible, derived_private_<struct_A>&, struct_A&, false);
 
     TEST (std::is_convertible, derived_<class_B> , class_B , true); // slice
     TEST (std::is_convertible, derived_<class_B>*, class_B*, true);
@@ -346,7 +332,7 @@ static void test_is_convertible ()
     TEST (std::is_convertible, int (), int (&)(char), false);
 
     TEST (std::is_convertible, int*, void*, true);
-    TEST (std::is_convertible, int (*)(), void*, true);
+    TEST (std::is_convertible, int (*)(), void*, false);
 
     //TEST (std::is_convertible, int (*)(derived_<struct_A>::*), int (*)(struct_A::*), true);
 
