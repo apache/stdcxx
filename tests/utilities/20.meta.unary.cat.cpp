@@ -27,6 +27,8 @@
  *
  **************************************************************************/
 
+#include <stddef.h>
+
 #include <rw_driver.h>
 
 // compile out all test code if extensions disabled
