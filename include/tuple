@@ -1,0 +1,186 @@
+// -*- C++ -*-
+/***************************************************************************
+ *
+ * tuple - fixed-size collection of values with variable, heterogenous types
+ *
+ * $Id$
+ *
+ ***************************************************************************
+ *
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 2008 Rogue Wave Software.
+ * 
+ **************************************************************************/
+
+#if defined _RWSTD_NO_EXT_CXX_0X
+#  error _RWSTD_NO_EXT_CXX_0X defined and C++0x header included
+#endif   // defined _RWSTD_NO_EXT_CXX_0X
+
+#ifndef _RWSTD_TUPLE_INCLUDED
+#  define _RWSTD_TUPLE_INCLUDED
+
+#  include <rw/_tuple.h>
+#  include <rw/_tuple_traits.h>
+
+
+_RWSTD_NAMESPACE (__rw) {
+
+struct __rw_ignore { /* empty */ };
+
+/// Transforms _Type into a suitable make_tuple() return type.
+template <class _Type>
+struct __rw_make_tuple {
+    /// @todo Deduce correct return type.
+    typedef _Type type;
+};
+
+}   // namespace __rw
+
+
+_RWSTD_NAMESPACE (std) {
+
+
+// 20.3.3, tuple creation functions:
+
+const _RW::__rw_ignore ignore = _RW::__rw_ignore ();
+
+#  if !defined _RWSTD_NO_VARIADIC_TEMPLATES
+
+#    if !defined _RWSTD_NO_RVALUE_REFERNCES
+
+template <class... _Types>
+tuple<_TYPENAME _RW::__rw_make_tuple<_Types>::type...>
+make_tuple (_Types&&... __values);
+
+template <class... _TypesT, class... _TypesU>
+tuple<_TypesT..., _TypesU...>
+tuple_cat (tuple<_TypesT...>&& __x,
+           const tuple<_TypesU...>& __y);
+
+template <class... _TypesT, class... _TypesU>
+tuple<_TypesT..., _TypesU...>
+tuple_cat (const tuple<_TypesT...>& __x,
+           tuple<_TypesU...>&& __y);
+
+template <class... _TypesT, class... _TypesU>
+tuple<_TypesT..., _TypesU...>
+tuple_cat (tuple<_TypesT...>&& __x,
+           tuple<_TypesU...>&& __y);
+
+#    endif   // !defined _RWSTD_NO_RVALUE_REFERNCES
+
+template <class... _Types>
+tuple<_Types&...> tie (_Types&...);
+
+template <class... _TypesT, class... _TypesU>
+tuple<_TypesT..., _TypesU...>
+tuple_cat (const tuple<_TypesT...>& __x,
+           const tuple<_TypesU...>& __y);
+
+
+// 20.3.1.4, tuple helper classes:
+
+template <class>
+class tuple_size; // undefined
+
+template <class... _Types>
+class tuple_size<tuple<_Types...> >;
+
+template <int, class>
+class tuple_element; // undefined
+
+template <int _Index, class... _Types>
+class tuple_element<_Index, tuple<_Types...> >;
+
+
+// 20.3.1.5, element access:
+
+template <int _Index, class... _Types>
+_TYPENAME tuple_element<_Index, tuple<_Types...> >::type&
+get (tuple<_Types...>&);
+
+template <int _Index, class ... _Types>
+_TYPENAME tuple_element<_Index, tuple<_Types...> >::type const&
+get (const tuple<_Types...>&);
+
+
+// 20.3.1.6, relational operators:
+
+template <class... _TypesT, class... _TypesU>
+bool operator== (const tuple<_TypesT...>& __x,
+                 const tuple<_TypesU...>& __y);
+
+template <class... _TypesT, class... _TypesU>
+bool operator< (const tuple<_TypesT...>& __x,
+                const tuple<_TypesU...>& __y);
+
+/**
+ * @param __x Tuple value on LHS of operator.
+ * @param __y Tuple value on RHS of operator.
+ * @return !(__x == __y)
+ */
+template <class... _TypesT, class... _TypesU>
+bool operator!= (const tuple<_TypesT...>& __x,
+                 const tuple<_TypesU...>& __y)
+{
+    return !(__x == __y);
+}
+
+/**
+ * @param __x Tuple value on LHS of operator.
+ * @param __y Tuple value on RHS of operator.
+ * @return __y < __x
+ */
+template <class... _TypesT, class... _TypesU>
+bool operator> (const tuple<_TypesT...>& __x,
+                const tuple<_TypesU...>& __y)
+{
+    return __y < __x;
+}
+
+
+/**
+ * @param __x Tuple value on LHS of operator.
+ * @param __y Tuple value on RHS of operator.
+ * @return !(__y < __x)
+ */
+template <class... _TypesT, class... _TypesU>
+bool operator<= (const tuple<_TypesT...>& __x,
+                 const tuple<_TypesU...>& __y)
+{
+    return !(__y < __x);
+}
+
+/**
+ * @param __x Tuple value on LHS of operator.
+ * @param __y Tuple value on RHS of operator.
+ * @return !(__x < __y)
+ */
+template <class... _TypesT, class... _TypesU>
+bool operator>= (const tuple<_TypesT...>& __x,
+                 const tuple<_TypesU...>& __y)
+{
+    return !(__x < __y);
+}
+
+
+#  endif   // !defined _RWSTD_NO_VARIADIC_TEMPLATES
+
+}   // namespace std
+
+#endif   // _RWSTD_TUPLE_INCLUDED
