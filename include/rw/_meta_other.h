@@ -91,7 +91,7 @@ struct __rw_aligned_union_impl<_Len, Type, Types...>
 {
     union {
         unsigned char __pad [_Len];
-        typename __rw_aligned_union<_Len, Types...>::_C_type __align;
+        typename __rw_aligned_union_impl<_Len, Types...>::_C_type __align;
     } _C_type;
 };
 
