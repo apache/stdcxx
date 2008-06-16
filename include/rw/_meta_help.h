@@ -35,7 +35,9 @@
 _RWSTD_NAMESPACE (__rw) {
 
 /**
- *
+ * @internal
+ * A compile-time integral constant wrapper.  This class template
+ * encapsulates an integer constant value for metaprogramming.
  */
 template <class _TypeT, _TypeT _Value>
 struct __rw_integral_constant
@@ -64,12 +66,14 @@ const _TypeT __rw_integral_constant<_TypeT, _Value>::value;
 #endif    // _RWSTD_NO_STATIC_CONST_MEMBER_DEFINITION
 
 /**
- *
+ * @internal
+ * Synonym for __rw_integral_constant<bool, true> type.
  */
 typedef __rw_integral_constant<bool, true>  __rw_true_type;
 
 /**
- *
+ * @internal
+ * Synonym for __rw_integral_constant<bool, false> type.
  */
 typedef __rw_integral_constant<bool, false> __rw_false_type;
 
