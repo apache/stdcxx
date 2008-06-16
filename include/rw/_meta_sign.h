@@ -27,8 +27,8 @@
  *
  **************************************************************************/
 
-#ifndef _RWSTD_META_TRANS_SIGN_H_INCLUDED
-#define _RWSTD_META_TRANS_SIGN_H_INCLUDED
+#ifndef _RWSTD_RW_META_SIGN_H_INCLUDED
+#define _RWSTD_RW_META_SIGN_H_INCLUDED
 
 #include <rw/_defs.h>
 #include <rw/_meta_other.h>
@@ -288,4 +288,5 @@ public:
 } // namespace __rw
 
 
-#endif   // _RWSTD_META_TRANS_SIGN_H_INCLUDED
+#endif   // _RWSTD_RW_META_SIGN_H_INCLUDED
+

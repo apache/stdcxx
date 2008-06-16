@@ -27,8 +27,8 @@
  *
  **************************************************************************/
 
-#ifndef _RWSTD_META_UNARY_CAT_H_INCLUDED
-#define _RWSTD_META_UNARY_CAT_H_INCLUDED
+#ifndef _RWSTD_RW_META_CAT_H_INCLUDED
+#define _RWSTD_RW_META_CAT_H_INCLUDED
 
 #include <rw/_defs.h>
 #include <rw/_meta_help.h>
@@ -349,4 +349,5 @@ _RWSTD_TRAIT_SPEC_2_CV(__rw_is_member_function_pointer,
 } // namespace __rw
 
 
-#endif   // _RWSTD_META_UNARY_CAT_H_INCLUDED
+#endif   // _RWSTD_RW_META_CAT_H_INCLUDED
+

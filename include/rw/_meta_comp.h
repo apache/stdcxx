@@ -27,8 +27,8 @@
  *
  **************************************************************************/
 
-#ifndef _RWSTD_META_UNARY_COMP_H_INCLUDED
-#define _RWSTD_META_UNARY_COMP_H_INCLUDED
+#ifndef _RWSTD_RW_META_COMP_H_INCLUDED
+#define _RWSTD_RW_META_COMP_H_INCLUDED
 
 #include <rw/_defs.h>
 #include <rw/_meta_cat.h>
@@ -144,4 +144,5 @@ struct __rw_is_compound
 } // namespace __rw
 
 
-#endif   // _RWSTD_META_UNARY_COMP_H_INCLUDED
+#endif   // _RWSTD_RW_META_COMP_H_INCLUDED
+

@@ -27,8 +27,8 @@
  *
  **************************************************************************/
 
-#ifndef _RWSTD_META_HELP_H_INCLUDED
-#define _RWSTD_META_HELP_H_INCLUDED
+#ifndef _RWSTD_RW_META_HELP_H_INCLUDED
+#define _RWSTD_RW_META_HELP_H_INCLUDED
 
 #include <rw/_defs.h>
 
@@ -80,4 +80,5 @@ typedef __rw_integral_constant<bool, false> __rw_false_type;
 } // namespace __rw
 
 
-#endif   // _RWSTD_META_HELP_H_INCLUDED
+#endif   // _RWSTD_RW_META_HELP_H_INCLUDED
+

@@ -27,8 +27,8 @@
  *
  **************************************************************************/
 
-#ifndef _RWSTD_META_UNARY_PROP_H_INCLUDED
-#define _RWSTD_META_UNARY_PROP_H_INCLUDED
+#ifndef _RWSTD_RW_META_PROP_H_INCLUDED
+#define _RWSTD_RW_META_PROP_H_INCLUDED
 
 #include <rw/_defs.h>
 #include <rw/_meta_cat.h>
@@ -475,4 +475,5 @@ struct __rw_extent<_TypeT [], 0>
 } // namespace __rw
 
 
-#endif   // _RWSTD_META_UNARY_PROP_H_INCLUDED
+#endif   // _RWSTD_RW_META_PROP_H_INCLUDED
+

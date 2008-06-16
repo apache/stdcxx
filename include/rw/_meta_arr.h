@@ -27,8 +27,8 @@
  *
  **************************************************************************/
 
-#ifndef _RWSTD_META_TRANS_ARR_H_INCLUDED
-#define _RWSTD_META_TRANS_ARR_H_INCLUDED
+#ifndef _RWSTD_RW_META_ARR_H_INCLUDED
+#define _RWSTD_RW_META_ARR_H_INCLUDED
 
 #include <rw/_defs.h>
 
@@ -106,4 +106,5 @@ struct __rw_remove_all_extents<_TypeT []>
 } // namespace __rw
 
 
-#endif   // _RWSTD_META_TRANS_ARR_H_INCLUDED
+#endif   // _RWSTD_RW_META_ARR_H_INCLUDED
+
