@@ -77,7 +77,9 @@ static int _cond_if_char (long* = 0)
 template <class T>
 int cond_if_char ()
 {
-    typedef std::conditional<is_char<T>::val, long, void>::type selector;
+    typedef typename
+    std::conditional<is_char<T>::val, long, void>::type selector;
+
     return _cond_if_char ((selector*)0);
 }
 
