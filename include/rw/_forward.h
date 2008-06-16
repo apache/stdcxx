@@ -65,7 +65,7 @@ struct identity
      * @param __x An value convertible to identity type.
      * @returns Same value as the function argument with identity type.
      */
-    const _Type& operator() (const _Type& __x) {
+    const _Type& operator() (const _Type& __x) const {
         return __x;
     }
 };
