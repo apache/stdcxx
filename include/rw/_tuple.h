@@ -206,7 +206,8 @@ public:
           && !defined _RWSTD_NO_MEMBER_TEMPLATES
 
     template <class _HeadU, class... _TailU>
-    _EXPLICIT tuple (_HeadU&& __head, _TailU&&... __tail);
+    _EXPLICIT tuple (_HeadU&& __head, _TailU&&... __tail)
+        : _Base (__tail...), _C_head (__head) { /* empty */ }
 
     template <class _HeadU, class... _TailU>
     tuple (tuple<_HeadU, _TailU...>&& __tuple);

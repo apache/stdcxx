@@ -49,9 +49,12 @@ test_default_ctor ()
     UserClass::reset_totals ();
     UserTuple ut; _RWSTD_UNUSED (ut);
 
-    rw_assert (UserClass::n_total_def_ctor_ == 1, __FILE__, __LINE__,
+    rw_assert (1 == UserClass::n_total_def_ctor_, __FILE__, __LINE__,
                "tuple<UserClass>::tuple() called %d default ctors, "
                "expected 1", UserClass::n_total_def_ctor_);
+    rw_assert (0 == UserClass::n_total_copy_ctor_, __FILE__, __LINE__,
+               "tuple<UserClass>::tuple() called %d copy ctors, "
+               "expected 0", UserClass::n_total_def_ctor_);
 }
 
 /**************************************************************************/
@@ -77,6 +80,9 @@ test_value_copy_ctor ()
     rw_assert (1 == UserClass::n_total_def_ctor_, __FILE__, __LINE__,
                "tuple<UserClass>::tuple() called %d default ctors, "
                "expected 1", UserClass::n_total_def_ctor_);
+    rw_assert (1 == UserClass::n_total_copy_ctor_, __FILE__, __LINE__,
+               "tuple<UserClass>::tuple() called %d copy ctors, "
+               "expected 1", UserClass::n_total_def_ctor_);
 
     const bool b = true; const char c = 'a';
     const double d = 1.2; void* const p = 0;
@@ -90,6 +96,23 @@ test_value_move_ctor ()
 {
     rw_info (0, __FILE__, __LINE__, "value move constructor");
 
+    IntTuple it (1); //_RWSTD_UNUSED (it);
+    ConstIntTuple ct (1); _RWSTD_UNUSED (ct);
+    PairTuple pt (1L, "string"); _RWSTD_UNUSED (pt);
+    //NestedTuple nt (it); _RWSTD_UNUSED (nt);
+
+    BigTuple bt (true, 'a', 1, 1.0, (void*)0, UserClass ());
+    _RWSTD_UNUSED (bt);
+
+    UserClass::reset_totals ();
+    UserTuple ut (UserClass ()); _RWSTD_UNUSED (ut);
+
+    rw_assert (0 == UserClass::n_total_def_ctor_, __FILE__, __LINE__,
+               "tuple<UserClass>::tuple() called %d default ctors, "
+               "expected 0", UserClass::n_total_def_ctor_);
+    rw_assert (0 == UserClass::n_total_copy_ctor_, __FILE__, __LINE__,
+               "tuple<UserClass>::tuple() called %d copy ctors, "
+               "expected 0", UserClass::n_total_def_ctor_);
 }
 
 /**************************************************************************/
@@ -118,8 +141,11 @@ test_homo_copy_ctor ()
     const UserTuple ut1; UserTuple ut2 (ut1);
     _RWSTD_UNUSED (ut1);
 
-    rw_assert (UserClass::n_total_def_ctor_ == 1, __FILE__, __LINE__,
+    rw_assert (1 == UserClass::n_total_def_ctor_, __FILE__, __LINE__,
                "tuple<UserClass>::tuple() called %d default ctors, "
+               "expected 1", UserClass::n_total_def_ctor_);
+    rw_assert (1 == UserClass::n_total_copy_ctor_, __FILE__, __LINE__,
+               "tuple<UserClass>::tuple() called %d copy ctors, "
                "expected 1", UserClass::n_total_def_ctor_);
 
     const BigTuple bt1; BigTuple bt2 (bt1);
