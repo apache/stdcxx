@@ -384,7 +384,7 @@ ifeq ($(in_topdir),1)
 
   # 15d - multi-thread, debug, shared
   ifeq ($(BUILDTYPE),15d)
-    bmode = debug,pthreads,shared
+    bmode = debug,pthreads,shared,narrow
   endif   # ifeq ($(BUILDTYPE),15d)
 
   ifeq ($(BUILDTYPE),15D)
