@@ -56,9 +56,9 @@ struct __rw_assert_failed<true>
 #  define _RWSTD_STATIC_ASSERT(Cond,Mesg) static_assert(Cond, Mesg)
 #else
 #  define _RWSTD_STATIC_ASSERT(Cond,Mesg)                                  \
-     typedef                                                               \
-     _RW::__rw_static_assert<sizeof (__rw_assert_failed<(Cond)>) != 0>     \
-         _RWSTD_PASTE(__static_assert,__LINE__)
+   typedef                                                                 \
+   _RW::__rw_static_assert<sizeof (_RW::__rw_assert_failed<(Cond)>) != 0>  \
+       _RWSTD_PASTE(__static_assert,__LINE__)
 #endif   // _RWSTD_NO_STATIC_ASSERT
 
 #endif   // _RWSTD_RW_STATIC_ASSERT_H_INCLUDED
