@@ -257,14 +257,15 @@ struct __rw_has_trivial_dtor
 template <class _TypeT>
 struct __rw_is_trivial_impl
 {
-    typedef typename __rw_remove_all_extents<_TypeT>::type _TypeU;
+    typedef typename __rw_remove_cv<_TypeT>::type _TypeU;
+    typedef typename __rw_remove_all_extents<_TypeU>::type _TypeV;
 
-    enum { _C_value =    __rw_is_scalar<_TypeU>::value
-                      || __rw_has_trivial_ctor<_TypeU>::value
-                      && __rw_has_trivial_copy<_TypeU>::value
-                      && __rw_has_trivial_dtor<_TypeU>::value
-                      && __rw_has_trivial_assign<_TypeU>::value
-                      && (__rw_is_class<_TypeU>::value || __rw_is_union<_TypeU>::value) };
+    enum { _C_value =    __rw_is_scalar<_TypeV>::value
+                      || __rw_has_trivial_ctor<_TypeV>::value
+                      && __rw_has_trivial_copy<_TypeV>::value
+                      && __rw_has_trivial_dtor<_TypeV>::value
+                      && __rw_has_trivial_assign<_TypeV>::value
+                      && (__rw_is_class<_TypeV>::value || __rw_is_union<_TypeV>::value) };
 };
 
 /**
@@ -392,6 +393,13 @@ _RWSTD_TRAIT_SPEC_0_CV(__rw_is_unsigned, unsigned long);
 _RWSTD_TRAIT_SPEC_0_CV(__rw_is_signed,     signed long long);
 _RWSTD_TRAIT_SPEC_0_CV(__rw_is_unsigned, unsigned long long);
 #endif   // _RWSTD_NO_LONG_LONG
+
+_RWSTD_TRAIT_SPEC_0_CV(__rw_is_signed,     float);
+_RWSTD_TRAIT_SPEC_0_CV(__rw_is_signed,     double);
+
+#ifndef _RWSTD_NO_LONG_DOUBLE
+_RWSTD_TRAIT_SPEC_0_CV(__rw_is_signed,     long double);
+#endif   // _RWSTD_NO_LONG_DOUBLE
 
 /**
  * UnaryTypeTrait that gets the alignment of _TypeT.
