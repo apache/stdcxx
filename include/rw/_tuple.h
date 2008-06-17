@@ -97,7 +97,10 @@ class tuple< _HeadT, _TailT... >
 
 protected:
 
-    _HeadT  _C_head;
+    _HeadT        _C_head;
+
+    _Base&        _C_tail ()       { return *this; }
+    const _Base&  _C_tail () const { return *this; }
 
 public:
 
@@ -112,7 +115,8 @@ public:
      * @param __tuple Another tuple value with same type.
      */
     tuple (const tuple& __tuple)
-        : _Base (__tuple), _C_head (__tuple._C_head) { /* empty */ }
+        : _Base (__tuple._C_tail ())
+        , _C_head (__tuple._C_head) { /* empty */ }
 
     /**
      * Copy assign tuple from a different tuple value.
@@ -121,7 +125,7 @@ public:
      * @return This tuple value.
      */
     tuple& operator= (const tuple& __tuple) {
-        _Base::operator= (__tuple);
+        _Base::operator= (__tuple._C_tail ());
         _C_head = __tuple._C_head;
         return *this;
     }
@@ -147,7 +151,7 @@ public:
      * @param __tuple Some other homogenous tuple value.
      */
     tuple (tuple&& __tuple)
-        : _Base (std::forward<_Base> (__tuple))
+        : _Base (std::forward<_Base> (__tuple._C_tail ()))
         , _C_head (_RWSTD_MOVE (__tuple._C_head)) { /* empty */ }
 
     /**
@@ -158,7 +162,7 @@ public:
      * @returns Lvalue reference to this tuple value.
      */
     tuple& operator= (tuple&& __tuple) {
-        _Base::operator= (__tuple);
+        _Base::operator= (__tuple._C_tail ());
         _C_head = _RWSTD_MOVE (__tuple._C_head);
         return *this;
     }
@@ -177,7 +181,8 @@ public:
      */
     template <class _HeadU, class... _TailU>
     tuple (const tuple<_HeadU, _TailU...>& __tuple)
-        : _Base (__tuple), _C_head (__tuple._C_head) { /* empty */ }
+        : _Base (__tuple._C_tail ())
+        , _C_head (__tuple._C_head) { /* empty */ }
 
     /**
      * Assign tuple by copying a heterogenous tuple value.  This
@@ -190,7 +195,7 @@ public:
      */
     template <class _HeadU, class... _TailU>
     tuple& operator= (const tuple<_HeadU, _TailU...>& __tuple) {
-        _Base::operator= (__tuple);
+        _Base::operator= (__tuple._C_tail ());
         _C_head = __tuple._C_head;
         return *this;
     }

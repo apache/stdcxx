@@ -122,8 +122,8 @@ test_homo_copy_ctor ()
                "tuple<UserClass>::tuple() called %d default ctors, "
                "expected 1", UserClass::n_total_def_ctor_);
 
-    const BigTuple bt1; //BigTuple bt2 (bt1);
-    _RWSTD_UNUSED (bt1); //_RWSTD_UNUSED (bt2);
+    const BigTuple bt1; BigTuple bt2 (bt1);
+    _RWSTD_UNUSED (bt1); _RWSTD_UNUSED (bt2);
 }
 
 /**************************************************************************/
@@ -145,11 +145,6 @@ run_test (int /*unused*/, char* /*unused*/ [])
     //test_hetero_move_ctor ();
     //test_hetero_copy_assign ();
     //test_hetero_move_assign ();
-
-    //test_pair_copy_ctor ();
-    //test_pair_move_ctor ();
-    //test_pair_copy_assign ();
-    //test_pair_move_assign ();
 
     //test_alloc_ctors ();
 
