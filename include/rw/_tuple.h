@@ -42,29 +42,37 @@
 #    if !defined _RWSTD_NO_VARIADIC_TEMPLATES
 
 
+/// @defgroup tuple Tuples [tuple]
+/// @{
+
 _RWSTD_NAMESPACE (std) {
 
 
 // 20.3.1, class template tuple:
 
 /**
- * @defgroup tuple Tuples [tuple]
- *
  * A fixed-size collection of values with variable, heterogenous types.
  * This class template is used to instantatiate tuple types.  A tuple
  * type specifies zero or more element types for defining tuple values.
  * A tuple value can be constructed from a tuple type that holds one
  * value for each element type in the tuple.
  *
- * @param Types A list of zero or more types.  No applicable type
- *              requirements or restrictions.
+ * By definition, a homogenous tuple is a tuple that has the exact same
+ * number and type of elements as another tuple type.  A heterogenous
+ * tuple is just the opposite: a tuple type that has either a different
+ * number of element types or one or more different element types.
+ *
+ * @tparam Types A list of zero or more types.  No applicable type
+ *               requirements or restrictions.
  */
 template < class... Types >
 class tuple;
 
 /**
  * @internal
- * The template specialization for empty tuples.
+ * The template specialization for empty tuples.  This specialization
+ * also serves as the terminating instantiation of a recursive tuple
+ * with one or more element types.
  */
 _RWSTD_SPECIALIZED_CLASS
 class tuple< >
@@ -78,8 +86,8 @@ class tuple< >
  * template is used to instantiate all tuple types except for empty
  * tuples and tuples with exactly two element types.
  *
- * @param _HeadT First element type (required).
- * @param _TailT Template parameter pack for remaining element types.
+ * @tparam _HeadT First element type (required).
+ * @tparam _TailT Zero or more additional element types.
  */
 template < class _HeadT, class... _TailT >
 class tuple< _HeadT, _TailT... >
@@ -97,38 +105,61 @@ public:
      * Construct tuple with default values.
      */
     tuple ()
-        : _C_head (), _Base () { /* empty */ }
+        : _Base (), _C_head () { /* empty */ }
 
     /**
      * Copy construct tuple from a different tuple value.
      * @param __tuple Another tuple value with same type.
      */
     tuple (const tuple& __tuple)
-        : _C_head (__tuple._C_head), _Base (__tuple) { /* empty */ }
+        : _Base (__tuple), _C_head (__tuple._C_head) { /* empty */ }
 
     /**
      * Copy assign tuple from a different tuple value.
+     * @param __tuple Some other tuple value.
      * @param __tuple Another tuple value with same type.
+     * @return This tuple value.
      */
     tuple& operator= (const tuple& __tuple) {
-        _C_head = __tuple._C_head;
         _Base::operator= (__tuple);
+        _C_head = __tuple._C_head;
         return *this;
     }
 
+    /**
+     * Copy construct tuple from element values.  This explicit
+     * constructor creates a tuple value from element values.
+     *
+     * @param __head A value corresponding to first tuple element type.
+     * @param __tail List of corresponding values of remaining tuple
+     *               element types.
+     */
     _EXPLICIT
     tuple (const _HeadT& __head, const _TailT&... __tail)
-        : _C_head (__head), _Base (__tail...) { /* empty */ }
+        : _Base (__tail...), _C_head (__head) { /* empty */ }
 
 #      if !defined _RWSTD_NO_RVALUE_REFERENCES
 
+    /**
+     * Construct tuple by moving a value from some other tuple value.
+     * This move constructor moves the value from the given tuple value
+     * into this tuple.
+     * @param __tuple Some other homogenous tuple value.
+     */
     tuple (tuple&& __tuple)
-        : _C_head (std::move (__tuple._C_head))
-        , _Base (std::forward<_Base> (__tuple)) { /* empty */ }
+        : _Base (std::forward<_Base> (__tuple))
+        , _C_head (_RWSTD_MOVE (__tuple._C_head)) { /* empty */ }
 
+    /**
+     * Assign tuple by moving a value from some other tuple value.
+     * This assignment operator moves the value from the given tuple
+     * value into this tuple.
+     * @param __tuple Some other homogenous tuple value.
+     * @returns Lvalue reference to this tuple value.
+     */
     tuple& operator= (tuple&& __tuple) {
-        _C_head = std::move (__tuple._C_head);
         _Base::operator= (__tuple);
+        _C_head = _RWSTD_MOVE (__tuple._C_head);
         return *this;
     }
 
@@ -136,11 +167,33 @@ public:
 
 #      if !defined _RWSTD_NO_MEMBER_TEMPLATES
 
+    /**
+     * Construct tuple by copying a heterogenous tuple value.  This copy
+     * constructor copies the value from a compatible, heterogenous
+     * tuple.
+     * @tparam _HeadU First element type in tuple.
+     * @tparam _TailU Remaining element types in tuple.
+     * @param __tuple A compatible, heterogenous tuple value.
+     */
     template <class _HeadU, class... _TailU>
-    tuple (const tuple<_HeadU, _TailU...>& __tuple);
+    tuple (const tuple<_HeadU, _TailU...>& __tuple)
+        : _Base (__tuple), _C_head (__tuple._C_head) { /* empty */ }
 
+    /**
+     * Assign tuple by copying a heterogenous tuple value.  This
+     * assignment operator copies the value from a compatible,
+     * heterogenous tuple.
+     * @tparam _HeadU First element type in tuple.
+     * @tparam _TailU Remaining element types in tuple.
+     * @param __tuple A compatible, heterogenous tuple value.
+     * @returns Lvalue reference to this tuple value.
+     */
     template <class _HeadU, class... _TailU>
-    tuple& operator= (const tuple<_HeadU, _TailU...>& __tuple);
+    tuple& operator= (const tuple<_HeadU, _TailU...>& __tuple) {
+        _Base::operator= (__tuple);
+        _C_head = __tuple._C_head;
+        return *this;
+    }
 
 #      endif   // !defined _RWSTD_NO_MEMBER_TEMPLATES
 
@@ -163,33 +216,61 @@ public:
 
 #      if !defined _RWSTD_NO_MEMBER_TEMPLATES
 
-template <class _TypeT1, class _TypeT2>
-class tuple<_TypeT1, _TypeT2>
-    : pair<_TypeT1, _TypeT2>
+/**
+ * @internal
+ * Template specialization for tuples with exactly two element types.
+ * This specialization provides additional constructors and operators for
+ * making class template \c std::pair implicitly compatible with tuples.
+ * @tparam _TypeT1 First element type.
+ * @tparam _TypeT2 Second element type.
+ */
+template < class _TypeT1, class _TypeT2 >
+class tuple< _TypeT1, _TypeT2 >
 {
-    typedef pair< _TypeT1, _TypeT2 > _Base;
+    _TypeT1 _C_first;
+    _TypeT2 _C_second;
 
 public:
 
-    tuple (): _Base () { /* empty */ }
-    tuple (const tuple& __tuple): _Base (__tuple) { /* empty */ }
-    tuple& operator= (const tuple& __tuple);
+    tuple (): _C_first (), _C_second () { /* empty */ }
 
-    _EXPLICIT tuple (const _TypeT1& __t1, const _TypeT2& __t2);
+    tuple (const tuple& __tuple)
+        : _C_first (__tuple._C_first)
+        , _C_second (__tuple._C_second) { /* empty */ }
+
+    tuple& operator= (const tuple& __tuple) {
+        _C_first = __tuple._C_first;
+        _C_second = __tuple._C_second;
+        return *this;
+    }
+
+    _EXPLICIT tuple (const _TypeT1& __t1, const _TypeT2& __t2)
+        : _C_first (__t1), _C_second (__t2) { /* empty */ }
 
     template <class _TypeU1, class _TypeU2>
-    tuple (const pair<_TypeU1, _TypeU2>& __pair);
+    tuple (const pair<_TypeU1, _TypeU2>& __pair)
+        : _C_first (__pair.first), _C_second (__pair.second) { /* empty */ }
 
     template <class _TypeU1, class _TypeU2>
-    tuple& operator= (const pair<_TypeU1, _TypeU2>& __pair);
+    tuple& operator= (const pair<_TypeU1, _TypeU2>& __pair) {
+        _C_first = __pair.first;
+        _C_second = __pair.second;
+        return *this;
+    }
 
 #        if !defined _RWSTD_NO_RVALUE_REFERENCES
 
     template <class _TypeU1, class _TypeU2>
-    tuple (pair<_TypeU1, _TypeU2>&& __pair);
+    tuple (pair<_TypeU1, _TypeU2>&& __pair)
+        : _C_first (_RWSTD_MOVE (__pair.first))
+        , _C_second (_RWSTD_MOVE (__pair.second)) { /* empty */ }
 
     template <class _TypeU1, class _TypeU2>
-    tuple& operator= (pair<_TypeU1, _TypeU2>&& __pair);
+    tuple& operator= (pair<_TypeU1, _TypeU2>&& __pair) {
+        _C_first = _RWSTD_MOVE (__pair.first);
+        _C_second = _RWSTD_MOVE (__pair.second);
+        return *this;
+    }
 
 #        endif   // !defined _RWSTD_NO_RVALUE_REFERENCES
 
@@ -197,6 +278,8 @@ public:
 
 #      endif   // !defined _RWSTD_NO_MEMBER_TEMPLATES
 
+
+/// @}
 
 }   // namespace std
 

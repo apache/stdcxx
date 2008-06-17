@@ -49,7 +49,7 @@ _RWSTD_NAMESPACE (std) {
  * correct move/forwarding semantics, usually in the \c std::forward()
  * function.
  *
- * @param _Type Any type.  No restrictions or requirements.
+ * @tparam _Type Any type.  No restrictions or requirements.
  * @see std::forward
  */
 template <class _Type>
@@ -78,7 +78,7 @@ struct identity
  * is used to ensure that the appropriate reference type is used in move
  * semantics.
  *
- * @param _Type An lvalue or rvalue reference type.
+ * @tparam _Type An lvalue or rvalue reference type.
  * @param __x An lvalue reference or rvalue reference.
  * @returns An lvalue if __x is an lvalue reference; otherwise, an rvalue.
  */
@@ -95,6 +95,7 @@ forward (_TYPENAME identity<_Type>::type&& __x)
  * explicitly bind constructors and other functions with rvalue
  * references that employ move semantics.
  *
+ * @tparam _Type Any type.  No requirements or restrictions.
  * @param __x An lvalue or rvalue.
  * @returns Same value as parameter with rvalue reference type.
  */

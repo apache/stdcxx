@@ -34,6 +34,8 @@
 #ifndef _RWSTD_TUPLE_INCLUDED
 #  define _RWSTD_TUPLE_INCLUDED
 
+#  include <rw/_defs.h>
+#  include <rw/_meta_help.h>        // for __rw_integral_constant
 #  include <rw/_tuple.h>
 #  include <rw/_tuple_traits.h>
 
@@ -98,8 +100,20 @@ tuple_cat (const tuple<_TypesT...>& __x,
 template <class>
 class tuple_size; // undefined
 
+/**
+ * Determine number of element types in tuple.  This compile-time
+ * integral constant wrapper determines the number of element types in
+ * a tuple.  The class template is ill-formed for any non-tuple typle.
+ *
+ * @tparam _Types List of element types in tuple.
+ */
 template <class... _Types>
-class tuple_size<tuple<_Types...> >;
+class tuple_size< tuple<_Types...> >
+    : _RW::__rw_integral_constant< _RWSTD_SIZE_T, sizeof... (_Types) >
+{
+    // empty
+};
+
 
 template <int, class>
 class tuple_element; // undefined

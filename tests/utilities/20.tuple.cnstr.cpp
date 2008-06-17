@@ -39,52 +39,91 @@ test_default_ctor ()
 {
     rw_info (0, __FILE__, __LINE__, "default constructor");
 
-    NullTuple null_tuple;
-    _RWSTD_UNUSED (null_tuple);
-
-    IntTuple int_tuple;
-    _RWSTD_UNUSED (int_tuple);
+    EmptyTuple et; _RWSTD_UNUSED (et);
+    IntTuple it; _RWSTD_UNUSED (it);
+    ConstIntTuple ct; _RWSTD_UNUSED (ct);
+    PairTuple pt; _RWSTD_UNUSED (pt);
+    NestedTuple nt; _RWSTD_UNUSED (nt);
+    BigTuple bt; _RWSTD_UNUSED (bt);
 
     UserClass::reset_totals ();
-    UserTuple user_tuple;
-    _RWSTD_UNUSED (user_tuple);
+    UserTuple ut; _RWSTD_UNUSED (ut);
+
     rw_assert (UserClass::n_total_def_ctor_ == 1, __FILE__, __LINE__,
                "tuple<UserClass>::tuple() called %d default ctors, "
                "expected 1", UserClass::n_total_def_ctor_);
-
-    BigTuple big_tuple;
-    _RWSTD_UNUSED (big_tuple);
-
-    NestedTuple nested_tuple;
-    _RWSTD_UNUSED (nested_tuple);
 }
 
 /**************************************************************************/
 
 static void
-test_value_ctor ()
+test_value_copy_ctor ()
 {
-    rw_info (0, __FILE__, __LINE__, "value constructor");
-/*
-    // stored values are verified by get() tests in 20.tuple.elem
-    IntTuple it1 (1);
-    _RWSTD_UNUSED (it1);
-    int i1 = 1;
-    IntTuple it2 (i1);
-    _RWSTD_UNUSED (it2);
+    rw_info (0, __FILE__, __LINE__, "value copy constructor");
+
+    const int i = 1;
+    const IntTuple it (i);
+    ConstIntTuple ct (i); _RWSTD_UNUSED (ct);
+    NestedTuple nt (it);
+
+    const long l = 1;
+    const char* s = "string";
+    PairTuple pt (l, s);
 
     UserClass::reset_totals ();
-    UserTuple ut1 (UserClass ());
+    const UserClass uc;
+    UserTuple ut (uc); _RWSTD_UNUSED (ut);
+
+    rw_assert (1 == UserClass::n_total_def_ctor_, __FILE__, __LINE__,
+               "tuple<UserClass>::tuple() called %d default ctors, "
+               "expected 1", UserClass::n_total_def_ctor_);
+
+    const bool b = true; const char c = 'a';
+    const double d = 1.2; void* const p = 0;
+    BigTuple bt (b, c, i, d, p, uc); _RWSTD_UNUSED (bt);
+}
+
+/**************************************************************************/
+
+static void
+test_value_move_ctor ()
+{
+    rw_info (0, __FILE__, __LINE__, "value move constructor");
+
+}
+
+/**************************************************************************/
+
+static void
+test_homo_copy_ctor ()
+{
+    rw_info (0, __FILE__, __LINE__, "copy constructor (homogenous tuples)");
+
+    EmptyTuple et1, et2 (et1);
+    _RWSTD_UNUSED (et2);
+
+    const IntTuple it1;
+    IntTuple it2 (it1); _RWSTD_UNUSED (it2);
+
+    const ConstIntTuple ct1;
+    ConstIntTuple ct2 (ct1); _RWSTD_UNUSED (ct2);
+
+    PairTuple pt1;
+    PairTuple pt2 (pt1); _RWSTD_UNUSED (pt2);
+
+    const NestedTuple nt1;
+    NestedTuple nt2 (nt1); _RWSTD_UNUSED (nt2);
+
+    UserClass::reset_totals ();
+    const UserTuple ut1; UserTuple ut2 (ut1);
+    _RWSTD_UNUSED (ut1);
+
     rw_assert (UserClass::n_total_def_ctor_ == 1, __FILE__, __LINE__,
                "tuple<UserClass>::tuple() called %d default ctors, "
                "expected 1", UserClass::n_total_def_ctor_);
 
-    UserTuple ut1 (UserClass ());
-    _RWSTD_UNUSED (ut1);
-
-    // test constructor signature for reference and non-reference types
-    // test return type for reference and non-reference types
-*/
+    const BigTuple bt1; //BigTuple bt2 (bt1);
+    _RWSTD_UNUSED (bt1); //_RWSTD_UNUSED (bt2);
 }
 
 /**************************************************************************/
@@ -93,14 +132,19 @@ static int
 run_test (int /*unused*/, char* /*unused*/ [])
 {
     test_default_ctor ();
-    test_value_ctor ();
 
-    //test_homogenous_copy_ctor ();
-    //test_heterogenous_copy_ctor ();
-    //test_pair_copy_ctor ();
+    test_value_copy_ctor ();
+    test_value_move_ctor ();
 
-    //test_homogenous_copy_assignment ();
-    //test_heterogenous_copy_assignment ();
+    test_homo_copy_ctor ();
+    //test_homo_move_ctor ();
+    //test_homo_copy_assign ();
+    //test_homo_move_assign ();
+
+    //test_hetero_copy_ctor ();
+    //test_hetero_move_ctor ();
+    //test_hetero_copy_assign ();
+    //test_hetero_move_assign ();
 
     //test_pair_copy_ctor ();
     //test_pair_move_ctor ();
