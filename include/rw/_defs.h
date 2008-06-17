@@ -1274,21 +1274,6 @@ __rw_assert_fail (const char*, const char*, int, const char*)
 #  endif
 #endif   // _RWSTD_SSIZE_T
 
-// _RWSTD_SWCHAR_INT_T is "signed wchar_t"
-#ifndef _RWSTD_SWCHAR_INT_T
-#  if _RWSTD_CHAR_SIZE == _RWSTD_WCHAR_SIZE
-#    define _RWSTD_SWCHAR_INT_T   signed char
-#  elif _RWSTD_SHRT_SIZE == _RWSTD_WCHAR_SIZE
-#    define _RWSTD_SWCHAR_INT_T   signed short
-#  elif _RWSTD_INT_SIZE == _RWSTD_WCHAR_SIZE
-#    define _RWSTD_SWCHAR_INT_T   signed int
-#  elif _RWSTD_LONG_SIZE == _RWSTD_WCHAR_SIZE
-#    define _RWSTD_SWCHAR_INT_T   signed long
-#  else
-#    define _RWSTD_SWCHAR_INT_T   signed long long
-#  endif
-#endif   // _RWSTD_SWCHAR_INT_T
-
 // _RWSTD_UWCHAR_INT_T is "unsigned wchar_t"
 #ifndef _RWSTD_UWCHAR_INT_T
 #  if _RWSTD_CHAR_SIZE == _RWSTD_WCHAR_SIZE
@@ -1297,10 +1282,8 @@ __rw_assert_fail (const char*, const char*, int, const char*)
 #    define _RWSTD_UWCHAR_INT_T unsigned short
 #  elif _RWSTD_INT_SIZE == _RWSTD_WCHAR_SIZE
 #    define _RWSTD_UWCHAR_INT_T unsigned int
-#  elif _RWSTD_LONG_SIZE == _RWSTD_WCHAR_SIZE
-#    define _RWSTD_UWCHAR_INT_T unsigned long
 #  else
-#    define _RWSTD_UWCHAR_INT_T unsigned long long
+#    define _RWSTD_UWCHAR_INT_T _RWSTD_SIZE_T
 #  endif
 #endif   // _RWSTD_UWCHAR_INT_T
 

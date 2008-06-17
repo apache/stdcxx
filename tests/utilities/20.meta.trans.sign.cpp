@@ -27,6 +27,8 @@
  *
  **************************************************************************/
 
+#include <stddef.h>
+
 #include <rw_driver.h>
 
 // compile out all test code if extensions disabled
@@ -143,7 +145,7 @@ void test_trait (int line, bool same,
 void test_sign_and_cv (int line,
                        const char* trait_name,
                        const char* type_name,
-                       _RWSTD_SIZE_T got_size, _RWSTD_SIZE_T exp_size,
+                       size_t got_size, size_t exp_size,
                        bool got_sign, bool exp_sign,
                        bool got_c, bool exp_c,
                        bool got_v, bool exp_v)
@@ -194,8 +196,14 @@ void test_sign_and_cv (int line,
 
 static void test_make_signed ()
 {
+#if (_RWSTD_CHAR_MIN < 0)
+    TEST (std::make_signed,   char, char);
+#else
+    TEST (std::make_signed,   char, signed char);
+#endif
+
     TEST (std::make_signed,   signed char, signed char);
-    TEST (std::make_signed, unsigned char, signed char);
+    TEST (std::make_signed, unsigned char, signed char); // unsure
 
     TEST (std::make_signed,   signed short, signed short);
     TEST (std::make_signed, unsigned short, signed short);
@@ -227,7 +235,13 @@ static void test_make_signed ()
 
 static void test_make_unsigned ()
 {
-    TEST (std::make_unsigned,   signed char, unsigned char);
+#if (_RWSTD_CHAR_MIN < 0)
+    TEST (std::make_unsigned,   char, unsigned char);
+#else
+    TEST (std::make_unsigned,   char, char);
+#endif
+
+    TEST (std::make_unsigned,   signed char, unsigned char); // unsure
     TEST (std::make_unsigned, unsigned char, unsigned char);
 
     TEST (std::make_unsigned,   signed short, unsigned short);

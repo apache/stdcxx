@@ -52,16 +52,54 @@ struct __rw_sign_helper
 template <>
 struct __rw_sign_helper<char>
 {
-    typedef   signed char _C_Sint;
+#if (_RWSTD_CHAR_MIN < 0)
+    typedef          char _C_Sint;
     typedef unsigned char _C_Uint;
+#else
+    typedef   signed char _C_Sint;
+    typedef          char _C_Uint;
+#endif
 };
+
+#ifndef _RWSTD_NO_NATIVE_WCHAR_T
 
 template <>
 struct __rw_sign_helper<wchar_t>
 {
-    typedef _RWSTD_SWCHAR_INT_T _C_Sint;
-    typedef _RWSTD_UWCHAR_INT_T _C_Uint;
+#if (_RWSTD_WCHAR_MIN < 0)
+    typedef wchar_t             _C_Sint;
+
+#  if (_RWSTD_WCHAR_SIZE == _RWSTD_CHAR_SIZE)
+    typedef unsigned char _C_Uint;
+#  elif (_RWSTD_WCHAR_SIZE == _RWSTD_SHORT_SIZE)
+    typedef unsigned short _C_Uint;
+#  elif (_RWSTD_WCHAR_SIZE == _RWSTD_INT_SIZE)
+    typedef unsigned int _C_Uint;
+#  elif (_RWSTD_WCHAR_SIZE == _RWSTD_LONG_SIZE)
+    typedef unsigned long _C_Uint;
+#  elif (_RWSTD_WCHAR_SIZE == _RWSTD_LLONG_SIZE)
+    typedef unsigned long long _C_Uint;
+#  endif
+
+#  else   // 0 <= _RWSTD_WCHAR_MIN
+
+#  if (_RWSTD_WCHAR_SIZE == _RWSTD_CHAR_SIZE)
+    typedef signed char _C_Sint;
+#  elif (_RWSTD_WCHAR_SIZE == _RWSTD_SHORT_SIZE)
+    typedef signed short _C_Sint;
+#  elif (_RWSTD_WCHAR_SIZE == _RWSTD_INT_SIZE)
+    typedef signed int _C_Sint;
+#  elif (_RWSTD_WCHAR_SIZE == _RWSTD_LONG_SIZE)
+    typedef signed long _C_Sint;
+#  elif (_RWSTD_WCHAR_SIZE == _RWSTD_LLONG_SIZE)
+    typedef signed long long _C_Sint;
+#  endif
+
+    typedef wchar_t             _C_Uint;
+#  endif   // 0 <= _RWSTD_WCHAR_MIN
 };
+
+#endif   // _RWSTD_NO_NATIVE_WCHAR_T
 
 template <>
 struct __rw_sign_helper<signed char>
@@ -186,7 +224,7 @@ struct __rw_enum_helper<_RWSTD_LONG_SIZE>
 #  if (_RWSTD_LONG_SIZE != _RWSTD_LLONG_SIZE)
 
 template <>
-struct __rw_enum_helper<sizeof (long long)> //_RWSTD_LLONG_SIZE>
+struct __rw_enum_helper<_RWSTD_LLONG_SIZE>
 {
     typedef   signed long long _C_Sint;
     typedef unsigned long long _C_Uint;
