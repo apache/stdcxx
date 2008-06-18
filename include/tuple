@@ -64,7 +64,7 @@ const _RW::__rw_ignore ignore = _RW::__rw_ignore ();
 
 #  if !defined _RWSTD_NO_VARIADIC_TEMPLATES
 
-#    if !defined _RWSTD_NO_RVALUE_REFERNCES
+#    if !defined _RWSTD_NO_RVALUE_REFERENCES
 
 template <class... _Types>
 tuple<_TYPENAME _RW::__rw_make_tuple<_Types>::type...>
@@ -85,7 +85,7 @@ tuple<_TypesT..., _TypesU...>
 tuple_cat (tuple<_TypesT...>&& __x,
            tuple<_TypesU...>&& __y);
 
-#    endif   // !defined _RWSTD_NO_RVALUE_REFERNCES
+#    endif   // !defined _RWSTD_NO_RVALUE_REFERENCES
 
 template <class... _Types>
 tuple<_Types&...> tie (_Types&...);
