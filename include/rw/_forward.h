@@ -63,7 +63,7 @@ struct identity
      * to the wrapped identity type.
      *
      * @param __x An value convertible to identity type.
-     * @returns Same value as the function argument with identity type.
+     * @return Same value as the function argument with identity type.
      */
     const _Type& operator() (const _Type& __x) const {
         return __x;
@@ -80,7 +80,7 @@ struct identity
  *
  * @tparam _Type An lvalue or rvalue reference type.
  * @param __x An lvalue reference or rvalue reference.
- * @returns An lvalue if __x is an lvalue reference; otherwise, an rvalue.
+ * @return An lvalue if __x is an lvalue reference; otherwise, an rvalue.
  */
 _EXPORT
 template <class _Type>
@@ -97,7 +97,7 @@ forward (_TYPENAME identity<_Type>::type&& __x)
  *
  * @tparam _Type Any type.  No requirements or restrictions.
  * @param __x An lvalue or rvalue.
- * @returns Same value as parameter with rvalue reference type.
+ * @return Same value as parameter with rvalue reference type.
  */
 _EXPORT
 template <class _Type>

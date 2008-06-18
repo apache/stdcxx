@@ -155,14 +155,14 @@ public:
         , _C_head (_RWSTD_MOVE (__tuple._C_head)) { /* empty */ }
 
     /**
-     * Assign tuple by moving a value from some other tuple value.
+     * Assign tuple by moving a value from some other homogenous tuple.
      * This assignment operator moves the value from the given tuple
      * value into this tuple.
      * @param __tuple Some other homogenous tuple value.
-     * @returns Lvalue reference to this tuple value.
+     * @return Lvalue reference to this tuple value.
      */
     tuple& operator= (tuple&& __tuple) {
-        _Base::operator= (__tuple._C_tail ());
+        _Base::operator= (std::forward<_Base> (__tuple._C_tail ()));
         _C_head = _RWSTD_MOVE (__tuple._C_head);
         return *this;
     }
@@ -191,7 +191,7 @@ public:
      * @tparam _HeadU First element type in tuple.
      * @tparam _TailU Remaining element types in tuple.
      * @param __tuple A compatible, heterogenous tuple value.
-     * @returns Lvalue reference to this tuple value.
+     * @return Lvalue reference to this tuple value.
      */
     template <class _HeadU, class... _TailU>
     tuple& operator= (const tuple<_HeadU, _TailU...>& __tuple) {
@@ -205,15 +205,47 @@ public:
 #      if !defined _RWSTD_NO_RVALUE_REFERENCES \
           && !defined _RWSTD_NO_MEMBER_TEMPLATES
 
+    /**
+     * Construct tuple by moving element values.  This explicit move
+     * constructor moves values from the corresponding element types.
+     * @tparam _HeadU First element type in other tuple.
+     * @tparam _TailU Remaining element types in other tuple.
+     * @param __head First value in element type list.
+     * @param __tail Remaining values in element type list.
+     */
     template <class _HeadU, class... _TailU>
     _EXPLICIT tuple (_HeadU&& __head, _TailU&&... __tail)
-        : _Base (__tail...), _C_head (__head) { /* empty */ }
+        : _Base (std::forward<_TailU> (__tail)...)
+        , _C_head (_RWSTD_MOVE (__head)) { /* empty */ }
 
+    /**
+     * Construct tuple by moving a heterogenous tuple value.  This move
+     * constructor moves values from a heterogenous tuple into this
+     * tuple value.
+     * @tparam _HeadU First element type in other tuple.
+     * @tparam _TailU Remaining element types in other tuple.
+     * @param __tuple A compatible, heterogenous tuple value.
+     */
     template <class _HeadU, class... _TailU>
-    tuple (tuple<_HeadU, _TailU...>&& __tuple);
+    tuple (tuple<_HeadU, _TailU...>&& __tuple)
+        : _Base (std::forward<_Base> (__tuple._C_tail ()))
+        , _C_head (_RWSTD_MOVE (__tuple._C_head)) { /* empty */ }
 
+    /**
+     * Assign tuple by moving a value from some other heterogenous tuple.
+     * This move assignment operator assigns a value to this tuple by
+     * moving values from a compatible, heterogenous tuple.
+     * @tparam _HeadU First element type in other tuple.
+     * @tparam _TailU Remaining element types in other tuple.
+     * @param __tuple A compatible, heterogenous tuple value.
+     * @return Lvalue reference to this tuple.
+     */
     template <class _HeadU, class... _TailU>
-    tuple& operator= (tuple<_HeadU, _TailU...>&& __tuple);
+    tuple& operator= (tuple<_HeadU, _TailU...>&& __tuple) {
+        _Base::operator= (std::forward<_Base> (__tuple._C_tail ()));
+        _C_head = _RWSTD_MOVE (__tuple._C_head);
+        return *this;
+    }
 
 #      endif   // !defined _RWSTD_NO_RVALUE_REFERENCES
                // && !defined _RWSTD_NO_MEMBER_TEMPLATES
