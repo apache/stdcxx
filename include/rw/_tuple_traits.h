@@ -30,10 +30,11 @@
 #ifndef _RWSTD_RW_TUPLE_TRAITS_INCLUDED
 #  define _RWSTD_RW_TUPLE_TRAITS_INCLUDED
 
+#  include <rw/_defs.h>
+
 #  if !defined _RWSTD_NO_EXT_CXX_0X \
       && !defined _RWSTD_NO_VARIADIC_TEMPLATES
 
-#    include <rw/_defs.h>
 #    include <rw/_meta_help.h>  // for __rw_true_type
 
 
