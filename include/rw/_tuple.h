@@ -33,9 +33,10 @@
 #ifndef _RWSTD_RW_TUPLE_H_INCLUDED
 #  define _RWSTD_RW_TUPLE_H_INCLUDED
 
+#  include <rw/_defs.h>
+
 #  if !defined _RWSTD_NO_EXT_CXX_0X
 
-#    include <rw/_defs.h>
 #    include <rw/_forward.h>
 #    include <rw/_pair.h>
 
