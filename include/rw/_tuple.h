@@ -37,14 +37,12 @@
 
 #  if !defined _RWSTD_NO_EXT_CXX_0X
 
-#    include <rw/_forward.h>
-#    include <rw/_pair.h>
+#    include <rw/_allocator.h>      // for std::allocator_arg_t
+#    include <rw/_forward.h>        // for std::forward, _RWSTD_MOVE
+#    include <rw/_pair.h>           // for std::pair
+
 
 #    if !defined _RWSTD_NO_VARIADIC_TEMPLATES
-
-
-/// @defgroup tuple Tuples [tuple]
-/// @{
 
 _RWSTD_NAMESPACE (std) {
 
@@ -170,8 +168,6 @@ public:
 
 #      endif   // !defined _RWSTD_NO_RVALUE_REFERENCES
 
-#      if !defined _RWSTD_NO_MEMBER_TEMPLATES
-
     /**
      * Construct tuple by copying a heterogenous tuple value.  This copy
      * constructor copies the value from a compatible, heterogenous
@@ -201,10 +197,7 @@ public:
         return *this;
     }
 
-#      endif   // !defined _RWSTD_NO_MEMBER_TEMPLATES
-
-#      if !defined _RWSTD_NO_RVALUE_REFERENCES \
-          && !defined _RWSTD_NO_MEMBER_TEMPLATES
+#      if !defined _RWSTD_NO_RVALUE_REFERENCES
 
     /**
      * Construct tuple by moving element values.  This explicit move
@@ -248,12 +241,39 @@ public:
         return *this;
     }
 
+    // allocator-extended constructors:
+
+    template <class _Alloc, class... _TypesU>
+    tuple (allocator_arg_t, const _Alloc& __alloc,
+           const _TypesU&&... __values);
+
+    template <class _Alloc>
+    tuple (allocator_arg_t, const _Alloc& __alloc,
+           tuple&& __tuple);
+
+    template <class _Alloc, class... _TypesU>
+    tuple (allocator_arg_t, const _Alloc& __alloc,
+           tuple<_TypesU...>&& __tuple);
+
 #      endif   // !defined _RWSTD_NO_RVALUE_REFERENCES
-               // && !defined _RWSTD_NO_MEMBER_TEMPLATES
+
+    template <class _Alloc>
+    tuple (allocator_arg_t, const _Alloc& __alloc);
+
+    template <class _Alloc>
+    tuple (allocator_arg_t, const _Alloc& __alloc,
+           const _HeadT& __head, const _TailT&... __tail);
+
+    template <class _Alloc>
+    tuple (allocator_arg_t, const _Alloc& __alloc,
+           const tuple& __tuple);
+
+    template <class _Alloc, class... _TypesU>
+    tuple (allocator_arg_t, const _Alloc& __alloc,
+           const tuple<_TypesU...>& __tuple);
+
 };
 
-
-#      if !defined _RWSTD_NO_MEMBER_TEMPLATES
 
 /**
  * @internal
@@ -297,7 +317,7 @@ public:
         return *this;
     }
 
-#        if !defined _RWSTD_NO_RVALUE_REFERENCES
+#      if !defined _RWSTD_NO_RVALUE_REFERENCES
 
     template <class _TypeU1, class _TypeU2>
     tuple (pair<_TypeU1, _TypeU2>&& __pair)
@@ -311,17 +331,22 @@ public:
         return *this;
     }
 
-#        endif   // !defined _RWSTD_NO_RVALUE_REFERENCES
+    // allocator-extended constructors:
+
+    template <class _Alloc, class _TypeU1, class _TypeU2>
+    tuple (allocator_arg_t, const _Alloc& __alloc,
+           pair<_TypeU1, _TypeU2>&& __pair);
+
+#      endif   // !defined _RWSTD_NO_RVALUE_REFERENCES
+
+    template <class _Alloc, class _TypeU1, class _TypeU2>
+    tuple (allocator_arg_t, const _Alloc& __alloc,
+           const pair<_TypeU1, _TypeU2>& __pair);
 
 };
 
-#      endif   // !defined _RWSTD_NO_MEMBER_TEMPLATES
-
-
-/// @}
 
 }   // namespace std
-
 
 #    endif   // !defined _RWSTD_NO_VARIADIC_TEMPLATES
 

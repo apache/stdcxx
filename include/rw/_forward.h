@@ -30,9 +30,10 @@
 #ifndef _RWSTD_RW_FORWARD_INCLUDED
 #  define _RWSTD_RW_FORWARD_INCLUDED
 
+#  include <rw/_defs.h>
+
 #  if !defined _RWSTD_NO_EXT_CXX_0X
 
-#    include <rw/_defs.h>
 #    include <rw/_meta_ref.h>   // for __rw_remove_reference
 
 
