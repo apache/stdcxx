@@ -37,69 +37,33 @@
 
 _RWSTD_NAMESPACE (__rw) {
 
-template <_RWSTD_SIZE_T _Align>
-struct __rw_aligned_storage_impl;
-
-template <>
-struct __rw_aligned_storage_impl<1>
-{
-    _RWSTD_UINT_LEAST8_T _C_type;
-};
-
-template <>
-struct __rw_aligned_storage_impl<2>
-{
-    _RWSTD_UINT_LEAST16_T _C_type;
-};
-
-template <>
-struct __rw_aligned_storage_impl<3>
-{
-    _RWSTD_UINT_LEAST32_T _C_type;
-};
-
-template <>
-struct __rw_aligned_storage_impl<4>
-{
-    _RWSTD_UINT_LEAST32_T _C_type;
-};
-
 template <_RWSTD_SIZE_T _Len, _RWSTD_SIZE_T _Align = 4>
 struct __rw_aligned_storage
 {
-    // the member typedef _C_type shall be a pod-type suitable for
-    // use as uninitialized storage for any object whose size is at
-    // most _Len and whose alignment is a divisor of _Align.
-    //
-    // i think they mean divisible by _Align. i.e. if _Align is 4, we
-    // could return 4, 8 or 16 byte aligned data, but we could not
-    // return 1 byte aligned data.        
-    union {
+    typedef union {
         unsigned char __data [_Len];
-        typename __rw_aligned_storage_impl<_Align>::_C_type __align;
+        // not implemented
     } type;
 };
 
 
 #ifndef _RWSTD_NO_VARIADIC_TEMPLATES
 
-template <_RWSTD_SIZE_T _Len, class... Types>
-struct __rw_aligned_union_impl;
-
-template <_RWSTD_SIZE_T _Len, class Type, class... Types>
-struct __rw_aligned_union_impl<_Len, Type, Types...>
+template <_RWSTD_SIZE_T _Len, class _TypeT, class... _Types>
+struct __rw_aligned_union_impl<_Len, _TypeT, _Types...>
 {
-    union {
-        unsigned char __pad [_Len];
+    typedef union {
+        unsigned char __pad [_Len ? _Len : 1];
+        _TypeT __type1;
         typename __rw_aligned_union_impl<_Len, Types...>::_C_type __align;
     } _C_type;
 };
 
-template <_RWSTD_SIZE_T _Len>
-struct __rw_aligned_union_impl<_Len>
+template <_RWSTD_SIZE_T _Len, class _TypeT>
+struct __rw_aligned_union_impl<_Len, _TypeT>
 {
-    union {
-        unsigned char __pad [_Len];
+    typedef union {
+        unsigned char __pad [_Len ? _Len : 1];
     } _C_type;
 };
 
@@ -115,14 +79,14 @@ struct __rw_aligned_union
 struct __rw_empty { };
 
 template <_RWSTD_SIZE_T _Len,
-          class _Type1 = __rw_empty, class _Type2 = __rw_empty,
+          class _Type1             , class _Type2 = __rw_empty,
           class _Type3 = __rw_empty, class _Type4 = __rw_empty,
           class _Type5 = __rw_empty, class _Type6 = __rw_empty,
           class _Type7 = __rw_empty, class _Type8 = __rw_empty>
 struct __rw_aligned_union
 {
-    union {
-        unsigned char __pad [_Len];
+    typedef union {
+        unsigned char __pad [_Len ? _Len : 1];
         _Type1 __object1;
         _Type2 __object2;
         _Type3 __object3;
@@ -161,7 +125,8 @@ struct __rw_enable_if<false, _TypeT>
 {
 };
 
-//#define _RWSTD_ENABLE_IF(C,T) _RW::__rw_enable_if<C,T>::type
+#define _RWSTD_ENABLE_IF(C,T) _RW::__rw_enable_if<C,T>::type
+
 
 /**
  * Conditional primitive that provides a member typedef type that is
@@ -188,7 +153,8 @@ struct __rw_disable_if<true, _TypeT>
 {
 };
 
-//#define _RWSTD_DISABLE_IF(C,T) _RW::__rw_disable_if<C,T>::type
+#define _RWSTD_DISABLE_IF(C,T) _RW::__rw_disable_if<C,T>::type
+
 
 /**
  * Metaprogramming conditional primitive that provides a member typedef
@@ -214,7 +180,8 @@ struct __rw_conditional<false, _TypeT, _TypeU>
     typedef _TypeU type;
 };
 
-//#define _RWSTD_CONDITIONAL(C,T,U) _RW::__rw_conditional<C,T,U>::type
+#define _RWSTD_CONDITIONAL(C,T,U) _RW::__rw_conditional<C,T,U>::type
+
 
 /**
  * TransformationTrait that implements compile time array-to-pointer
@@ -248,7 +215,8 @@ public:
                     >::type type;
 };
 
-//#define _RWSTD_DECAY(T) _RW::__rw_decay<T>::type
+#define _RWSTD_DECAY(T) _RW::__rw_decay<T>::type
+
 
 } // namespace __rw
 
