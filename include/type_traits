@@ -846,7 +846,7 @@ struct has_virtual_destructor
  */
 template <class _TypeT>
 struct is_signed
-	: integral_constant<bool, _RW::__rw_is_signed<_TypeT>::value>
+    : integral_constant<bool, _RW::__rw_is_signed<_TypeT>::value>
 {
 };
 
@@ -860,7 +860,7 @@ struct is_signed
  */
 template <class _TypeT>
 struct is_unsigned
-	: integral_constant<bool, _RW::__rw_is_unsigned<_TypeT>::value>
+    : integral_constant<bool, _RW::__rw_is_unsigned<_TypeT>::value>
 {
 };
 
@@ -1221,9 +1221,6 @@ struct aligned_storage
  * @tparam _Len The minimum size of the aligned storage.
  * @tparam _Types List of types which might be stored.
  */
-template <_RWSTD_SIZE_T _Len, class... _Types>
-struct aligned_union;
-
 template <_RWSTD_SIZE_T _Len, class _TypeT, class... _Types>
 struct aligned_union
     : _RW::__rw_aligned_union<_Len, _TypeT, _Types...>

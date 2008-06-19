@@ -144,7 +144,7 @@ void test_aligned_storage(int line,
     rw_assert (is_pow_2, 0, line,
         "std::aligned_storage<%zu, %zu>::type alignment expected "
         "to be a power-of-two; got %zu", exp_sz, exp_al, got_al);
-};
+}
 
 /**************************************************************************/
 
@@ -251,14 +251,15 @@ struct aligned_union_tester
         }
 
         typedef std::aligned_union<Len,T1,T2,T3,T4,T5,T6,T7,T8> aligned_t;
+        typedef typename aligned_t::type aligned_type_t;
 
-        const bool pass1 =    std::alignment_of<aligned_t::type>::value
+        const bool pass1 =    std::alignment_of<aligned_type_t>::value
                            == aligned_t::alignment_value;
         rw_assert (pass1, 0, line,
                    "std::aligned_union<%s>::alignment_value is %zu; "
                    "expected %zu",
                    pbuf, aligned_t::alignment_value, 
-                   std::alignment_of<aligned_t::type>::value); 
+                   std::alignment_of<aligned_type_t>::value); 
 
         const size_t exp_al = max8(std::alignment_of<T1>::value,
                                    std::alignment_of<T2>::value,
@@ -268,7 +269,7 @@ struct aligned_union_tester
                                    std::alignment_of<T6>::value,
                                    std::alignment_of<T7>::value,
                                    std::alignment_of<T8>::value);
-        const size_t got_al = std::alignment_of<aligned_t::type>::value;
+        const size_t got_al = std::alignment_of<aligned_type_t>::value;
 
         const bool pass2 = exp_al == got_al;
         rw_assert (pass2, 0, line,
@@ -277,7 +278,7 @@ struct aligned_union_tester
                    pbuf, got_al, exp_al); 
 
         const size_t min_sz = Len;
-        const size_t got_sz = sizeof (aligned_t::type);
+        const size_t got_sz = sizeof (aligned_type_t);
 
         const bool pass3 = min_sz <= got_sz;
 

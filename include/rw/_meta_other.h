@@ -172,16 +172,14 @@ template <class... _Types>
 struct __rw_biggest;
 
 template <class _TypeT, class... _Types>
-struct __rw_biggest
+struct __rw_biggest<_TypeT, _Types...>
 {
     typedef typename
     __rw_biggest<_Types...>::type _TypeU;
 
     typedef typename
-    __rw_conditional<   sizeof _TypeT
-                      < sizeof _TypeU
-                      ? _TypeU
-                      : _TypeT>::type type;
+    __rw_conditional<sizeof _TypeT < sizeof _TypeU,
+	                 _TypeU, _TypeT>::type type;
 };
 
 template <class _TypeT>
@@ -199,16 +197,15 @@ template <class... _Types>
 struct __rw_strictest;
 
 template <class _TypeT, class... _Types>
-struct __rw_strictest
+struct __rw_strictest<_TypeT, _Types...>
 {
     typedef typename
     __rw_strictest<_Types...>::type _TypeU;
 
     typedef typename
     __rw_conditional<   __rw_alignment_of<_TypeT>::value
-                      < __rw_alignment_of<_TypeU>::value
-                      ? _TypeU
-                      : _TypeT>::type type;
+                      < __rw_alignment_of<_TypeU>::value,
+                     _TypeU, _TypeT>::type type;
 };
 
 template <class _TypeT>
@@ -217,8 +214,11 @@ struct __rw_strictest<_TypeT>
     typedef _TypeT type;
 };
 
+template <_RWSTD_SIZE_T _Len, class... _Types>
+struct __rw_aligned_union;
+
 template <_RWSTD_SIZE_T _Len, class _TypeT, class... _Types>
-struct __rw_aligned_union
+struct __rw_aligned_union<_Len, _TypeT, _Types...>
 {
     typedef typename
     __rw_biggest<_TypeT, _Types...>::type _C_biggest;
@@ -234,10 +234,11 @@ struct __rw_aligned_union
 
     typedef typename
     __rw_aligned_storage<_Len < _C_size_value ? _C_size_value : _Len,
-                         alignment_value>::_C_type type;
+                         alignment_value>::type type;
 };
 
-#ifndef _RWSTD_NO_STATIC_CONST_MEMBER_DEFINITION
+#if 0
+#  ifndef _RWSTD_NO_STATIC_CONST_MEMBER_DEFINITION
 
 template <_RWSTD_SIZE_T _Len, class... _Types>
 const _RWSTD_SIZE_T
@@ -247,7 +248,8 @@ template <_RWSTD_SIZE_T _Len, class... _Types>
 const _RWSTD_SIZE_T
 __rw_aligned_union<_Len, _Types...>::_C_size_value;
 
-#endif // _RWSTD_NO_STATIC_CONST_MEMBER_DEFINITION
+#  endif // _RWSTD_NO_STATIC_CONST_MEMBER_DEFINITION
+#endif
 
 #else // _RWSTD_NO_VARIADIC_TEMPLATES
 
