@@ -49,13 +49,16 @@ struct __rw_aligned_storage
 
 #ifndef _RWSTD_NO_VARIADIC_TEMPLATES
 
+template <_RWSTD_SIZE_T _Len, class... _Types>
+struct __rw_aligned_union_impl;
+
 template <_RWSTD_SIZE_T _Len, class _TypeT, class... _Types>
 struct __rw_aligned_union_impl<_Len, _TypeT, _Types...>
 {
     typedef union {
         unsigned char __pad [_Len ? _Len : 1];
         _TypeT __type1;
-        typename __rw_aligned_union_impl<_Len, Types...>::_C_type __align;
+        typename __rw_aligned_union_impl<_Len, _Types...>::_C_type __align;
     } _C_type;
 };
 
