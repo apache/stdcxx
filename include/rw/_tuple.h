@@ -103,6 +103,9 @@ protected:
 
 public:
 
+    _HeadT&       __get ()       { return _C_head; }
+    const _HeadT& __get () const { return _C_head; }
+
     /**
      * Construct tuple with default values.
      */

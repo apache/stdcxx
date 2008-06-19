@@ -36,7 +36,10 @@
 #    error _RWSTD_NO_EXT_CXX_0X defined and C++0x header included
 #  endif   // defined _RWSTD_NO_EXT_CXX_0X
 
+#  include <rw/_meta_cv.h>          // for __rw_add_const
 #  include <rw/_meta_help.h>        // for __rw_integral_constant
+#  include <rw/_meta_ref.h>         // for __rw_add_lvalue_reference
+
 #  include <rw/_tuple.h>
 #  include <rw/_tuple_traits.h>
 
@@ -129,7 +132,7 @@ class tuple_size< tuple<_Types...> >
  * <code>tuple_size&lt;T&gt;::value</code>.  If N is not in this range
  * or for any other arbitrary type, the program is ill-formed.
  *
- * @tparam Index An integer constant.
+ * @tparam Index An integer constant indicating the Nth element type.
  * @tparam Types List of element types in the tuple.
  */
 
@@ -141,6 +144,27 @@ struct tuple_element<0, tuple<_Head, _Tail...> >
 {
     /** The Nth element type of the tuple. */
     typedef _Head type;
+
+
+    typedef tuple<_Head, _Tail...>          _Tuple;
+
+#  define _RWSTD_ADD_CONST(T) \
+          _TYPENAME _RW::__rw_add_const<T>::type
+#  define _RWSTD_ADD_LVAL_REF(T) \
+          _TYPENAME _RW::__rw_add_lvalue_reference<T>::type
+
+    typedef _RWSTD_ADD_CONST (_Head)        _Const;
+    typedef _RWSTD_ADD_LVAL_REF (_Head)     _Ref;
+    typedef _RWSTD_ADD_LVAL_REF (_Const)    _ConstRef;
+
+#  undef _RWSTD_ADD_CONST
+#  undef _RWSTD_ADD_LVAL_REF
+
+    static _Ref
+    __get (_Tuple& __tuple) { return __tuple.__get (); }
+
+    static _ConstRef
+    __get (const _Tuple& __tuple) { return __tuple.__get (); }
 };
 
 template <int _Index, class _Head, class... _Tail>
@@ -153,13 +177,35 @@ struct tuple_element<_Index, tuple<_Head, _Tail...> >
 
 // 20.3.1.5, element access:
 
-template <int _Index, class... _Types>
-_TYPENAME tuple_element<_Index, tuple<_Types...> >::type&
-get (tuple<_Types...>&);
+/**
+ * @function get
+ *
+ * Access Nth element value of a tuple.  This function returns a
+ * cv-qualified value reference to the Nth element in a tuple \c T
+ * where 0 <= N < <code>tuple_size&lt;T&gt;::value</code>.  If N is
+ * not in this range, the program is ill-formed.
+ *
+ * @tparam Index An integer constant indicating the Nth element type.
+ * @tparam Types List of element types in the tuple.
+ * @param tuple A tuple value.
+ * @return CV-qualified reference to the Nth element value of tuple.
+ */
 
-template <int _Index, class ... _Types>
-_TYPENAME tuple_element<_Index, tuple<_Types...> >::type const&
-get (const tuple<_Types...>&);
+template <int _Index, class _Head, class... _Tail>
+_TYPENAME tuple_element<_Index, tuple<_Head, _Tail...> >::_Ref
+get (tuple<_Head, _Tail...>& __tuple)
+{
+    typedef tuple_element<_Index, tuple<_Head, _Tail...> > _Tuple;
+    return _Tuple::__get (__tuple);
+}
+
+template <int _Index, class _Head, class... _Tail>
+_TYPENAME tuple_element<_Index, tuple<_Head, _Tail...> >::_ConstRef
+get (const tuple<_Head, _Tail...>& __tuple)
+{
+    typedef tuple_element<_Index, tuple<_Head, _Tail...> > _Tuple;
+    return _Tuple::__get (__tuple);
+}
 
 
 // 20.3.1.6, relational operators:

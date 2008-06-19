@@ -32,6 +32,7 @@
 
 #include <rw/_defs.h>
 #include <rw/_meta_cat.h>
+#include <rw/_meta_comp.h>
 
 _RWSTD_NAMESPACE (__rw) {
 
