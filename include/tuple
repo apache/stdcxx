@@ -98,29 +98,57 @@ tuple_cat (const tuple<_TypesT...>& __x,
 
 // 20.3.1.4, tuple helper classes:
 
-template <class>
-class tuple_size; // undefined
-
 /**
+ * @class tuple_size
+ *
  * Determine number of element types in tuple.  This compile-time
  * integral constant wrapper determines the number of element types in
  * a tuple.  The class template is ill-formed for any non-tuple typle.
  *
- * @tparam _Types List of element types in tuple.
+ * @tparam Types List of element types in tuple.
  */
+
+template <class Types>
+class tuple_size;
+
 template <class... _Types>
 class tuple_size< tuple<_Types...> >
-    : _RW::__rw_integral_constant< _RWSTD_SIZE_T, sizeof... (_Types) >
+    : public _RW::__rw_integral_constant< _RWSTD_SIZE_T,
+                                          sizeof... (_Types) >
 {
     // empty
 };
 
 
-template <int, class>
-class tuple_element; // undefined
+/**
+ * @class tuple_element
+ *
+ * Determine the Nth element type of a tuple.  Instances of this class
+ * class template provide a type member that identifies the Nth element
+ * type of a tuple \c T where 0 <= N <
+ * <code>tuple_size&lt;T&gt;::value</code>.  If N is not in this range
+ * or for any other arbitrary type, the program is ill-formed.
+ *
+ * @tparam Index An integer constant.
+ * @tparam Types List of element types in the tuple.
+ */
 
-template <int _Index, class... _Types>
-class tuple_element<_Index, tuple<_Types...> >;
+template <int Index, class... Types>
+struct tuple_element;
+
+template <class _Head, class... _Tail>
+struct tuple_element<0, tuple<_Head, _Tail...> >
+{
+    /** The Nth element type of the tuple. */
+    typedef _Head type;
+};
+
+template <int _Index, class _Head, class... _Tail>
+struct tuple_element<_Index, tuple<_Head, _Tail...> >
+    : tuple_element<_Index - 1, tuple<_Tail...> >
+{
+    // empty
+};
 
 
 // 20.3.1.5, element access:

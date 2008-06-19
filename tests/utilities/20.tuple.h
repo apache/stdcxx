@@ -1,6 +1,6 @@
 /***************************************************************************
  *
- * 20.tuple.h - common support for all tuple tests
+ * 20.tuple.h - framework for tuple tests
  *
  * $Id$
  *
@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2008 Rogue Wave Software.
+ * Copyright 2008 Rogue Wave Software.
  * 
  **************************************************************************/
 
@@ -31,10 +31,7 @@
 
 #include <tuple>
 
-#include <rw/_meta_prop.h>
-
-#include <rw_driver.h>
-#include <rw_value.h>
+#include <rw_value.h>                       // for UserClass
 
 
 // various tuple types for test purposes
@@ -47,6 +44,7 @@ typedef std::tuple < UserClass >            UserTuple;
 typedef std::tuple < std::tuple < int > >   NestedTuple;
 
 #define BigList      bool, char, int, double, void*, UserClass
+#define BigListSize  6
 
 typedef std::tuple < BigList >              BigTuple;
 
