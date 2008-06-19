@@ -261,11 +261,14 @@ void test_is_fundamental ()
 
 void test_is_object ()
 {
+    // an object type is a (possibly cv-qualified) type that is not a
+    // function type, not a reference type, and not a void type.
+
     // void
     TEST (std::is_object, void, false);
 
     // integral
-    TEST (std::is_object,          bool, false);
+    TEST (std::is_object,          bool, true);
 
     TEST (std::is_object,          char, true);
     TEST (std::is_object,   signed char, true);
@@ -354,6 +357,10 @@ void test_is_object ()
 
 void test_is_scalar ()
 {
+    // arithmetic types, enumeration types, pointer types, pointer to member
+    // types and std::nullptr_t, and cv-qualified versions of these types
+    // are collectively called scalar types.
+
     // void
     TEST (std::is_scalar, void, false);
 
@@ -411,8 +418,8 @@ void test_is_scalar ()
     TEST (std::is_scalar, double&, false);
 
     // pointer to member
-    TEST (std::is_scalar, long (class_t::*), false);
-    TEST (std::is_scalar, int (struct_t::*), false);
+    TEST (std::is_scalar, long (class_t::*), true);
+    TEST (std::is_scalar, int (struct_t::*), true);
 
     // pointer to member function
     TEST (std::is_scalar, double (class_t::*)(), true);
@@ -435,8 +442,8 @@ void test_is_scalar ()
     TEST (std::is_scalar, float (char), false);
 
     // function pointer
-    TEST (std::is_scalar, long (*)(), false);
-    TEST (std::is_scalar, double (*)(int), false);
+    TEST (std::is_scalar, long (*)(), true);
+    TEST (std::is_scalar, double (*)(int), true);
 
     // function reference
     TEST (std::is_scalar, long (&)(), false);
@@ -447,8 +454,9 @@ void test_is_scalar ()
 
 void test_is_compound ()
 {
-// arrays, functions, pointers, references, classes, unions,
-// enumerations, pointer to non-static class members
+    // arrays, functions, pointers, function pointers,
+    // references, function references, classes, unions,
+    // enumerations, pointer to non-static class members
 
     // void
     TEST (std::is_compound, void, false);
@@ -488,13 +496,14 @@ void test_is_compound ()
     TEST (std::is_compound, long double, false);
 
     // array
-    TEST (std::is_compound, long [4], false);
-    TEST (std::is_compound, float [3][3], false);
-    TEST (std::is_compound, char* [4], false);
-    TEST (std::is_compound, class_t [], false);
-    TEST (std::is_compound, struct_t [][2], false);
+    TEST (std::is_compound, long [4], true);
+    TEST (std::is_compound, float [3][3], true);
+    TEST (std::is_compound, char* [4], true);
+    TEST (std::is_compound, class_t [], true);
+    TEST (std::is_compound, struct_t [][2], true);
 
     // pointer
+    TEST (std::is_compound, void*, true);
     TEST (std::is_compound, long*, true);
     TEST (std::is_compound, char**, true);
 
@@ -505,6 +514,11 @@ void test_is_compound ()
     TEST (std::is_compound, union_t&, true);
     TEST (std::is_compound, class_t&, true);
     TEST (std::is_compound, double&, true);
+
+#ifndef _RWSTD_NO_RVALUE_REFERENCES
+    TEST (std::is_compound, union_t&&, true);
+    TEST (std::is_compound, double&&, true);
+#endif
 
     // pointer to member
     TEST (std::is_compound, long (class_t::*), true);
@@ -531,14 +545,17 @@ void test_is_compound ()
     TEST (std::is_compound, float (char), true);
 
     // function pointer
-    TEST (std::is_compound, long (*)(), false);
-    TEST (std::is_compound, double (*)(int), false);
+    TEST (std::is_compound, long (*)(), true);
+    TEST (std::is_compound, double (*)(int), true);
 
     // function reference
-    TEST (std::is_compound, long (&)(), false);
+    TEST (std::is_compound, long (&)(), true);
 
     // member function reference
-    //TEST (std::is_compound, long (class_t::&), false);
+    typedef long (class_t::*memfun_t_ptr)();
+    typedef std::remove_pointer<memfun_t_ptr>::type memfun_t;
+    typedef std::add_lvalue_reference<memfun_t>::type memfun_t_ref;
+    TEST (std::is_compound, memfun_t_ref, true);
 }
 
 void test_is_member_pointer ()
