@@ -39,30 +39,27 @@ test_tuple_size ()
 {
     rw_info (0, __FILE__, __LINE__, "tuple_size");
 
-    using std::tuple_size;
+#define STRING(x)   #x
+#define TEST(T, S)  \
+    rw_assert (std::tuple_size<T>::value == S, __FILE__, __LINE__, \
+               "tuple_size<" #T ">::value, got %d, expected " \
+               STRING (S), std::tuple_size<T>::value)
 
-    rw_assert (tuple_size<EmptyTuple>::value == 0, __FILE__, __LINE__,
-               "tuple_size<EmptyTuple>::value != 0");
+    TEST (EmptyTuple, 0);
 
-    rw_assert (tuple_size<IntTuple>::value == 1, __FILE__, __LINE__,
-               "tuple_size<IntTuple>::value != 1");
-    rw_assert (tuple_size<ConstIntTuple>::value == 1, __FILE__, __LINE__,
-               "tuple_size<ConstIntTuple>::value != 1");
-    rw_assert (tuple_size<UserTuple>::value == 1, __FILE__, __LINE__,
-               "tuple_size<UserTuple>::value != 1");
-    rw_assert (tuple_size<NestedTuple>::value == 1, __FILE__, __LINE__,
-               "tuple_size<NestedTuple>::value != 1");
+    TEST (IntTuple, 1);
+    TEST (ConstIntTuple, 1);
+    TEST (UserTuple, 1);
+    TEST (NestedTuple, 1);
 
-    rw_assert (tuple_size<PairTuple>::value == 2, __FILE__, __LINE__,
-               "tuple_size<Tuple>::value == 2");
+    TEST (PairTuple, 2);
 
-    rw_assert (tuple_size<BigTuple>::value == BigListSize,
-                __FILE__, __LINE__, "tuple_size<>::value == 0");
+    TEST (BigTuple, BigListSize);
 }
 
 /**************************************************************************/
 
-#include <type_traits>          // for is_same
+#include <rw/_meta_rel.h>
 
 #include <rw_any.h>
 
@@ -105,15 +102,15 @@ test_tuple_element ()
 {
     rw_info (0, __FILE__, __LINE__, "tuple_element");
 
-    using std::is_same;
-    using std::tuple_element;
-
+#define IS_SAME(T,U) \
+        _RW::__rw_is_same<T, U>::value
 #define TYPE_NAME(T) \
         (any_t (T ())).type_name ()
 
+#undef TEST
 #define TEST(N, T, E) \
-    typedef tuple_element<N, T>::type T ## N; \
-    rw_assert (is_same<T ## N, E>::value, __FILE__, __LINE__, \
+    typedef std::tuple_element<N, T>::type T ## N; \
+    rw_assert (IS_SAME(T ## N, E), __FILE__, __LINE__, \
                "tuple_element<0, " #T ">::type, got type \"%s\", " \
                "expected type \"" #E "\"", TYPE_NAME (T##N))
 
