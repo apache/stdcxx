@@ -195,6 +195,9 @@ _RWSTD_NAMESPACE (std) {
  * The class template integral_constant and its associated typedefs
  * true_type and false_type are used as base classes to define the
  * interface for various type traits.
+ *
+ * @tparam _TypeT The type of the integral constant value.
+ * @tparam _Value The value of the integral constant.
  */
 template <class _TypeT, _TypeT _Value>
 struct integral_constant
@@ -241,7 +244,10 @@ typedef integral_constant<bool, false> false_type;
 /**
  * @ingroup meta_unary_cat
  *
- * \e UnaryTypeTrait to determine if _TypeT is void or a cv-qualified void.
+ * \e UnaryTypeTrait to determine if _TypeT is void or a cv-qualified 
+ * void.
+ *
+ * @tparam _TypeT The type to evaluate.
  */
 template <class _TypeT>
 struct is_void 
@@ -253,11 +259,12 @@ struct is_void
  * @ingroup meta_unary_cat
  *
  * \e UnaryTypeTrait to determine if _TypeT is an integral type.
+ * Types \c bool, \c char, \c wchar_t, and the signed and unsigned
+ * integer types are collectively called integral types. The signed
+ * and unsigned integer types include signed and unsigned versions
+ * of \c char, \c short, \c int, \c long and \c long \c long.
  *
- * Types \c bool, \c char, \c wchar_t, and the signed and unsigned integer
- * types are collectively called integral types. The signed and unsigned
- * integer types include signed and unsigned versions of \c char, \c short,
- * \c int, \c long and \c long \c long.
+ * @tparam _TypeT The type to evaluate.
  */
 template <class _TypeT>
 struct is_integral
@@ -272,6 +279,8 @@ struct is_integral
  *
  * Types \c float, \c double, \c long \c double, and cv-qualified versions
  * of those types make up the set of floating point types.
+ *
+ * @tparam _TypeT The type to evaluate.
  */
 template <class _TypeT>
 struct is_floating_point
@@ -282,7 +291,10 @@ struct is_floating_point
 /**
  * @ingroup meta_unary_cat
  *
- * \e UnaryTypeTrait to determine if _TypeT is an array type.
+ * \e UnaryTypeTrait to determine if _TypeT is an array type. Array types
+ * include both arrays of bounded and unbounded length.
+ *
+ * @tparam _TypeT The type to evaluate.
  */
 template <class _TypeT>
 struct is_array
@@ -294,9 +306,10 @@ struct is_array
  * @ingroup meta_unary_cat
  *
  * \e UnaryTypeTrait to determine if _TypeT is a pointer type.
- *
  * Includes function pointers, but not pointers to non-static member
  * functions.
+ *
+ * @tparam _TypeT The type to evaluate.
  */
 template <class _TypeT>
 struct is_pointer
@@ -308,6 +321,8 @@ struct is_pointer
  * @ingroup meta_unary_cat
  *
  * \e UnaryTypeTrait to determine if _TypeT is an lvalue reference type.
+ *
+ * @tparam _TypeT The type to evaluate.
  */
 template <class _TypeT>
 struct is_lvalue_reference
@@ -319,6 +334,8 @@ struct is_lvalue_reference
  * @ingroup meta_unary_cat
  *
  * \e UnaryTypeTrait to determine if _TypeT is an rvalue reference type.
+ *
+ * @tparam _TypeT The type to evaluate.
  */
 template <class _TypeT>
 struct is_rvalue_reference
@@ -331,7 +348,9 @@ struct is_rvalue_reference
  *
  * \e UnaryTypeTrait to determine if _TypeT is a reference type.
  *
- * Includes references to functions.
+ * @note References to functions are still references, not functions.
+ *
+ * @tparam _TypeT The type to evaluate.
  */
 template <class _TypeT>
 struct is_reference
@@ -343,7 +362,9 @@ struct is_reference
  * @ingroup meta_unary_cat
  *
  * \e UnaryTypeTrait to determine if _TypeT is a pointer to non-static
- * member pointer.
+ * member.
+ *
+ * @tparam _TypeT The type to evaluate.
  */
 template <class _TypeT>
 struct is_member_object_pointer
@@ -356,6 +377,8 @@ struct is_member_object_pointer
  *
  * \e UnaryTypeTrait to determine if _TypeT is a pointer to non-static
  * member function.
+ *
+ * @tparam _TypeT The type to evaluate.
  */
 template <class _TypeT>
 struct is_member_function_pointer
@@ -368,8 +391,10 @@ struct is_member_function_pointer
  *
  * \e UnaryTypeTrait to determine if _TypeT is an enumeration type.
  *
- * @note This may not be accurate for class types if the necessary
- * compiler support is not available.
+ * @note This may not be accurate if the necessary compiler support
+ * is not available.
+ *
+ * @tparam _TypeT The type to evaluate.
  */
 template <class _TypeT>
 struct is_enum
@@ -382,8 +407,8 @@ struct is_enum
  *
  * \e UnaryTypeTrait to determine if _TypeT is a union type
  *
- * @note This may not be accurate for class types if the necessary
- * compiler support is not available.
+ * @note This may not be accurate if the necessary compiler support
+ * is not available.
  */
 template <class _TypeT>
 struct is_union
@@ -397,10 +422,11 @@ struct is_union
  * \e UnaryTypeTrait to determine if _TypeT is a class type but not
  * a union type.
  *
- * @note This may not be accurate for class types if the necessary
- * compiler support is not available.
- *
+ * @note This may not be accurate if the necessary compiler support
+ * is not available.
  * @note a C++ struct is of class type.
+ *
+ * @tparam _TypeT The type to evaluate.
  */
 template <class _TypeT>
 struct is_class
@@ -413,8 +439,10 @@ struct is_class
  *
  * \e UnaryTypeTrait to determine if _TypeT is a function type.
  *
- * @note This may not be accurate for class types if the necessary
- * compiler support is not available.
+ * @note This may not be accurate if the necessary compiler support
+ * is not available.
+ *
+ * @tparam _TypeT The type to evaluate.
  */
 template <class _TypeT>
 struct is_function
@@ -426,8 +454,9 @@ struct is_function
  * @ingroup meta_unary_comp
  *
  * \e UnaryTypeTrait to determine if _TypeT is an arithmetic type.
- *
  * Arithmetic types include both integral and floating point types.
+ *
+ * @tparam _TypeT The type to evaluate.
  */
 template <class _TypeT>
 struct is_arithmetic
@@ -439,9 +468,10 @@ struct is_arithmetic
  * @ingroup meta_unary_comp
  *
  * \e UnaryTypeTrait to determine if _TypeT is a fundamental type.
+ * Fundamental types are all the types provided natively. These types
+ * include all arithmetic types and all void types.
  *
- * Fundamental types are all the types provided natively. These types include
- * all arithmetic types and all void types.
+ * @tparam _TypeT The type to evaluate.
  */
 template <class _TypeT>
 struct is_fundamental
@@ -453,9 +483,10 @@ struct is_fundamental
  * @ingroup meta_unary_comp
  *
  * \e UnaryTypeTrait to determine if _TypeT is an object type.
+ * An object type is a (possibly cv-qualified) type that is not
+ * a function type, not a reference type, and not a void type.
  *
- * An object type is a (possibly cv-qualified) type that is not a function
- * type, not a reference type, and not a void type.
+ * @tparam _TypeT The type to evaluate.
  */
 template <class _TypeT>
 struct is_object
@@ -467,10 +498,11 @@ struct is_object
  * @ingroup meta_unary_comp
  *
  * \e UnaryTypeTrait to determine if _TypeT is a scalar type.
+ * Arithmetic types, enumeration types, pointer types, pointer
+ * to member types, and cv-qualified versions of these types are
+ * collectively called scalar types.
  *
- * Arithmetic types, enumeration types, pointer types, pointer to member
- * types, and cv-qualified versions of these types are collectively called
- * scalar types.
+ * @tparam _TypeT The type to evaluate.
  */
 template <class _TypeT>
 struct is_scalar
@@ -482,9 +514,11 @@ struct is_scalar
  * @ingroup meta_unary_comp
  *
  * \e UnaryTypeTrait to determine if _TypeT is a compound type.
+ * Compound types are arrays, functions, pointers, references,
+ * classes, unions, enumerations and pointers to non-static class
+ * members.
  *
- * Compound types are arrays, functions, pointers, references, classes
- * unions, enumerations and pointers to non-static class members.
+ * @tparam _TypeT The type to evaluate.
  */
 template <class _TypeT>
 struct is_compound
@@ -497,6 +531,8 @@ struct is_compound
  *
  * \e UnaryTypeTrait to determine if _TypeT is a pointer to a member
  * object or pointer to member function type.
+ *
+ * @tparam _TypeT The type to evaluate.
  */
 template <class _TypeT>
 struct is_member_pointer
@@ -508,6 +544,8 @@ struct is_member_pointer
  * @ingroup meta_unary_prop
  *
  * \e UnaryTypeTrait to determine if _TypeT is const-qualified.
+ *
+ * @tparam _TypeT The type to evaluate.
  */
 template <class _TypeT>
 struct is_const
@@ -519,6 +557,8 @@ struct is_const
  * @ingroup meta_unary_prop
  *
  * \e UnaryTypeTrait to determine if _TypeT is volatile-qualified.
+ *
+ * @tparam _TypeT The type to evaluate.
  */
 template <class _TypeT>
 struct is_volatile
@@ -529,13 +569,17 @@ struct is_volatile
 /**
  * @ingroup meta_unary_prop
  *
- * \e UnaryTypeTrait to determine if _TypeT is a trivial type.
+ * \e UnaryTypeTrait to determine if _TypeT is a trivial type. Scalar
+ * types, trivial class types, arrays of such types and cv-qualified
+ * versions of these types are collectively called trival types. Trivial
+ * class types have a trivial default constructor, a trivial destructor
+ * a trivial copy constructor and a trivial copy assignment operator.
  *
- * _TypeT shall be a complete type, an array of unknown bound, or
- * possibly cv-qualified void.
+ * @note This may not be accurate if the necessary compiler support
+ * is not available.
  *
- * @note This may not be accurate for class types if the necessary
- * compiler support is not available.
+ * @tparam _TypeT The type to evaluate. Shall be a complete type,
+ * an array of unknown bound, or possibly cv-qualified void.
  */
 template <class _TypeT>
 struct is_trivial
@@ -547,13 +591,23 @@ struct is_trivial
  * @ingroup meta_unary_prop
  *
  * \e UnaryTypeTrait to determine if _TypeT is a type with standard
- * layout.
+ * layout. Scalar types, standard-layout class types, arrays of such
+ * types and cv-qualified versions of these types are collectively
+ * called standard layout types. Standard layout class types have no
+ * non-static data members of non-standard-layout class or reference.
+ * They have no virtual functions and no virtual base classes, use the
+ * same access control for all non-static data members, have no base
+ * classes of non-standard-layout type, no non-static data members in
+ * the most-derived class and at most one base class with non-static
+ * data members or has no base classes with non-static data members.
+ * Finally, a standard-layout class has no base classes of the same
+ * type as the first non-static data member.
  *
- * _TypeT shall be a complete type, an array of unknown bound, or
- * possibly cv-qualified void.
+ * @note This may not be accurate if the necessary compiler support
+ * is not available.
  *
- * @note This may not be accurate for class types if the necessary
- * compiler support is not available.
+ * @tparam _TypeT The type to evaluate. Shall be a complete type,
+ * an array of unknown bound, or possibly cv-qualified void.
  */
 template <class _TypeT>
 struct is_standard_layout
@@ -565,9 +619,16 @@ struct is_standard_layout
  * @ingroup meta_unary_prop
  *
  * \e UnaryTypeTrait to determine if _TypeT is a plain-old-data type.
+ * Scalar types, pod classes, arrays of such types and cv-qualified
+ * versions of these types are collectively called pod types. The pod
+ * class types meet the requirements of both trivial and standard layout
+ * types and have no non-static data members of non-pod type.
  *
- * @note This may not be accurate for class types if the necessary
- * compiler support is not available.
+ * @note This may not be accurate if the necessary compiler support
+ * is not available.
+ *
+ * @tparam _TypeT The type to evaluate. Shall be a complete type,
+ * an array of unknown bound, or possibly cv-qualified void.
  */
 template <class _TypeT>
 struct is_pod
@@ -580,8 +641,11 @@ struct is_pod
  *
  * \e UnaryTypeTrait to determine if _TypeT is an empty class.
  *
- * @note This may not be accurate for class types if the necessary
- * compiler support is not available.
+ * @note This may not be accurate if the necessary compiler support
+ * is not available.
+ *
+ * @tparam _TypeT The type to evaluate. Shall be a complete type,
+ * an array of unknown bound, or possibly cv-qualified void.
  */
 template <class _TypeT>
 struct is_empty
@@ -594,8 +658,11 @@ struct is_empty
  *
  * \e UnaryTypeTrait to determine if _TypeT is a polymorphic class.
  *
- * @note This may not be accurate for class types if the necessary
- * compiler support is not available.
+ * @note This may not be accurate if the necessary compiler support
+ * is not available.
+ *
+ * @tparam _TypeT The type to evaluate. Shall be a complete type,
+ * an array of unknown bound, or possibly cv-qualified void.
  */
 template <class _TypeT>
 struct is_polymorphic
@@ -608,8 +675,11 @@ struct is_polymorphic
  *
  * \e UnaryTypeTrait to determine if _TypeT is an abstract class.
  *
- * @note This may not be accurate for class types if the necessary
- * compiler support is not available.
+ * @note This may not be accurate if the necessary compiler support
+ * is not available.
+ *
+ * @tparam _TypeT The type to evaluate. Shall be a complete type,
+ * an array of unknown bound, or possibly cv-qualified void.
  */
 template <class _TypeT>
 struct is_abstract
@@ -624,11 +694,11 @@ struct is_abstract
  * class type with a trivial default constructor, or an array of
  * such a class type.
  *
- * _TypeT shall be a complete type, an array of unknown bound, or
- * possibly cv-qualified void.
- *
  * @note This may not be accurate for class types if the necessary
  * compiler support is not available.
+ *
+ * @tparam _TypeT The type to evaluate. Shall be a complete type,
+ * an array of unknown bound, or possibly cv-qualified void.
  */
 template <class _TypeT>
 struct has_trivial_default_constructor
@@ -639,15 +709,14 @@ struct has_trivial_default_constructor
 /**
  * @ingroup meta_unary_prop
  *
- * \e UnaryTypeTrait to determine if _TypeT is a trivial type or
- * a class type with a trivial copy constructor, or an array of
- * such a class type.
- *
- * _TypeT shall be a complete type, an array of unknown bound, or
- * possibly cv-qualified void.
+ * \e UnaryTypeTrait to determine if _TypeT is a trivial type, a
+ * reference type, or a class type with a trivial copy constructor.
  *
  * @note This may not be accurate for class types if the necessary
  * compiler support is not available.
+ *
+ * @tparam _TypeT The type to evaluate. Shall be a complete type,
+ * an array of unknown bound, or possibly cv-qualified void.
  */
 template <class _TypeT>
 struct has_trivial_copy_constructor
@@ -658,11 +727,15 @@ struct has_trivial_copy_constructor
 /**
  * @ingroup meta_unary_prop
  *
- * \e UnaryTypeTrait to determine if the assignment operator for _TypeT
- * is trivial.
+ * \e UnaryTypeTrait to determine if _TypeT is neither const nor a
+ * reference type and is a trivial type or a class type with a trivial
+ * assignment operator.
  *
  * @note This may not be accurate for class types if the necessary
  * compiler support is not available.
+ *
+ * @tparam _TypeT The type to evaluate. Shall be a complete type,
+ * an array of unknown bound, or possibly cv-qualified void.
  */
 template <class _TypeT>
 struct has_trivial_assign
@@ -673,10 +746,15 @@ struct has_trivial_assign
 /**
  * @ingroup meta_unary_prop
  *
- * \e UnaryTypeTrait to determine if the destructor for _TypeT is trivial.
+ * \e UnaryTypeTrait to determine if _TypeT is a trivial type, a reference
+ * type, or a class type with a trivial destructor, or an array of such a
+ * class type.
  *
  * @note This may not be accurate for class types if the necessary
  * compiler support is not available.
+ *
+ * @tparam _TypeT The type to evaluate. Shall be a complete type,
+ * an array of unknown bound, or possibly cv-qualified void.
  */
 template <class _TypeT>
 struct has_trivial_destructor
@@ -693,6 +771,9 @@ struct has_trivial_destructor
  *
  * @note This may not be accurate for class types if the necessary
  * compiler support is not available.
+ *
+ * @tparam _TypeT The type to evaluate. Shall be a complete type,
+ * an array of unknown bound, or possibly cv-qualified void.
  */
 template <class _TypeT>
 struct has_nothrow_default_constructor
@@ -709,6 +790,9 @@ struct has_nothrow_default_constructor
  *
  * @note This may not be accurate for class types if the necessary
  * compiler support is not available.
+ *
+ * @tparam _TypeT The type to evaluate. Shall be a complete type,
+ * an array of unknown bound, or possibly cv-qualified void.
  */
 template <class _TypeT>
 struct has_nothrow_copy_constructor
@@ -725,6 +809,9 @@ struct has_nothrow_copy_constructor
  *
  * @note This may not be accurate for class types if the necessary
  * compiler support is not available.
+ *
+ * @tparam _TypeT The type to evaluate. Shall be a complete type,
+ * an array of unknown bound, or possibly cv-qualified void.
  */
 template <class _TypeT>
 struct has_nothrow_assign
@@ -739,6 +826,9 @@ struct has_nothrow_assign
  *
  * @note This may not be accurate for class types if the necessary
  * compiler support is not available.
+ *
+ * @tparam _TypeT The type to evaluate. Shall be a complete type,
+ * an array of unknown bound, or possibly cv-qualified void.
  */
 template <class _TypeT>
 struct has_virtual_destructor
@@ -751,6 +841,8 @@ struct has_virtual_destructor
  *
  * \e UnaryTypeTrait to determine if _TypeT is a signed arithmetic
  * type.
+ *
+ * @tparam _TypeT The type to evaluate.
  */
 template <class _TypeT>
 struct is_signed
@@ -763,6 +855,8 @@ struct is_signed
  *
  * \e UnaryTypeTrait to determine if _TypeT is an unsigned arithmetic
  * type.
+ *
+ * @tparam _TypeT The type to evaluate.
  */
 template <class _TypeT>
 struct is_unsigned
@@ -776,12 +870,14 @@ struct is_unsigned
  * \e UnaryTypeTrait to determine the alignment of objects of type
  * _TypeT.
  *
- * @note This may not be accurate for class types if the necessary
- * compiler support is not available.
+ * @note This may not be accurate if the necessary compiler support
+ * is not available.
+ *
+ * @tparam _TypeT The type to evaluate.
  */
 template <class _TypeT>
 struct alignment_of
-    : integral_constant<int, _RW::__rw_alignment_of<_TypeT>::value>
+    : integral_constant<_RWSTD_SIZE_T, _RW::__rw_alignment_of<_TypeT>::value>
 {
 };
 
@@ -789,22 +885,32 @@ struct alignment_of
  * @ingroup meta_unary_prop
  *
  * \e UnaryTypeTrait to determine the rank of objects of type _TypeT.
+ * If _TypeT names an array type, the rank is an integer value that
+ * represents the number of dimensions of _TypeT, otherwise the value
+ * is 0.
+ *
+ * @tparam _TypeT The type to evaluate.
  */
 template <class _TypeT>
 struct rank
-    : integral_constant<int, _RW::__rw_rank<_TypeT>::value>
+    : integral_constant<_RWSTD_SIZE_T, _RW::__rw_rank<_TypeT>::value>
 {
 };
 
 /**
  * @ingroup meta_unary_prop
  *
- * \e UnaryTypeTrait to determine if the extent of the I'th bound of
- * objects of type _TypeT.
+ * \e UnaryTypeTrait to determine if the extent of one dimension of
+ * objects of type _TypeT. If _TypeT is an array type with rank greater
+ * than _Bound, the value will be the size of the given dimension of
+ * that array, otherwise the value is 0.
+ *
+ * @tparam _TypeT The type to evaluate.
+ * @tparam _Bound The dimension of the array to get the extent of.
  */
 template <class _TypeT, unsigned _Bound = 0>
 struct extent
-    : integral_constant<int, _RW::__rw_extent<_TypeT, _Bound>::value>
+    : integral_constant<_RWSTD_SIZE_T, _RW::__rw_extent<_TypeT, _Bound>::value>
 {
 };
 
@@ -813,6 +919,9 @@ struct extent
  *
  * \e UnaryTypeTrait to determine if _TypeT and _TypeU are exactly the
  * same type.
+ *
+ * @tparam _TypeT The first type to compare.
+ * @tparam _TypeT The second type to compare.
  */
 template <class _TypeT, class _TypeU>
 struct is_same
@@ -832,10 +941,13 @@ struct is_same
  *
  * @note This may not be accurate for class types if the necessary
  * compiler support is not available.
+ *
+ * @tparam _TypeT The base type.
+ * @tparam _TypeU The derived type.
  */
 template <class _TypeT, class _TypeU>
 struct is_base_of
-    : integral_constant<int, _RW::__rw_is_base_of<_TypeT, _TypeU>::value>
+    : integral_constant<bool, _RW::__rw_is_base_of<_TypeT, _TypeU>::value>
 {
 };
 
@@ -847,10 +959,13 @@ struct is_base_of
  *
  * @note This may not be accurate for class types if the necessary
  * compiler support is not available.
+ *
+ * @tparam _TypeT The type to test conversion from.
+ * @tparam _TypeT The type to test conversion to.
  */
 template <class _TypeT, class _TypeU>
 struct is_convertible
-    : integral_constant<int, _RW::__rw_is_convertible<_TypeT, _TypeU>::value>
+    : integral_constant<bool, _RW::__rw_is_convertible<_TypeT, _TypeU>::value>
 {
 };
 
@@ -858,9 +973,10 @@ struct is_convertible
  * @ingroup meta_trans_cv
  *
  * \e TransformationTrait to remove any top-level const-qualifier.
- *
  * The member typedef \c type shall be the same as _TypeT except that
- * any top level const-qualifier has been removed
+ * any top level const-qualifier has been removed.
+ *
+ * @tparam _TypeT The type to transform.
  */
 template <class _TypeT>
 struct remove_const
@@ -872,9 +988,10 @@ struct remove_const
  * @ingroup meta_trans_cv
  *
  * \e TransformationTrait to remove any top-level volatile-qualifier.
- *
  * The member typedef \c type shall be the same as _TypeT except that
- * any top level volatile-qualifier has been removed
+ * any top level volatile-qualifier has been removed.
+ *
+ * @tparam _TypeT The type to transform.
  */
 template <class _TypeT>
 struct remove_volatile
@@ -885,10 +1002,11 @@ struct remove_volatile
 /**
  * @ingroup meta_trans_cv
  *
- * \e TransformationTrait to remove any top-level cv-qualifiers.
+ * \e TransformationTrait to remove any top-level cv-qualifiers. The
+ * member typedef \c type shall be the same as _TypeT except that any
+ * top level cv-qualifier has been removed.
  *
- * The member typedef \c type shall be the same as _TypeT except that
- * any top level cv-qualifier has been removed
+ * @tparam _TypeT The type to transform.
  */
 template <class _TypeT>
 struct remove_cv
@@ -899,11 +1017,12 @@ struct remove_cv
 /**
  * @ingroup meta_trans_cv
  *
- * \e TransformationTrait to add a top-level const-qualifier.
- *
- * If _TypeT is a reference, function, or other type level const-
+ * \e TransformationTrait to add a top-level const-qualifier. If
+ * _TypeT is a reference, function, or other type level const-
  * qualified type then \c type shall be the same as _TypeT,
- * otherwise _TypeT const
+ * otherwise _TypeT const.
+ *
+ * @tparam _TypeT The type to transform.
  */
 template <class _TypeT>
 struct add_const
@@ -915,10 +1034,11 @@ struct add_const
  * @ingroup meta_trans_cv
  *
  * \e TransformationTrait to add a top-level volatile-qualifier.
- *
  * If _TypeT is a reference, function, or other type level volatile-
  * qualified type then \c type shall be the same as _TypeT,
- * otherwise _TypeT volatile
+ * otherwise _TypeT volatile.
+ *
+ * @tparam _TypeT The type to transform.
  */
 template <class _TypeT>
 struct add_volatile
@@ -931,6 +1051,7 @@ struct add_volatile
  *
  * \e TransformationTrait to add a top-level const and volatile-qualifier.
  *
+ * @tparam _TypeT The type to transform.
  */
 template <class _TypeT>
 struct add_cv
@@ -944,7 +1065,9 @@ struct add_cv
  * \e TransformationTrait to remove a reference from _TypeT.
  *
  * The member typedef \c type shall be the same as _TypeT, except
- * any reference qualifier has been removed
+ * any reference qualifier has been removed.
+ *
+ * @tparam _TypeT The type to transform.
  */
 template <class _TypeT>
 struct remove_reference
@@ -956,6 +1079,8 @@ struct remove_reference
  * @ingroup meta_trans_ref
  * 
  * \e TransformationTrait to add a reference to _TypeT.
+ *
+ * @tparam _TypeT The type to transform.
  */
 template <class _TypeT>
 struct add_lvalue_reference
@@ -967,6 +1092,8 @@ struct add_lvalue_reference
  * @ingroup meta_trans_ref
  *
  * \e TransformationTrait to add an rvalue-reference to _TypeT.
+ *
+ * @tparam _TypeT The type to transform.
  */
 template <class _TypeT>
 struct add_rvalue_reference
@@ -979,6 +1106,8 @@ struct add_rvalue_reference
  *
  * \e TransformationTrait to get a signed type from an enum or non-
  * boolean integral type.
+ *
+ * @tparam _TypeT The type to transform.
  */
 template <class _TypeT>
 struct make_signed
@@ -991,6 +1120,8 @@ struct make_signed
  *
  * \e TransformationTrait to get an unsigned type from an enum or non-
  * boolean integral type.
+ *
+ * @tparam _TypeT The type to transform.
  */
 template <class _TypeT>
 struct make_unsigned
@@ -1002,9 +1133,10 @@ struct make_unsigned
  * @ingroup meta_trans_arr
  *
  * \e TransformationTrait to remove a dimension from the type _TypeT.
- *
  * If _TypeT is 'array of _TypeU', the member typedef \c type shall
  * be _TypeU, otherwise _TypeT.
+ *
+ * @tparam _TypeT The type to transform.
  */
 template <class _TypeT>
 struct remove_extent
@@ -1016,10 +1148,10 @@ struct remove_extent
  * @ingroup meta_trans_arr
  *
  * \e TransformationTrait to remove all dimensions from the type
- * _TypeT.
+ * _TypeT. If _TypeT is 'multi-dimensional array of _TypeU', the
+ * member typedef \c type shall be _TypeU otherwise _TypeT.
  *
- * If _TypeT is 'multi-dimensional array of _TypeU', the member typedef
- * \c type shall be _TypeU otherwise _TypeT.
+ * @tparam _TypeT The type to transform.
  */
 template <class _TypeT>
 struct remove_all_extents
@@ -1031,11 +1163,12 @@ struct remove_all_extents
  * @ingroup meta_trans_pointer
  *
  * \e TransformationTrait to remove a pointer from the type _TypeT.
- *
  * The member typedef \c type shall be the same as _TypeT, except
  * any top level indirection has been removed.
  *
- * @note pointers to members are left unchanged
+ * @note pointers to members are left unchanged.
+ *
+ * @tparam _TypeT The type to transform.
  */
 template <class _TypeT>
 struct remove_pointer
@@ -1047,6 +1180,8 @@ struct remove_pointer
  * @ingroup meta_trans_pointer
  *
  * \e TransformationTrait to add a pointer to the type _TypeT.
+ *
+ * @tparam _TypeT The type to transform.
  */
 template <class _TypeT>
 struct add_pointer
@@ -1056,23 +1191,77 @@ struct add_pointer
 
 /**
  * @ingroup meta_trans_other
+ *
+ * Special trait the defines a nested pod type that is suitable for
+ * use as uninitialized storage for any object whose size is at most
+ * _Len and alignment is a divisor of align.
+ *
+ * @tparam _Len The minimum size of the aligned storage. Shall not be 0.
+ * @tparam _Align The alignment of the aligned storage. Shall be equal
+ * to alignment_of<T> for some type T or not provided. The implementation
+ * requires that the alignment value be a non-zero power of two that is
+ * less than the maximum supported extended alignment.
  */
-template <_RWSTD_SIZE_T _Len, _RWSTD_SIZE_T _Align>
+template <_RWSTD_SIZE_T _Len,
+          _RWSTD_SIZE_T _Align = _RW::__rw_default_alignment<_Len>::value>
 struct aligned_storage
 {
-    typedef _TYPENAME _RW::__rw_aligned_storage<_Len, _Align>::_C_Type type;
+    typedef _TYPENAME _RW::__rw_aligned_storage<_Len, _Align>::type type;
 };
 
-///**
-// * @ingroup meta_trans_other
-// *
-// * @note This may not be accurate for class types if the necessary
-// * compiler support is not available.
-// */
-//template <_RWSTD_SIZE_T _Len, class... Types>
-//struct aligned_union
-//{
-//}
+#ifndef _RWSTD_NO_VARIADIC_TEMPLATES
+
+/**
+ * @ingroup meta_trans_other
+ *
+ * Special trait the defines a nested pod type that is suitable for
+ * use as uninitialized storage for any object whose type is listed
+ * in _Types and whose size is at most _Len.
+ *
+ * @tparam _Len The minimum size of the aligned storage.
+ * @tparam _Types List of types which might be stored.
+ */
+template <_RWSTD_SIZE_T _Len, class... _Types>
+struct aligned_union;
+
+template <_RWSTD_SIZE_T _Len, class _TypeT, class... _Types>
+struct aligned_union
+    : _RW::__rw_aligned_union<_Len, _TypeT, _Types...>
+{
+};
+
+#else
+
+/**
+ * @ingroup meta_trans_other
+ *
+ * Special trait the defines a nested pod type that is suitable for
+ * use as uninitialized storage for any object whose type is listed
+ * in _Types and whose size is at most _Len.
+ *
+ * @tparam _Len The minimum size of the aligned storage.
+ * @tparam _Type1 Type which might be stored.
+ * @tparam _Type2 Type which might be stored.
+ * @tparam _Type3 Type which might be stored.
+ * @tparam _Type4 Type which might be stored.
+ * @tparam _Type5 Type which might be stored.
+ * @tparam _Type6 Type which might be stored.
+ * @tparam _Type7 Type which might be stored.
+ * @tparam _Type8 Type which might be stored.
+ */
+template <_RWSTD_SIZE_T _Len,
+          class _Type1                  , class _Type2 = _RW::__rw_empty,
+          class _Type3 = _RW::__rw_empty, class _Type4 = _RW::__rw_empty,
+          class _Type5 = _RW::__rw_empty, class _Type6 = _RW::__rw_empty,
+          class _Type7 = _RW::__rw_empty, class _Type8 = _RW::__rw_empty>
+struct aligned_union
+    : _RW::__rw_aligned_union<_Len,
+                              _Type1, _Type2, _Type3, _Type4,
+                              _Type5, _Type6, _Type7, _Type8>
+{
+};
+
+#endif
 
 /**
  * @ingroup meta_trans_other
@@ -1084,6 +1273,8 @@ struct aligned_storage
  * true, the member typedef type shall equal remove_extent<U>::type*. If
  * \c is_function<U>::value is true, the member typedef shall equal
  * \c add_pointer<U>::type. Otherwise the member typedef type equals \c U.
+ *
+ * @tparam _TypeT The type to transform.
  */
 template <class _TypeT>
 struct decay
@@ -1096,6 +1287,10 @@ struct decay
  *
  * If _Enable is true, the member typedef \c type shall equal _TypeT;
  * otherwise, there shall be no member typedef \c type.
+ *
+ * @tparam _Enable Flag used to select the primary template or the
+ * specialization.
+ * @tparam _TypeT The type of the member typedef if _Enable is true.
  */
 template <bool _Enable, class _TypeT = void>
 struct enable_if
@@ -1103,9 +1298,6 @@ struct enable_if
     typedef _TypeT type;
 };
 
-/**
- *
- */
 template <class _TypeT>
 struct enable_if<false, _TypeT>
 {
@@ -1116,6 +1308,11 @@ struct enable_if<false, _TypeT>
  *
  * If _Select is true, the member typedef \c type shall equal _TypeT
  * otherwise \c type shall equal _TypeU.
+ *
+ * @tparam _Select Flag used to select the primary template or the
+ * specialization.
+ * @tparam _TypeT The type of the member typedef if _Select is true.
+ * @tparam _TypeU The type of the member typedef if _Select is false.
  */
 template <bool _Select, class _TypeT, class _TypeU>
 struct conditional

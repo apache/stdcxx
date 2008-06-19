@@ -37,49 +37,317 @@
 
 _RWSTD_NAMESPACE (__rw) {
 
-template <_RWSTD_SIZE_T _Len, _RWSTD_SIZE_T _Align = 4>
+/**
+ * Metaprogramming conditional primitive that provides a member typedef
+ * _C_type that is _TypeT if _Select is true, otherwise is _TypeU.
+ *
+ * The primary template is used when _Select is true.
+ */
+template <bool _Select, class _TypeT, class _TypeU>
+struct __rw_conditional
+{
+    typedef _TypeT type;
+};
+
+/**
+ * Metaprogramming conditional primitive that provides a member typedef
+ * type is _TypeT if _Select is true, otherwise is _TypeU.
+ *
+ * This specialization if used when _Select is false.
+ */
+template <class _TypeT, class _TypeU>
+struct __rw_conditional<false, _TypeT, _TypeU>
+{
+    typedef _TypeU type;
+};
+
+#define _RWSTD_CONDITIONAL(C,T,U) _RW::__rw_conditional<C,T,U>::type
+
+
+/**
+ * Helper for __rw_aligned_storage. Specializations define a member type
+ * that is aligned on power of two boundaries.
+ */
+template <size_t _Align>
+struct __rw_aligned_storage_impl;
+
+#define _RWSTD_ALIGNED_STORAGE_SPEC(N)              \
+  template <> struct __rw_aligned_storage_impl<N> { \
+      typedef _RWSTD_TT_ALIGNED_POD(N) _C_type;     \
+}
+
+_RWSTD_ALIGNED_STORAGE_SPEC(1);
+_RWSTD_ALIGNED_STORAGE_SPEC(2);
+_RWSTD_ALIGNED_STORAGE_SPEC(4);
+_RWSTD_ALIGNED_STORAGE_SPEC(8);
+_RWSTD_ALIGNED_STORAGE_SPEC(16);
+_RWSTD_ALIGNED_STORAGE_SPEC(32);
+_RWSTD_ALIGNED_STORAGE_SPEC(64);
+_RWSTD_ALIGNED_STORAGE_SPEC(128);
+_RWSTD_ALIGNED_STORAGE_SPEC(256);
+_RWSTD_ALIGNED_STORAGE_SPEC(512);
+_RWSTD_ALIGNED_STORAGE_SPEC(1024);
+_RWSTD_ALIGNED_STORAGE_SPEC(2048);
+_RWSTD_ALIGNED_STORAGE_SPEC(4096);
+_RWSTD_ALIGNED_STORAGE_SPEC(8192);
+
+/**
+ * Helper for __rw_default_alignment. The member value will evaluate
+ * to the nearest power of two that is a valid alignment value that
+ * is less than or equal to _Size.
+ *
+ * @tparam _Size The size of the object to align.
+ * @tparam _N    The power of two value being tested.
+ * @tparam _Done Termination condition for recursion. Do not use.
+ */
+template <size_t _Size, size_t _N,
+          bool _Done =    (_RWSTD_TT_MAX_ALIGNMENT <= _N * 2)
+                       || (_Size < _N * 2)>
+struct __rw_default_alignment_impl
+{
+    enum { value = __rw_default_alignment_impl<_Size, _N * 2>::value };
+};
+
+/**
+ * Helper for __rw_default_alignment. The member value will evaluate
+ * to the nearest power of two that is less than or equal to _Size.
+ * This specialization is used to terminate recursion. It is only used
+ * when when _Done in the primary template evaluates is true. 
+ *
+ * @tparam _Size The size of the object to align.
+ * @tparam _N    The power of two value being tested.
+ */
+template <size_t _Size, size_t _N>
+struct __rw_default_alignment_impl<_Size, _N, true>
+{
+    enum { value = _N };
+};
+
+/**
+ * Helper for __rw_aligned_storage. The value member shall be the most
+ * most stringent alignment requirement for any C++ object whose size
+ * is no greater than _Size. This implementation will set value to be
+ * the nearest power of two value that is less than or equal to _Size.
+ *
+ * @tparam _Size Size of the object to calculate the alignment for.
+ */
+template <size_t _Size>
+struct __rw_default_alignment
+{
+    enum { value = __rw_default_alignment_impl<_Size, 1>::value };
+};
+
+
+/**
+ *
+ */
+template <size_t _Size, size_t _Align = __rw_default_alignment<_Size>::value>
 struct __rw_aligned_storage
 {
+    _RWSTD_STATIC_ASSERT (_Size != 0,
+                          "Unsupported size");
+    
+    _RWSTD_STATIC_ASSERT ((_Align & (_Align - 1)) == 0 || _Align == 0,
+                          "Unsupported alignment"); // expect power of 2
+    
+    _RWSTD_STATIC_ASSERT (_Align <= _RWSTD_TT_MAX_ALIGNMENT,
+                          "Unsupported alignment"); // expect less than max
+
     typedef union {
-        unsigned char __data [_Len];
-        // not implemented
+        unsigned char __size [_Size];
+
+        typename
+        __rw_aligned_storage_impl<_Align>::_C_type __align;
     } type;
 };
 
 
 #ifndef _RWSTD_NO_VARIADIC_TEMPLATES
 
-template <_RWSTD_SIZE_T _Len, class... _Types>
-struct __rw_aligned_union_impl;
+/**
+ * Helper for __rw_aligned_union. Provides a typedef type that
+ * is the largest type in the sequence of provided types.
+ */
+template <class... _Types>
+struct __rw_biggest;
+
+template <class _TypeT, class... _Types>
+struct __rw_biggest
+{
+    typedef typename
+    __rw_biggest<_Types...>::type _TypeU;
+
+    typedef typename
+    __rw_conditional<   sizeof _TypeT
+                      < sizeof _TypeU
+                      ? _TypeU
+                      : _TypeT>::type type;
+};
+
+template <class _TypeT>
+struct __rw_biggest<_TypeT>
+{
+    typedef _TypeT type;
+};
+
+/**
+ * Helper for __rw_aligned_union. Provides a typedef type that
+ * is the type with the strictest alignment requirement in the
+ * sequence of provided types.
+ */
+template <class... _Types>
+struct __rw_strictest;
+
+template <class _TypeT, class... _Types>
+struct __rw_strictest
+{
+    typedef typename
+    __rw_strictest<_Types...>::type _TypeU;
+
+    typedef typename
+    __rw_conditional<   __rw_alignment_of<_TypeT>::value
+                      < __rw_alignment_of<_TypeU>::value
+                      ? _TypeU
+                      : _TypeT>::type type;
+};
+
+template <class _TypeT>
+struct __rw_strictest<_TypeT>
+{
+    typedef _TypeT type;
+};
 
 template <_RWSTD_SIZE_T _Len, class _TypeT, class... _Types>
-struct __rw_aligned_union_impl<_Len, _TypeT, _Types...>
-{
-    typedef union {
-        unsigned char __pad [_Len ? _Len : 1];
-        _TypeT __type1;
-        typename __rw_aligned_union_impl<_Len, _Types...>::_C_type __align;
-    } _C_type;
-};
-
-template <_RWSTD_SIZE_T _Len, class _TypeT>
-struct __rw_aligned_union_impl<_Len, _TypeT>
-{
-    typedef union {
-        unsigned char __pad [_Len ? _Len : 1];
-    } _C_type;
-};
-
-template <_RWSTD_SIZE_T _Len, class... Types>
 struct __rw_aligned_union
 {
     typedef typename
-    __rw_aligned_union_impl<_Len, Types...>::_C_type type;
+    __rw_biggest<_TypeT, _Types...>::type _C_biggest;
+
+    typedef typename
+    __rw_strictest<_TypeT, _Types...>::type _C_strictest;
+
+    static const _RWSTD_SIZE_T _C_size_value =
+        sizeof (_C_biggest);
+
+    static const _RWSTD_SIZE_T alignment_value =
+        __rw_alignment_of<_C_strictest>::value;
+
+    typedef typename
+    __rw_aligned_storage<_Len < _C_size_value ? _C_size_value : _Len,
+                         alignment_value>::_C_type type;
 };
+
+#ifndef _RWSTD_NO_STATIC_CONST_MEMBER_DEFINITION
+
+template <_RWSTD_SIZE_T _Len, class... _Types>
+const _RWSTD_SIZE_T
+__rw_aligned_union<_Len, _Types...>::alignment_value;
+
+template <_RWSTD_SIZE_T _Len, class... _Types>
+const _RWSTD_SIZE_T
+__rw_aligned_union<_Len, _Types...>::_C_size_value;
+
+#endif // _RWSTD_NO_STATIC_CONST_MEMBER_DEFINITION
 
 #else // _RWSTD_NO_VARIADIC_TEMPLATES
 
 struct __rw_empty { };
+
+/**
+ * Helper for __rw_aligned_union. Provides a typedef type that
+ * is the largest type in the sequence of provided types.
+ */
+template <class _Type1             , class _Type2 = __rw_empty,
+          class _Type3 = __rw_empty, class _Type4 = __rw_empty,
+          class _Type5 = __rw_empty, class _Type6 = __rw_empty,
+          class _Type7 = __rw_empty, class _Type8 = __rw_empty>
+struct __rw_biggest
+{
+    typedef typename
+    __rw_conditional<(  sizeof _Type1 < sizeof _Type2),
+                     _Type2, _Type1>::type _Type12;
+
+    typedef typename
+    __rw_conditional<(  sizeof _Type3 < sizeof _Type4),
+                     _Type4, _Type3>::type _Type34;
+
+    typedef typename
+    __rw_conditional<(  sizeof _Type5 < sizeof _Type6),
+                     _Type6, _Type5>::type _Type56;
+
+    typedef typename
+    __rw_conditional<(  sizeof _Type7 < sizeof _Type8),
+                     _Type8, _Type7>::type _Type78;
+
+    typedef typename
+    __rw_conditional<(  sizeof _Type12 < sizeof _Type34),
+                     _Type34, _Type12>::type _Type1234;
+
+    typedef typename
+    __rw_conditional<(  sizeof _Type56 < sizeof _Type78),
+                     _Type78, _Type56>::type _Type5678;
+
+    typedef typename
+    __rw_conditional<(  sizeof _Type1234 < sizeof _Type5678),
+                     _Type5678, _Type1234>::type type;
+};
+
+/**
+ * Helper for __rw_aligned_union. Provides a typedef type that
+ * is the type with the strictest alignment requirement in the
+ * sequence of provided types.
+ */
+template <class _Type1             , class _Type2 = __rw_empty,
+          class _Type3 = __rw_empty, class _Type4 = __rw_empty,
+          class _Type5 = __rw_empty, class _Type6 = __rw_empty,
+          class _Type7 = __rw_empty, class _Type8 = __rw_empty>
+struct __rw_strictest
+{
+    // these enums necessary to avoid problems with VC8
+    enum {
+        _C_select12 =   __rw_alignment_of<_Type1>::value
+                      < __rw_alignment_of<_Type2>::value,
+        _C_select34 =   __rw_alignment_of<_Type3>::value
+                      < __rw_alignment_of<_Type4>::value,
+        _C_select56 =   __rw_alignment_of<_Type5>::value
+                      < __rw_alignment_of<_Type6>::value,
+        _C_select78 =   __rw_alignment_of<_Type7>::value
+                      < __rw_alignment_of<_Type8>::value
+    };
+
+    typedef typename
+    __rw_conditional<_C_select12, _Type2, _Type1>::type _Type12;
+
+    typedef typename
+    __rw_conditional<_C_select34, _Type4, _Type3>::type _Type34;
+
+    typedef typename
+    __rw_conditional<_C_select56, _Type6, _Type5>::type _Type56;
+
+    typedef typename
+    __rw_conditional<_C_select78, _Type8, _Type7>::type _Type78;
+
+    enum {
+        _C_select1234 =   __rw_alignment_of<_Type12>::value
+                        < __rw_alignment_of<_Type34>::value,
+        _C_select5678 =   __rw_alignment_of<_Type56>::value
+                        < __rw_alignment_of<_Type78>::value
+    };
+
+    typedef typename
+    __rw_conditional<_C_select1234, _Type34, _Type12>::type _Type1234;
+
+    typedef typename
+    __rw_conditional<_C_select5678, _Type78, _Type56>::type _Type5678;
+
+    enum {
+        _C_select =   __rw_alignment_of<_Type1234>::value
+                    < __rw_alignment_of<_Type5678>::value
+    };
+
+    typedef typename
+    __rw_conditional<_C_select, _Type5678, _Type1234>::type type;
+};
 
 template <_RWSTD_SIZE_T _Len,
           class _Type1             , class _Type2 = __rw_empty,
@@ -88,20 +356,48 @@ template <_RWSTD_SIZE_T _Len,
           class _Type7 = __rw_empty, class _Type8 = __rw_empty>
 struct __rw_aligned_union
 {
-    typedef union {
-        unsigned char __pad [_Len ? _Len : 1];
-        _Type1 __object1;
-        _Type2 __object2;
-        _Type3 __object3;
-        _Type4 __object4;
-        _Type5 __object5;
-        _Type6 __object6;
-        _Type7 __object7;
-        _Type8 __object8;
-    } type;
+    typedef typename
+    __rw_biggest<_Type1, _Type2, _Type3, _Type4,
+                      _Type5, _Type6, _Type7, _Type8>::type _C_biggest;
+
+    typedef typename
+    __rw_strictest<_Type1, _Type2, _Type3, _Type4,
+                         _Type5, _Type6, _Type7, _Type8>::type _C_strictest;
+
+    static const _RWSTD_SIZE_T _C_size_value =
+        sizeof (_C_biggest);
+
+    static const _RWSTD_SIZE_T alignment_value =
+        __rw_alignment_of<_C_strictest>::value;
+
+    typedef typename
+    __rw_aligned_storage<_C_size_value < _Len ? _Len : _C_size_value,
+                         alignment_value>::type type;
 };
 
+#ifndef _RWSTD_NO_STATIC_CONST_MEMBER_DEFINITION
+
+template <_RWSTD_SIZE_T _Len,
+          class _Type1, class _Type2, class _Type3, class _Type4,
+          class _Type5, class _Type6, class _Type7, class _Type8>
+const _RWSTD_SIZE_T
+__rw_aligned_union<_Len,
+                   _Type1, _Type2, _Type3, _Type4,
+                   _Type5, _Type6, _Type7, _Type8>::alignment_value;
+
+template <_RWSTD_SIZE_T _Len,
+          class _Type1, class _Type2, class _Type3, class _Type4,
+          class _Type5, class _Type6, class _Type7, class _Type8>
+const _RWSTD_SIZE_T
+__rw_aligned_union<_Len,
+                   _Type1, _Type2, _Type3, _Type4,
+                   _Type5, _Type6, _Type7, _Type8>::_C_size_value;
+
+#endif // _RWSTD_NO_STATIC_CONST_MEMBER_DEFINITION
+
 #endif // !_RWSTD_NO_VARIADIC_TEMPLATES
+
+
 
 /**
  * Conditional primitive that provides a member typedef type that is
@@ -157,33 +453,6 @@ struct __rw_disable_if<true, _TypeT>
 };
 
 #define _RWSTD_DISABLE_IF(C,T) _RW::__rw_disable_if<C,T>::type
-
-
-/**
- * Metaprogramming conditional primitive that provides a member typedef
- * _C_type that is _TypeT if _Select is true, otherwise is _TypeU.
- *
- * The primary template is used when _Select is true.
- */
-template <bool _Select, class _TypeT, class _TypeU>
-struct __rw_conditional
-{
-    typedef _TypeT type;
-};
-
-/**
- * Metaprogramming conditional primitive that provides a member typedef
- * type is _TypeT if _Select is true, otherwise is _TypeU.
- *
- * This specialization if used when _Select is false.
- */
-template <class _TypeT, class _TypeU>
-struct __rw_conditional<false, _TypeT, _TypeU>
-{
-    typedef _TypeU type;
-};
-
-#define _RWSTD_CONDITIONAL(C,T,U) _RW::__rw_conditional<C,T,U>::type
 
 
 /**
