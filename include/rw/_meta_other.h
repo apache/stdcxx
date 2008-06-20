@@ -266,31 +266,31 @@ template <class _Type1             , class _Type2 = __rw_empty,
 struct __rw_biggest
 {
     typedef typename
-    __rw_conditional<(  sizeof _Type1 < sizeof _Type2),
+    __rw_conditional<(sizeof _Type1 < sizeof _Type2),
                      _Type2, _Type1>::type _Type12;
 
     typedef typename
-    __rw_conditional<(  sizeof _Type3 < sizeof _Type4),
+    __rw_conditional<(sizeof _Type3 < sizeof _Type4),
                      _Type4, _Type3>::type _Type34;
 
     typedef typename
-    __rw_conditional<(  sizeof _Type5 < sizeof _Type6),
+    __rw_conditional<(sizeof _Type5 < sizeof _Type6),
                      _Type6, _Type5>::type _Type56;
 
     typedef typename
-    __rw_conditional<(  sizeof _Type7 < sizeof _Type8),
+    __rw_conditional<(sizeof _Type7 < sizeof _Type8),
                      _Type8, _Type7>::type _Type78;
 
     typedef typename
-    __rw_conditional<(  sizeof _Type12 < sizeof _Type34),
+    __rw_conditional<(sizeof _Type12 < sizeof _Type34),
                      _Type34, _Type12>::type _Type1234;
 
     typedef typename
-    __rw_conditional<(  sizeof _Type56 < sizeof _Type78),
+    __rw_conditional<(sizeof _Type56 < sizeof _Type78),
                      _Type78, _Type56>::type _Type5678;
 
     typedef typename
-    __rw_conditional<(  sizeof _Type1234 < sizeof _Type5678),
+    __rw_conditional<(sizeof _Type1234 < sizeof _Type5678),
                      _Type5678, _Type1234>::type type;
 };
 
@@ -305,50 +305,40 @@ template <class _Type1             , class _Type2 = __rw_empty,
           class _Type7 = __rw_empty, class _Type8 = __rw_empty>
 struct __rw_strictest
 {
-    // these enums necessary to avoid problems with VC8
-    enum {
-        _C_select12 =   __rw_alignment_of<_Type1>::value
-                      < __rw_alignment_of<_Type2>::value,
-        _C_select34 =   __rw_alignment_of<_Type3>::value
-                      < __rw_alignment_of<_Type4>::value,
-        _C_select56 =   __rw_alignment_of<_Type5>::value
-                      < __rw_alignment_of<_Type6>::value,
-        _C_select78 =   __rw_alignment_of<_Type7>::value
-                      < __rw_alignment_of<_Type8>::value
-    };
+    typedef typename
+    __rw_conditional<   (__rw_alignment_of<_Type1>::value)
+                      < (__rw_alignment_of<_Type2>::value),
+                     _Type2, _Type1>::type _Type12;
 
     typedef typename
-    __rw_conditional<_C_select12, _Type2, _Type1>::type _Type12;
+    __rw_conditional<   (__rw_alignment_of<_Type3>::value)
+                      < (__rw_alignment_of<_Type4>::value),
+                     _Type4, _Type3>::type _Type34;
 
     typedef typename
-    __rw_conditional<_C_select34, _Type4, _Type3>::type _Type34;
+    __rw_conditional<   (__rw_alignment_of<_Type5>::value)
+                      < (__rw_alignment_of<_Type6>::value),
+                     _Type6, _Type5>::type _Type56;
 
     typedef typename
-    __rw_conditional<_C_select56, _Type6, _Type5>::type _Type56;
+    __rw_conditional<   (__rw_alignment_of<_Type7>::value)
+                      < (__rw_alignment_of<_Type8>::value),
+                     _Type8, _Type7>::type _Type78;
 
     typedef typename
-    __rw_conditional<_C_select78, _Type8, _Type7>::type _Type78;
-
-    enum {
-        _C_select1234 =   __rw_alignment_of<_Type12>::value
-                        < __rw_alignment_of<_Type34>::value,
-        _C_select5678 =   __rw_alignment_of<_Type56>::value
-                        < __rw_alignment_of<_Type78>::value
-    };
+    __rw_conditional<   (__rw_alignment_of<_Type12>::value)
+                      < (__rw_alignment_of<_Type34>::value),
+                     _Type34, _Type12>::type _Type1234;
 
     typedef typename
-    __rw_conditional<_C_select1234, _Type34, _Type12>::type _Type1234;
+    __rw_conditional<   (__rw_alignment_of<_Type56>::value)
+                      < (__rw_alignment_of<_Type78>::value),
+                     _Type78, _Type56>::type _Type5678;
 
     typedef typename
-    __rw_conditional<_C_select5678, _Type78, _Type56>::type _Type5678;
-
-    enum {
-        _C_select =   __rw_alignment_of<_Type1234>::value
-                    < __rw_alignment_of<_Type5678>::value
-    };
-
-    typedef typename
-    __rw_conditional<_C_select, _Type5678, _Type1234>::type type;
+    __rw_conditional<   (__rw_alignment_of<_Type1234>::value)
+                      < (__rw_alignment_of<_Type5678>::value),
+                     _Type5678, _Type1234>::type type;
 };
 
 template <_RWSTD_SIZE_T _Len,
