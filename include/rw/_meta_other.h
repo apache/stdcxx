@@ -68,7 +68,7 @@ struct __rw_conditional<false, _TypeT, _TypeU>
  * Helper for __rw_aligned_storage. Specializations define a member type
  * that is aligned on power of two boundaries.
  */
-template <size_t _Align>
+template <_RWSTD_SIZE_T _Align>
 struct __rw_aligned_storage_impl;
 
 #define _RWSTD_ALIGNED_STORAGE_SPEC(N)              \
@@ -100,7 +100,7 @@ _RWSTD_ALIGNED_STORAGE_SPEC(8192);
  * @tparam _N    The power of two value being tested.
  * @tparam _Done Termination condition for recursion. Do not use.
  */
-template <size_t _Size, size_t _N,
+template <_RWSTD_SIZE_T _Size, _RWSTD_SIZE_T _N,
           bool _Done =    (_RWSTD_TT_MAX_ALIGNMENT <= _N * 2)
                        || (_Size < _N * 2)>
 struct __rw_default_alignment_impl
@@ -117,7 +117,7 @@ struct __rw_default_alignment_impl
  * @tparam _Size The size of the object to align.
  * @tparam _N    The power of two value being tested.
  */
-template <size_t _Size, size_t _N>
+template <_RWSTD_SIZE_T _Size, _RWSTD_SIZE_T _N>
 struct __rw_default_alignment_impl<_Size, _N, true>
 {
     enum { value = _N };
@@ -131,7 +131,7 @@ struct __rw_default_alignment_impl<_Size, _N, true>
  *
  * @tparam _Size Size of the object to calculate the alignment for.
  */
-template <size_t _Size>
+template <_RWSTD_SIZE_T _Size>
 struct __rw_default_alignment
 {
     enum { value = __rw_default_alignment_impl<_Size, 1>::value };
@@ -141,7 +141,8 @@ struct __rw_default_alignment
 /**
  *
  */
-template <size_t _Size, size_t _Align = __rw_default_alignment<_Size>::value>
+template <_RWSTD_SIZE_T _Size,
+          _RWSTD_SIZE_T _Align = __rw_default_alignment<_Size>::value>
 struct __rw_aligned_storage
 {
     _RWSTD_STATIC_ASSERT (_Size != 0,
