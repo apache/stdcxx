@@ -179,7 +179,7 @@ struct __rw_biggest<_TypeT, _Types...>
     __rw_biggest<_Types...>::type _TypeU;
 
     typedef typename
-    __rw_conditional<sizeof _TypeT < sizeof _TypeU,
+    __rw_conditional<sizeof (_TypeT) < sizeof (_TypeU),
 	                 _TypeU, _TypeT>::type type;
 };
 
