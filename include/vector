@@ -1361,9 +1361,4 @@ public:
 #endif
 
 
-#ifndef _RWSTD_NO_STL_SPECIALIZATION
-#include "vector_spec.h"
-#endif   // _RWSTD_NO_STL_SPECIALIZATION
-
-
 #endif   // _RWSTD_VECTOR_INCLUDED
