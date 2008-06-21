@@ -36,9 +36,9 @@
 #    error _RWSTD_NO_EXT_CXX_0X defined and C++0x header included
 #  endif   // defined _RWSTD_NO_EXT_CXX_0X
 
-#  include <rw/_meta_cv.h>          // for __rw_add_const
-#  include <rw/_meta_help.h>        // for __rw_integral_constant
-#  include <rw/_meta_ref.h>         // for __rw_add_lvalue_reference
+#  include <type_traits>
+
+#  include <rw/_ref_wrap.h>
 
 #  include <rw/_tuple.h>
 #  include <rw/_tuple_traits.h>
@@ -48,11 +48,35 @@ _RWSTD_NAMESPACE (__rw) {
 
 struct __rw_ignore { /* empty */ };
 
-/// Transforms _Type into a suitable make_tuple() return type.
 template <class _Type>
-struct __rw_make_tuple {
-    /// @todo Deduce correct return type.
+struct __rw_deduce_reference
+{
     typedef _Type type;
+};
+
+template <class _Type>
+struct __rw_deduce_reference< __rw_ref_wrap<_Type> >
+{
+    typedef _Type& type;
+};
+
+template <class _Type>
+struct __rw_deduce_reference< const __rw_ref_wrap<_Type> >
+{
+    typedef _Type& type;
+};
+
+/**
+ * @internal
+ * Transform a tuple element type into a suitable make_tuple() return
+ * type.
+ * @tparam _Type A tuple element type.
+ */
+template <class _Type>
+class __rw_make_tuple
+{
+    typedef _TYPENAME _RWSTD_DECAY(_Type) _Decay;
+    typedef _TYPENAME __rw_deduce_reference<_Decay>::type type;
 };
 
 }   // namespace __rw
@@ -69,9 +93,24 @@ const _RW::__rw_ignore ignore = _RW::__rw_ignore ();
 
 #    if !defined _RWSTD_NO_RVALUE_REFERENCES
 
+/**
+ * @function make_tuple
+ *
+ * Create a new tuple from a list of element values.  This function
+ * constructs a new tuple from the corresponding element values by
+ * utilizing move semantics.
+ *
+ * @tparam _Types The list of elements types in the tuple.
+ * @param __values A corresponding list of element values.
+ * @return A tuple object containing the given element values.
+ */
 template <class... _Types>
 tuple<_TYPENAME _RW::__rw_make_tuple<_Types>::type...>
-make_tuple (_Types&&... __values);
+make_tuple (_Types&&... __values)
+{
+    typedef tuple<_TYPENAME _RW::__rw_make_tuple<_Types>::type...> _Tuple;
+    return _Tuple (std::forward<_Types> (__values)...);
+}
 
 template <class... _TypesT, class... _TypesU>
 tuple<_TypesT..., _TypesU...>
