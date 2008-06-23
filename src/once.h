@@ -133,12 +133,12 @@ _RWSTD_NAMESPACE (__rw) {
 
 extern "C" {
 
-#ifndef _RWSTD_MSVC
+#if !defined (_RWSTD_MSVC) || !defined (_RWSTD_REENTRANT)
 
 _RWSTD_EXPORT int
 __rw_once (__rw_once_t*, void (*)());
 
-#else
+#else   // _RWSTD_MSVC && _RWSTD_REENTRANT
 
     // MSVC by default assumes that C function doesn't throws any exception
     // and issues warning "function assumed not to throw an exception but does".
@@ -150,7 +150,7 @@ __rw_once (__rw_once_t*, void (*)());
 _RWSTD_EXPORT int
 __rw_once (__rw_once_t*, void (*)() throw (...)) throw (...);
 
-#endif
+#endif   // !_RWSTD_MSVC || !_RWSTD_REENTRANT
 
 }   // extern "C"
 
