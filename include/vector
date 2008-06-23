@@ -956,6 +956,11 @@ public:
         reference operator[] (difference_type __i) {
             return *(*this + __i);
         }
+
+        friend iterator operator+ (difference_type __i,
+                                   const iterator &__x) {
+            return __x + __i;
+        }
     };
 
     class const_iterator
@@ -1024,6 +1029,11 @@ public:
 
         const_reference operator[] (difference_type __i) { 
             return *(*this + __i); 
+        }
+
+        friend const_iterator operator+ (difference_type __i,
+                                         const const_iterator &__x) {
+            return __x + __i;
         }
     };
 
