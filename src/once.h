@@ -140,13 +140,16 @@ __rw_once (__rw_once_t*, void (*)());
 
 #else   // _RWSTD_MSVC && _RWSTD_REENTRANT
 
-    // MSVC by default assumes that C function doesn't throws any exception
-    // and issues warning "function assumed not to throw an exception but does".
-    // Explicitly specified exception specification resolves this problem
-    // Note: any C function, passed as parameter in __rw_once() also should be defined
-    // with appropriate exception specification if it throws an exception, to avoid
-    // resourse leaks due to not invoked destructors of automatic objects, located
-    // in this function.
+// MSVC by default assumes that functions with C linkage don't
+// throw exceptions and issues warning "function assumed not
+// to throw an exception but does". Specifying an exception
+// specification using the throw(...) extension prevents this
+// problem.
+// Note: functions with C linkage passed as an argument to
+// __rw_once() should also be declared with the appropriate
+// exception specification if it throws an exception in order
+// to avoid resource leaks due to destructors of objects with
+// auto storage duration not being run otherwise.
 _RWSTD_EXPORT int
 __rw_once (__rw_once_t*, void (*)() throw (...)) throw (...);
 
