@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2008 Rogue Wave Software.
+ * Copyright 2008 Rogue Wave Software.
  * 
  **************************************************************************/
 
