@@ -90,7 +90,7 @@ class tuple< >
  */
 template < class _HeadT, class... _TailT >
 class tuple< _HeadT, _TailT... >
-    : tuple< _TailT... >
+    : public tuple< _TailT... >
 {
     typedef tuple< _TailT... >  _Base;
 
@@ -345,6 +345,11 @@ public:
     template <class _Alloc, class _TypeU1, class _TypeU2>
     tuple (allocator_arg_t, const _Alloc& __alloc,
            const pair<_TypeU1, _TypeU2>& __pair);
+
+public: // internal
+
+    _TypeT1&        __get ()       { return _C_first; }
+    const _TypeT1&  __get () const { return _C_first; }
 
 };
 

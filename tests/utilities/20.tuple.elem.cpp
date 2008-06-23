@@ -33,6 +33,7 @@
 /**************************************************************************/
 
 #include <rw_driver.h>
+#include <rw_valcmp.h>
 
 static void
 test_get ()
@@ -42,6 +43,19 @@ test_get ()
     IntTuple it (4);
     rw_assert (std::get<0> (it) == 4, __FILE__, __LINE__,
                "get<0> (it), got %d, expected 4", std::get<0> (it));
+
+    BigTuple bt (true, 'a', 256, 3.14159, &it, UserClass ());
+    rw_assert (std::get<0> (bt) == true, __FILE__, __LINE__,
+               "get<0>(bt), got %d, expected true", std::get<0> (bt));
+    rw_assert (std::get<1> (bt) == 'a', __FILE__, __LINE__,
+               "get<1>(bt), got %c, expected 'a'", std::get<1> (bt));
+    rw_assert (std::get<2> (bt) == 256, __FILE__, __LINE__,
+               "get<2>(bt), got %d, expected 256", std::get<2> (bt));
+    rw_assert (0 == rw_dblcmp (std::get<3> (bt), 3.14159),
+               __FILE__, __LINE__,
+               "get<3>(bt), got %f, expected 3.14", std::get<3> (bt));
+    rw_assert (std::get<4> (bt) == &it, __FILE__, __LINE__,
+               "get<4>(bt), got %p, expected %p", std::get<4> (bt), &it);
 }
 
 /**************************************************************************/
