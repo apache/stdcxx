@@ -37,24 +37,12 @@
 
 _RWSTD_NAMESPACE (__rw) {
 
-/**
- * Metaprogramming conditional primitive that provides a member typedef
- * _C_type that is _TypeT if _Select is true, otherwise is _TypeU.
- *
- * The primary template is used when _Select is true.
- */
 template <bool _Select, class _TypeT, class _TypeU>
 struct __rw_conditional
 {
     typedef _TypeT type;
 };
 
-/**
- * Metaprogramming conditional primitive that provides a member typedef
- * type is _TypeT if _Select is true, otherwise is _TypeU.
- *
- * This specialization if used when _Select is false.
- */
 template <class _TypeT, class _TypeU>
 struct __rw_conditional<false, _TypeT, _TypeU>
 {
@@ -64,10 +52,8 @@ struct __rw_conditional<false, _TypeT, _TypeU>
 #define _RWSTD_CONDITIONAL(C,T,U) _RW::__rw_conditional<C,T,U>::type
 
 
-/**
- * Helper for __rw_aligned_storage. Specializations define a member type
- * that is aligned on power of two boundaries.
- */
+// Helper for __rw_aligned_storage. Specializations define a member type
+// that is aligned on power of two boundaries.
 template <_RWSTD_SIZE_T _Align>
 struct __rw_aligned_storage_impl;
 
@@ -91,15 +77,9 @@ _RWSTD_ALIGNED_STORAGE_SPEC(2048);
 _RWSTD_ALIGNED_STORAGE_SPEC(4096);
 _RWSTD_ALIGNED_STORAGE_SPEC(8192);
 
-/**
- * Helper for __rw_default_alignment. The member value will evaluate
- * to the nearest power of two that is a valid alignment value that
- * is less than or equal to _Size.
- *
- * @tparam _Size The size of the object to align.
- * @tparam _N    The power of two value being tested.
- * @tparam _Done Termination condition for recursion. Do not use.
- */
+// Helper for __rw_default_alignment. The member value will evaluate
+// to the nearest power of two that is a valid alignment value that
+// is less than or equal to _Size.
 template <_RWSTD_SIZE_T _Size, _RWSTD_SIZE_T _N,
           bool _Done =    (_RWSTD_TT_MAX_ALIGNMENT <= _N * 2)
                        || (_Size < _N * 2)>
@@ -108,29 +88,21 @@ struct __rw_default_alignment_impl
     enum { value = __rw_default_alignment_impl<_Size, _N * 2>::value };
 };
 
-/**
- * Helper for __rw_default_alignment. The member value will evaluate
- * to the nearest power of two that is less than or equal to _Size.
- * This specialization is used to terminate recursion. It is only used
- * when when _Done in the primary template evaluates is true. 
- *
- * @tparam _Size The size of the object to align.
- * @tparam _N    The power of two value being tested.
- */
+// Helper for __rw_default_alignment. The member value will evaluate
+// to the nearest power of two that is less than or equal to _Size.
+// This specialization is used to terminate recursion. It is only used
+// when when _Done in the primary template evaluates is true.
 template <_RWSTD_SIZE_T _Size, _RWSTD_SIZE_T _N>
 struct __rw_default_alignment_impl<_Size, _N, true>
 {
     enum { value = _N };
 };
 
-/**
- * Helper for __rw_aligned_storage. The value member shall be the most
- * most stringent alignment requirement for any C++ object whose size
- * is no greater than _Size. This implementation will set value to be
- * the nearest power of two value that is less than or equal to _Size.
- *
- * @tparam _Size Size of the object to calculate the alignment for.
- */
+
+// Helper for __rw_aligned_storage. The value member shall be the most
+// most stringent alignment requirement for any C++ object whose size
+// is no greater than _Size. This implementation will set value to be
+// the nearest power of two value that is less than or equal to _Size.
 template <_RWSTD_SIZE_T _Size>
 struct __rw_default_alignment
 {
@@ -138,9 +110,6 @@ struct __rw_default_alignment
 };
 
 
-/**
- *
- */
 template <_RWSTD_SIZE_T _Size,
           _RWSTD_SIZE_T _Align = __rw_default_alignment<_Size>::value>
 struct __rw_aligned_storage
@@ -165,10 +134,8 @@ struct __rw_aligned_storage
 
 #ifndef _RWSTD_NO_VARIADIC_TEMPLATES
 
-/**
- * Helper for __rw_aligned_union. Provides a typedef type that
- * is the largest type in the sequence of provided types.
- */
+// Helper for __rw_aligned_union. Provides a typedef type that
+// is the largest type in the sequence of provided types.
 template <class... _Types>
 struct __rw_biggest;
 
@@ -180,7 +147,7 @@ struct __rw_biggest<_TypeT, _Types...>
 
     typedef typename
     __rw_conditional<sizeof (_TypeT) < sizeof (_TypeU),
-	                 _TypeU, _TypeT>::type type;
+                     _TypeU, _TypeT>::type type;
 };
 
 template <class _TypeT>
@@ -189,11 +156,9 @@ struct __rw_biggest<_TypeT>
     typedef _TypeT type;
 };
 
-/**
- * Helper for __rw_aligned_union. Provides a typedef type that
- * is the type with the strictest alignment requirement in the
- * sequence of provided types.
- */
+// Helper for __rw_aligned_union. Provides a typedef type that
+// is the type with the strictest alignment requirement in the
+// sequence of provided types.
 template <class... _Types>
 struct __rw_strictest;
 
@@ -250,16 +215,14 @@ const _RWSTD_SIZE_T
 __rw_aligned_union<_Len, _Types...>::_C_size_value;
 
 #  endif // _RWSTD_NO_STATIC_CONST_MEMBER_DEFINITION
-#endif
+#endif // 0
 
 #else // _RWSTD_NO_VARIADIC_TEMPLATES
 
 struct __rw_empty { };
 
-/**
- * Helper for __rw_aligned_union. Provides a typedef type that
- * is the largest type in the sequence of provided types.
- */
+// Helper for __rw_aligned_union. Provides a typedef type that
+// is the largest type in the sequence of provided types.
 template <class _Type1             , class _Type2 = __rw_empty,
           class _Type3 = __rw_empty, class _Type4 = __rw_empty,
           class _Type5 = __rw_empty, class _Type6 = __rw_empty,
@@ -295,11 +258,9 @@ struct __rw_biggest
                      _Type5678, _Type1234>::type type;
 };
 
-/**
- * Helper for __rw_aligned_union. Provides a typedef type that
- * is the type with the strictest alignment requirement in the
- * sequence of provided types.
- */
+// Helper for __rw_aligned_union. Provides a typedef type that
+// is the type with the strictest alignment requirement in the
+// sequence of provided types.
 template <class _Type1             , class _Type2 = __rw_empty,
           class _Type3 = __rw_empty, class _Type4 = __rw_empty,
           class _Type5 = __rw_empty, class _Type6 = __rw_empty,
@@ -392,26 +353,12 @@ __rw_aligned_union<_Len,
 
 
 
-/**
- * Conditional primitive that provides a member typedef type that is
- * _TypeT if _Enable is true, otherwise there will be no such typedef.
- *
- * The primary template provides an implementation for the case that
- * _Enable is true.
- */
 template <bool _Enable, class _TypeT = void>
 struct __rw_enable_if
 {
     typedef _TypeT type;
 };
 
-/**
- * Conditional primitive that provides a member typedef type that is
- * _TypeT if _Enable is true, otherwise there will be no such typedef.
- *
- * The specialization provides an implementation for the case that _Enable
- * is false.
- */
 template <class _TypeT>
 struct __rw_enable_if<false, _TypeT>
 {
@@ -420,26 +367,12 @@ struct __rw_enable_if<false, _TypeT>
 #define _RWSTD_ENABLE_IF(C,T) _RW::__rw_enable_if<C,T>::type
 
 
-/**
- * Conditional primitive that provides a member typedef type that is
- * _TypeT if _Enable is false, otherwise there will be no such typedef.
- *
- * The primary template provides an implementation for the case that
- * _Enable is false.
- */
 template <bool _Enable, class _TypeT = void>
 struct __rw_disable_if
 {
     typedef _TypeT type;
 };
 
-/**
- * Conditional primitive that provides a member typedef type that is
- * _TypeT if _Enable is false, otherwise there will be no such typedef.
- *
- * The specialization provides an implementation for the case that _Enable
- * is false.
- */
 template <class _TypeT>
 struct __rw_disable_if<true, _TypeT>
 {
@@ -448,17 +381,6 @@ struct __rw_disable_if<true, _TypeT>
 #define _RWSTD_DISABLE_IF(C,T) _RW::__rw_disable_if<C,T>::type
 
 
-/**
- * TransformationTrait that implements compile time array-to-pointer
- * conversions and function-to-pointer conversions for the given type
- * _TypeT.
- *
- * Let _TypeU be __rw_remove_ref<_TypeT>::type. If _TypeT is an
- * array type, the member typedef type shall equal to the type of
- * __rw_remove_extent<_TypeU>::type*. If _TypeT is a function type,
- * the member typedef type shall be __rw_add_ptr<_TypeU>::type.
- * Otherwise type will be __rw_remove_cv<_TypeU>::type.
- */
 template <class _TypeT>
 struct __rw_decay
 {

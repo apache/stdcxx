@@ -36,22 +36,12 @@
 
 _RWSTD_NAMESPACE (__rw) {
 
-/**
- * TransformationTrait strips any top level const-qualifier from _TypeT.
- *
- * The primary template is for non-const types.
- */
 template <class _TypeT>
 struct __rw_remove_const
 {
     typedef _TypeT type;
 };
 
-/**
- * TransformationTrait strips any top level const-qualifier from _TypeT.
- *
- * This specialization is for const types.
- */
 template <class _TypeT>
 struct __rw_remove_const<const _TypeT>
 {
@@ -61,22 +51,12 @@ struct __rw_remove_const<const _TypeT>
 #define _RWSTD_REMOVE_CONST(T) _RW::__rw_remove_const<T>::type
 
 
-/**
- * TransformationTrait strips any top level volatile-qualifier from _TypeT.
- *
- * The primary template is for non-volatile types.
- */
 template <class _TypeT>
 struct __rw_remove_volatile
 {
     typedef _TypeT type;
 };
 
-/**
- * TransformationTrait strips any top level volatile-qualifier from _TypeT.
- *
- * This specialization is for volatile types.
- */
 template <class _TypeT>
 struct __rw_remove_volatile<volatile _TypeT>
 {
@@ -85,9 +65,6 @@ struct __rw_remove_volatile<volatile _TypeT>
 
 #define _RWSTD_REMOVE_VOLATILE(T) _RW::__rw_remove_volatile<T>::type
 
-/**
- * TransformationTrait strips top level cv-qualifiers from _TypeT.
- */
 template <class _TypeT>
 struct __rw_remove_cv
 {
@@ -112,13 +89,6 @@ struct __rw_add_const_impl<_TypeT, false>
     typedef const _TypeT _C_type;
 };
 
-/**
- * TransformationTrait adds a top level const qualifier to _TypeT.
- *
- * If _TypeT is a reference, function, or top-level const-qualified
- * type, then type shall name the same type as _TypeT otherwise it
- * shall name const _TypeT.
- */
 template <class _TypeT>
 struct __rw_add_const
 {
@@ -141,13 +111,6 @@ struct __rw_add_volatile_impl<_TypeT, false>
     typedef volatile _TypeT _C_type;
 };
 
-/**
- * TransformationTrait adds a top level volatile qualifier to _TypeT.
- *
- * If _TypeT is a reference, function, or top-level volatile-qualified
- * type, then type shall name the same type as _TypeT otherwise it
- * shall name volatile _TypeT.
- */
 template <class _TypeT>
 struct __rw_add_volatile
 {
@@ -157,9 +120,6 @@ struct __rw_add_volatile
 #define _RWSTD_ADD_VOLATILE(T) _RW::__rw_add_volatile<T>::type
 
 
-/**
- * Trait adds top level cv-qualifiers to _TypeT.
- */
 template <class _TypeT>
 struct __rw_add_cv
 {

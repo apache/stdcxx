@@ -44,9 +44,6 @@ _RWSTD_NAMESPACE (__rw) {
   template <> struct Trait<Type volatile> : __rw_true_type { };      \
   template <> struct Trait<Type const volatile> : __rw_true_type { }
 
-/**
- * UnaryTypeTrait indicates that _TypeT is const-qualified.
- */
 template <class _TypeT>
 struct __rw_is_const : __rw_false_type
 {
@@ -60,9 +57,6 @@ struct __rw_is_const<const _TypeT> : __rw_true_type
 #define _RWSTD_IS_CONST(T) _RW::__rw_is_const<T>::value
 
 
-/**
- * UnaryTypeTrait indicates that _TypeT is volatile-qualified.
- */
 template <class _TypeT>
 struct __rw_is_volatile : __rw_false_type
 {
@@ -120,12 +114,6 @@ struct __rw_is_empty_impl
 
 
 
-/**
- * UnaryTypeTrait indicates that _TypeT is a standard layout type.
- *
- * _TypeT shall be a complete type, an array of unknown bound, or void
- * (possibly cv-qualified)
- */
 template <class _TypeT>
 struct __rw_is_standard_layout
     : __rw_integral_constant<bool, _RWSTD_TT_IS_STDANDARD_LAYOUT(_TypeT)>
@@ -138,12 +126,6 @@ struct __rw_is_standard_layout
 #define _RWSTD_IS_STANDARD_LAYOUT(T) _RW::__rw_is_standard_layout<T>::value
 
 
-/**
- * UnaryTypeTrait indicates that _TypeT is a pod type.
- *
- * _TypeT shall be a complete type, an array of unknown bound, or void
- * (possibly cv-qualified)
- */
 template <class _TypeT>
 struct __rw_is_pod
     : __rw_integral_constant<bool, _RWSTD_TT_IS_POD(_TypeT)>
@@ -156,12 +138,6 @@ struct __rw_is_pod
 #define _RWSTD_IS_POD(T) _RW::__rw_is_pod<T>::value
 
 
-/**
- * UnaryTypeTrait indicates that _TypeT is an empty type.
- *
- * _TypeT shall be a complete type, an array of unknown bound, or void
- * (possibly cv-qualified).
- */
 template <class _TypeT>
 struct __rw_is_empty
     : __rw_integral_constant<bool, _RWSTD_TT_IS_EMPTY(_TypeT)>
@@ -174,12 +150,6 @@ struct __rw_is_empty
 #define _RWSTD_IS_EMPTY(T) _RW::__rw_is_empty<T>::value
 
 
-/**
- * UnaryTypeTrait indicates that _TypeT is a polymorphic type.
- *
- * _TypeT shall be a complete type, an array of unknown bound, or void
- * (possibly cv-qualified).
- */
 template <class _TypeT>
 struct __rw_is_polymorphic
     : __rw_integral_constant<bool, _RWSTD_TT_IS_POLYMORPHIC(_TypeT)>
@@ -192,12 +162,6 @@ struct __rw_is_polymorphic
 #define _RWSTD_IS_POLYMORPHIC(T) _RW::__rw_is_polymorphic<T>::value
 
 
-/**
- * UnaryTypeTrait indicates that _TypeT is an abstract type.
- *
- * _TypeT shall be a complete type, an array of unknown bound, or void
- * (possibly cv-qualified).
- */
 template <class _TypeT>
 struct __rw_is_abstract
     : __rw_integral_constant<bool, _RWSTD_TT_IS_ABSTRACT(_TypeT)>
@@ -210,12 +174,6 @@ struct __rw_is_abstract
 #define _RWSTD_IS_ABSTRACT(T) _RW::__rw_is_abstract<T>::value
 
 
-/**
- * UnaryTypeTrait indicates that _TypeT has a trivial default constructor.
- *
- * _TypeT shall be a complete type, an array of unknown bound, or void
- * (possibly cv-qualified).
- */
 template <class _TypeT>
 struct __rw_has_trivial_ctor
     : __rw_integral_constant<bool, _RWSTD_TT_HAS_TRIVIAL_CTOR(_TypeT)>
@@ -228,12 +186,6 @@ struct __rw_has_trivial_ctor
 #define _RWSTD_HAS_TRIVIAL_CTOR(T) _RW::__rw_has_trivial_ctor<T>::value
 
 
-/**
- * UnaryTypeTrait indicates that _TypeT has a trivial copy constructor.
- *
- * _TypeT shall be a complete type, an array of unknown bound, or void
- * (possibly cv-qualified).
- */
 template <class _TypeT>
 struct __rw_has_trivial_copy
     : __rw_integral_constant<bool, _RWSTD_TT_HAS_TRIVIAL_COPY(_TypeT)>
@@ -246,12 +198,6 @@ struct __rw_has_trivial_copy
 #define _RWSTD_HAS_TRIVIAL_COPY(T) _RW::__rw_has_trivial_copy<T>::value
 
 
-/**
- * UnaryTypeTrait indicates that _TypeT has a trivial assignment operator.
- *
- * _TypeT shall be a complete type, an array of unknown bound, or void
- * (possibly cv-qualified).
- */
 template <class _TypeT>
 struct __rw_has_trivial_assign
     : __rw_integral_constant<bool, _RWSTD_TT_HAS_TRIVIAL_ASSIGN(_TypeT)>
@@ -264,12 +210,6 @@ struct __rw_has_trivial_assign
 #define _RWSTD_HAS_TRIVIAL_ASSIGN(T) _RW::__rw_has_trivial_assign<T>::value
 
 
-/**
- * UnaryTypeTrait indicates that _TypeT has a trivial destructor.
- *
- * _TypeT shall be a complete type, an array of unknown bound, or void
- * (possibly cv-qualified).
- */
 template <class _TypeT>
 struct __rw_has_trivial_dtor
     : __rw_integral_constant<bool, _RWSTD_TT_HAS_TRIVIAL_DTOR(_TypeT)>
@@ -282,10 +222,6 @@ struct __rw_has_trivial_dtor
 #define _RWSTD_HAS_TRIVIAL_DTOR(T) _RW::__rw_has_trivial_dtor<T>::value
 
 
-/**
- * UnaryTypeTrait indicates that _TypeT is a trivial type or
- * an array of trivial type.
- */
 template <class _TypeT>
 struct __rw_is_trivial_impl
 {
@@ -300,16 +236,6 @@ struct __rw_is_trivial_impl
                       && (__rw_is_class<_TypeV>::value || __rw_is_union<_TypeV>::value) };
 };
 
-/**
- * UnaryTypeTrait indicates that _TypeT is a trivial type or an array of
- * trivial type.
- *
- * Trivial types include scalar types, and trivial class types. A trivial
- * class type has a trivial default ctor, copy ctor, operator= and dtor.
- *
- * _TypeT shall be a complete type, an array of unknown bound, or void
- * (possibly cv-qualified).
- */
 template <class _TypeT>
 struct __rw_is_trivial
     : __rw_integral_constant<bool, __rw_is_trivial_impl<_TypeT>::_C_value>
@@ -321,12 +247,6 @@ struct __rw_is_trivial
 
 #define _RWSTD_IS_TRIVIAL(T) _RW::__rw_is_trivial<T>::value
 
-/**
- * UnaryTypeTrait to determine if _TypeT has a nothrow default constructor.
- *
- * _TypeT shall be a complete type, an array of unknown bound, or void
- * (possibly cv-qualified).
- */
 template <class _TypeT>
 struct __rw_has_nothrow_ctor
     : __rw_integral_constant<bool, _RWSTD_TT_HAS_NOTHROW_CTOR(_TypeT)>
@@ -339,12 +259,6 @@ struct __rw_has_nothrow_ctor
 #define _RWSTD_HAS_NOTHROW_CTOR(T) _RW::__rw_has_nothrow_ctor<T>::value
 
 
-/**
- * UnaryTypeTrait indicates that _TypeT has a nothrow copy constructor.
- *
- * _TypeT shall be a complete type, an array of unknown bound, or void
- * (possibly cv-qualified).
- */
 template <class _TypeT>
 struct __rw_has_nothrow_copy
     : __rw_integral_constant<bool, _RWSTD_TT_HAS_NOTHROW_COPY(_TypeT)>
@@ -357,12 +271,6 @@ struct __rw_has_nothrow_copy
 #define _RWSTD_HAS_NOTHROW_COPY(T) _RW::__rw_has_nothrow_copy<T>::value
 
 
-/**
- * UnaryTypeTrait indicates that _TypeT has a nothrow assignment operator.
- *
- * _TypeT shall be a complete type, an array of unknown bound, or void
- * (possibly cv-qualified).
- */
 template <class _TypeT>
 struct __rw_has_nothrow_assign
     : __rw_integral_constant<bool, _RWSTD_TT_HAS_NOTHROW_ASSIGN(_TypeT)>
@@ -375,12 +283,6 @@ struct __rw_has_nothrow_assign
 #define _RWSTD_HAS_NOTHROW_ASSIGN(T) _RW::__rw_has_nothrow_assign<T>::value
 
 
-/**
- * UnaryTypeTrait indicates that _TypeT has a virtual destructor.
- *
- * _TypeT shall be a complete type, an array of unknown bound, or void
- * (possibly cv-qualified).
- */
 template <class _TypeT>
 struct __rw_has_virtual_dtor
     : __rw_integral_constant<bool, _RWSTD_TT_HAS_VIRTUAL_DTOR(_TypeT)>
@@ -393,17 +295,11 @@ struct __rw_has_virtual_dtor
 #define _RWSTD_HAS_VIRTUAL_DTOR(T) _RW::__rw_has_virtual_dtor<T>::value
 
 
-/**
- * UnaryTypeTrait that indicates that _TypeT is an unsigned type.
- */
 template <class _TypeT>
 struct __rw_is_unsigned : __rw_false_type
 {
 };
 
-/**
- * UnaryTypeTrait that indicates that _TypeT is a signed type.
- */
 template <class _TypeT>
 struct __rw_is_signed : __rw_false_type
 {
@@ -451,9 +347,6 @@ _RWSTD_TRAIT_SPEC_0_CV(__rw_is_signed,     long double);
 #define _RWSTD_IS_UNSIGNED(T) _RW::__rw_is_unsigned<T>::value
 
 
-/**
- * UnaryTypeTrait that gets the alignment of _TypeT.
- */
 template <class _TypeT>
 struct __rw_alignment_of
     : __rw_integral_constant<_RWSTD_SIZE_T, _RWSTD_TT_ALIGN_OF(_TypeT)>
@@ -465,33 +358,18 @@ struct __rw_alignment_of
 
 #define _RWSTD_ALIGNMENT_OF(T) _RW::__rw_alignment_of<T>::value
 
-/**
- * UnaryTypeTrait gives the number of dimensions of the type _TypeT, if
- * _TypeT is an array, otherwise 0. The primary template is for non-array
- * types.
- */
 template <class _TypeT>
 struct __rw_rank
     : __rw_integral_constant<_RWSTD_SIZE_T, 0>
 {
 };
 
-/**
- * UnaryTypeTrait gives the number of dimensions of the type _TypeT, if
- * _TypeT is an array, otherwise 0. The primary template is for bounded
- * -array types.
- */
 template <class _TypeT, _RWSTD_SIZE_T _Size>
 struct __rw_rank<_TypeT [_Size]>
     : __rw_integral_constant<_RWSTD_SIZE_T, 1 + __rw_rank<_TypeT>::value>
 {
 };
 
-/**
- * UnaryTypeTrait gives the number of dimensions of the type _TypeT, if
- * _TypeT is an array, otherwise 0. The primary template is for unbounded
- * -array types.
- */
 template <class _TypeT>
 struct __rw_rank<_TypeT []>
     : __rw_integral_constant<_RWSTD_SIZE_T, 1 + __rw_rank<_TypeT>::value>
@@ -501,9 +379,6 @@ struct __rw_rank<_TypeT []>
 #define _RWSTD_RANK(T) _RW::__rw_rank<T>::value
 
 
-/**
- * UnaryTypeTrait gives the size of the _Depth dimension of _TypeT.
- */
 template <class _TypeT, _RWSTD_SIZE_T _Depth>
 struct __rw_extent
     : __rw_integral_constant<_RWSTD_SIZE_T, 0>

@@ -36,24 +36,12 @@
 
 _RWSTD_NAMESPACE (__rw) {
 
-/**
- * TransformationTrait strips any top level reference specifier
- * from _TypeT.
- *
- * The primary template is for non-reference types.
- */
 template <class _TypeT>
 struct __rw_remove_reference
 {
     typedef _TypeT type;
 };
 
-/**
- * TransformationTrait strips any top level reference specifier
- * from _TypeT.
- *
- * This specialization is for lvalue reference types.
- */
 template <class _TypeT>
 struct __rw_remove_reference<_TypeT&>
 {
@@ -62,12 +50,6 @@ struct __rw_remove_reference<_TypeT&>
 
 #ifndef _RWSTD_NO_RVALUE_REFERENCES
 
-/**
- * TransformationTrait strips any top level reference specifier
- * from _TypeT.
- *
- * This specialization is for rval reference types.
- */
 template <class _TypeT>
 struct __rw_remove_reference<_TypeT&&>
 {
@@ -104,9 +86,6 @@ struct __rw_add_lvalue_reference_impl<_TypeT, false, true>
     typedef _TYPENAME __rw_remove_reference<_TypeT>::type& _C_type;
 };
 
-/**
- * TransformationTrait adds a lvalue reference to the input type _TypeT.
- */
 template <class _TypeT>
 struct __rw_add_lvalue_reference
 {

@@ -40,25 +40,11 @@
 
 _RWSTD_NAMESPACE (__rw) {
 
-/**
- * UnaryTypeTrait indicates that the given types _TypeT and _TypeU are
- * the same type, including cv-qualifiers.
- *
- * The primary template is for the case that _TypeT and _TypeU are indeed
- * different types.
- */
 template <class _TypeT, class _TypeU>
 struct __rw_is_same : __rw_false_type
 {
 };
 
-/**
- * UnaryTypeTrait indicates that the given types _TypeT and _TypeU are
- * the same type, including cv-qualifiers.
- *
- * This specialization is for the case that _TypeT and _TypeU are exactly
- * the same types.
- */
 template <class _TypeT>
 struct __rw_is_same<_TypeT, _TypeT> : __rw_true_type
 {
@@ -66,14 +52,6 @@ struct __rw_is_same<_TypeT, _TypeT> : __rw_true_type
 
 #define _RWSTD_IS_SAME(T,U) _RW::__rw_is_same<T,U>::value
 
-/**
- * BinaryTypeTrait indicates that _TypeT is a base class of _TypeU
- * or _TypeT and _TypeU are not unions and name the same class type,
- * without regard to cv-qualifiers.
- *
- * If _TypeT and _TypeU are class types and are different types, without
- * regard to cv-qualifiers, then _TypeT shall be a complete type.
- */
 template <class _TypeT, class _TypeU>
 struct __rw_is_base_of
     : __rw_integral_constant<bool, _RWSTD_TT_IS_BASE_OF(_TypeT,_TypeU)>
@@ -87,9 +65,6 @@ struct __rw_is_base_of
 #define _RWSTD_IS_BASE_OF(T,U) _RW::__rw_is_base_of<T,U>::value
 
 
-/**
- * Primitive type trait tells us if we can create a _TypeU from a _TypeT.
- */
 template <class _TypeT, class _TypeU>
 struct __rw_is_convertible_impl
 {
@@ -177,13 +152,6 @@ struct __rw_is_convertible_1<_TypeT, _TypeU, true, true>
     enum { _C_value = 1 };
 };
 
-/**
- * BinaryTypeTrait indicates that _TypeT is convertible to _TypeU
- * using only implicit conversions.
- *
- * _TypeT shall be a complete type, an array of unknown bound, or void
- * (possibly cv-qualified).
- */
 template <class _TypeT, class _TypeU>
 struct __rw_is_convertible
 #ifdef _RWSTD_TT_IS_CONVERTIBLE

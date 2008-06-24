@@ -35,10 +35,6 @@
 
 _RWSTD_NAMESPACE (__rw) {
 
-/**
- * UnaryTypeTrait indicates that _TypeT is either a lval or
- * rval reference type.
- */
 template <class _TypeT>
 struct __rw_is_reference
     : __rw_integral_constant<bool,    __rw_is_lvalue_reference<_TypeT>::value
@@ -48,12 +44,6 @@ struct __rw_is_reference
 
 #define _RWSTD_IS_REFERENCE(T) _RW::__rw_is_reference<T>::value
 
-/**
- * UnaryTypeTrait indicates that _TypeT is an arithmethic type.
- *
- * The arithmetic types include all integral and floating point
- * types.
- */
 template <class _TypeT>
 struct __rw_is_arithmetic
     : __rw_integral_constant<bool,    __rw_is_integral<_TypeT>::value
@@ -63,12 +53,6 @@ struct __rw_is_arithmetic
 
 #define _RWSTD_IS_ARITHMETIC(T) _RW::__rw_is_arithmetic<T>::value
 
-/**
- * UnaryTypeTrait indicates that _TypeT is an fundamental type.
- *
- * The fundamental types include void and all of the standard
- * arithmetic types.
- */
 template <class _TypeT>
 struct __rw_is_fundamental
     : __rw_integral_constant<bool,    __rw_is_void<_TypeT>::value
@@ -79,12 +63,6 @@ struct __rw_is_fundamental
 #define _RWSTD_IS_FUNDAMENTAL(T) _RW::__rw_is_fundamental<T>::value
 
 
-/**
- * UnaryTypeTrait indicates that _TypeT is an object type.
- *
- * An object is a (possibly cv-qualified) type that is not a
- * function type, not a reference type, and not a void type.
- */
 template <class _TypeT>
 struct __rw_is_object
     : __rw_integral_constant<bool,    !__rw_is_function<_TypeT>::value
@@ -96,13 +74,6 @@ struct __rw_is_object
 #define _RWSTD_IS_OBJECT(T) _RW::__rw_is_object<T>::value
 
 
-/**
- * UnaryTypeTrait indicates that _TypeT is a member pointer type.
- *
- * The member pointer types include pointers to member functions and
- * pointer to member data. Neither pointers to static member functions
- * or pointers to static member data are included.
- */
 template <class _TypeT>
 struct __rw_is_member_pointer
     : __rw_integral_constant<bool,    __rw_is_member_function_pointer<_TypeT>::value
@@ -112,13 +83,6 @@ struct __rw_is_member_pointer
 
 #define _RWSTD_IS_MEMBER_POINTER(T) _RW::__rw_is_member_pointer<T>::value
 
-/**
- * UnaryTypeTrait indicates that _TypeT is a scalar type.
- *
- * The scalar types include arithmetic types, enumeration types,
- * pointer types, pointer to member types, std::nullptr_t and
- * cv-qualified versions of these types.
- */
 template <class _TypeT>
 struct __rw_is_scalar
     : __rw_integral_constant<bool,    __rw_is_arithmetic<_TypeT>::value
@@ -126,22 +90,14 @@ struct __rw_is_scalar
                                    || __rw_is_pointer<_TypeT>::value
                                    || __rw_is_member_pointer<_TypeT>::value>
 {
-    /**
-     * todo need to handle special case
-     *
-     * __rw_is_same<std::nullptr_t, __rw_remove_cv<_TypeT>::type>::value
-     */
+    // todo need to handle special case
+    //
+    // __rw_is_same<std::nullptr_t, __rw_remove_cv<_TypeT>::type>::value
 };
 
 #define _RWSTD_IS_SCALAR(T) _RW::__rw_is_scalar<T>::value
 
 
-/**
- * UnaryTypeTrait indicates that _TypeT is a compound type.
- *
- * The compound types include arrays, functions, pointers, references,
- * classes, unions, enumerations, pointer to non-static class members
- */
 template <class _TypeT>
 struct __rw_is_compound
     : __rw_integral_constant<bool,    __rw_is_array<_TypeT>::value

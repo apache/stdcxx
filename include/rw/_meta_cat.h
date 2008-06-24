@@ -66,10 +66,6 @@ _RWSTD_NAMESPACE (__rw) {
     struct Trait<Type const volatile>                                   \
       : __rw_integral_constant<bool, Cond> { }
 
-/**
- * UnaryTypeTrait to determine if _TypeT is a (potentially cv-qualified)
- * void type.
- */
 template <class _TypeT>
 struct __rw_is_void : __rw_false_type
 {
@@ -80,11 +76,6 @@ _RWSTD_TRAIT_SPEC_0_CV(__rw_is_void, void, true);
 #define _RWSTD_IS_VOID(T) _RW::__rw_is_void<T>::value
 
 
-/**
- * UnaryTypeTrait to determine if _TypeT is a (potentially cv-qualified)
- * integral type. Integral types include bool, char, wchar_t and all of
- * the signed and unsigned integer types.
- */
 template <class _TypeT>
 struct __rw_is_integral : __rw_false_type
 {
@@ -118,11 +109,6 @@ _RWSTD_TRAIT_SPEC_0_CV(__rw_is_integral, unsigned long long, true);
 
 #define _RWSTD_IS_INTEGRAL(T) _RW::__rw_is_integral<T>::value
 
-/**
- * UnaryTypeTrait to determine if _TypeT is a (potentially cv-qualified)
- * floating point type. The floating point types include float, double
- * and long double.
- */
 template <class _TypeT>
 struct __rw_is_floating_point : __rw_false_type
 {
@@ -138,9 +124,6 @@ _RWSTD_TRAIT_SPEC_0_CV(__rw_is_floating_point, long double, true);
 #define _RWSTD_IS_FLOATING_POINT(T) _RW::__rw_is_floating_point<T>::value
 
 
-/**
- * UnaryTypeTrait to determine if _TypeT is an array type.
- */
 template <class _TypeT>
 struct __rw_is_array : __rw_false_type
 {
@@ -158,10 +141,6 @@ struct __rw_is_array<_TypeT []> : __rw_true_type
 
 #define _RWSTD_IS_ARRAY(T) _RW::__rw_is_array<T>::value
 
-/**
- * UnaryTypeTrait to determine if _TypeT is a (potentially cv-qualified)
- * pointer type.
- */
 template <class _TypeT>
 struct __rw_is_pointer : __rw_false_type
 {
@@ -169,13 +148,9 @@ struct __rw_is_pointer : __rw_false_type
 
 _RWSTD_TRAIT_SPEC_1_CV(__rw_is_pointer, _TypeT*, true);
 
-#define _RWSTD_IS_POINTER(T)                                          \
-    _RW::__rw_is_pointer<T>::value
+#define _RWSTD_IS_POINTER(T) _RW::__rw_is_pointer<T>::value
 
 
-/**
- * UnaryTypeTrait to determine if _TypeT is a lval reference type.
- */
 template <class _TypeT>
 struct __rw_is_lvalue_reference : __rw_false_type
 {
@@ -190,9 +165,6 @@ struct __rw_is_lvalue_reference<_TypeT&> : __rw_true_type
     _RW::__rw_is_lvalue_reference<T>::value
 
 
-/**
- * UnaryTypeTrait to determine if _TypeT is a rval reference type.
- */
 template <class _TypeT>
 struct __rw_is_rvalue_reference : __rw_false_type
 {
@@ -212,21 +184,14 @@ struct __rw_is_rvalue_reference<_TypeT&&> : __rw_true_type
     _RW::__rw_is_rvalue_reference<T>::value
 
 
-/**
- * Class template can be used to determine if _TypeT is an enumeration.
- */
 template <class _TypeT>
 struct __rw_is_enum
     : __rw_integral_constant<bool, _RWSTD_TT_IS_ENUM(_TypeT)>
 {
 };
 
-#define _RWSTD_IS_ENUM(T)                                             \
-    _RW::__rw_is_enum<T>::value
+#define _RWSTD_IS_ENUM(T) _RW::__rw_is_enum<T>::value
 
-/**
- * UnaryTypeTrait to determine if _TypeT is a union type.
- */
 template <class _TypeT>
 struct __rw_is_union
     : __rw_integral_constant<bool, _RWSTD_TT_IS_UNION(_TypeT)>
@@ -236,9 +201,6 @@ struct __rw_is_union
 #define _RWSTD_IS_UNION(T) _RW::__rw_is_union<T>::value
 
 
-/**
- * UnaryTypeTrait to determine if _TypeT is a class type.
- */
 template <class _TypeT>
 struct __rw_is_class
     : __rw_integral_constant<bool, _RWSTD_TT_IS_CLASS(_TypeT)>
@@ -248,15 +210,6 @@ struct __rw_is_class
 #define _RWSTD_IS_CLASS(T) _RW::__rw_is_class<T>::value
 
 
-/**
- * This template prevents the partial specialization below from
- * being instantiated on types for which it would fail or give
- * invalid results. i.e. it avoids creating references to void or
- * arrays with unknown length and for returning bad results for
- * references to functions.
- *
- * All void, array and reference types are not functions.
- */
 template <class _TypeT, bool =    __rw_is_void<_TypeT>::value
                                || __rw_is_array<_TypeT>::value
                                || __rw_is_lvalue_reference<_TypeT>::value
@@ -266,13 +219,6 @@ struct __rw_is_function_impl
     enum { _C_value = 0 };
 };
 
-/**
- * This specialization determines if _TypeT is a function type. This
- * is done by testing that a _TypeT is implicitly convertible to a
- * pointer to _TypeT.
- *
- * This special case is only true for functions.
- */
 template <class _TypeT>
 struct __rw_is_function_impl<_TypeT, false>
 {
@@ -290,9 +236,6 @@ struct __rw_is_function_impl<_TypeT, false>
     enum { _C_value = sizeof (_C_yes) == sizeof (_C_is (0, _C_make ())) };
 };
 
-/**
- * UnaryTypeTrait to determine if _TypeT is a function type.
- */
 template <class _TypeT>
 struct __rw_is_function
 #ifdef _RWSTD_TT_IS_FUNCTION
@@ -305,10 +248,6 @@ struct __rw_is_function
 
 #define _RWSTD_IS_FUNCTION(T) _RW::__rw_is_function<T>::value
 
-/**
- * UnaryTypeTrait to determine if _TypeT is a pointer to member
- * object type.
- */
 template <class _TypeT>
 struct __rw_is_member_object_pointer : __rw_false_type
 {
@@ -322,10 +261,6 @@ _RWSTD_TRAIT_SPEC_2_CV(__rw_is_member_object_pointer,
     _RW::__rw_is_member_object_pointer<T>::value
 
 
-/**
- * UnaryTypeTrait to determine if _TypeT is a pointer to member
- * function type.
- */
 template <class _TypeT>
 struct __rw_is_member_function_pointer : __rw_false_type
 {
