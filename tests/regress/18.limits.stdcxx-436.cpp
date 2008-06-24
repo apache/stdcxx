@@ -32,10 +32,10 @@
 #undef __PURE_CNAME
 #include <stdio.h>   // for popen(), fscanf(), pclose(), ...
 
-#if defined(_WIN32) || defined(_WIN64)
+#ifdef _WIN32
 #  define popen  _popen
 #  define pclose _pclose
-#endif  // defined(_WIN32) || defined(_WIN64)
+#endif  // _WIN32
 
 int main ()
 {

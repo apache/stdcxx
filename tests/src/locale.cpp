@@ -53,12 +53,14 @@
 #include <fcntl.h>
 #include <sys/stat.h>   // for stat
 
-#if !defined  (_WIN32) && !defined (_WIN64)
+#ifndef _WIN32
 #  include <unistd.h>
 #  include <sys/wait.h>   // for WIFEXITED(), WIFSIGNALED(), WTERMSIG()
 #else
 #  include <io.h>
-#  include <crtdbg.h> // for _malloc_dbg()
+#  ifdef _MSC_VER
+#    include <crtdbg.h> // for _malloc_dbg()
+#  endif
 #endif
 
 #include <ios>        // for ios::*
@@ -75,16 +77,16 @@
 #include <ctype.h>
 #include <wchar.h>    // for wcslen, ...
 
-#ifndef _MSC_VER
+#ifndef _WIN32
 #  include <clocale>
 #  ifndef LC_MESSAGES
 #    define LC_MESSAGES _RWSTD_LC_MESSAGES
 #  endif   // LC_MESSAGES
 #  define EXE_SUFFIX    ""
-#else   // if MSVC
+#else   // if Windows
 #  define _RWSTD_NO_LANGINFO
 #  define EXE_SUFFIX    ".exe"
-#endif  // _MSC_VER
+#endif  // _WIN32
 
 #ifndef _RWSTD_NO_LANGINFO
 #  include <langinfo.h>
@@ -338,13 +340,13 @@ rw_set_locale_root ()
     // remove temporary file if mkstemp() rw_tmpnam() called mkstemp()
     if (rw_system (SHELL_RM_RF " %s", locale_root)) {
 
-#if defined (_WIN32) || defined (_WIN64)
+#ifdef _WIN32
         // ignore errors on WIN32 where the stupid DEL command
         // fails even with /Q /S when the files don't exist
 #else
         // assume a sane implementation of SHELL_RM_RF
         return 0;
-#endif   // _WIN{32,64}
+#endif   // _WIN32
     }
 
     if (rw_system ("mkdir %s", locale_root))
@@ -1676,5 +1678,3 @@ _rw_lookup_table_t::load_from_file (const char* path, const char* name, int uppe
 
     return true;
 }
-
-

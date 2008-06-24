@@ -41,7 +41,7 @@
 #  define _WIN32
 #endif
 
-#if !defined (_WIN32) && !defined (_WIN64)
+#ifndef _WIN32
 #  ifdef __SUNPRO_CC
      // working around SunOS bug #568
 #    include <time.h>
@@ -69,7 +69,7 @@
 #  endif   // _SC_PAGE_SIZE
 #else
 #  include <windows.h>    // for everything (ugh)
-#endif   // _WIN{32,64}
+#endif   // _WIN32
 
 #include <rw/_defs.h>
 
@@ -104,7 +104,7 @@ __rw_memattr (const void *addr, _RWSTD_SIZE_T nbytes, int attr)
     // of the three, in addition to 0 (PROT_NONE)
     _RWSTD_UNUSED (attr);
 
-#if !defined (_WIN32) && !defined (_WIN64)
+#ifndef _WIN32
 
     const int errno_save = errno;
 
@@ -232,7 +232,7 @@ __rw_memattr (const void *addr, _RWSTD_SIZE_T nbytes, int attr)
 
     return _RWSTD_STATIC_CAST (_RWSTD_SSIZE_T, nbytes);
 
-#else   // if defined (_WIN{32,64})
+#else   // ifdef _WIN32
 
     LPVOID const ptr = _RWSTD_CONST_CAST (LPVOID, addr);
 

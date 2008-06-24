@@ -133,8 +133,27 @@ _RWSTD_NAMESPACE (__rw) {
 
 extern "C" {
 
+#if !defined (_RWSTD_MSVC) || !defined (_RWSTD_REENTRANT)
+
 _RWSTD_EXPORT int
 __rw_once (__rw_once_t*, void (*)());
+
+#else   // _RWSTD_MSVC && _RWSTD_REENTRANT
+
+// MSVC by default assumes that functions with C linkage don't
+// throw exceptions and issues warning "function assumed not
+// to throw an exception but does". Specifying an exception
+// specification using the throw(...) extension prevents this
+// problem.
+// Note: functions with C linkage passed as an argument to
+// __rw_once() should also be declared with the appropriate
+// exception specification if it throws an exception in order
+// to avoid resource leaks due to destructors of objects with
+// auto storage duration not being run otherwise.
+_RWSTD_EXPORT int
+__rw_once (__rw_once_t*, void (*)() throw (...)) throw (...);
+
+#endif   // !_RWSTD_MSVC || !_RWSTD_REENTRANT
 
 }   // extern "C"
 

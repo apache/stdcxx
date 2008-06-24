@@ -33,7 +33,7 @@
 #  define TYPE_DIR(ign1, ign2)
 #endif
 
-#if defined (__CYGWIN__)
+#if defined (__CYGWIN__) || defined (__MINGW32__)
    /* on cygwin used COFF object file format
       C-functions names should prepended by '_' */
 #  define SYMNAME(name)    _##name

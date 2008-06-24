@@ -74,7 +74,7 @@ static void normal_path (std::string& s)
 
     for (; it != s.end (); it++)
         if (*it == '/' || *it == '\\') {
-#if defined (_MSC_VER)
+#if defined (_WIN32)
             *it = '\\';
 #else
             *it = '/';

@@ -37,7 +37,7 @@
 #include <stdlib.h>
 #include <string.h> /* for str*, mem* */
 
-#if !defined (_WIN32) && !defined (_WIN64)
+#ifndef _WIN32
 #  include <unistd.h> /* for close, dup, exec, fork */
 #  include <sys/wait.h>
 #  include <sys/times.h> /* for times - is this XSI? */
@@ -410,7 +410,7 @@ get_signame (int signo)
     return def;
 }
 
-#if !defined (_WIN32) && !defined (_WIN64)
+#ifndef _WIN32
 /**
    Callback used to set the alarm_timeout flag in response to recieving
    the signal SIGALRM
@@ -894,7 +894,7 @@ void exec_file (const struct target_opts* options, struct target_status* result)
             warn ("Failed to retrieve start times: %s", strerror (errno));
     }
 }
-#else  /* _WIN{32,64} */
+#else  /* _WIN32 */
 
 // map between NT_STATUS value and corresponding UNIX signal
 static const struct {
@@ -1239,4 +1239,4 @@ void exec_file (const struct target_opts* options, struct target_status* result)
     }
 }
 
-#endif  /* _WIN{32,64} */
+#endif  /* _WIN32 */

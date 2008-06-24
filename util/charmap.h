@@ -195,9 +195,9 @@ private:
     // the name of the codeset
     std::string code_set_name_;
 
-#if defined (_MSC_VER)
+#if defined (_WIN32)
     int codepage_;
-#endif // _MSC_VER
+#endif // _WIN32
 
     // n_cmap maps the symbolic name to a narrow character value
     // rn_cmap does the opposite
@@ -261,4 +261,5 @@ private:
 
 
 #endif   // _RWSTD_CHARMAP_H_INCLUDED
+
 

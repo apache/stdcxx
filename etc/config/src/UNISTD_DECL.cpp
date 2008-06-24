@@ -28,11 +28,11 @@
 #include <fcntl.h>
 #include <stdio.h>
 
-#if (defined (_WIN32) || defined (_WIN64)) && !defined (__CYGWIN__)
+#if defined (_WIN32) && !defined (__CYGWIN__)
 #  include <io.h>
 #else
 #  include <unistd.h>
-#endif   // _WIN32 || _WIN64
+#endif   // _WIN32
 
 // Windows defines the equivalent SSIZE_T in the platform SDK
 // as the signed equivalent of size_t which is defined as long
@@ -108,9 +108,9 @@ const char* ssize_t_name (unsigned long)      { return "unsigned long"; }
 
 #ifndef _RWSTD_NO_LONG_LONG
 #  define LONG_LONG   long long
-#elif defined (_WIN32) || defined (_WIN64)
+#elif defined (_WIN32)
 #  define LONG_LONG   __int64
-#endif   // _RWSTD_NO_LONG_LONG, _WIN{32,64}
+#endif   // _RWSTD_NO_LONG_LONG, _WIN32
 
 
 #if defined (LONG_LONG)

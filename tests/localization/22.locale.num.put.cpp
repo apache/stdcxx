@@ -358,7 +358,7 @@ void do_test (charT           /* dummy */,
             std::sprintf (cbuf, str, val);
             str = cbuf;
 
-#if defined (_WIN32) || defined (_WIN64)
+#ifdef _WIN32
 
             std::size_t len = std::strlen (str);
 
@@ -370,7 +370,7 @@ void do_test (charT           /* dummy */,
                 cbuf [len - 1] = cbuf [len];
             }
 
-#endif   // _WIN{32,64}
+#endif   // _WIN32
         }
 
         // compare output produced by num_put with that produced by printf()

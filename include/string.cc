@@ -26,20 +26,20 @@
  * 
  **************************************************************************/
 
-#ifdef _MSC_VER
+#ifdef _RWSTD_MSVC
    // shut up the dumb MSVC warning C4345:
    // behavior change: an object with POD type constructed with
    // an initializer of the form () will be default-initialized
 #  pragma warning (push)
 #  pragma warning (disable: 4345)
-#endif   // _MSC_VER
+#endif   // _RWSTD_MSVC
 
 
 _RWSTD_NAMESPACE (std) {
 
 
 #ifndef _RWSTD_NO_STATIC_CONST_MEMBER_INIT
-#  if !defined (_MSC_VER) || _MSC_VER > 1300 || defined (__INTEL_COMPILER)
+#  if !defined (_RWSTD_MSVC) || _RWSTD_MSVC > 1300
    // MSVC 7.0 allows initializers for static const integral members
    // but out-of-line definitions cause multiply defined symbol errors
    // (see PR #26562)
@@ -921,6 +921,6 @@ compare (size_type __pos, size_type __n1,
 }   // namespace std
 
 
-#ifdef _MSC_VER
+#ifdef _RWSTD_MSVC
 #  pragma warning (pop)
-#endif   // _MSC_VER
+#endif   // _RWSTD_MSVC
