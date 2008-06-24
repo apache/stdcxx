@@ -77,8 +77,7 @@ struct __rw_is_void : __rw_false_type
 
 _RWSTD_TRAIT_SPEC_0_CV(__rw_is_void, void, true);
 
-#define _RWSTD_IS_VOID(T)                                               \
-    _RW::__rw_is_void<T>::value
+#define _RWSTD_IS_VOID(T) _RW::__rw_is_void<T>::value
 
 
 /**
@@ -117,8 +116,7 @@ _RWSTD_TRAIT_SPEC_0_CV(__rw_is_integral,   signed long long, true);
 _RWSTD_TRAIT_SPEC_0_CV(__rw_is_integral, unsigned long long, true);
 #endif   // _RWSTD_NO_LONG_LONG
 
-#define _RWSTD_IS_INTEGRAL(T)                                         \
-    _RW::__rw_is_integral<T>::value
+#define _RWSTD_IS_INTEGRAL(T) _RW::__rw_is_integral<T>::value
 
 /**
  * UnaryTypeTrait to determine if _TypeT is a (potentially cv-qualified)
@@ -137,8 +135,7 @@ _RWSTD_TRAIT_SPEC_0_CV(__rw_is_floating_point, double, true);
 _RWSTD_TRAIT_SPEC_0_CV(__rw_is_floating_point, long double, true);
 #endif    // _RWSTD_NO_LONG_DOUBLE
 
-#define _RWSTD_IS_FLOATING_POINT(T)                                   \
-    _RW::__rw_is_floating_point<T>::value
+#define _RWSTD_IS_FLOATING_POINT(T) _RW::__rw_is_floating_point<T>::value
 
 
 /**
@@ -159,8 +156,7 @@ struct __rw_is_array<_TypeT []> : __rw_true_type
 {
 };
 
-#define _RWSTD_IS_ARRAY(T)                                            \
-    _RW::__rw_is_array<T>::value
+#define _RWSTD_IS_ARRAY(T) _RW::__rw_is_array<T>::value
 
 /**
  * UnaryTypeTrait to determine if _TypeT is a (potentially cv-qualified)
@@ -190,8 +186,9 @@ struct __rw_is_lvalue_reference<_TypeT&> : __rw_true_type
 {
 };
 
-#define _RWSTD_IS_LVAL_REF(T)                                         \
-    _RW::__rw_is_lval_ref<T>::value
+#define _RWSTD_IS_LVALUE_REFERENCE(T) \
+    _RW::__rw_is_lvalue_reference<T>::value
+
 
 /**
  * UnaryTypeTrait to determine if _TypeT is a rval reference type.
@@ -211,8 +208,9 @@ struct __rw_is_rvalue_reference<_TypeT&&> : __rw_true_type
 
 #endif   // _RWSTD_NO_RVALUE_REFERENCES
 
-#define _RWSTD_IS_RVAL_REF(T)                                         \
-    _RW::__rw_is_rval_ref<T>::value
+#define _RWSTD_IS_RVALUE_REFERENCE(T) \
+    _RW::__rw_is_rvalue_reference<T>::value
+
 
 /**
  * Class template can be used to determine if _TypeT is an enumeration.
@@ -235,8 +233,7 @@ struct __rw_is_union
 {
 };
 
-#define _RWSTD_IS_UNION(T)                                            \
-    _RW::__rw_is_union<T>::value
+#define _RWSTD_IS_UNION(T) _RW::__rw_is_union<T>::value
 
 
 /**
@@ -248,8 +245,7 @@ struct __rw_is_class
 {
 };
 
-#define _RWSTD_IS_CLASS(T)                                            \
-    _RW::__rw_is_class<T>::value
+#define _RWSTD_IS_CLASS(T) _RW::__rw_is_class<T>::value
 
 
 /**
@@ -307,8 +303,7 @@ struct __rw_is_function
 {
 };
 
-#define _RWSTD_IS_FUNCTION(T)                                         \
-    _RW::__rw_is_function<T>::value
+#define _RWSTD_IS_FUNCTION(T) _RW::__rw_is_function<T>::value
 
 /**
  * UnaryTypeTrait to determine if _TypeT is a pointer to member
@@ -323,8 +318,9 @@ _RWSTD_TRAIT_SPEC_2_CV(__rw_is_member_object_pointer,
                        _TypeT _ClassT::*,
                        !__rw_is_function<_TypeT>::value);
 
-#define _RWSTD_IS_MEMOBJ_PTR(T)                                       \
+#define _RWSTD_IS_MEMBER_OBJECT_PTR(T) \
     _RW::__rw_is_member_object_pointer<T>::value
+
 
 /**
  * UnaryTypeTrait to determine if _TypeT is a pointer to member
@@ -339,7 +335,7 @@ _RWSTD_TRAIT_SPEC_2_CV(__rw_is_member_function_pointer,
                        _TypeT _ClassT::*,
                        __rw_is_function<_TypeT>::value);
 
-#define _RWSTD_IS_MEMFUN_PTR(T)                                       \
+#define _RWSTD_IS_MEMBER_FUNCTION_PTR(T) \
     _RW::__rw_is_member_function_pointer<T>::value
 
 #undef _RWSTD_TRAIT_SPEC_2_CV

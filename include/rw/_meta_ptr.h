@@ -55,7 +55,7 @@ struct __rw_remove_pointer<_TypeT*>
     typedef _TypeT type;
 };
 
-//#define _RWSTD_REMOVE_POINTER(T) typename _RW::__rw_remove_pointer<T>::type
+#define _RWSTD_REMOVE_POINTER(T) _RW::__rw_remove_pointer<T>::type
 
 /**
  * TransformationTrait adds a single level of pointer indirection to
@@ -68,7 +68,7 @@ struct __rw_add_pointer
     __rw_remove_reference<_TypeT>::type* type;
 };
 
-//#define _RWSTD_ADD_POINTER(T) typename _RW::__rw_add_pointer<T>::type
+#define _RWSTD_ADD_POINTER(T) _RW::__rw_add_pointer<T>::type
 
 } // namespace __rw
 

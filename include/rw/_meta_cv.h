@@ -58,6 +58,8 @@ struct __rw_remove_const<const _TypeT>
     typedef _TypeT type;
 };
 
+#define _RWSTD_REMOVE_CONST(T) _RW::__rw_remove_const<T>::type
+
 
 /**
  * TransformationTrait strips any top level volatile-qualifier from _TypeT.
@@ -81,6 +83,8 @@ struct __rw_remove_volatile<volatile _TypeT>
     typedef _TypeT type;
 };
 
+#define _RWSTD_REMOVE_VOLATILE(T) _RW::__rw_remove_volatile<T>::type
+
 /**
  * TransformationTrait strips top level cv-qualifiers from _TypeT.
  */
@@ -91,6 +95,9 @@ struct __rw_remove_cv
         typename __rw_remove_volatile<_TypeT>::type
     >::type type;
 };
+
+#define _RWSTD_REMOVE_CV(T) _RW::__rw_remove_cv<T>::type
+
 
 template <class _TypeT, bool =   __rw_is_function<_TypeT>::value
                               || __rw_is_reference<_TypeT>::value>
@@ -117,6 +124,8 @@ struct __rw_add_const
 {
     typedef typename __rw_add_const_impl<_TypeT>::_C_type type;
 };
+
+#define _RWSTD_ADD_CONST(T) _RW::__rw_add_const<T>::type
 
 
 template <class _TypeT, bool =   __rw_is_function<_TypeT>::value
@@ -145,6 +154,9 @@ struct __rw_add_volatile
     typedef typename __rw_add_volatile_impl<_TypeT>::_C_type type;
 };
 
+#define _RWSTD_ADD_VOLATILE(T) _RW::__rw_add_volatile<T>::type
+
+
 /**
  * Trait adds top level cv-qualifiers to _TypeT.
  */
@@ -156,6 +168,8 @@ struct __rw_add_cv
         typename __rw_add_volatile<_TypeT>::type
     >::type type;
 };
+
+#define _RWSTD_ADD_CV(T) _RW::__rw_add_cv<T>::type
 
 } // namespace __rw
 

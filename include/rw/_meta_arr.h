@@ -66,7 +66,7 @@ struct __rw_remove_extent<_TypeT []>
     typedef _TypeT type;
 };
 
-//#define _RWSTD_REMOVE_EXTENT(T) _RW::__rw_remove_extent<T>::type
+#define _RWSTD_REMOVE_EXTENT(T) _RW::__rw_remove_extent<T>::type
 
 /**
  * TransformationTrait strips one dimension from an array type, leaving
@@ -101,7 +101,7 @@ struct __rw_remove_all_extents<_TypeT []>
     typedef typename __rw_remove_all_extents<_TypeT>::type type;
 };
 
-//#define _RWSTD_REMOVE_ALL_EXTENTS(T) _RW::__rw_remove_all_extents<T>::type
+#define _RWSTD_REMOVE_ALL_EXTENTS(T) _RW::__rw_remove_all_extents<T>::type
 
 } // namespace __rw
 

@@ -64,8 +64,7 @@ struct __rw_is_same<_TypeT, _TypeT> : __rw_true_type
 {
 };
 
-#define _RWSTD_IS_SAME(T,U)                                           \
-    __rw_is_same<T,U>::value
+#define _RWSTD_IS_SAME(T,U) _RW::__rw_is_same<T,U>::value
 
 /**
  * BinaryTypeTrait indicates that _TypeT is a base class of _TypeU
@@ -85,8 +84,7 @@ struct __rw_is_base_of
     //               ||
 };
 
-#define _RWSTD_IS_BASE_OF(T,U)                                        \
-    __rw_is_base_of<T,U>::value
+#define _RWSTD_IS_BASE_OF(T,U) _RW::__rw_is_base_of<T,U>::value
 
 
 /**
@@ -200,8 +198,7 @@ struct __rw_is_convertible
     //                       || _RWSTD_IS_VOID (_TypeT));
 };
 
-#define _RWSTD_IS_CONVERTIBLE(T,U)                                    \
-    __rw_is_convertible<T,U>::value
+#define _RWSTD_IS_CONVERTIBLE(T,U) _RW::__rw_is_convertible<T,U>::value
 
 } // namespace __rw
 

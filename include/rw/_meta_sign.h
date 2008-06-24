@@ -276,7 +276,7 @@ public:
     typedef _TypeU type;
 };
 
-//#define _RWSTD_MAKE_SIGNED(T) typename _RW::__rw_make_signed<T>::type
+#define _RWSTD_MAKE_SIGNED(T) _RW::__rw_make_signed<T>::type
 
 /**
  * If _TypeT names a (possibly cv-qualified) unsigned integral type then the
@@ -321,7 +321,7 @@ public:
     typedef _TypeU type;
 };
 
-//#define _RWSTD_MAKE_UNSIGNED(T) typename _RW::__rw_make_unsigned<T>::type
+#define _RWSTD_MAKE_UNSIGNED(T) _RW::__rw_make_unsigned<T>::type
 
 } // namespace __rw
 

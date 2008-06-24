@@ -76,6 +76,9 @@ struct __rw_remove_reference<_TypeT&&>
 
 #endif   // _RWSTD_NO_RVALUE_REFERENCES
 
+#define _RWSTD_REMOVE_REFERENCE(T) _RW::__rw_remove_reference<T>::type
+
+
 template <class _TypeT, bool =    !__rw_is_void<_TypeT>::value
                                && !__rw_is_reference<_TypeT>::value,
                         bool = __rw_is_rvalue_reference<_TypeT>::value>
@@ -111,6 +114,8 @@ struct __rw_add_lvalue_reference
     __rw_add_lvalue_reference_impl<_TypeT>::_C_type type;
 };
 
+#define _RWSTD_ADD_LVALUE_REFERENCE(T) _RW::__rw_add_lvalue_reference<T>::type
+
 
 template <class _TypeT, bool =    __rw_is_object<_TypeT>::value
                                || __rw_is_function<_TypeT>::_C_type>
@@ -141,6 +146,7 @@ struct __rw_add_rvalue_reference
     __rw_add_rvalue_reference_impl<_TypeT>::_C_type type;
 };
 
+#define _RWSTD_ADD_RVALUE_REFERENCE(T) _RW::__rw_add_rvalue_reference<T>::type
 
 } // namespace __rw
 

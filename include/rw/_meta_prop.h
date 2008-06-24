@@ -57,6 +57,9 @@ struct __rw_is_const<const _TypeT> : __rw_true_type
 {
 };
 
+#define _RWSTD_IS_CONST(T) _RW::__rw_is_const<T>::value
+
+
 /**
  * UnaryTypeTrait indicates that _TypeT is volatile-qualified.
  */
@@ -69,6 +72,8 @@ template <class _TypeT>
 struct __rw_is_volatile<volatile _TypeT> : __rw_true_type
 {
 };
+
+#define _RWSTD_IS_VOLATILE(T) _RW::__rw_is_volatile<T>::value
 
 
 template <class _TypeT>
@@ -130,6 +135,9 @@ struct __rw_is_standard_layout
     //                       || _RWSTD_IS_VOID (_TypeT));
 };
 
+#define _RWSTD_IS_STANDARD_LAYOUT(T) _RW::__rw_is_standard_layout<T>::value
+
+
 /**
  * UnaryTypeTrait indicates that _TypeT is a pod type.
  *
@@ -144,6 +152,9 @@ struct __rw_is_pod
     //                       || _RWSTD_IS_ARRAY (_TypeT)
     //                       || _RWSTD_IS_VOID (_TypeT));
 };
+
+#define _RWSTD_IS_POD(T) _RW::__rw_is_pod<T>::value
+
 
 /**
  * UnaryTypeTrait indicates that _TypeT is an empty type.
@@ -160,6 +171,9 @@ struct __rw_is_empty
     //                       || _RWSTD_IS_VOID (_TypeT));
 };
 
+#define _RWSTD_IS_EMPTY(T) _RW::__rw_is_empty<T>::value
+
+
 /**
  * UnaryTypeTrait indicates that _TypeT is a polymorphic type.
  *
@@ -174,6 +188,9 @@ struct __rw_is_polymorphic
     //                       || _RWSTD_IS_ARRAY (_TypeT)
     //                       || _RWSTD_IS_VOID (_TypeT));
 };
+
+#define _RWSTD_IS_POLYMORPHIC(T) _RW::__rw_is_polymorphic<T>::value
+
 
 /**
  * UnaryTypeTrait indicates that _TypeT is an abstract type.
@@ -190,6 +207,9 @@ struct __rw_is_abstract
     //                       || _RWSTD_IS_VOID (_TypeT));
 };
 
+#define _RWSTD_IS_ABSTRACT(T) _RW::__rw_is_abstract<T>::value
+
+
 /**
  * UnaryTypeTrait indicates that _TypeT has a trivial default constructor.
  *
@@ -204,6 +224,9 @@ struct __rw_has_trivial_ctor
     //                       || _RWSTD_IS_ARRAY (_TypeT)
     //                       || _RWSTD_IS_VOID (_TypeT));
 };
+
+#define _RWSTD_HAS_TRIVIAL_CTOR(T) _RW::__rw_has_trivial_ctor<T>::value
+
 
 /**
  * UnaryTypeTrait indicates that _TypeT has a trivial copy constructor.
@@ -220,6 +243,9 @@ struct __rw_has_trivial_copy
     //                       || _RWSTD_IS_VOID (_TypeT));
 };
 
+#define _RWSTD_HAS_TRIVIAL_COPY(T) _RW::__rw_has_trivial_copy<T>::value
+
+
 /**
  * UnaryTypeTrait indicates that _TypeT has a trivial assignment operator.
  *
@@ -235,6 +261,9 @@ struct __rw_has_trivial_assign
     //                       || _RWSTD_IS_VOID (_TypeT));
 };
 
+#define _RWSTD_HAS_TRIVIAL_ASSIGN(T) _RW::__rw_has_trivial_assign<T>::value
+
+
 /**
  * UnaryTypeTrait indicates that _TypeT has a trivial destructor.
  *
@@ -249,6 +278,9 @@ struct __rw_has_trivial_dtor
     //                       || _RWSTD_IS_ARRAY (_TypeT)
     //                       || _RWSTD_IS_VOID (_TypeT));
 };
+
+#define _RWSTD_HAS_TRIVIAL_DTOR(T) _RW::__rw_has_trivial_dtor<T>::value
+
 
 /**
  * UnaryTypeTrait indicates that _TypeT is a trivial type or
@@ -287,6 +319,8 @@ struct __rw_is_trivial
     //                       || _RWSTD_IS_VOID (_TypeT));
 };
 
+#define _RWSTD_IS_TRIVIAL(T) _RW::__rw_is_trivial<T>::value
+
 /**
  * UnaryTypeTrait to determine if _TypeT has a nothrow default constructor.
  *
@@ -301,6 +335,9 @@ struct __rw_has_nothrow_ctor
     //                       || _RWSTD_IS_ARRAY (_TypeT)
     //                       || _RWSTD_IS_VOID (_TypeT));
 };
+
+#define _RWSTD_HAS_NOTHROW_CTOR(T) _RW::__rw_has_nothrow_ctor<T>::value
+
 
 /**
  * UnaryTypeTrait indicates that _TypeT has a nothrow copy constructor.
@@ -317,6 +354,9 @@ struct __rw_has_nothrow_copy
     //                       || _RWSTD_IS_VOID (_TypeT));
 };
 
+#define _RWSTD_HAS_NOTHROW_COPY(T) _RW::__rw_has_nothrow_copy<T>::value
+
+
 /**
  * UnaryTypeTrait indicates that _TypeT has a nothrow assignment operator.
  *
@@ -332,6 +372,9 @@ struct __rw_has_nothrow_assign
     //                       || _RWSTD_IS_VOID (_TypeT));
 };
 
+#define _RWSTD_HAS_NOTHROW_ASSIGN(T) _RW::__rw_has_nothrow_assign<T>::value
+
+
 /**
  * UnaryTypeTrait indicates that _TypeT has a virtual destructor.
  *
@@ -346,6 +389,9 @@ struct __rw_has_virtual_dtor
     //                       || _RWSTD_IS_ARRAY (_TypeT)
     //                       || _RWSTD_IS_VOID (_TypeT));
 };
+
+#define _RWSTD_HAS_VIRTUAL_DTOR(T) _RW::__rw_has_virtual_dtor<T>::value
+
 
 /**
  * UnaryTypeTrait that indicates that _TypeT is an unsigned type.
@@ -401,6 +447,10 @@ _RWSTD_TRAIT_SPEC_0_CV(__rw_is_signed,     double);
 _RWSTD_TRAIT_SPEC_0_CV(__rw_is_signed,     long double);
 #endif   // _RWSTD_NO_LONG_DOUBLE
 
+#define _RWSTD_IS_SIGNED(T)   _RW::__rw_is_signed<T>::value
+#define _RWSTD_IS_UNSIGNED(T) _RW::__rw_is_unsigned<T>::value
+
+
 /**
  * UnaryTypeTrait that gets the alignment of _TypeT.
  */
@@ -412,6 +462,8 @@ struct __rw_alignment_of
     //                       || _RWSTD_IS_ARRAY (_TypeT)
     //                       || _RWSTD_IS_VOID (_TypeT));
 };
+
+#define _RWSTD_ALIGNMENT_OF(T) _RW::__rw_alignment_of<T>::value
 
 /**
  * UnaryTypeTrait gives the number of dimensions of the type _TypeT, if
@@ -446,6 +498,8 @@ struct __rw_rank<_TypeT []>
 {
 };
 
+#define _RWSTD_RANK(T) _RW::__rw_rank<T>::value
+
 
 /**
  * UnaryTypeTrait gives the size of the _Depth dimension of _TypeT.
@@ -479,6 +533,9 @@ struct __rw_extent<_TypeT [], 0>
     : __rw_integral_constant<_RWSTD_SIZE_T, 0>
 {
 };
+
+#define _RWSTD_EXTENT_1(T)   _RW::__rw_extent<T>::value
+#define _RWSTD_EXTENT_2(T,D) _RW::__rw_extent<T,D>::value
 
 } // namespace __rw
 

@@ -46,6 +46,8 @@ struct __rw_is_reference
 {
 };
 
+#define _RWSTD_IS_REFERENCE(T) _RW::__rw_is_reference<T>::value
+
 /**
  * UnaryTypeTrait indicates that _TypeT is an arithmethic type.
  *
@@ -59,6 +61,8 @@ struct __rw_is_arithmetic
 {
 };
 
+#define _RWSTD_IS_ARITHMETIC(T) _RW::__rw_is_arithmetic<T>::value
+
 /**
  * UnaryTypeTrait indicates that _TypeT is an fundamental type.
  *
@@ -71,6 +75,8 @@ struct __rw_is_fundamental
                                    || __rw_is_arithmetic<_TypeT>::value>
 {
 };
+
+#define _RWSTD_IS_FUNDAMENTAL(T) _RW::__rw_is_fundamental<T>::value
 
 
 /**
@@ -87,6 +93,9 @@ struct __rw_is_object
 {
 };
 
+#define _RWSTD_IS_OBJECT(T) _RW::__rw_is_object<T>::value
+
+
 /**
  * UnaryTypeTrait indicates that _TypeT is a member pointer type.
  *
@@ -100,6 +109,8 @@ struct __rw_is_member_pointer
                                    || __rw_is_member_object_pointer<_TypeT>::value>
 {
 };
+
+#define _RWSTD_IS_MEMBER_POINTER(T) _RW::__rw_is_member_pointer<T>::value
 
 /**
  * UnaryTypeTrait indicates that _TypeT is a scalar type.
@@ -122,6 +133,9 @@ struct __rw_is_scalar
      */
 };
 
+#define _RWSTD_IS_SCALAR(T) _RW::__rw_is_scalar<T>::value
+
+
 /**
  * UnaryTypeTrait indicates that _TypeT is a compound type.
  *
@@ -140,6 +154,9 @@ struct __rw_is_compound
                                    || __rw_is_member_pointer<_TypeT>::value>
 {
 };
+
+#define _RWSTD_IS_COMPOUND(T) _RW::__rw_is_compound<T>::value
+
 
 } // namespace __rw
 
