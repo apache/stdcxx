@@ -1,0 +1,86 @@
+	// -*- C++ -*-
+/***************************************************************************
+ *
+ * type_traits - definition of type_traits types
+ *
+ * $Id$
+ *
+ ***************************************************************************
+ *
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 2008 Rogue Wave Software, Inc.
+ * 
+ **************************************************************************/
+
+#ifndef _RWSTD_TYPE_TRAITS_INCLUDED
+#define _RWSTD_TYPE_TRAITS_INCLUDED
+
+#include <rw/_defs.h>
+
+#ifndef _RWSTD_NO_EXT_CXX_0X
+
+_RWSTD_NAMESPACE (std) {
+
+/**
+ * The class template integral_constant and its associated typedefs
+ * true_type and false_type are used as base classes to define the
+ * interface for various type traits.
+ */
+template <class _TypeT, _TypeT _Value>
+struct integral_constant
+{
+    /**
+     * Describes the type of this integral_constant.
+     */
+    typedef integral_constant<_TypeT,_Value> type;
+
+    /**
+     * Describes the type of the value defined by this integral_constant.
+     */
+    typedef _TypeT value_type;
+
+    /**
+     * The actual integral constant value.
+     */
+    static const _TypeT value = _Value;
+};
+
+#ifndef _RWSTD_NO_STATIC_CONST_MEMBER_DEFINITION
+
+template<class _TypeT, _TypeT _Value>
+const _TypeT integral_constant<_TypeT, _Value>::value;
+
+#endif    // _RWSTD_NO_STATIC_CONST_MEMBER_DEFINITION
+
+/**
+ * Convenience typedef that is intended to be used as a base class
+ * for boolean type traits that are true.
+ */
+typedef integral_constant<bool, true>  true_type;
+
+/**
+ * Convenience typedef that is intended to be used as a base class
+ * for boolean type traits that are false.
+ */
+typedef integral_constant<bool, false> false_type;
+
+}   // namespace std
+
+#endif   // _RWSTD_NO_EXT_CXX_0X
+
+#endif   // _RWSTD_TYPE_TRAITS_INCLUDED

@@ -100,28 +100,24 @@ __rw_fmat_infinite (char *buf, size_t bufsize, double val, unsigned flags)
     }
     else {
         _RWSTD_ASSERT (__rw_isnan (val));
-#if 0
-        // disabled since not all platforms correctly handling sign of NaN's
+
         if (__rw_signbit (val)) {
             *end++ = '-';
         }
         else if (flags & _RWSTD_IOS_SHOWPOS) {
             *end++ = '+';
         }
-#endif
 
         const char str [] = "nNaAqQsS";
-        *end++ = str [cap + 0];
-        *end++ = str [cap + 2];
-        *end++ = str [cap + 0];
-#if 0
-        // disabled since not all platforms supporting 
-        // the quiet and signaling NaN's
+
         if (__rw_isqnan (val))
             *end++ = str [cap + 4];
         else if (__rw_issnan (val))
             *end++ = str [cap + 6];
-#endif
+
+        *end++ = str [cap + 0];
+        *end++ = str [cap + 2];
+        *end++ = str [cap + 0];
     }
 
     return int (end - buf);
