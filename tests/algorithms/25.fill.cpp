@@ -146,7 +146,7 @@ void test_fill_n (std::size_t           N,
         const OutputIterator begin =
             make_iter (buf, buf, buf_end, dummy_iter);
 
-        const Size n (i, 0 /* dummy */);
+        const Size n (typename Size::IntegralType (i), 0 /* dummy */);
         const T    value;
 
         // the number of invocations of the assignment operator

@@ -131,8 +131,8 @@ void exception_loop (int              line /* line number in caller*/,
                      const UserClass *x /* pointer to an element or 0 */,
                      const Iterator  &first /* beginning of range */,
                      const Iterator  &last /* end of range to insert */,
-                     int             *n_copy /* number of copy ctors */,
-                     int             *n_asgn /* number of assignments */)
+                     std::size_t     *n_copy /* number of copy ctors */,
+                     std::size_t     *n_asgn /* number of assignments */)
 {
     std::size_t throw_after = 0;
 
@@ -359,8 +359,8 @@ void test_insert (int line, int exceptions,
                   nelems == -2, *ins, nelems == -1, 
                   int (inslen), -1, xins, nelems, *ins);
 
-    int n_copy = UserClass::n_total_copy_ctor_;
-    int n_asgn = UserClass::n_total_op_assign_;
+    std::size_t n_copy = UserClass::n_total_copy_ctor_;
+    std::size_t n_asgn = UserClass::n_total_op_assign_;
 
     if (-2 == nelems) {   // insert(iterator, const_reference)
 
@@ -429,8 +429,7 @@ void test_insert (int line, int exceptions,
     // of calls to the copy ctor and assignment operator on value_type
     const std::size_t expect_copy = nelems < 0 ? inslen : nelems;
 
-    rw_assert (n_copy == int (expect_copy),
-               __FILE__, line,
+    rw_assert (n_copy == expect_copy, __FILE__, line,
                "line %d: %s: expected %zu invocations "
                "of UserClass::UserClass(const UserClass&), got %d\n",
                __LINE__, funcall, expect_copy, n_copy);
@@ -439,8 +438,7 @@ void test_insert (int line, int exceptions,
     const std::size_t expect_asgn =
         insert_assignments (dummy, nelems, off, seqlen, inslen);
 
-    rw_assert (n_asgn == int (expect_asgn), 
-               __FILE__, line,
+    rw_assert (n_asgn == expect_asgn, __FILE__, line,
                "line %d: %s: expected %zu invocations "
                "of UserClass::operator=(const UserClass&), got %d\n",
                __LINE__, funcall, expect_asgn, n_asgn);
@@ -872,8 +870,8 @@ void test_assign (int line, int exceptions,
                   asnlen, -1, xasn, 
                   nelems, *asn);
 
-    int n_copy = UserClass::n_total_copy_ctor_;
-    int n_asgn = UserClass::n_total_op_assign_;
+    std::size_t n_copy = UserClass::n_total_copy_ctor_;
+    std::size_t n_asgn = UserClass::n_total_op_assign_;
 
     // create a dummy deque iterator to pass to exception_loop
     // (the object will not be used by the functiuon)
@@ -963,12 +961,12 @@ void test_assign (int line, int exceptions,
     const std::size_t expect_asgn = 0;
 #endif   // _RWSTD_NO_EXT_DEQUE_ASSIGN_IN_PLACE
 
-    rw_assert (n_copy == int (expect_copy), 0, line,
+    rw_assert (n_copy == expect_copy, __FILE__, line,
                "line %d: %s: expected %zu invocations "
                "of UserClass::UserClass(const UserClass&), got %d\n",
                __LINE__, funcall, expect_copy, n_copy);
 
-    rw_assert (n_asgn == int (expect_asgn), 0, line,
+    rw_assert (n_asgn == expect_asgn, __FILE__, line,
                "line %d: %s: expected %zu invocations "
                "of UserClass::operator=(const UserClass&), got %d\n",
                __LINE__, funcall, expect_asgn, n_asgn);
@@ -1074,8 +1072,8 @@ void test_erase (int line,
     Deque deq = seqlen ? Deque (xseq, xseq + seqlen) : Deque ();
     const Deque::iterator start = deq.begin () + begoff;
  
-    int n_copy = UserClass::n_total_copy_ctor_;
-    int n_asgn = UserClass::n_total_op_assign_;
+    std::size_t n_copy = UserClass::n_total_copy_ctor_;
+    std::size_t n_asgn = UserClass::n_total_op_assign_;
 
     char* funcall = 0;
     std::size_t buflen = 0;
