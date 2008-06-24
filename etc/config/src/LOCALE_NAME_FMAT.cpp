@@ -129,7 +129,7 @@ int print_categories (const char*, int, int&, int&, int, char&, char&);
 int print_locale_name_format (int, int, int, int, int, char, char);
 
 
-#if !defined (_WIN32) && !defined (_WIN64) || defined (__CYGWIN__)
+#if !defined (_WIN32) || defined (__CYGWIN__)
 char cat_seps[] = " \n\t/\\:;#%";
 #else
 char cat_seps[] = "\n\t/\\:;#%";

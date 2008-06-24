@@ -26,14 +26,14 @@
  * 
  **************************************************************************/
 
-#ifndef _MSC_VER
+#ifndef _WIN32
 #  include <fcntl.h>     // for open()
 #  include <unistd.h>    // for getpagesize(), write()
-#else   // if MSVC
+#else   // if Windows
 #  include <fcntl.h>     // for POSIX compatibility APIs
 #  include <io.h>        // ditto
 #  include <windows.h>   // for all of Win32 junk
-#endif   // MSVC
+#endif   // _WIN32
 
 #include <errno.h>       // for errno, EINTR
 #include <stddef.h>      // for size_t
@@ -85,7 +85,7 @@ static int page_size ()
 
     if (0 == size) {
 
-#if defined (_WIN32) || defined (_WIN64)
+#ifdef _WIN32
 
         SYSTEM_INFO info;
 
@@ -97,7 +97,7 @@ static int page_size ()
 
         size = getpagesize ();
 
-#endif   // WIN{32,64}
+#endif   // _WIN32
 
     }
 
@@ -116,7 +116,7 @@ size_t memchk (const void *addr, size_t nbytes)
         // operation away (as SunOS does, for instance)
         // fd = open ("/dev/null", O_WRONLY);
 
-#if defined (_WIN32) || defined (_WIN64)
+#ifdef _WIN32
 
         char* const fname = tempnam (P_tmpdir, ".rwmemchk.tmp");
 
@@ -135,7 +135,7 @@ size_t memchk (const void *addr, size_t nbytes)
             return size_t (-1);
         }
 
-#else   // !_WIN{32,64}
+#else   // !_WIN32
 
 #  define TMP_TEMPLATE P_tmpdir "/rwmemchk-XXXXXX"
 
@@ -150,7 +150,7 @@ size_t memchk (const void *addr, size_t nbytes)
 
         unlink (fname_buf);
 
-#endif   // _WIN{32,64}
+#endif   // _WIN32
 
     }
 

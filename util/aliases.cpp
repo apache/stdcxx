@@ -55,11 +55,11 @@
 #include <vector>
 
 
-#ifndef _MSC_VER
+#ifndef _WIN32
 #  ifndef _RWSTD_NO_NL_LANGINFO
 #    include <langinfo.h>
 #  endif
-#endif  // _MSC_VER
+#endif  // _WIN32
 
 #include "aliases.h"
 
@@ -292,7 +292,7 @@ static const alias_t locale_aliases [] = {
     { 0, { 0 } }
 };
 
-#ifdef _MSC_VER
+#ifdef _WIN32
 
 struct codepage_t
 {
@@ -322,10 +322,10 @@ static const codepage_t codepages [] = {
     { 0, 0 }
 };
 
-#endif  // _MSC_VER
+#endif  // _WIN32
 
 /****************************************************************************/
-#ifdef _MSC_VER
+#ifdef _WIN32
 
 unsigned int get_codepage (const std::string& cname)
 {
@@ -336,7 +336,7 @@ unsigned int get_codepage (const std::string& cname)
     return 0;
 }
 
-#endif  // _MSC_VER
+#endif  // _WIN32
 
 /*****************************************************************************/
 
@@ -414,7 +414,7 @@ void get_cname_aliases (const std::string& name,
         aliases.push_back (name);
 }
 
-#ifndef _MSC_VER
+#ifndef _WIN32
 
 void get_lname_aliases (const std::string& name,
                         StringVector& aliases)
@@ -673,4 +673,4 @@ char* get_installed_locales (int loc_cat /* = LC_INVALID_CAT */)
     return slocname;
 }
 
-#endif   // _MSC_VER
+#endif   // _WIN32

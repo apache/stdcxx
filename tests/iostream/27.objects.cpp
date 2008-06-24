@@ -61,7 +61,7 @@ struct LifetimeChecker
 } lifetime_check;
 
 
-#if defined (_WIN32) | defined (_WIN64)
+#ifdef _WIN32
    // bring in <windows.h> as a compilation test to exercise
    // any potential collisions with our declarations
 #  include <windows.h>

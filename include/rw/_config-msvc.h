@@ -73,6 +73,10 @@
 // disable "decorated name length exceeded"
 #pragma warning (disable: 4503)
 
+// convert warning "'identifier' used on polymorphic type 'type' with /GR-;"
+// "unpredictable behavior may result" to error
+#pragma warning (error: 4541)
+
 // disable "'identifier' : no suitable definition"
 // "provided for explicit template instantiation request"
 #pragma warning (disable: 4661)

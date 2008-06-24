@@ -72,7 +72,7 @@
 #  define GERMAN_LOCALE         "De"
 #  define FRENCH_LOCALE         "Fr_FR.850"
 #  define JAPANESE_LOCALE       "Ja_JP.932"
-#elif defined (_WIN32) || defined (_WIN64)
+#elif defined (_WIN32)
 #  define US_LOCALE             "us"
 #  define GERMAN_LOCALE         "german_germany.1252"
 #  define FRENCH_LOCALE         "french_france.1252"

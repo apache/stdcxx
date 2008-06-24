@@ -58,12 +58,12 @@
 #include <cwctype>    // for iswxxx()
 
 
-#if !defined (_MSC_VER)
+#if !defined (_WIN32)
 #  if !defined (LC_MESSAGES)
 #    define LC_MESSAGES _RWSTD_LC_MESSAGES
 #  endif   // LC_MESSAGES
 #  include <langinfo.h>
-#endif  // _MSC_VER
+#endif  // _WIN32
 
 #include <driver.h>
 #include <file.h>        // for SLASH
@@ -593,7 +593,7 @@ void test_is_ch (charT, const char *cname)
                    "{ %s}, got { %s}",
                    uch, locname, is_C, is_CXX2);
 
-#if !defined (_WIN32) && !defined (_WIN64)
+#ifndef _WIN32
 
         // exercise POSIX requirements only on POSIX platforms
 
