@@ -722,7 +722,7 @@ inline size_t wcscspn (const wchar_t *__s1, const wchar_t *__s2)
 
 namespace std {
 
-using wcscspn;
+using ::wcscspn;
 
 #  undef _RWSTD_NO_WCSCSPN
 #endif   // _RWSTD_NO_WCSCSPN
@@ -940,7 +940,7 @@ extern "C" {
 
 inline wchar_t* wcsrchr (wchar_t *__s, wchar_t __c)
 {
-    const wchar_t *__ss = __s;
+    wchar_t *__ss = __s;
     while (*__ss++);
     while (--__ss != __s && *__ss != __c);
     return *__ss == __c ? __ss : 0;

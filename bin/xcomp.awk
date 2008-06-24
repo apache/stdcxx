@@ -23,10 +23,12 @@
 ########################################################################
 #
 # SYNOPSIS
-#     myname [bodyonly=0|1 logdir=<logdir>] logs...
+#     myname [bodyonly=0|1 logdir=<logdir> version=<version>] logs...
 #
 # VARIABLES:
 #   bodyonly     when non-zero, suppresses the <html> tags
+#   logdir
+#   version      stdcxx version (branch) to generate results for.
 #
 ########################################################################
 
@@ -132,8 +134,6 @@ BEGIN {
     buildmodes ["15s"] = "archive, debug, reentrant"
     buildmodes ["15S"] = "archive, debug, reentrant, wide"
 
-    svnpath="http://svn.apache.org/viewvc/stdcxx/trunk"
-
     # regular expression to match a name (e.g., compiler or OS)
     re_name    = "[A-Za-z][A-Za-z_0-9]*"
 
@@ -165,6 +165,18 @@ BEGIN {
 
 # detect the type of file
 1 == FNR {
+
+    if (svnpath == "") {
+
+        # initialize svnpath using version (assume trunk by default)
+        svnpath = "http://svn.apache.org/viewvc/stdcxx"
+
+        if (version == "" || version == "trunk")
+            svnpath = svnpath "/trunk"
+        else
+            svnpath = svnpath "/branches/" version
+    }
+
     section = 0
 
     if (0 == match(FILENAME, re_logname)) {

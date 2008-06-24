@@ -165,6 +165,15 @@ static flt_bits flt_qnan ()
 
     val.val /= flt_zero ();
 
+    // val.val can be +qnan or -qnan
+    // clear sign bit
+    if (e == big_endian) {
+        val.bits [0] &= '\x7f';
+    }
+    else {
+        val.bits [sizeof (val.val) - 1] &= '\x7f';
+    }
+
 #else   // if !defined (_RWSTD_NO_DBL_TRAPS)
 
     // floating point arithmetic traps
@@ -172,7 +181,7 @@ static flt_bits flt_qnan ()
     // assume IEEE 754 floating point format
 
     if (e == big_endian) {
-        val.bits [0] = '\xff';
+        val.bits [0] = '\x7f';
         val.bits [1] = '\xc0';
         val.bits [2] = '\0';
         val.bits [3] = '\0';
@@ -181,7 +190,7 @@ static flt_bits flt_qnan ()
         val.bits [0] = '\0';
         val.bits [1] = '\0';
         val.bits [2] = '\xc0';
-        val.bits [3] = '\xff';
+        val.bits [3] = '\x7f';
     }
 
 #endif   // _RWSTD_NO_DBL_TRAPS
@@ -355,6 +364,15 @@ static dbl_bits dbl_qnan ()
 
     val.val /= dbl_zero ();
 
+    // val.val can be +qnan or -qnan
+    // clear sign bit
+    if (e == big_endian) {
+        val.bits [0] &= '\x7f';
+    }
+    else {
+        val.bits [sizeof (val.val) - 1] &= '\x7f';
+    }
+
 #else   // if !defined (_RWSTD_NO_DBL_TRAPS)
 
     // floating point arithmetic traps
@@ -362,7 +380,7 @@ static dbl_bits dbl_qnan ()
     // assume IEEE 754 floating point format
 
     if (e == big_endian) {
-        val.bits [0] = '\xff';
+        val.bits [0] = '\x7f';
         val.bits [1] = '\xf8';
         val.bits [2] = '\0';
         val.bits [3] = '\0';
@@ -379,7 +397,7 @@ static dbl_bits dbl_qnan ()
         val.bits [4] = '\0';
         val.bits [5] = '\0';
         val.bits [6] = '\xf8';
-        val.bits [7] = '\xff';
+        val.bits [7] = '\x7f';
     }
 
 #endif   // _RWSTD_NO_DBL_TRAPS
@@ -587,6 +605,18 @@ static ldbl_bits ldbl_qnan ()
 
     val.val /= ldbl_zero ();
 
+    // val.val can be +qnan or -qnan
+    // clear sign bit
+    if (e == big_endian) {
+        val.bits [0] &= '\x7f';
+    }
+    else {
+        unsigned inx = sizeof (val.val) - 1;
+        // skip the trailing zero's
+        while (!val.bits [inx]) --inx;
+        val.bits [inx] &= '\x7f';
+    }
+
 #else   // if !defined (_RWSTD_NO_DBL_TRAPS)
 
     // floating point arithmetic traps
@@ -594,7 +624,7 @@ static ldbl_bits ldbl_qnan ()
     // assume IEEE 754 floating point format
 
     if (e == big_endian) {
-        val.bits [ 0] = '\xff';
+        val.bits [ 0] = '\x7f';
         val.bits [ 1] = '\xff';
         val.bits [ 2] = '\x80';
         val.bits [ 3] = '\0';
@@ -627,7 +657,7 @@ static ldbl_bits ldbl_qnan ()
         val.bits [12] = '\0';
         val.bits [13] = '\x80';
         val.bits [14] = '\xff';
-        val.bits [15] = '\xff';
+        val.bits [15] = '\x7f';
     }
 
 #endif   // _RWSTD_NO_DBL_TRAPS
