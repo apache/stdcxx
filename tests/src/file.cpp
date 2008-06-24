@@ -45,7 +45,7 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 
-#if !defined  (_WIN32) && !defined (_WIN64)
+#ifndef _WIN32
 #  include <langinfo.h>   // for CODESET
 #  include <unistd.h>     // for close(), open()
 #else
@@ -167,12 +167,12 @@ _TEST_EXPORT void pcs_write (void *fpv, const char *str)
     }
     else {
 
-#if !defined (_WIN32) && !defined (_WIN64)
+#ifndef _WIN32
         const char* const codeset = nl_langinfo (CODESET);
 #else
         // FIXME: determine the current code page
         const char* const codeset = "UTF-8";
-#endif   // _WIN{32,64}
+#endif   // _WIN32
 
         fprintf (fp, "<code_set_name> \"%s\"\n", codeset);
         fprintf (fp, "<mb_cur_max> 1\n");
@@ -248,7 +248,7 @@ const char* rw_tmpnam (char *buf)
 #  undef TMP_TEMPLATE
 #else   // if defined (_RWSTD_NO_MKSTEMP)
 
-#  if defined (_WIN32) || defined (_WIN64)
+#  ifdef _WIN32
 
     // create a temporary file name
     char* fname = tempnam (P_tmpdir, ".rwtest-tmp");
@@ -294,7 +294,7 @@ const char* rw_tmpnam (char *buf)
         fprintf (stderr, "%s:%d: tmpnam(\"%s\") failed: %s\n",
                  __FILE__, __LINE__, buf, strerror (errno));
 
-#  endif   // _WIN{32,64}
+#  endif   // _WIN32
 #endif   // _RWSTD_NO_MKSTEMP
 
     return fname;
@@ -304,7 +304,7 @@ const char* rw_tmpnam (char *buf)
 _TEST_EXPORT
 size_t rw_fsize (const char *fname)
 {
-#if defined (_WIN32) || defined (_WIN64)
+#ifdef _WIN32
 
     // note: both method of obtaining the size of a file
     // just written by a process may fail (i.e., the size
@@ -342,7 +342,7 @@ size_t rw_fsize (const char *fname)
 
 #  endif   // 0/1
 
-#else   // if !defined (_WIN{32,64})
+#else   // ifndef _WIN32
 
     struct stat sb;
 
@@ -351,7 +351,7 @@ size_t rw_fsize (const char *fname)
 
     return sb.st_size;
 
-#endif   // _WIN{32,64}
+#endif   // _WIN32
 
 }
 
@@ -481,7 +481,7 @@ rw_nextfd (int *count)
 
         *count = 0;
 
-#if defined (_WIN32) || defined (_WIN64)
+#ifdef _WIN32
 
 #  ifdef _MSC_VER
         // save the report mode and disable "Invalid file descriptor"
@@ -510,7 +510,7 @@ rw_nextfd (int *count)
                 ++*count;
         }
 
-#endif   // WIN{32,64}
+#endif   // _WIN32
 
     }
 

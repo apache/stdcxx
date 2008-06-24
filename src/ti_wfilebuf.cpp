@@ -37,11 +37,11 @@
 
 #undef _RWSTD_NO_TEMPLATE_DEFINITIONS
 
-#ifdef _MSC_VER
+#ifdef _RWSTD_MSVC
    // shut up the bogus MSVC warning C4661: no suitable definition
    // provided for explicit template instantiation request
 #  pragma warning (disable: 4661)
-#endif   // _MSC_VER
+#endif   // _RWSTD_MSVC
 
 // include <cstdio> to define the extended member functions that
 // take a FILE* argument

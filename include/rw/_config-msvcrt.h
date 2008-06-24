@@ -132,7 +132,6 @@
 #  define _RWSTD_NO_DYNAMIC_CAST
 #endif   // _CPPRTTI
 
-#pragma warning (error: 4541)
 #ifndef _NATIVE_WCHAR_T_DEFINED
    // define wchar_t if it is not a keyword recognized by the compiler
    // (use the /Zc:wchar_t compiler option to enable wchar_t as a keyword)

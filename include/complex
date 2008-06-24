@@ -38,13 +38,13 @@
 #include _RWSTD_CMATH
 
 
-#ifdef _MSC_VER
+#ifdef _RWSTD_MSVC
 #  pragma warning (push)
    // disable conversion from 'double' to 'float', possible loss of data
    // until a conforming <cmath> header with float and long double overloads
    // for the C functions is provided
 #  pragma warning (disable: 4244)
-#endif   // _MSC_VER
+#endif   // _RWSTD_MSVC
 
 
 _RWSTD_NAMESPACE (std) { 
@@ -854,9 +854,9 @@ operator<< (basic_ostream<_CharT, _Traits>&, const complex<_TypeT>&);
 }   // namespace std
 
 
-#ifdef _MSC_VER
+#ifdef _RWSTD_MSVC
 #  pragma warning (pop)
-#endif   // _MSC_VER
+#endif   // _RWSTD_MSVC
 
 
 #if _RWSTD_DEFINE_TEMPLATE (_COMPLEX)

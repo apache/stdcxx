@@ -73,7 +73,9 @@
    // force early intitalization of Standard Iostream Objects
    // gives warning C4073: initializers put in library initialization
    // area; disable it
-#  pragma warning (disable: 4073)
+#  ifdef _RWSTD_MSVC
+#    pragma warning (disable: 4073)
+#  endif
 #  pragma init_seg (lib)
 #endif   // _MSC_VER
 

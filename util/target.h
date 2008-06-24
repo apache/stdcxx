@@ -29,7 +29,7 @@
 
 #include <time.h> /* for clock_t */
 
-#if !defined (_WIN32) && !defined (_WIN64)
+#ifndef _WIN32
 #  include <unistd.h> /* For _XOPEN_UNIX */
 #endif
 

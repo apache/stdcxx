@@ -304,14 +304,14 @@ exception::exception () _THROWS (())
 
 exception::exception (const exception&) _THROWS (())
 {
-#if defined (__INTEL_COMPILER)
-
-    _C_name = "";
-
-#elif defined (_MSC_VER)
+#if defined (_MSC_VER)
 
     _C_name = 0;
     _C_flag = 0;
+
+#elif defined (__INTEL_COMPILER)
+
+    _C_name = "";
 
 #endif   // _MSC_VER
 }

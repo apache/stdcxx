@@ -140,9 +140,9 @@ create_locale (std::string std_src,
     
     // the vector of corresponding C locales
     StringVector C_locales;
-#ifndef _MSC_VER
+#ifndef _WIN32
     get_same_encoding_C_locale (lname, cname, C_locales);
-#endif  // _MSC_VER
+#endif  // _WIN32
 
     // C library locale using same encoding
     std::string enc_C_locale;
@@ -256,18 +256,18 @@ create_locale (std::string std_src,
     issue_diag (I_STAGE, false, 0, "generating LC_COLLATE database\n");
     def.write_collate (locale_dir);
 
-#ifndef _MSC_VER
+#ifndef _WIN32
 
     issue_diag (I_STAGE, false, 0, "generating LC_MESSAGES database\n");
     def.write_messages (locale_dir);
 
-#endif  // _MSC_VER
+#endif  // _WIN32
 
     // no C library locales equivalents 
     if (C_locales.empty ())
         return;
 
-#if !defined (_MSC_VER)
+#if !defined (_WIN32)
 
     if (link_aliases == false)
         return;
@@ -283,7 +283,7 @@ create_locale (std::string std_src,
         // pointing to our locale database
         create_symlink (outdir, std_locale, *it);
     }
-#endif  // _MSC_VER
+#endif  // _WIN32
 }
 
 

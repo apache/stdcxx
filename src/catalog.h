@@ -37,7 +37,7 @@
 
 #include <rw/_defs.h>
 
-#if defined (_WIN32) || defined (_WIN64)
+#ifdef _WIN32
 #  define _RWSTD_USE_RC 1
 #  include <windows.h>
 #endif

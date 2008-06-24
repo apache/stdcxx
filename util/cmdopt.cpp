@@ -35,7 +35,7 @@
 #include <stdio.h> /* for *printf, fputs */
 #include <stdlib.h> /* for exit */
 #include <string.h> /* for str* */
-#if !defined (_WIN32) && !defined (_WIN64)
+#ifndef _WIN32
 #  include <unistd.h> /* for sleep */
 
 #  if defined (_XOPEN_UNIX)
@@ -44,7 +44,7 @@
 
 #else
 #  include <windows.h> /* for Sleep */
-#endif   /* _WIN{32,64} */
+#endif   /* _WIN32 */
 
 #include "exec.h"
 #include "target.h"

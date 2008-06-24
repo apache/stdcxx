@@ -26,7 +26,7 @@
  * 
  **************************************************************************/
 
-#if defined (_WIN32) || defined (_WIN64)
+#ifdef _WIN32
 
 #include <errno.h>
 #include <windows.h>
@@ -348,4 +348,4 @@ int iconv_close (iconv_t cd)
     return 0;
 }
 
-#endif   // _WIN{32,64}
+#endif   // _WIN32

@@ -46,7 +46,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#ifndef _MSC_VER
+#ifndef _WIN32
 #  include <iconv.h>      // for iconv(), iconv_open(), iconv_close()
 #  include <langinfo.h>   // for CODESET, nl_langinfo()
 #  include <unistd.h>
@@ -847,7 +847,7 @@ test_libstd_codecvt (const char* locale_name, const CodeCvtT& cc,
 
 /****************************************************************************/
 
-#if !defined _MSC_VER
+#if !defined _WIN32
 
 static unsigned int endian_test = 1;
 static bool big_endian = *(unsigned char*)&endian_test == 0;
@@ -908,7 +908,7 @@ rwtest_iconv_convert (iconv_t      fd,
         out_sz = (tmp + 1 - out_sz) / sizeof (wchar_t);
 }
 
-#endif // defined _MSC_VER
+#endif // defined _WIN32
 
 
 enum InternalEncoding {
@@ -936,12 +936,12 @@ rwtest_convert_to_internal (InternalEncoding conv,
 
     switch (conv) {
 
-#ifdef _MSC_VER
+#ifdef _WIN32
 
     case use_UCS2:
         // fall through...
 
-#endif   // _MSC_VER
+#endif   // _WIN32
 
     case use_libc: {
 
@@ -952,7 +952,7 @@ rwtest_convert_to_internal (InternalEncoding conv,
         break;
     }
 
-#ifndef _MSC_VER
+#ifndef _WIN32
 
     case use_UCS2:
     case use_UCS4: {
@@ -977,7 +977,7 @@ rwtest_convert_to_internal (InternalEncoding conv,
         break;
     }
 
-#endif   // _MSC_VER
+#endif   // _WIN32
 
     }
 
@@ -2462,10 +2462,10 @@ run_test (int /*unused*/, char* /*unused*/ [])
         { "fr_FR", "ISO-8859-1", "fr_FR.ISO-8859-1",  3920,  3920, 1, 1 },
         // multi-byte encodings (variable width, and max_length > 1)
         { "ja_JP", "Shift_JIS" , "ja_JP.Shift_JIS", 25115, 13001, 0, 2 },
-#if !defined _MSC_VER
+#if !defined _WIN32
         { "ja_JP", "EUC-JP"    , "ja_JP.EUC-JP",    20801, 14299, 0, 3 },
         { "ja_JP", "UTF-8"     , "ja_JP.UTF-8",     25056, 12000, 0, 6 },
-#endif // !defined _MSC_VER
+#endif // !defined _WIN32
 
         // terminate the array
         { 0, 0, 0, 0, 0, 0, 0 }
@@ -2607,4 +2607,5 @@ main (int argc, char* argv [])
                     "",   // no comment
                     run_test, "", 0);
 }
+
 

@@ -53,7 +53,7 @@
 #  include <crtdbg.h>  // for _CrtSetReportMode(), _CrtSetDbgFlag()
 #endif   // _MSC_VER
 
-#if !defined (_WIN32) && !defined (_WIN64)
+#ifndef _WIN32
 #  include <unistd.h>         // for isatty()
 #  include <sys/resource.h>   // for setlimit()
 
@@ -75,7 +75,7 @@ _RWSTD_DLLIMPORT int (fileno)(FILE*) _LIBC_THROWS ();
 #else   // if Windows
    // no isatty on Windoze
 #  define _RWSTD_NO_ISATTY
-#endif   // _WIN{32,64}
+#endif   // _WIN32
 
 // expand _TEST_EXPORT macros
 #define _RWSTD_TEST_SRC

@@ -61,7 +61,7 @@ static rw_signal_handler_t*
 _rw_alarm_handler;
 
 
-#if defined (_WIN32) || defined (_WIN64)
+#ifdef _WIN32
 
 #include <windows.h>
 
@@ -121,7 +121,7 @@ rw_alarm (unsigned int nsec, rw_signal_handler_t* handler /* = 0 */)
 }
 
 
-#else   // if !defined (_WIN{32,64}
+#else   // ifndef _WIN32
 
 #  include <signal.h>   // for SIGALRM, signal()
 #  include <unistd.h>   // for alarm(), write()
@@ -225,4 +225,4 @@ rw_alarm (unsigned int nsec, rw_signal_handler_t* handler /* = 0 */)
 }
 
 
-#endif   // _WIN{32,64}
+#endif   // _WIN32

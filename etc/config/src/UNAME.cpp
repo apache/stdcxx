@@ -24,7 +24,7 @@
 
 #include <stdio.h>
 
-#if !defined (_WIN32) && !defined (_WIN64)
+#ifndef _WIN32
 #  include <sys/utsname.h>
 #else
 #  include <windows.h>

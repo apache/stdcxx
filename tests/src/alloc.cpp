@@ -39,7 +39,7 @@
 #  define _WIN32
 #endif
 
-#if !defined (_WIN32) && !defined (_WIN64)
+#ifndef _WIN32
 #  ifdef __SUNPRO_CC
 // working around SunOS bug #568
 #    include <time.h>
@@ -64,7 +64,7 @@
 // still declare the functions to take char* (aliased as caddr_t)
 typedef _RWSTD_MUNMAP_ARG1_T CaddrT;
 
-#else   // defined (_WIN32) || defined (_WIN64)
+#else   // ifdef _WIN32
 
 #  include <windows.h>    // for everything (ugh)
 #  include <sys/types.h>  // for off_t
@@ -160,7 +160,7 @@ mprotect (CaddrT addr, size_t len, int prot)
     return -1;
 }
 
-#endif   // _WIN{32,64}
+#endif   // _WIN32
 
 #ifndef MAP_PRIVATE
 #  define MAP_PRIVATE     0

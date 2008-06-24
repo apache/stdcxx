@@ -39,7 +39,7 @@
 #  include <unistd.h> /* for sleep() */
 #else
 #  include <windows.h> /* for Sleep() */
-#endif   /* _WIN{32,64} */
+#endif   /* _WIN32 */
 
 
 #include "cmdopt.h" /* for exe_name, target_name */
@@ -297,7 +297,7 @@ rw_signal (int signo, void (*func)(int))
 
 #    endif   /* __cplusplus */
 #  endif   /* _RWSTD_EDG_ECCP */
-#else   /* if defined (_WIN32) || defined (_WIN64) */
+#else   /* ifdef _WIN32 */
 
 void
 rw_sleep (int seconds)

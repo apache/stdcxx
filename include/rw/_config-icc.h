@@ -29,7 +29,7 @@
  * 
  **************************************************************************/
 
-#if !defined (_WIN32) && !defined (_WIN64)
+#ifndef _WIN32
 
    // enable the <cxxx> form of libc headers
    // we can only use the rw version in include/ansi
@@ -53,7 +53,7 @@
 #    endif   // _RWSTD_NO_EXCEPTIONS
 #  endif
 
-#else   // if defined (_WIN{32,64})
+#else   // ifdef _WIN32
 
 #  include "_config-msvcrt.h"
 
@@ -69,4 +69,4 @@
 // disable "dllexport/dllimport conflict with ... ; dllexport assumed"
 #  pragma warning (disable: 1740)
 
-#endif   // (_WIN{32,64})
+#endif   // _WIN32

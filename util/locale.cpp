@@ -50,7 +50,7 @@
 #  define LS_1       "dir /B /A:D "
 #endif
 
-#ifndef _MSC_VER
+#ifndef _WIN32
 #  include <sys/mman.h>   // for mmap()
 #  include <unistd.h>     // for close ()
 #  ifndef _RWSTD_NO_ICONV
@@ -62,7 +62,7 @@
 #else
 #  include <io.h>         // for open()
 #  include <windows.h>
-#endif  // _MSC_VER
+#endif  // _WIN32
 
 #include <limits.h>      // for INT_MAX, INT_MIN
 #include <sys/stat.h>
@@ -256,7 +256,7 @@ init_struct (const std::string &loc_path_root,
             // map the file to a pointer and if it succeeds
             // return the pointer, otherwise return 0
 
-#ifndef _MSC_VER
+#ifndef _WIN32
             void* const ret = mmap (0, st.st_size, PROT_READ | PROT_WRITE,
                                     MAP_PRIVATE, fd, 0);
             if (MAP_FAILED == ret)
@@ -274,7 +274,7 @@ init_struct (const std::string &loc_path_root,
             void* const ret = MapViewOfFile (mapping, FILE_MAP_READ, 0,
                                              0, st.st_size);
 
-#endif  // _MSC_VER
+#endif  // _WIN32
 
             return ret;
         }
@@ -442,7 +442,7 @@ init_sections ()
 static const char*
 set_locale (int lc_cat, const char *locname, const std::string &charmap_name)
 {
-#ifndef _MSC_VER
+#ifndef _WIN32
 
     assert (0 != locname);
 
@@ -476,7 +476,7 @@ set_locale (int lc_cat, const char *locname, const std::string &charmap_name)
         }
     }
 
-#endif  // _MSC_VER
+#endif  // _WIN32
 
     return 0;
 }
@@ -593,7 +593,7 @@ get_charmap (int lc_cat)
         // search for a C library locale that uses the same encoding
         std::string std_encoding (charmap);
 
-# if !defined(_MSC_VER)
+# if !defined (_WIN32)
         std::string C_locale (get_C_encoding_locale (std_encoding));
 # else
         std::string C_locale ("");

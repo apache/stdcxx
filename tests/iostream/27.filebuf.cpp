@@ -34,7 +34,7 @@
 
 #include <fstream>
 
-#if !defined (_WIN32) && !defined (_WIN64)
+#ifndef _WIN32
 
 #  ifdef __SUNPRO_CC
      // working around a SunOS/SunPro bug (PR #26255)
@@ -50,7 +50,7 @@
 #else
 #  include <fcntl.h>      // for O_XXX constants
 #  include <io.h>         // for open()
-#endif   // _WIN{32,64}
+#endif   // _WIN32
 
 #ifndef SIGPIPE
 #  define SIGPIPE   13   /* HP-UX, Linux, and SunOS value */
@@ -927,7 +927,7 @@ test_open (const char* tname)
     }
 
 
-#if !defined (_WIN32) && !defined (_WIN64)
+#ifndef _WIN32
 
     //////////////////////////////////////////////////////////////////
     // exercise open (..., ios::ate)
@@ -1049,7 +1049,7 @@ test_open (const char* tname)
         REMOVE_FILE (tmpfname);
     }
 
-#endif   // _WIN{32,64}
+#endif   // _WIN32
 
 }
 

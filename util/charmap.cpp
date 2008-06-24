@@ -31,14 +31,14 @@
 // On Compaq Tru64 UNIX if included after assert.h, the definition of
 // _XOPEN_SOURCE macro in assert.h selects a different declaration for 
 // iconv than the one used in comp test.
-#ifndef _MSC_VER
+#ifndef _WIN32
 #  ifndef _RWSTD_NO_ICONV
 #    include <iconv.h>
 #  endif
 #  include _RWSTD_CERRNO
 #else
 #  include <windows.h>
-#endif  // _MSC_VER
+#endif  // _WIN32
 
 #include <cassert>
 #include <cctype>
@@ -664,7 +664,7 @@ convert_sym_to_ucs (const std::string &sym) const
 bool Charmap::convert_to_ucs (const std::string &sym_name, 
                               const std::string &encoding, wchar_t& wc)
 {
-#ifndef _MSC_VER
+#ifndef _WIN32
 
     if (in_utf8_) {
         wc = utf8_decode (encoding.c_str (), &*(encoding.end () - 1));
@@ -709,7 +709,7 @@ bool Charmap::convert_to_ucs (const std::string &sym_name,
     wc = convert_sym_to_ucs (sym_name);
     return true;
 
-#endif  // _MSC_VER
+#endif  // _WIN32
 }
 
 
@@ -1045,7 +1045,7 @@ Charmap::Charmap(const char* Clocale,
 
 #else   // if defined (_RWSTD_NO_ICONV)
 
-#  ifdef _MSC_VER
+#  ifdef _WIN32
             codepage_ = get_codepage (code_set_name_);
             if (codepage_ == 0) {
                 issue_diag (W_ICONV, false, 0, 
@@ -1053,7 +1053,7 @@ Charmap::Charmap(const char* Clocale,
                             code_set_name_.c_str());
             }
 
-#  endif   // _MSC_VER
+#  endif   // _WIN32
 #endif   // _RWSTD_NO_ICONV
 
             scanner_.ignore_line ();
