@@ -39,15 +39,6 @@
 _RWSTD_NAMESPACE (__rw) {
 
 
-/**
- * @class std::reference_wrapper
- *
- * Encapsulates a reference as an object.  This class template allows
- * references to be manipulated and behave as an ordinary object.
- *
- * @tparam Type A non-reference type.
- */
-
 template <class _Type>
 class __rw_ref_wrap
 {

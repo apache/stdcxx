@@ -66,12 +66,6 @@ struct __rw_deduce_reference< const __rw_ref_wrap<_Type> >
     typedef _Type& type;
 };
 
-/**
- * @internal
- * Transform a tuple element type into a suitable make_tuple() return
- * type.
- * @tparam _Type A tuple element type.
- */
 template <class _Type>
 class __rw_make_tuple
 {
@@ -93,17 +87,6 @@ const _RW::__rw_ignore ignore = _RW::__rw_ignore ();
 
 #    if !defined _RWSTD_NO_RVALUE_REFERENCES
 
-/**
- * @function make_tuple
- *
- * Create a new tuple from a list of element values.  This function
- * constructs a new tuple from the corresponding element values by
- * utilizing move semantics.
- *
- * @tparam _Types The list of elements types in the tuple.
- * @param __values A corresponding list of element values.
- * @return A tuple object containing the given element values.
- */
 template <class... _Types>
 tuple<_TYPENAME _RW::__rw_make_tuple<_Types>::type...>
 make_tuple (_Types&&... __values)
@@ -140,16 +123,6 @@ tuple_cat (const tuple<_TypesT...>& __x,
 
 // 20.3.1.4, tuple helper classes:
 
-/**
- * @class tuple_size
- *
- * Determine number of element types in tuple.  This compile-time
- * integral constant wrapper determines the number of element types in
- * a tuple.  The class template is ill-formed for any non-tuple typle.
- *
- * @tparam Types List of element types in tuple.
- */
-
 template <class Types>
 class tuple_size;
 
@@ -162,26 +135,12 @@ class tuple_size< tuple<_Types...> >
 };
 
 
-/**
- * @class tuple_element
- *
- * Determine the Nth element type of a tuple.  Instances of this class
- * class template provide a type member that identifies the Nth element
- * type of a tuple \c T where 0 <= N <
- * <code>tuple_size&lt;T&gt;::value</code>.  If N is not in this range
- * or for any other arbitrary type, the program is ill-formed.
- *
- * @tparam Index An integer constant indicating the Nth element type.
- * @tparam Types List of element types in the tuple.
- */
-
 template <int Index, class... Types>
 struct tuple_element;
 
 template <class _Head, class... _Tail>
 struct tuple_element<0, tuple<_Head, _Tail...> >
 {
-    /** The Nth element type of the tuple. */
     typedef _Head type;
 
 
@@ -216,20 +175,6 @@ struct tuple_element<_Index, tuple<_Head, _Tail...> >
 
 // 20.3.1.5, element access:
 
-/**
- * @function get
- *
- * Access Nth element value of a tuple.  This function returns a
- * cv-qualified value reference to the Nth element in a tuple \c T
- * where 0 <= N < <code>tuple_size&lt;T&gt;::value</code>.  If N is
- * not in this range, the program is ill-formed.
- *
- * @tparam Index An integer constant indicating the Nth element type.
- * @tparam Types List of element types in the tuple.
- * @param tuple A tuple value.
- * @return CV-qualified reference to the Nth element value of tuple.
- */
-
 template <int _Index, class _Head, class... _Tail>
 _TYPENAME tuple_element<_Index, tuple<_Head, _Tail...> >::_Ref
 get (tuple<_Head, _Tail...>& __tuple)
@@ -257,11 +202,6 @@ template <class... _TypesT, class... _TypesU>
 bool operator< (const tuple<_TypesT...>& __x,
                 const tuple<_TypesU...>& __y);
 
-/**
- * @param __x Tuple value on LHS of operator.
- * @param __y Tuple value on RHS of operator.
- * @return !(__x == __y)
- */
 template <class... _TypesT, class... _TypesU>
 bool operator!= (const tuple<_TypesT...>& __x,
                  const tuple<_TypesU...>& __y)
@@ -269,11 +209,6 @@ bool operator!= (const tuple<_TypesT...>& __x,
     return !(__x == __y);
 }
 
-/**
- * @param __x Tuple value on LHS of operator.
- * @param __y Tuple value on RHS of operator.
- * @return __y < __x
- */
 template <class... _TypesT, class... _TypesU>
 bool operator> (const tuple<_TypesT...>& __x,
                 const tuple<_TypesU...>& __y)
@@ -281,12 +216,6 @@ bool operator> (const tuple<_TypesT...>& __x,
     return __y < __x;
 }
 
-
-/**
- * @param __x Tuple value on LHS of operator.
- * @param __y Tuple value on RHS of operator.
- * @return !(__y < __x)
- */
 template <class... _TypesT, class... _TypesU>
 bool operator<= (const tuple<_TypesT...>& __x,
                  const tuple<_TypesU...>& __y)
@@ -294,11 +223,6 @@ bool operator<= (const tuple<_TypesT...>& __x,
     return !(__y < __x);
 }
 
-/**
- * @param __x Tuple value on LHS of operator.
- * @param __y Tuple value on RHS of operator.
- * @return !(__x < __y)
- */
 template <class... _TypesT, class... _TypesU>
 bool operator>= (const tuple<_TypesT...>& __x,
                  const tuple<_TypesU...>& __y)

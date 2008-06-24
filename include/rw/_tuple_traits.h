@@ -38,9 +38,6 @@
 #    include <rw/_meta_help.h>  // for __rw_true_type
 
 
-/// @ingroup tuple
-/// @{
-
 _RWSTD_NAMESPACE (std) {
 
 
@@ -49,14 +46,6 @@ _RWSTD_NAMESPACE (std) {
 template <class _Type, class _Alloc>
 struct uses_allocator;
 
-/**
- * Allows tuple construction with an allocator.  This trait informs
- * other library components that tuple can be constructed with an
- * allocator even though it does not have a nested allocator_type.
- *
- * @tparam _Types List of element types in tuple.
- * @tparam _Alloc Must conform to Allocator requirements (20.1.2).
- */
 template <class... _Types, class _Alloc> 
 struct uses_allocator<tuple<_Types...>, _Alloc>
     : _RW::__rw_true_type
@@ -68,13 +57,6 @@ struct uses_allocator<tuple<_Types...>, _Alloc>
 template <class _Type>
 struct constructible_with_allocator_prefix;
 
-/**
- * Allows tuple construction with an allocator prefix argument.  This
- * trait informs other library components that tuple can be constructed
- * with an allocator preﬁx argument.
- *
- * @tparam _Types List of element types in tuple.
- */
 template <class... _Types> 
 struct constructible_with_allocator_prefix<tuple<_Types...> > 
     : _RW::__rw_true_type
@@ -82,8 +64,6 @@ struct constructible_with_allocator_prefix<tuple<_Types...> >
     // empty
 }; 
 
-
-/// @}
 
 }   // namespace std
 
