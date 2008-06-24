@@ -384,7 +384,7 @@ next_token ()
         // iteration; the finding of a token breaks and next_tok leaves
         // this loop having the line/col info
         next_tok.line   = context_->line;
-        next_tok.column = context_->pos_ - context_->line_.c_str ();
+        next_tok.column = int (context_->pos_ - context_->line_.c_str ());
 
         // plug in the pointer to current position
         const char*& next = context_->pos_;

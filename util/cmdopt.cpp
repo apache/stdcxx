@@ -204,7 +204,7 @@ get_short_val (char* const* argv, int* idx)
     @param offset length of option name (including leading --)
 */
 static char*
-get_long_val (char* const* argv, int* idx, unsigned offset)
+get_long_val (char* const* argv, int* idx, size_t offset)
 {
     assert (0 != argv);
     assert (0 != idx);
