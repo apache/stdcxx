@@ -34,7 +34,6 @@
 #  pragma warning (disable: 4345)
 #endif   // _RWSTD_MSVC
 
-#include <rw/_typetraits.h>
 
 _RWSTD_NAMESPACE (std) {
 
@@ -478,7 +477,6 @@ __rw_replace (_STD::basic_string<_CharT, _Traits, _Alloc> &__s,
     typedef _TYPENAME traits_type::char_type      value_type;
     typedef _Alloc                                allocator_type;
     typedef _TYPENAME allocator_type::size_type   size_type;
-    typedef _TYPENAME allocator_type::const_pointer     const_pointer;
 
     typedef _STD::basic_string<_CharT, _Traits, _Alloc> _C_string_type;
 
@@ -515,30 +513,10 @@ replace (iterator __first1, iterator __last1,
         return __s.replace (__pos, __n, size_type (), value_type ());
     }
 
-    if (_RW::__rw_is_pointer<_InputIter>::_C_val) {
-        const const_pointer __beg1 = __s.data ();
-        const const_pointer __end1 = __s.data () + __s.size ();
-
-        const const_pointer __beg2 =
-            _RWSTD_REINTERPRET_CAST (const_pointer, &*__first2);
-        const const_pointer __end2 = 
-            _RWSTD_REINTERPRET_CAST (const_pointer, &*__last2);
-
-        // ranges don't overlap, do simple replace
-        if (__end1 < __beg2 || __end2 < __beg1)
-            return __s.__replace_aux (__first1, __last1, __first2, __last2);
-
-        // otherwise fall through and make a copy first
-    }
-
      // use a (probably) faster algorithm if possible
     if (_STD::__is_bidirectional_iterator (_RWSTD_ITERATOR_CATEGORY(_InputIter,
-                                                                    __last2))) {
-        _C_string_type __s3;
-        __s3.__replace_aux (__s3.begin (), __s3.begin (), __first2, __last2);
-
-        return __s.__replace_aux (__first1, __last1, __s3.begin (), __s3.end ());
-    }
+                                                                    __last2)))
+        return __s.__replace_aux (__first1, __last1, __first2, __last2);
 
     _C_string_type __s3;
     _TYPENAME _C_string_type::iterator __first3 = __s3.begin ();
@@ -617,8 +595,6 @@ __replace_aux (iterator __first1, iterator __last1,
     basic_string &__s = *this;
 
 #  endif  // _RWSTD_NO_STRING_OUTLINED_MEMBER_TEMPLATES
-
-    // assumes that the two ranges do not overlap
 
     _RWSTD_ASSERT_RANGE (__first1, __s._C_make_iter (__s._C_data 
                                                      + __s.size ()));
