@@ -21,10 +21,8 @@
 ##############################################################################
 
 # list of headers
-hdrs="assert complex ctype errno fenv float inttypes iso646 limits locale    \
-      math setjmp signal stdarg stdbool stddef stdio stdint stdlib string    \
-      tgmath time uchar wchar wctype new typeinfo"
-
+hdrs="assert ctype errno float iso646 limits locale math setjmp signal       \
+      stdarg stddef stdio stdlib string time wchar wctype new typeinfo"
 hdrs="$hdrs ieeefp.h pthread.h"
 
 
