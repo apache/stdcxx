@@ -30,7 +30,7 @@
 #include <cassert>
 #include <cstdio>
 
-#include <file.h>
+#include <rw_file.h>
 
 int main ()
 {

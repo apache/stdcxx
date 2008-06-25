@@ -30,7 +30,7 @@
 #define RW_OPT_LINES_H_INCLUDED
 
 
-#include <testdefs.h>
+#include <rw_testdefs.h>
 
 
 extern int

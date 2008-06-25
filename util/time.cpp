@@ -372,171 +372,173 @@ void Def::write_time(std::string dir_name)
 
     int i;
 
-    time_out_.num_alt_digits = alt_digits_.size();
+#define UINT(x) _RWSTD_STATIC_CAST(unsigned, x)
+
+    time_out_.num_alt_digits = UINT (alt_digits_.size());
     time_out_.era_off = 0;
 
-    time_out_.alt_digits_off = time_out_.era_off +
-        sizeof (_RW::__rw_time_t::era_t) * era_list_.size();
+    time_out_.alt_digits_off = UINT (time_out_.era_off +
+        sizeof (_RW::__rw_time_t::era_t) * era_list_.size());
 
     // now calculate all the offsets for the wide string representations
-    time_out_.abday_off[1][0] = time_out_.alt_digits_off +
-        2 * sizeof (unsigned int) * time_out_.num_alt_digits;
+    time_out_.abday_off[1][0] = UINT (time_out_.alt_digits_off +
+        2 * sizeof (unsigned int) * time_out_.num_alt_digits);
         
     for (i = 1; i < 7; i++) {
-        time_out_.abday_off[1][i] = time_out_.abday_off[1][i-1]
+        time_out_.abday_off[1][i] = UINT (time_out_.abday_off[1][i-1]
             + (time_st_.wabday[i-1].size() * sizeof (wchar_t)) 
-            + sizeof(wchar_t);
+            + sizeof(wchar_t));
     }
 
-    time_out_.day_off[1][0] = time_out_.abday_off[1][6] 
+    time_out_.day_off[1][0] = UINT (time_out_.abday_off[1][6] 
         + time_st_.wabday[6].size() * sizeof (wchar_t) 
-        + sizeof (wchar_t);
+        + sizeof (wchar_t));
     for (i = 1; i < 7; i++) {
-        time_out_.day_off[1][i] = time_out_.day_off[1][i-1]
+        time_out_.day_off[1][i] = UINT (time_out_.day_off[1][i-1]
             + time_st_.wday[i-1].size() * sizeof (wchar_t) 
-            + sizeof (wchar_t);
+            + sizeof (wchar_t));
     }
 
-    time_out_.abmon_off[1][0] = time_out_.day_off[1][6] 
-        + time_st_.wday[6].size() * sizeof (wchar_t) + sizeof (wchar_t);
+    time_out_.abmon_off[1][0] = UINT (time_out_.day_off[1][6] 
+        + time_st_.wday[6].size() * sizeof (wchar_t) + sizeof (wchar_t));
     for (i = 1; i < 12; i++) {
-        time_out_.abmon_off[1][i] = time_out_.abmon_off[1][i-1]
+        time_out_.abmon_off[1][i] = UINT (time_out_.abmon_off[1][i-1]
             + time_st_.wabmon[i-1].size() * sizeof (wchar_t) 
-            + sizeof (wchar_t);
+            + sizeof (wchar_t));
     }
 
-    time_out_.mon_off[1][0] = time_out_.abmon_off[1][11] 
+    time_out_.mon_off[1][0] = UINT (time_out_.abmon_off[1][11] 
         + time_st_.wabmon[11].size() * sizeof (wchar_t) 
-        + sizeof (wchar_t);
+        + sizeof (wchar_t));
     for (i = 1; i < 12; i++) {
-        time_out_.mon_off[1][i] = time_out_.mon_off[1][i-1]
+        time_out_.mon_off[1][i] = UINT (time_out_.mon_off[1][i-1]
             + time_st_.wmon[i-1].size() * sizeof (wchar_t) 
-            + sizeof (wchar_t);
+            + sizeof (wchar_t));
     }
         
-    time_out_.am_pm_off[1][0] = time_out_.mon_off[1][11] 
-        + time_st_.wmon[11].size() * sizeof (wchar_t) + sizeof (wchar_t);
-    time_out_.am_pm_off[1][1] = time_out_.am_pm_off[1][0] 
-        + time_st_.wam_pm[0].size() * sizeof (wchar_t) + sizeof (wchar_t);
+    time_out_.am_pm_off[1][0] = UINT (time_out_.mon_off[1][11] 
+        + time_st_.wmon[11].size() * sizeof (wchar_t) + sizeof (wchar_t));
+    time_out_.am_pm_off[1][1] = UINT (time_out_.am_pm_off[1][0] 
+        + time_st_.wam_pm[0].size() * sizeof (wchar_t) + sizeof (wchar_t));
         
-    time_out_.d_t_fmt_off[1] = time_out_.am_pm_off[1][1] 
+    time_out_.d_t_fmt_off[1] = UINT (time_out_.am_pm_off[1][1] 
         + time_st_.wam_pm[1].size() * sizeof (wchar_t) 
-        + sizeof (wchar_t);
-    time_out_.d_fmt_off[1] = time_out_.d_t_fmt_off[1]
-        + time_st_.wd_t_fmt.size() * sizeof (wchar_t) + sizeof (wchar_t);
-    time_out_.t_fmt_off[1] = time_out_.d_fmt_off[1] 
-        + time_st_.wd_fmt.size() * sizeof (wchar_t) + sizeof (wchar_t);
-    time_out_.t_fmt_ampm_off[1] = time_out_.t_fmt_off[1]
-        + time_st_.wt_fmt.size() * sizeof (wchar_t) + sizeof (wchar_t);
+        + sizeof (wchar_t));
+    time_out_.d_fmt_off[1] = UINT (time_out_.d_t_fmt_off[1]
+        + time_st_.wd_t_fmt.size() * sizeof (wchar_t) + sizeof (wchar_t));
+    time_out_.t_fmt_off[1] = UINT (time_out_.d_fmt_off[1] 
+        + time_st_.wd_fmt.size() * sizeof (wchar_t) + sizeof (wchar_t));
+    time_out_.t_fmt_ampm_off[1] = UINT (time_out_.t_fmt_off[1]
+        + time_st_.wt_fmt.size() * sizeof (wchar_t) + sizeof (wchar_t));
         
-    time_out_.era_d_t_fmt_off[1] = time_out_.t_fmt_ampm_off[1]
+    time_out_.era_d_t_fmt_off[1] = UINT (time_out_.t_fmt_ampm_off[1]
         + time_st_.wt_fmt_ampm.size() * sizeof (wchar_t) 
-        + sizeof (wchar_t);
-    time_out_.era_d_fmt_off[1] = time_out_.era_d_t_fmt_off[1]
+        + sizeof (wchar_t));
+    time_out_.era_d_fmt_off[1] = UINT (time_out_.era_d_t_fmt_off[1]
         + time_st_.wera_d_t_fmt.size() * sizeof (wchar_t) 
-        + sizeof (wchar_t);
-    time_out_.era_t_fmt_off[1] = time_out_.era_d_fmt_off[1] 
-        + time_st_.wera_d_fmt.size() * sizeof (wchar_t) + sizeof (wchar_t);
+        + sizeof (wchar_t));
+    time_out_.era_t_fmt_off[1] = UINT (time_out_.era_d_fmt_off[1] 
+        + time_st_.wera_d_fmt.size() * sizeof (wchar_t) + sizeof (wchar_t));
 
-    unsigned int next_off = time_out_.era_t_fmt_off[1]
-        + time_st_.wera_t_fmt.size() * sizeof (wchar_t) + sizeof (wchar_t);  
+    unsigned int next_off = UINT (time_out_.era_t_fmt_off[1]
+        + time_st_.wera_t_fmt.size() * sizeof (wchar_t) + sizeof (wchar_t));  
     era_list_iter era_list_it;
     for (era_list_it = era_list_.begin(); era_list_it != era_list_.end();
          era_list_it ++) {
         era_list_it->era_out.name_off[1] = next_off;
-        next_off += era_list_it->wname.size() 
-            * sizeof (wchar_t) + sizeof (wchar_t);
+        next_off += UINT (era_list_it->wname.size() 
+            * sizeof (wchar_t) + sizeof (wchar_t));
         era_list_it->era_out.fmt_off[1] = next_off;
-        next_off += era_list_it->wfmt.size() 
-            * sizeof (wchar_t) + sizeof (wchar_t);
+        next_off += UINT (era_list_it->wfmt.size() 
+            * sizeof (wchar_t) + sizeof (wchar_t));
     }
 
     alt_digits_iter alt_digits_it;
     for (alt_digits_it = alt_digits_.begin(); 
          alt_digits_it != alt_digits_.end(); alt_digits_it ++ ){
         alt_digits_it->w_offset = next_off;
-        next_off += (alt_digits_it->w_alt_digit.size() + 1) 
-            * sizeof(wchar_t);
+        next_off += UINT ((alt_digits_it->w_alt_digit.size() + 1) 
+            * sizeof(wchar_t));
     }
 
     time_out_.abday_off[0][0] = next_off;
         
     for (i = 1; i < 7; i++) {
         // calculate the offsets for the abreviated days
-        time_out_.abday_off[0][i] = time_out_.abday_off[0][i-1]
-            + time_st_.abday[i - 1].size() + 1;
+        time_out_.abday_off[0][i] = UINT (time_out_.abday_off[0][i-1]
+            + time_st_.abday[i - 1].size() + 1);
     }
 
-    time_out_.day_off[0][0] = time_out_.abday_off[0][6] 
-        + time_st_.abday[6].size() + 1;
+    time_out_.day_off[0][0] = UINT (time_out_.abday_off[0][6] 
+        + time_st_.abday[6].size() + 1);
     for (i = 1; i < 7; i++) {
         // calculate the offsets for the days
-        time_out_.day_off[0][i] = time_out_.day_off[0][i-1]
-            + time_st_.day[i-1].size() + 1;
+        time_out_.day_off[0][i] = UINT (time_out_.day_off[0][i-1]
+            + time_st_.day[i-1].size() + 1);
     }
 
-    time_out_.abmon_off[0][0] = time_out_.day_off[0][6] 
-        + time_st_.day[6].size() + 1;
+    time_out_.abmon_off[0][0] = UINT (time_out_.day_off[0][6] 
+        + time_st_.day[6].size() + 1);
     for (i = 1; i < 12; i++) {
         // calculate the offsets for the abreviated months
-        time_out_.abmon_off[0][i] = time_out_.abmon_off[0][i-1]
-            + time_st_.abmon[i-1].size() + 1;
+        time_out_.abmon_off[0][i] = UINT (time_out_.abmon_off[0][i-1]
+            + time_st_.abmon[i-1].size() + 1);
     }
 
-    time_out_.mon_off[0][0] = time_out_.abmon_off[0][11] 
-        + time_st_.abmon[11].size() + 1;
+    time_out_.mon_off[0][0] = UINT (time_out_.abmon_off[0][11] 
+        + time_st_.abmon[11].size() + 1);
     for (i = 1; i < 12; i++) {
         // calculate the offsets for the months
-        time_out_.mon_off[0][i] = time_out_.mon_off[0][i-1]
-            + time_st_.mon[i-1].size() + 1;
+        time_out_.mon_off[0][i] = UINT (time_out_.mon_off[0][i-1]
+            + time_st_.mon[i-1].size() + 1);
     }
         
     // calculate the offsets for am and pm
-    time_out_.am_pm_off[0][0] = time_out_.mon_off[0][11] 
-        + time_st_.mon[11].size() + 1;
-    time_out_.am_pm_off[0][1] = time_out_.am_pm_off[0][0] 
-        + time_st_.am_pm[0].size() + 1;
+    time_out_.am_pm_off[0][0] = UINT (time_out_.mon_off[0][11] 
+        + time_st_.mon[11].size() + 1);
+    time_out_.am_pm_off[0][1] = UINT (time_out_.am_pm_off[0][0] 
+        + time_st_.am_pm[0].size() + 1);
         
-    time_out_.d_t_fmt_off[0] = time_out_.am_pm_off[0][1] 
-        + time_st_.am_pm[1].size() + 1;
-    time_out_.d_fmt_off[0] = time_out_.d_t_fmt_off[0] 
-        + time_st_.d_t_fmt.size() + 1;
-    time_out_.t_fmt_off[0] = time_out_.d_fmt_off[0] 
-        + time_st_.d_fmt.size() + 1;
-    time_out_.t_fmt_ampm_off[0] = time_out_.t_fmt_off[0]
-        + time_st_.t_fmt.size() + 1;
+    time_out_.d_t_fmt_off[0] = UINT (time_out_.am_pm_off[0][1] 
+        + time_st_.am_pm[1].size() + 1);
+    time_out_.d_fmt_off[0] = UINT (time_out_.d_t_fmt_off[0] 
+        + time_st_.d_t_fmt.size() + 1);
+    time_out_.t_fmt_off[0] = UINT (time_out_.d_fmt_off[0] 
+        + time_st_.d_fmt.size() + 1);
+    time_out_.t_fmt_ampm_off[0] = UINT (time_out_.t_fmt_off[0]
+        + time_st_.t_fmt.size() + 1);
 
-    time_out_.era_d_t_fmt_off[0] = time_out_.t_fmt_ampm_off[0] 
-        + time_st_.t_fmt_ampm.size() + 1;
-    time_out_.era_d_fmt_off[0] = time_out_.era_d_t_fmt_off[0] 
-        + time_st_.era_d_t_fmt.size() + 1;
-    time_out_.era_t_fmt_off[0] = time_out_.era_d_fmt_off[0] 
-        + time_st_.era_d_fmt.size() + 1;
+    time_out_.era_d_t_fmt_off[0] = UINT (time_out_.t_fmt_ampm_off[0] 
+        + time_st_.t_fmt_ampm.size() + 1);
+    time_out_.era_d_fmt_off[0] = UINT (time_out_.era_d_t_fmt_off[0] 
+        + time_st_.era_d_t_fmt.size() + 1);
+    time_out_.era_t_fmt_off[0] = UINT (time_out_.era_d_fmt_off[0] 
+        + time_st_.era_d_fmt.size() + 1);
 
 
 
-    next_off = time_out_.era_t_fmt_off[0]
-        + time_st_.era_t_fmt.size() + 1;
+    next_off = UINT (time_out_.era_t_fmt_off[0]
+        + time_st_.era_t_fmt.size() + 1);
 
     for (era_list_it = era_list_.begin(); era_list_it != era_list_.end();
          era_list_it ++) {
         era_list_it->era_out.name_off[0] = next_off;
-        next_off += era_list_it->name.size() + 1;
+        next_off += UINT (era_list_it->name.size() + 1);
         era_list_it->era_out.fmt_off[0] = next_off;
-        next_off += era_list_it->fmt.size() + 1;
+        next_off += UINT (era_list_it->fmt.size() + 1);
     }
 
     for (alt_digits_it = alt_digits_.begin(); 
          alt_digits_it != alt_digits_.end(); alt_digits_it ++ ){
         alt_digits_it->n_offset = next_off;
-        next_off += alt_digits_it->n_alt_digit.size() + 1;
+        next_off += UINT (alt_digits_it->n_alt_digit.size() + 1);
     }
 
 
     time_out_.codeset_off = next_off;
       
-    time_out_.charmap_off = time_out_.codeset_off
-        + charmap_.get_code_set_name().size() + 1;
+    time_out_.charmap_off = UINT (time_out_.codeset_off
+        + charmap_.get_code_set_name().size() + 1);
         
     // write the time struct    
     out.write ((char*)&time_out_, sizeof(time_out_));

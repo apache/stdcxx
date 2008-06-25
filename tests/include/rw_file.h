@@ -30,7 +30,7 @@
 #define RW_FILE_H_INCLUDED
 
 
-#include <testdefs.h>   // for test config macros
+#include <rw_testdefs.h>   // for test config macros
 
 
 #ifndef _MSC_VER

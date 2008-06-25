@@ -31,6 +31,7 @@
 
 #include <rw_thread.h>
 #include <rw_alarm.h>   // for rw_alarm()
+
 #include <stddef.h>     // for size_t
 #include <string.h>     // for memset()
 
@@ -492,7 +493,7 @@ rw_thread_pool (rw_thread_t        *thr_id,
     // apply timeout if one was specified
     if (0 != timeout) {
         _rw_timeout_expired = 0;
-        rw_alarm (timeout, _rw_timeout_handler);
+        rw_alarm (unsigned (timeout), _rw_timeout_handler);
     }
 
     // small buffer for thread ids when invoked with (thr_id == 0)

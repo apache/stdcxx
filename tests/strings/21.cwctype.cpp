@@ -28,7 +28,8 @@
  **************************************************************************/
 
 #include <cwctype>
-#include <driver.h>
+
+#include <rw_driver.h>
 
 /**************************************************************************/
 
@@ -82,6 +83,7 @@ const char* const cwctype_macros [] = {
     "iswlower",
 #else
     "",
+#endif
 
 #ifdef iswprint
 #  undef iswprint
@@ -116,8 +118,6 @@ const char* const cwctype_macros [] = {
     "iswxdigit",
 #else
     "",
-#endif
-
 #endif
 
 #ifdef tolower

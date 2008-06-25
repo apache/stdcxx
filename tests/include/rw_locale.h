@@ -30,7 +30,7 @@
 #define RW_LOCALE_H_INCLUDED
 
 
-#include <testdefs.h>
+#include <rw_testdefs.h>
 
 
 #define _UNUSED_CAT 69

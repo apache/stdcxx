@@ -53,7 +53,7 @@ int main ()
     inout.freeze (false);
 
     // keep track of the number of characters extracted by getline
-    int gcount = 0;
+    std::streamsize gcount = 0;
 
     // extract lines from the stream, one at a time
     for (int i = 1; inout.getline (line, sizeof line); ++i) {

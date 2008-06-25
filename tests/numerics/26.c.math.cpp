@@ -39,9 +39,9 @@
 #include <cstdlib>
 #include <cmath>
 
-#include <any.h>
-#include <driver.h>
-#include <valcmp.h>
+#include <rw_any.h>
+#include <rw_driver.h>
+#include <rw_valcmp.h>
 
 
 // define function templates with the same signatures as
@@ -131,7 +131,7 @@ FUN_1 (tanh);
 
 // returns true if all `size' bytes starting at `s' are 0
 static bool
-check_bits (const char *s, unsigned size)
+check_bits (const char *s, std::size_t size)
 {
     while (size-- && !s [size]);
     return unsigned (-1) == size;
@@ -168,8 +168,8 @@ test_behavior ()
     const float f = std::modf (3.141592f, &u.f);
 
     rw_assert (   3000 == int (u.f * 1000) && 141592 == int (f * 1000000)
-               && check_bits (u.buf + sizeof u.f, sizeof u - sizeof u.f),
-               0, __LINE__, "float std::modf (float)");
+               && check_bits (u.buf + sizeof (u.f), sizeof (u) - sizeof (u.f)),
+               __FILE__, __LINE__, "float std::modf (float)");
 
 #endif   // SunPro > 5.3
 
@@ -177,8 +177,8 @@ test_behavior ()
     const double d = std::modf (3.1415926, &u.d);
 
     rw_assert (   3000 == int (u.d * 1000) && 1415926 == int (d * 10000000)
-               && check_bits (u.buf + sizeof u.d, sizeof u - sizeof u.d),
-               0, __LINE__, "double std::modf (double)");
+               && check_bits (u.buf + sizeof (u.d), sizeof (u) - sizeof (u.d)),
+               __FILE__, __LINE__, "double std::modf (double)");
 
 #ifndef _RWSTD_NO_LONG_DOUBLE
 
@@ -188,13 +188,12 @@ test_behavior ()
     const long double l = std::modf (3.1415926L, &u.l);
 
     rw_assert (   3000 == int (u.l * 1000) && 1415926 == int (l * 10000000)
-               && check_bits (u.buf + sizeof u.l, sizeof u - sizeof u.l),
-               0, __LINE__, "long double std::modf (long double)");
+               && check_bits (u.buf + sizeof (u.l), sizeof (u) - sizeof (u.l)),
+               __FILE__, __LINE__, "long double std::modf (long double)");
 
 #  endif   // SunPro > 5.3
 
 #endif   // _RWSTD_NO_LONG_DOUBLE
-
 
     // check overloads of std::pow()
     for (int i = -10; i != 10; ++i) {

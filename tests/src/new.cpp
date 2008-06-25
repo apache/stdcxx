@@ -32,7 +32,7 @@
 #include <stdlib.h>   // for abort(), getenv()
 #include <string.h>   // for memset()
 
-#include <driver.h>
+#include <rw_driver.h>
 #include <rw_printf.h>
 #include <rw_new.h>
 #include <rw_exception.h>   // for rw_throw()

@@ -29,7 +29,7 @@
 // expand _TEST_EXPORT macros
 #define _RWSTD_TEST_SRC
 
-#include <environ.h>
+#include <rw_environ.h>
 
 #include <assert.h>   // for assert
 #include <stdlib.h>   // for getenv, malloc, putenv

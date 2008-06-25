@@ -179,7 +179,8 @@ static int test_exception_defs ()
 /**************************************************************************/
 
 #include <rw_new.h>
-#include <driver.h>
+#include <rw_driver.h>
+
 #include <cstddef>
 
 /**************************************************************************/

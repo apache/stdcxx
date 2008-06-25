@@ -29,7 +29,7 @@
 #ifndef RW_EXCEPTION_H_INCLUDED
 #define RW_EXCEPTION_H_INCLUDED
 
-#include <testdefs.h>
+#include <rw_testdefs.h>
 
 enum ExceptionId
 {

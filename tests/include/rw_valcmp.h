@@ -29,7 +29,7 @@
 #ifndef RW_VALCMP_H_INCLUDED
 #define RW_VALCMP_H_INCLUDED
 
-#include <testdefs.h>
+#include <rw_testdefs.h>
 
 
 #define CMP_NULTERM   1   /* the first 0 terminates processing */

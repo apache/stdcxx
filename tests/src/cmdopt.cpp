@@ -27,7 +27,7 @@
 // expand _TEST_EXPORT macros
 #define _RWSTD_TEST_SRC
 
-#include <cmdopt.h>
+#include <rw_cmdopt.h>
 
 #include <ctype.h>    // isdigit(), isspace()
 #include <errno.h>    // for errno
@@ -364,10 +364,10 @@ _rw_getbounds (const char *next, char sep, RW_VA_LIST_ARG_PTR pva)
 
         if (have_maxval) {
             _rw_cmdopts [_rw_ncmdopts].minval_ = 0;
-            _rw_cmdopts [_rw_ncmdopts].maxval_ = val;
+            _rw_cmdopts [_rw_ncmdopts].maxval_ = int (val);
         }
         else
-            _rw_cmdopts [_rw_ncmdopts].minval_ = val;
+            _rw_cmdopts [_rw_ncmdopts].minval_ = int (val);
 
         if (sep == *next && !have_maxval) {
             ++next;
@@ -704,7 +704,7 @@ _rw_getarg (cmdopts_t *optspec, const char *opt, const char *arg)
     else if (optspec->pcntr_) {
 
         // set the counter
-        *optspec->pcntr_ = optval;
+        *optspec->pcntr_ = int (optval);
     }
 
     return status;

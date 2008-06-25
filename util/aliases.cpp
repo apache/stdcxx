@@ -615,7 +615,7 @@ char* get_installed_locales (int loc_cat /* = LC_INVALID_CAT */)
         *last_name = '\0';
 
         // if successful, construct a char array with the locales
-        while (std::fgets (cmd, sizeof cmd, f)) {
+        while (std::fgets (cmd, int (sizeof cmd), f)) {
             cmd [std::strlen (cmd) - 1] = '\0';
 
             // if our buffer is full then dynamically allocate a new one

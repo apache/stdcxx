@@ -47,7 +47,7 @@
 #endif   // _RWSTD_NO_REPLACEABLE_NEW_DELETE
 
 #include <rw_value.h>    // for UserClass
-#include <driver.h>      // for rw_test(), ...
+#include <rw_driver.h>   // for rw_test(), ...
 #include <rw_printf.h>   // for rw_asnprintf
 
 /**************************************************************************/
@@ -1107,7 +1107,8 @@ void test_erase (int line,
                       end - deq.begin ());
         
         exception_loop (line, EraseRange, funcall, 0,
-                        deq, start, len, 0, (UserClass*)0, (UserClass*)0,
+                        deq, start, int (len), 0,
+                        (UserClass*)0, (UserClass*)0,
                         &n_copy, &n_asgn);
 
     }

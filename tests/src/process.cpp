@@ -27,8 +27,6 @@
 // expand _TEST_EXPORT macros
 #define _RWSTD_TEST_SRC
 
-#include <rw_process.h>
-
 #include <ctype.h>        // for isspace()
 #include <errno.h>        // for EACCES, errno
 #include <signal.h>       // for SIGXXX, kill()
@@ -39,7 +37,8 @@
 
 #include <sys/types.h>    // for pid_t
 
-#include <driver.h>       // for rw_note(), ...
+#include <rw_process.h>
+#include <rw_driver.h>    // for rw_note(), ...
 #include <rw_printf.h>    // for rw_fprintf()
 
 #ifdef __CYGWIN__
@@ -573,7 +572,7 @@ rw_waitpid (rw_pid_t pid, int* presult, int timeout/* = -1*/)
     rw_pid_t ret = 0;
     do {
 
-        ret = waitpid (pid, &status, 0);
+        ret = waitpid (pid_t (pid), &status, 0);
 
         if (-1 == ret) {
 
@@ -636,7 +635,7 @@ rw_waitpid (rw_pid_t pid, int* presult, int timeout/* = -1*/)
     if (0 < timeout) {
 
         if (prev_alarm_timeout) {
-            const int delta = time(0) - start;
+            const int delta = int (time(0) - start);
 
             if (delta < prev_alarm_timeout)
                 prev_alarm_timeout -= delta;
@@ -707,14 +706,14 @@ rw_process_kill (rw_pid_t pid, int signo)
     const int* const signals = (-1 == signo) ? signals_ : &signo;
 
     const unsigned sigcount =
-        (-1 == signo) ? sizeof (signals_) / sizeof (*signals_) : 1;
+        (-1 == signo) ? unsigned (sizeof (signals_) / sizeof (*signals_)) : 1;
 
     int ret = -1;
 
     for (unsigned i = 0; i < sigcount; ++i) {
 
         // send signal
-        ret = kill (pid, signals [i]);
+        ret = kill (pid_t (pid), signals [i]);
 
         if (-1 == ret) {
             rw_error (0, __FILE__, __LINE__,

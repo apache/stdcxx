@@ -31,9 +31,9 @@
 
 #include <cstddef>     // for size_t
 
-#include <alg_test.h>
+#include <rw_alg_test.h>
 #include <rw_value.h>  // for UserClass
-#include <driver.h>
+#include <rw_driver.h>
 #include <rw_new.h>
 
 /**************************************************************************/
@@ -569,7 +569,7 @@ void test_ctors (Vector*, T*, Alloc alloc)
 
         for (typename Vector::size_type i = 0; i != rw_opt_nloops; ++i) {
 
-            const T val = i;
+            const T val = T (i);
 
             Vector v0 (i, val);
             Vector v1 (i, val, alloc);

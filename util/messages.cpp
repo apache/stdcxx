@@ -140,19 +140,19 @@ void Def::write_messages(std::string dir_name)
 
     // now calculate the offsets for the wide string representations
     messages_out_.yesexpr_off[1] = 0;
-    messages_out_.noexpr_off[1] = messages_out_.yesexpr_off[1] 
-        + (messages_st_.wyesexpr.size() + 1) * sizeof (wchar_t) ;
+    messages_out_.noexpr_off[1] = unsigned (messages_out_.yesexpr_off[1] 
+        + (messages_st_.wyesexpr.size() + 1) * sizeof (wchar_t));
         
     // now calculate the offsets for the narrow string representations
-    messages_out_.yesexpr_off[0] = messages_out_.noexpr_off[1] 
-        + (messages_st_.wnoexpr.size() + 1) * sizeof (wchar_t);
-    messages_out_.noexpr_off[0] = messages_out_.yesexpr_off[0] 
-        + (messages_st_.yesexpr.size() + 1) * sizeof (char);
+    messages_out_.yesexpr_off[0] = unsigned (messages_out_.noexpr_off[1] 
+        + (messages_st_.wnoexpr.size() + 1) * sizeof (wchar_t));
+    messages_out_.noexpr_off[0] = unsigned (messages_out_.yesexpr_off[0] 
+        + (messages_st_.yesexpr.size() + 1) * sizeof (char));
 
-    messages_out_.codeset_off = messages_out_.noexpr_off[0] 
-        + (messages_st_.noexpr.size() + 1) * sizeof (char);
-    messages_out_.charmap_off = messages_out_.codeset_off 
-        + (charmap_.get_code_set_name().size() + 1) * sizeof (char);
+    messages_out_.codeset_off = unsigned (messages_out_.noexpr_off[0] 
+        + (messages_st_.noexpr.size() + 1) * sizeof (char));
+    messages_out_.charmap_off = unsigned (messages_out_.codeset_off 
+        + (charmap_.get_code_set_name().size() + 1) * sizeof (char));
 
     // first write out the messages structure
     out.write ((char*)&messages_out_, sizeof(messages_out_));

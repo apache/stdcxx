@@ -29,9 +29,9 @@
 #include <algorithm>    // for rotate, rotate_copy
 #include <cstring>      // for size_t, strlen()
 
-#include <alg_test.h>
+#include <rw_alg_test.h>
 #include <rw_value.h>   // for UserClass
-#include <driver.h>     // for rw_test()
+#include <rw_driver.h>  // for rw_test()
 
 
 _RWSTD_NAMESPACE (std) { 

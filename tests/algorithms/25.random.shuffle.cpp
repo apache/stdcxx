@@ -29,9 +29,9 @@
 #include <algorithm>    // for random_shuffle
 #include <cstring>      // for memset(), size_t
 
-#include <alg_test.h>
+#include <rw_alg_test.h>
 #include <rw_value.h>   // for UserClass
-#include <driver.h>     // for rw_test()
+#include <rw_driver.h>  // for rw_test()
 
 
 _RWSTD_NAMESPACE (std) { 
@@ -137,7 +137,7 @@ int sequence_generator ()
 
 // exercises 25.2.11 -- std::random_shuffle()
 template <class T, class Iterator, class RandomNumberGenerator>
-void test_random_shuffle (const std::size_t            line,
+void test_random_shuffle (const int                    line,
                           const std::size_t            N,
                           const Iterator              &it, 
                           const RandomNumberGenerator*,
@@ -224,7 +224,7 @@ void test_random_shuffle (const std::size_t            line,
 
 /**************************************************************************/
 
-void test_random_shuffle (const std::size_t line)
+void test_random_shuffle (const int line)
 {
 #ifndef _RWSTD_NO_EXT_PORTABLE_RANDOM_SEQUENCE
 

@@ -30,9 +30,9 @@
 #include <cstring>      // for strlen, size_t
 #include <cstddef>      // for ptrdiff_t
 
-#include <alg_test.h>
+#include <rw_alg_test.h>
 #include <rw_value.h>   // for UserClass
-#include <driver.h>     // for rw_test()
+#include <rw_driver.h>  // for rw_test()
 
 /**************************************************************************/
 

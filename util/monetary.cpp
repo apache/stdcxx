@@ -414,24 +414,24 @@ void Def::write_monetary (std::string dir_name)
     punct.decimal_point_off [1] = 0;
 
     punct.thousands_sep_off [1] =
-          punct.decimal_point_off [1] 
-        + (mon_st_.wmon_decimal_point.size () + 1) * sizeof (wchar_t);
+          unsigned (punct.decimal_point_off [1] 
+        + (mon_st_.wmon_decimal_point.size () + 1) * sizeof (wchar_t));
 
     punct.decimal_point_off [0] =
-          punct.thousands_sep_off [1]
-        + (mon_st_.wmon_thousands_sep.size () + 1) * sizeof (wchar_t);
+          unsigned (punct.thousands_sep_off [1]
+        + (mon_st_.wmon_thousands_sep.size () + 1) * sizeof (wchar_t));
 
     punct.thousands_sep_off [0] =
-          punct.decimal_point_off [0]
-        + mon_st_.mon_decimal_point.size () + 1;
+          unsigned (punct.decimal_point_off [0]
+        + mon_st_.mon_decimal_point.size () + 1);
 
     punct.grouping_off =
-          punct.thousands_sep_off [0]
-        + mon_st_.mon_thousands_sep.size () + 1;
+          unsigned (punct.thousands_sep_off [0]
+        + mon_st_.mon_thousands_sep.size () + 1);
 
     punct.punct_ext_off =
-          punct.grouping_off
-        + mon_st_.mon_grouping.size () + 1;
+          unsigned (punct.grouping_off
+        + mon_st_.mon_grouping.size () + 1);
 
     // compute the alignment requirement of any offset member
     const std::size_t align = sizeof punct.punct_ext_off;
@@ -442,47 +442,45 @@ void Def::write_monetary (std::string dir_name)
     // compute the amount of padding between the two structs
     const std::size_t pad = misalign ? align - misalign : 0;
 
-    punct.punct_ext_off += pad;
+    punct.punct_ext_off += unsigned (pad);
 
     mon_out_.curr_symbol_off [1][1] = 0;
 
     mon_out_.curr_symbol_off [0][1] =
-          mon_out_.curr_symbol_off [1][1]
-        + (mon_st_.wint_curr_symbol.size () + 1) * sizeof (wchar_t);
+          unsigned (mon_out_.curr_symbol_off [1][1]
+        + (mon_st_.wint_curr_symbol.size () + 1) * sizeof (wchar_t));
 
     mon_out_.positive_sign_off [1] =
-          mon_out_.curr_symbol_off [0][1]
-        + (mon_st_.wcurrency_symbol.size () + 1) * sizeof (wchar_t);
+          unsigned (mon_out_.curr_symbol_off [0][1]
+        + (mon_st_.wcurrency_symbol.size () + 1) * sizeof (wchar_t));
 
     mon_out_.negative_sign_off [1] =
-          mon_out_.positive_sign_off [1]
-        + (mon_st_.wpositive_sign.size () + 1) * sizeof (wchar_t);
+          unsigned (mon_out_.positive_sign_off [1]
+        + (mon_st_.wpositive_sign.size () + 1) * sizeof (wchar_t));
 
 
     // calculate all the narrow character string offsets
     mon_out_.curr_symbol_off [1][0] =
-          mon_out_.negative_sign_off [1]
-        + (mon_st_.wnegative_sign.size () + 1) * sizeof (wchar_t);
+          unsigned (mon_out_.negative_sign_off [1]
+        + (mon_st_.wnegative_sign.size () + 1) * sizeof (wchar_t));
 
     mon_out_.curr_symbol_off [0][0] =
-          mon_out_.curr_symbol_off [1][0]
-        + mon_st_.int_curr_symbol.size () + 1;
+          unsigned (mon_out_.curr_symbol_off [1][0]
+        + mon_st_.int_curr_symbol.size () + 1);
 
     mon_out_.positive_sign_off [0] =
-          mon_out_.curr_symbol_off [0][0]
-        + mon_st_.currency_symbol.size() + 1;
+          unsigned (mon_out_.curr_symbol_off [0][0]
+        + mon_st_.currency_symbol.size() + 1);
 
     mon_out_.negative_sign_off [0] =
-          mon_out_.positive_sign_off [0]
-        + mon_st_.positive_sign.size () + 1;
+          unsigned (mon_out_.positive_sign_off [0]
+        + mon_st_.positive_sign.size () + 1);
 
-    mon_out_.codeset_off =
-          mon_out_.negative_sign_off [0]
-        + mon_st_.negative_sign.size () + 1;
+    mon_out_.codeset_off = unsigned (mon_out_.negative_sign_off [0]
+        + mon_st_.negative_sign.size () + 1);
 
-    mon_out_.charmap_off =
-          mon_out_.codeset_off
-        + charmap_.get_code_set_name ().size () + 1;
+    mon_out_.charmap_off = unsigned (mon_out_.codeset_off
+        + charmap_.get_code_set_name ().size () + 1);
 
     issue_diag (I_WRITE, false, 0,
                 "%s layout:\n"

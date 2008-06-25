@@ -510,7 +510,7 @@ wchar_t Charmap::increment_wchar (wchar_t val) const
         // NOTE: this will not detect errors in the sequence, since the program
         // will continue until it finds a valid character
         do {
-            int last_elm = encoding.size () - 1;
+            int last_elm = int (encoding.size ()) - 1;
 
             while (last_elm >= 0) {
 
@@ -559,8 +559,8 @@ increment_encoding (std::string &encoding)
 
     // convert the last character in the multibyte character to a numeric
     // value representing the last byte of the sequence
-    unsigned long last_byte =
-        scanner_.convert_escape (encoding.c_str () + pos, &end);
+    unsigned last_byte =
+        unsigned (scanner_.convert_escape (encoding.c_str () + pos, &end));
 
     // POSIX requires that the incremented value be non-NUL
     if (UCHAR_MAX <= last_byte || *end)

@@ -36,8 +36,8 @@
 #include <cstddef> // for std::size_t
 #include <valarray>
 
-#include <driver.h>
-#include <valcmp.h>
+#include <rw_driver.h>
+#include <rw_valcmp.h>
 
 /**************************************************************************/
 

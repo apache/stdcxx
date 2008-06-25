@@ -35,7 +35,8 @@
 //   as compilation errors
 
 #include <rw/_defs.h>
-#include <driver.h>
+
+#include <rw_driver.h>
 
 
 #ifdef __SUNPRO_CC

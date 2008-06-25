@@ -27,7 +27,7 @@
 #include <cstdlib>    // for strtoul(), size_t
 #include <valarray>   // for gslice, valarray
 
-#include <driver.h>
+#include <rw_driver.h>
 
 /**************************************************************************/
 
@@ -35,25 +35,28 @@
 static std::valarray<std::size_t>
 make_array (const char *s)
 {
-    if (0 == s)
-        return std::valarray<std::size_t>();
-
     std::size_t buf [256];
 
-    for (std::size_t i = 0; ; ++i) {
+    std::size_t i = 0;
+    while (s && *s) {
 
         char *end;
         unsigned long val = std::strtoul (s, &end, 10);
 
         RW_ASSERT ('\0' == *end || ',' == *end);
 
-        buf [i] = std::size_t (val);
+        if (s == end)
+            break;
+
+        buf [i++] = std::size_t (val);
 
         if ('\0' == *end)
-            return std::valarray<std::size_t>(buf, i + 1);
+            break;
 
         s = end + 1;
     }
+
+    return std::valarray<std::size_t>(buf, i);
 }
 
 /**************************************************************************/
@@ -67,7 +70,8 @@ get_array_size (const std::gslice &gsl)
     std::size_t asize = sizes.size () ? 1 : 0;
 
     for (std::size_t i = 0; i != sizes.size (); ++i) {
-        asize *= sizes [i];
+        if (sizes [i])
+            asize *= sizes [i];
     }
 
     return asize;
@@ -92,8 +96,11 @@ next_index (const std::gslice &gsl, std::valarray<std::size_t> &factors)
         return start;
     }
 
-    while (inx && factors [inx - 1] == asizes [inx - 1] - 1)
-        --inx;
+    for (/**/; inx; --inx) {
+        if (   asizes [inx - 1]
+            && factors [inx - 1] != asizes [inx - 1] - 1)
+            break;
+    }
 
     if (0 == inx) {
         factors = 0;
@@ -156,12 +163,12 @@ test_gslice (std::size_t  start,
         if (maxinx < indices [i])
             maxinx = indices [i];
 
-    std::valarray<std::size_t> va (maxinx + 1);
+    std::valarray<std::size_t> va (indices.size () ? maxinx + 1 : 0);
     for (std::size_t i = 0; i != va.size (); ++i)
         va [i] = i;
 
     for (int i = 0; i != 3; ++i) {
-        // repeat each test three to verify that operator[](gslice)
+        // repeat each test thrice to verify that operator[](gslice)
         // doesn't change the observable state of its argument and
         // that the same result is obtained for a copy of gslice
 
@@ -171,7 +178,7 @@ test_gslice (std::size_t  start,
         bool equal = array_slice.size () == indices.size ();
 
         rw_assert (equal, 0, __LINE__,
-                   "size() == %zu, got %zu\n",
+                   "size() == %zu, got %zu",
                    indices.size (), array_slice.size ());
 
         if (equal) {
@@ -180,7 +187,7 @@ test_gslice (std::size_t  start,
                 equal = array_slice [j] == va [indices [j]];
 
                 rw_assert (equal, 0, __LINE__,
-                           "mismatch at %u, index %u: expected %u, got %u\n",
+                           "mismatch at %u, index %u: expected %u, got %u",
                            j, indices [j], va [indices [j]],
                            array_slice [j]);
             }
@@ -223,7 +230,7 @@ run_test (int, char**)
     test_gslice ("2,4,3", "19,4,1");
 
     // includes example of a degenerate gslice from p5
-    test_gslice ("2,4,3", "19,4,1");
+    test_gslice ("2,4,3", "1,1,1");
 
     return 0;
 }

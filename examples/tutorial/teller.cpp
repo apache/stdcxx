@@ -36,7 +36,7 @@
 //  of a linear congruential pseudorandom number generator.
 //  (Apologies to D. Lehmer, D. Knuth, R. Sedgewick, et al.)
 static unsigned long int lcg_seed = 0;
-inline unsigned long int lcg_rand (int n)
+inline int lcg_rand (int n)
 {
     lcg_seed = ((lcg_seed * 11321) + 1) % 32575;
     return (int) (((double) lcg_seed / 32575.0) * n);

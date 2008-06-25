@@ -29,8 +29,8 @@
 #ifndef RW_VALUE_H_INCLUDED
 #define RW_VALUE_H_INCLUDED
 
-#include <testdefs.h>
-#include <alg_test.h>         // for conv_to_bool
+#include <rw_testdefs.h>
+#include <rw_alg_test.h>         // for conv_to_bool
 
 /**************************************************************************/
 
