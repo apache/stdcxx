@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /***************************************************************************
  *
- * 20.meta.help.cpp - test exercising tr.meta.help
+ * 20.meta.help.cpp - test exercising meta.help
  *
  * $Id$
  *
@@ -23,16 +23,16 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1999-2008 Rogue Wave Software, Inc.
+ * Copyright 2008 Rogue Wave Software, Inc.
  *
  **************************************************************************/
-
-#include <type_traits>
 
 #include <rw_driver.h>
 
 // compile out all test code if extensions disabled
 #ifndef _RWSTD_NO_EXT_CXX_0X
+
+#include <type_traits>
 
 /**************************************************************************/
 
@@ -249,7 +249,7 @@ static int run_test (int, char*[])
 int main (int argc, char *argv[])
 {
     return rw_test (argc, argv, __FILE__,
-                    "tr.meta.help",
+                    "meta.help",
                     0 /* no comment */,
                     run_test,
                     0);

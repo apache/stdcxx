@@ -174,3 +174,32 @@
 #    endif
 #  endif  // __GNUG__ == 3 && __GNUC_MINOR__ < 1
 #endif  // _RWSTD_OS_SUNOS
+
+#if (__GNUC__ > 4) || ((__GNUC__ == 4) && (__GNUC_MINOR__ >= 3))
+#  define _RWSTD_TT_IS_ENUM(T)                    __is_enum(T)
+#  define _RWSTD_TT_IS_UNION(T)                   __is_union(T)
+#  define _RWSTD_TT_IS_CLASS(T)                   __is_class(T)
+//#  define _RWSTD_TT_IS_FUNCTION(T)                __is_function(T)
+#  define _RWSTD_TT_IS_POD(T)                     __is_pod(T)
+#  define _RWSTD_TT_IS_EMPTY(T)                   __is_empty(T)
+#  define _RWSTD_TT_IS_POLYMORPHIC(T)             __is_polymorphic(T)
+#  define _RWSTD_TT_IS_ABSTRACT(T)                __is_abstract(T)
+#  define _RWSTD_TT_IS_BASE_OF(T,U)               __is_base_of(T,U)
+//#  define _RWSTD_TT_IS_CONVERTIBLE(T,U)           __is_convertible(T,U)
+
+#  define _RWSTD_TT_HAS_TRIVIAL_CTOR(T)           __has_trivial_constructor(T)
+#  define _RWSTD_TT_HAS_TRIVIAL_COPY(T)           __has_trivial_copy(T)
+#  define _RWSTD_TT_HAS_TRIVIAL_ASSIGN(T)         __has_trivial_assign(T)
+#  define _RWSTD_TT_HAS_TRIVIAL_DTOR(T)           __has_trivial_destructor(T)
+
+#  define _RWSTD_TT_HAS_NOTHROW_CTOR(T)           __has_nothrow_constructor(T)
+#  define _RWSTD_TT_HAS_NOTHROW_COPY(T)           __has_nothrow_copy(T)
+#  define _RWSTD_TT_HAS_NOTHROW_ASSIGN(T)         __has_nothrow_assign(T)
+
+#  define _RWSTD_TT_HAS_VIRTUAL_DTOR(T)           __has_virtual_destructor(T)
+
+#  define _RWSTD_TT_ALIGN_OF(T)                   __alignof__(T)
+#  define _RWSTD_TT_ALIGNED_POD(N)                struct { char __fill __attribute__ ((aligned (N))); }
+#  define _RWSTD_TT_MAX_ALIGNMENT                 16
+#endif   // __GNUC__ >= 4.3
+

@@ -1,0 +1,314 @@
+// -*- C++ -*-
+/***************************************************************************
+ *
+ * tuple - fixed-size collection of values with variable, heterogenous types
+ *
+ * $Id$
+ *
+ ***************************************************************************
+ *
+ * Licensed to the Apache Software  Foundation (ASF) under one or more
+ * contributor  license agreements.  See  the NOTICE  file distributed
+ * with  this  work  for  additional information  regarding  copyright
+ * ownership.   The ASF  licenses this  file to  you under  the Apache
+ * License, Version  2.0 (the  "License"); you may  not use  this file
+ * except in  compliance with the License.   You may obtain  a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the  License is distributed on an  "AS IS" BASIS,
+ * WITHOUT  WARRANTIES OR CONDITIONS  OF ANY  KIND, either  express or
+ * implied.   See  the License  for  the  specific language  governing
+ * permissions and limitations under the License.
+ *
+ * Copyright 2008 Rogue Wave Software.
+ * 
+ **************************************************************************/
+
+#ifndef _RWSTD_TUPLE_INCLUDED
+#  define _RWSTD_TUPLE_INCLUDED
+
+#  include <rw/_defs.h>
+
+#  if defined _RWSTD_NO_EXT_CXX_0X
+#    error _RWSTD_NO_EXT_CXX_0X defined and C++0x header included
+#  endif   // defined _RWSTD_NO_EXT_CXX_0X
+
+#  include <type_traits>
+
+#  include <rw/_ref_wrap.h>
+
+#  include <rw/_tuple.h>
+#  include <rw/_tuple_traits.h>
+
+
+_RWSTD_NAMESPACE (__rw) {
+
+struct __rw_ignore { /* empty */ };
+
+template <class _Type>
+struct __rw_deduce_reference
+{
+    typedef _Type type;
+};
+
+template <class _Type>
+struct __rw_deduce_reference< __rw_ref_wrap<_Type> >
+{
+    typedef _Type& type;
+};
+
+template <class _Type>
+struct __rw_deduce_reference< const __rw_ref_wrap<_Type> >
+{
+    typedef _Type& type;
+};
+
+/**
+ * @internal
+ * Transform a tuple element type into a suitable make_tuple() return
+ * type.
+ * @tparam _Type A tuple element type.
+ */
+template <class _Type>
+class __rw_make_tuple
+{
+    typedef _TYPENAME _RWSTD_DECAY(_Type) _Decay;
+    typedef _TYPENAME __rw_deduce_reference<_Decay>::type type;
+};
+
+}   // namespace __rw
+
+
+_RWSTD_NAMESPACE (std) {
+
+
+// 20.3.3, tuple creation functions:
+
+const _RW::__rw_ignore ignore = _RW::__rw_ignore ();
+
+#  if !defined _RWSTD_NO_VARIADIC_TEMPLATES
+
+#    if !defined _RWSTD_NO_RVALUE_REFERENCES
+
+/**
+ * @function make_tuple
+ *
+ * Create a new tuple from a list of element values.  This function
+ * constructs a new tuple from the corresponding element values by
+ * utilizing move semantics.
+ *
+ * @tparam _Types The list of elements types in the tuple.
+ * @param __values A corresponding list of element values.
+ * @return A tuple object containing the given element values.
+ */
+template <class... _Types>
+tuple<_TYPENAME _RW::__rw_make_tuple<_Types>::type...>
+make_tuple (_Types&&... __values)
+{
+    typedef tuple<_TYPENAME _RW::__rw_make_tuple<_Types>::type...> _Tuple;
+    return _Tuple (std::forward<_Types> (__values)...);
+}
+
+template <class... _TypesT, class... _TypesU>
+tuple<_TypesT..., _TypesU...>
+tuple_cat (tuple<_TypesT...>&& __x,
+           const tuple<_TypesU...>& __y);
+
+template <class... _TypesT, class... _TypesU>
+tuple<_TypesT..., _TypesU...>
+tuple_cat (const tuple<_TypesT...>& __x,
+           tuple<_TypesU...>&& __y);
+
+template <class... _TypesT, class... _TypesU>
+tuple<_TypesT..., _TypesU...>
+tuple_cat (tuple<_TypesT...>&& __x,
+           tuple<_TypesU...>&& __y);
+
+#    endif   // !defined _RWSTD_NO_RVALUE_REFERENCES
+
+template <class... _Types>
+tuple<_Types&...> tie (_Types&...);
+
+template <class... _TypesT, class... _TypesU>
+tuple<_TypesT..., _TypesU...>
+tuple_cat (const tuple<_TypesT...>& __x,
+           const tuple<_TypesU...>& __y);
+
+
+// 20.3.1.4, tuple helper classes:
+
+/**
+ * @class tuple_size
+ *
+ * Determine number of element types in tuple.  This compile-time
+ * integral constant wrapper determines the number of element types in
+ * a tuple.  The class template is ill-formed for any non-tuple typle.
+ *
+ * @tparam Types List of element types in tuple.
+ */
+
+template <class Types>
+class tuple_size;
+
+template <class... _Types>
+class tuple_size< tuple<_Types...> >
+    : public _RW::__rw_integral_constant< _RWSTD_SIZE_T,
+                                          sizeof... (_Types) >
+{
+    // empty
+};
+
+
+/**
+ * @class tuple_element
+ *
+ * Determine the Nth element type of a tuple.  Instances of this class
+ * class template provide a type member that identifies the Nth element
+ * type of a tuple \c T where 0 <= N <
+ * <code>tuple_size&lt;T&gt;::value</code>.  If N is not in this range
+ * or for any other arbitrary type, the program is ill-formed.
+ *
+ * @tparam Index An integer constant indicating the Nth element type.
+ * @tparam Types List of element types in the tuple.
+ */
+
+template <int Index, class... Types>
+struct tuple_element;
+
+template <class _Head, class... _Tail>
+struct tuple_element<0, tuple<_Head, _Tail...> >
+{
+    /** The Nth element type of the tuple. */
+    typedef _Head type;
+
+
+    typedef tuple<_Head, _Tail...>          _Tuple;
+
+#  define _RWSTD_ADD_CONST(T) \
+          _TYPENAME _RW::__rw_add_const<T>::type
+#  define _RWSTD_ADD_LVAL_REF(T) \
+          _TYPENAME _RW::__rw_add_lvalue_reference<T>::type
+
+    typedef _RWSTD_ADD_CONST (_Head)        _Const;
+    typedef _RWSTD_ADD_LVAL_REF (_Head)     _Ref;
+    typedef _RWSTD_ADD_LVAL_REF (_Const)    _ConstRef;
+
+#  undef _RWSTD_ADD_CONST
+#  undef _RWSTD_ADD_LVAL_REF
+
+    static _Ref
+    __get (_Tuple& __tuple) { return __tuple.__get (); }
+
+    static _ConstRef
+    __get (const _Tuple& __tuple) { return __tuple.__get (); }
+};
+
+template <int _Index, class _Head, class... _Tail>
+struct tuple_element<_Index, tuple<_Head, _Tail...> >
+    : tuple_element<_Index - 1, tuple<_Tail...> >
+{
+    // empty
+};
+
+
+// 20.3.1.5, element access:
+
+/**
+ * @function get
+ *
+ * Access Nth element value of a tuple.  This function returns a
+ * cv-qualified value reference to the Nth element in a tuple \c T
+ * where 0 <= N < <code>tuple_size&lt;T&gt;::value</code>.  If N is
+ * not in this range, the program is ill-formed.
+ *
+ * @tparam Index An integer constant indicating the Nth element type.
+ * @tparam Types List of element types in the tuple.
+ * @param tuple A tuple value.
+ * @return CV-qualified reference to the Nth element value of tuple.
+ */
+
+template <int _Index, class _Head, class... _Tail>
+_TYPENAME tuple_element<_Index, tuple<_Head, _Tail...> >::_Ref
+get (tuple<_Head, _Tail...>& __tuple)
+{
+    typedef tuple_element<_Index, tuple<_Head, _Tail...> > _Tuple;
+    return _Tuple::__get (__tuple);
+}
+
+template <int _Index, class _Head, class... _Tail>
+_TYPENAME tuple_element<_Index, tuple<_Head, _Tail...> >::_ConstRef
+get (const tuple<_Head, _Tail...>& __tuple)
+{
+    typedef tuple_element<_Index, tuple<_Head, _Tail...> > _Tuple;
+    return _Tuple::__get (__tuple);
+}
+
+
+// 20.3.1.6, relational operators:
+
+template <class... _TypesT, class... _TypesU>
+bool operator== (const tuple<_TypesT...>& __x,
+                 const tuple<_TypesU...>& __y);
+
+template <class... _TypesT, class... _TypesU>
+bool operator< (const tuple<_TypesT...>& __x,
+                const tuple<_TypesU...>& __y);
+
+/**
+ * @param __x Tuple value on LHS of operator.
+ * @param __y Tuple value on RHS of operator.
+ * @return !(__x == __y)
+ */
+template <class... _TypesT, class... _TypesU>
+bool operator!= (const tuple<_TypesT...>& __x,
+                 const tuple<_TypesU...>& __y)
+{
+    return !(__x == __y);
+}
+
+/**
+ * @param __x Tuple value on LHS of operator.
+ * @param __y Tuple value on RHS of operator.
+ * @return __y < __x
+ */
+template <class... _TypesT, class... _TypesU>
+bool operator> (const tuple<_TypesT...>& __x,
+                const tuple<_TypesU...>& __y)
+{
+    return __y < __x;
+}
+
+
+/**
+ * @param __x Tuple value on LHS of operator.
+ * @param __y Tuple value on RHS of operator.
+ * @return !(__y < __x)
+ */
+template <class... _TypesT, class... _TypesU>
+bool operator<= (const tuple<_TypesT...>& __x,
+                 const tuple<_TypesU...>& __y)
+{
+    return !(__y < __x);
+}
+
+/**
+ * @param __x Tuple value on LHS of operator.
+ * @param __y Tuple value on RHS of operator.
+ * @return !(__x < __y)
+ */
+template <class... _TypesT, class... _TypesU>
+bool operator>= (const tuple<_TypesT...>& __x,
+                 const tuple<_TypesU...>& __y)
+{
+    return !(__x < __y);
+}
+
+
+#  endif   // !defined _RWSTD_NO_VARIADIC_TEMPLATES
+
+}   // namespace std
+
+#endif   // _RWSTD_TUPLE_INCLUDED
