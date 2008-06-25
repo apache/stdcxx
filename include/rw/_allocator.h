@@ -63,6 +63,15 @@ _RWSTD_EXPORT void  __rw_deallocate (void*, _RWSTD_SIZE_T, int = 0);
 _RWSTD_NAMESPACE (std) {
 
 
+#ifndef _RWSTD_NO_EXT_CXX_0X
+
+struct allocator_arg_t { };
+
+const allocator_arg_t allocator_arg = allocator_arg_t ();
+
+#endif
+
+
 template <class _TypeT> class
 allocator;
 

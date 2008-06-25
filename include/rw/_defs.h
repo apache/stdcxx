@@ -1273,7 +1273,6 @@ __rw_assert_fail (const char*, const char*, int, const char*)
 #  endif
 #endif   // _RWSTD_SSIZE_T
 
-
 // _RWSTD_UWCHAR_INT_T is "unsigned wchar_t"
 #ifndef _RWSTD_UWCHAR_INT_T
 #  if _RWSTD_CHAR_SIZE == _RWSTD_WCHAR_SIZE
