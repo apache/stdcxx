@@ -77,6 +77,10 @@ typedef __rw_integral_constant<bool, true>  __rw_true_type;
  */
 typedef __rw_integral_constant<bool, false> __rw_false_type;
 
+// convenience macros
+
+#define _RWSTD_BOOL_CONST(B) _RW::__rw_integral_constant<bool, B>
+
 } // namespace __rw
 
 
