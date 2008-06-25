@@ -31,8 +31,7 @@
 
 #include <stdlib.h>     // for rand()
 
-
-#include <alg_test.h>
+#include <rw_alg_test.h>
 
 
 // generate a unique sequential number starting from 0

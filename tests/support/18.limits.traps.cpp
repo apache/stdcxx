@@ -30,9 +30,9 @@
 
 #include <csignal>    // for SIGFPE, signal
 
-#include <any.h>      // for rw_any_t
-#include <cmdopt.h>   // for rw_enabled()
-#include <driver.h>   // for rw_test(), ...
+#include <rw_any.h>      // for rw_any_t
+#include <rw_cmdopt.h>   // for rw_enabled()
+#include <rw_driver.h>   // for rw_test(), ...
 
 /**************************************************************************/
 

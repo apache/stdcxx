@@ -43,5 +43,5 @@ distance<X> (X, X) { return 0; }
 
 int main ()
 {
-    return std::distance (X (), X ());
+    return int (std::distance (X (), X ()));
 }

@@ -37,9 +37,9 @@
 #include <algorithm>
 #include <cstring>
 
-#include <alg_test.h>
+#include <rw_alg_test.h>
 #include <rw_value.h>   // for UserClass
-#include <driver.h>
+#include <rw_driver.h>
 
 /**************************************************************************/
 

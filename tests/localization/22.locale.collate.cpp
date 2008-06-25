@@ -37,9 +37,9 @@
 #include <cstring>    // for strcmp(), strcoll(), ...
 #include <cwchar>     // for wcscoll()
 
-#include <driver.h>
-#include <environ.h>
-#include <file.h>
+#include <rw_driver.h>
+#include <rw_environ.h>
+#include <rw_file.h>
 #include <rw_locale.h>
 #include <rw_process.h>
 

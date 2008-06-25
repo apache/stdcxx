@@ -30,7 +30,7 @@
 #ifndef TELLER_H_INCLUDED
 #define TELLER_H_INCLUDED
 
-inline unsigned long int lcg_rand (int n);
+inline int lcg_rand (int n);
 
 class Customer
 {

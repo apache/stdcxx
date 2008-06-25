@@ -30,7 +30,7 @@
 #define RW_ENVIRON_H_INCLUDED
 
 
-#include <testdefs.h>
+#include <rw_testdefs.h>
 
 
 // rw_putenv is a wrapper for the C standard library putenv function

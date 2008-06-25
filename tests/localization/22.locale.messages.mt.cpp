@@ -28,12 +28,12 @@
 
 #include <locale>
 
-#include <driver.h>      // for rw_test()
+#include <rw_driver.h>   // for rw_test()
 #include <rw_locale.h>   // for rw_create_catalog()
 #include <rw_thread.h>   // for rw_thread_pool()
 #include <rw_process.h>  // for rw_system()
-#include <file.h>        // for SHELL_RM_F
-#include <valcmp.h>      // for rw_strncmp ()
+#include <rw_file.h>     // for SHELL_RM_F
+#include <rw_valcmp.h>   // for rw_strncmp ()
 
 #include <cstring>   // for strlen()
 #include <cstdio>    // for remove()

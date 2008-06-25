@@ -34,8 +34,8 @@
 
 #include <rw_locale.h>
 #include <rw_thread.h>
-#include <driver.h>
-#include <valcmp.h>    // for rw_strncmp ()
+#include <rw_driver.h>
+#include <rw_valcmp.h>    // for rw_strncmp ()
 
 
 // maximum number of threads allowed by the command line interface

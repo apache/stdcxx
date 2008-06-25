@@ -26,7 +26,7 @@
  * 
  **************************************************************************/
 
-#include <valcmp.h>   // for rw_strncmp()
+#include <rw_valcmp.h>   // for rw_strncmp()
 
 #include <stdio.h>    // for fprintf()
 

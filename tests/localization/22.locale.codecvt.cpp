@@ -55,8 +55,8 @@
 #endif
 
 #define DEFINE_REPLACEMENT_NEW_AND_DELETE
-#include <driver.h>
-#include <file.h>
+#include <rw_driver.h>
+#include <rw_file.h>
 #include <rw_locale.h>
 
 #ifndef PATH_MAX

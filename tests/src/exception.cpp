@@ -28,8 +28,9 @@
 #define _RWSTD_TEST_SRC
 
 #include <rw_exception.h>
-#include <driver.h>   
+#include <rw_driver.h>   
 #include <rw_printf.h>
+
 #include <string.h>         // for size_t, strcpy()
 #include <stdlib.h>         // for free()
 #include <stdarg.h>         // for va_arg(), va_list

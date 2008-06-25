@@ -27,7 +27,7 @@
 // expand _TEST_EXPORT macros
 #define _RWSTD_TEST_SRC
 
-#include <valcmp.h>
+#include <rw_valcmp.h>
 
 #include <stdio.h>    // for fprintf, stderr
 #include <stdlib.h>   // for abort

@@ -32,7 +32,7 @@
 #include <string.h>         // for strcmp()
 
 #include <rw_process.h>     // for rw_process_create(), rw_waitpid()
-#include <driver.h>         // for rw_test()
+#include <rw_driver.h>      // for rw_test()
 
 static int _rw_child = 0;
 static int _rw_timeout = 5;

@@ -31,14 +31,13 @@
 
 
 #include <rw_locale.h>
-
-#include <environ.h>      // for rw_putenv()
-#include <file.h>         // for SHELL_RM_RF, rw_tmpnam
+#include <rw_environ.h>   // for rw_putenv()
+#include <rw_file.h>      // for SHELL_RM_RF, rw_tmpnam
 #include <rw_process.h>   // for rw_system()
 #include <rw_printf.h>    // for rw_snprintf()
 #include <rw_fnmatch.h>   // for rw_fnmatch()
 #include <rw_braceexp.h>  // for rw_shell_expand()
-#include <driver.h>       // for rw_error()
+#include <rw_driver.h>    // for rw_error()
 
 #ifdef _RWSTD_OS_LINUX
 #  ifdef _RWSTD_NO_PURE_C_HEADERS
@@ -457,7 +456,7 @@ rw_locales (int loc_cat, const char* grep_exp, bool prepend_c_loc)
         }
 
         // if successful, construct a char array with the locales
-        while (fgets (linebuf, sizeof linebuf, file)) {
+        while (fgets (linebuf, int (sizeof linebuf), file)) {
 
             const size_t linelen = strlen (linebuf);
 
@@ -1150,7 +1149,7 @@ _rw_all_locales ()
         }
 
         char locale [128];
-        while (fgets (locale, sizeof (locale), file)) {
+        while (fgets (locale, int (sizeof (locale)), file)) {
 
             // ensure sufficient space in array
             if (! (size < capacity)) {

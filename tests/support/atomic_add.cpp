@@ -32,9 +32,9 @@
 
 #include <rw/_mutex.h>
 
-#include <any.h>
-#include <cmdopt.h>
-#include <driver.h>
+#include <rw_any.h>
+#include <rw_cmdopt.h>
+#include <rw_driver.h>
 #include <rw_thread.h>   // for rw_thread_create()
 
 /**************************************************************************/

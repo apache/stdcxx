@@ -33,7 +33,7 @@
 // avoid dependencies on any library headers
 // to prevent the pollution of the namespace(s)
 #include <rw/_traits.h>
-#include <testdefs.h>
+#include <rw_testdefs.h>
 
 
 struct UserChar   // user-defined character type (must be POD)

@@ -30,7 +30,8 @@
 #define RW_RAND_H_INCLUDED
 
 #include <rw/_defs.h>   // for libstd config macros
-#include <testdefs.h>   // for test config macros
+
+#include <rw_testdefs.h>   // for test config macros
 
 // seeds the 32-bit random number generator
 // if the seed is equal UINT32_MAX picks a random value to seed

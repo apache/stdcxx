@@ -30,7 +30,8 @@
 #ifndef RW_FMT_DEFS_H_INCLUDED
 #define RW_FMT_DEFS_H_INCLUDED
 
-#include <testdefs.h>
+#include <rw_testdefs.h>
+
 #include <stddef.h>     // for ptrdiff_t, size_t
 
 /********************************************************************/

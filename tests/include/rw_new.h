@@ -36,7 +36,7 @@
 
 #include <new>          // for bad_alloc
 
-#include <testdefs.h>   // for test config macros
+#include <rw_testdefs.h>   // for test config macros
 
 
 struct rwt_free_store

@@ -40,7 +40,7 @@
 
 #include <rw_new.h>
 #include <rw_printf.h>
-#include <driver.h>
+#include <rw_driver.h>
 
 #ifndef _RWSTD_NO_SETRLIMIT
   // #undef works around SunPro bug #568

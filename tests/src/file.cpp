@@ -29,7 +29,7 @@
 // expand _TEST_EXPORT macros
 #define _RWSTD_TEST_SRC
 
-#include <file.h>
+#include <rw_file.h>
 
 #ifdef _RWSTD_OS_LINUX
 #  ifdef _RWSTD_NO_PURE_C_HEADERS

@@ -68,13 +68,13 @@
 #include <limits>
 #include <locale>
 
-#include <alg_test.h>    // for InputIter
-#include <any.h>         // for rw_any_t
-#include <cmdopt.h>      // for rw_enabled()
-#include <driver.h>      // for rw_test(), ...
-#include <rw_char.h>     // for rw_widen()
-#include <rw_locale.h>   // for rw_locales()
-#include <valcmp.h>      // for rw_equal()
+#include <rw_alg_test.h>    // for InputIter
+#include <rw_any.h>         // for rw_any_t
+#include <rw_cmdopt.h>      // for rw_enabled()
+#include <rw_driver.h>      // for rw_test(), ...
+#include <rw_char.h>        // for rw_widen()
+#include <rw_locale.h>      // for rw_locales()
+#include <rw_valcmp.h>      // for rw_equal()
 
 /**************************************************************************/
 
@@ -528,7 +528,7 @@ void test_errno (CharType ctype, const char *cname,
     for (i = 0; i != sizeof errnos / sizeof *errnos; ++i) {          \
         errno = errnos [i];                                          \
         TEST (T, numT (val), _RWSTD_STR (val),                       \
-              sizeof (_RWSTD_STR (val)) -1, 0, Eof);                 \
+              int (sizeof (_RWSTD_STR (val))) -1, 0, Eof);           \
         rw_assert (errnos [i] == errno, 0, __LINE__,                 \
                    "%d. errno unexpectedly changed from %d to %d",   \
                     i, errnos [i], errno);                           \
@@ -1174,7 +1174,7 @@ test_long (CharType ctype, const char *cname,
             "1"
         };
 
-        static const std::size_t NC = sizeof many_groups - 1;
+        static const int NC = int (sizeof many_groups - 1);
 
         const int nfail = TEST (T, 1L, many_groups + i, NC - i, dec, Eof, "\1");
 
@@ -1322,18 +1322,20 @@ test_long (CharType ctype, const char *cname,
     const char vflow_1[]      = "999999999999999999990";
 #endif
 
-    TEST (T, LONG_MIN, lmin,         sizeof lmin - 1,         0, Eof);
-    TEST (T, LONG_MIN, lmin_minus_1, sizeof lmin_minus_1 - 1, 0, Eof | Fail);
-    TEST (T, LONG_MIN, lmin_minus_2, sizeof lmin_minus_2 - 1, 0, Eof | Fail);
-    TEST (T, LONG_MIN, lmin_minus_3, sizeof lmin_minus_3 - 1, 0, Eof | Fail);
+#define INTSIZE(x) _RWSTD_STATIC_CAST(int, sizeof (x))
 
-    TEST (T, LONG_MAX, lmax,         sizeof lmax - 1,         0, Eof);
-    TEST (T, LONG_MAX, lmax_plus_1,  sizeof lmax_plus_1 - 1,  0, Eof | Fail);
-    TEST (T, LONG_MAX, lmax_plus_2,  sizeof lmax_plus_2 - 1,  0, Eof | Fail);
-    TEST (T, LONG_MAX, lmax_plus_3,  sizeof lmax_plus_3 - 1,  0, Eof | Fail);
-    TEST (T, LONG_MAX, lmax_x_f,     sizeof lmax_x_f - 1,     0, Eof | Fail);
+    TEST (T, LONG_MIN, lmin,         INTSIZE (lmin - 1),         0, Eof);
+    TEST (T, LONG_MIN, lmin_minus_1, INTSIZE (lmin_minus_1 - 1), 0, Eof | Fail);
+    TEST (T, LONG_MIN, lmin_minus_2, INTSIZE (lmin_minus_2 - 1), 0, Eof | Fail);
+    TEST (T, LONG_MIN, lmin_minus_3, INTSIZE (lmin_minus_3 - 1), 0, Eof | Fail);
 
-    TEST (T, LONG_MAX, vflow_1,      sizeof vflow_1 - 1,      0, Eof | Fail);
+    TEST (T, LONG_MAX, lmax,         INTSIZE (lmax - 1),         0, Eof);
+    TEST (T, LONG_MAX, lmax_plus_1,  INTSIZE (lmax_plus_1 - 1),  0, Eof | Fail);
+    TEST (T, LONG_MAX, lmax_plus_2,  INTSIZE (lmax_plus_2 - 1),  0, Eof | Fail);
+    TEST (T, LONG_MAX, lmax_plus_3,  INTSIZE (lmax_plus_3 - 1),  0, Eof | Fail);
+    TEST (T, LONG_MAX, lmax_x_f,     INTSIZE (lmax_x_f - 1),     0, Eof | Fail);
+
+    TEST (T, LONG_MAX, vflow_1,      INTSIZE (vflow_1 - 1),      0, Eof | Fail);
 
 
     // verify that the combination of ERANGE and LONG_MAX
@@ -1533,13 +1535,13 @@ test_ulong (CharType ctype, const char *cname,
     const char vflow_1[]      = "999999999999999999990";
 #endif
 
-    TEST (T, ULONG_MAX, ulmax,        sizeof ulmax - 1,        0, Eof);
-    TEST (T, ULONG_MAX, ulmax_plus_1, sizeof ulmax_plus_1 - 1, 0, Eof | Fail);
-    TEST (T, ULONG_MAX, ulmax_plus_2, sizeof ulmax_plus_2 - 1, 0, Eof | Fail);
-    TEST (T, ULONG_MAX, ulmax_plus_3, sizeof ulmax_plus_3 - 1, 0, Eof | Fail);
-    TEST (T, ULONG_MAX, ulmax_x_f,    sizeof ulmax_x_f - 1,    0, Eof | Fail);
+    TEST (T, ULONG_MAX, ulmax,        INTSIZE (ulmax - 1),        0, Eof);
+    TEST (T, ULONG_MAX, ulmax_plus_1, INTSIZE (ulmax_plus_1 - 1), 0, Eof | Fail);
+    TEST (T, ULONG_MAX, ulmax_plus_2, INTSIZE (ulmax_plus_2 - 1), 0, Eof | Fail);
+    TEST (T, ULONG_MAX, ulmax_plus_3, INTSIZE (ulmax_plus_3 - 1), 0, Eof | Fail);
+    TEST (T, ULONG_MAX, ulmax_x_f,    INTSIZE (ulmax_x_f - 1),    0, Eof | Fail);
 
-    TEST (T, ULONG_MAX, vflow_1,      sizeof vflow_1 - 1,      0, Eof | Fail);
+    TEST (T, ULONG_MAX, vflow_1,      INTSIZE (vflow_1 - 1),      0, Eof | Fail);
 
     // verify that the combination of ERANGE and ULONG_MAX
     // doesn't trip the facet up if it uses strtoul()
@@ -2119,7 +2121,7 @@ test_pvoid (CharType ctype, const char *cname,
     const char pvmax_plus_1[] = "0xffffffffffffffffffffffffffffffff";
 #endif 
 
-#define PVOIDSTR(name)   name, sizeof name - 1
+#define PVOIDSTR(name)   name, INTSIZE (name - 1)
 
     TEST (T, PVoid (~0), PVOIDSTR (pvmax),        0, Eof);
     TEST (T, PVoid (~0), PVOIDSTR (pvmax_plus_1), 0, Eof | Fail);
@@ -2825,7 +2827,7 @@ test_ldbl (CharType ctype, const char *cname,
     long_str [sizeof long_str - 1] = '\0';
 
     // parse a string of LDBL_MAX_10_EXP + 1 zeros
-    TEST (T, 0.0L, long_str, sizeof long_str - 1, 0, Eof);
+    TEST (T, 0.0L, long_str, INTSIZE (long_str - 1), 0, Eof);
 
     const char *start;
 
@@ -2836,7 +2838,7 @@ test_ldbl (CharType ctype, const char *cname,
     TEST (T, 1.0e+38L, start, 39, 0, Eof);
 
     // parse the same as above but preceded by a bunch of zeros
-    TEST (T, 1.0e+38L, long_str, sizeof long_str - 1, 0, Eof);
+    TEST (T, 1.0e+38L, long_str, INTSIZE (long_str - 1), 0, Eof);
     long_str [sizeof long_str - 40] = '0';
 
 #    endif   // _RWSTD_LDBL_MAX_10_EXP > 129
@@ -2849,7 +2851,7 @@ test_ldbl (CharType ctype, const char *cname,
     TEST (T, 1.0e+128L, start, 129, 0, Eof);
 
     // parse the same as above but preceded by a bunch of zeros
-    TEST (T, 1.0e+128L, long_str, sizeof long_str - 1, 0, Eof);
+    TEST (T, 1.0e+128L, long_str, INTSIZE (long_str - 1), 0, Eof);
     long_str [sizeof long_str - 130] = '0';
 
 #    endif   // _RWSTD_LDBL_MAX_10_EXP > 129
@@ -2861,7 +2863,7 @@ test_ldbl (CharType ctype, const char *cname,
     TEST (T, 1.0e+308L, start, 309, 0, Eof);
 
     // parse the same as above but preceded by a bunch of zeros
-    TEST (T, 1.0e+308L, long_str, sizeof long_str - 1, 0, Eof);
+    TEST (T, 1.0e+308L, long_str, INTSIZE (long_str - 1), 0, Eof);
     long_str [sizeof long_str - 310] = '0';
 
 #    endif   // _RWSTD_LDBL_MAX_10_EXP > 308
@@ -2876,7 +2878,7 @@ test_ldbl (CharType ctype, const char *cname,
     long_str [0] = '1';
     long_val     = CAT (CAT (1.0e+, _RWSTD_LDBL_MAX_10_EXP), L);
 
-    TEST (T, long_val, long_str, sizeof long_str - 1, 0, Eof);
+    TEST (T, long_val, long_str, INTSIZE (long_str - 1), 0, Eof);
 
 #  endif   // _RWSTD_NO_LONG_DOUBLE
 

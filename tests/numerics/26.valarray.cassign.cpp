@@ -30,7 +30,7 @@
 #include <valarray>      // for indirect_array, valarray
 
 #include <rw_value.h>    // for UserClass
-#include <driver.h>      // for rw_test()
+#include <rw_driver.h>   // for rw_test()
 #include <rw_printf.h>   // for rw_asnprintf()
 
 /**************************************************************************/

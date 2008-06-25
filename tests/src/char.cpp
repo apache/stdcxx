@@ -26,8 +26,8 @@
 
 // expand _TEST_EXPORT macros
 #define _RWSTD_TEST_SRC
-#include <rw_char.h>
 
+#include <rw_char.h>
 #include <rw_printf.h>   // for rw_snprintfa()
 
 #include <ctype.h>       // for isdigit()
@@ -1204,7 +1204,7 @@ _rw_fmtstringv (char **pbuf, size_t *pbufsize, const char *fmt, va_list va)
     else if (isdigit (UChar (*fmt))) {
         // process positional parameter or width
         char* end = 0;
-        const int arg = strtol (fmt, &end, 10);
+        const int arg = int (strtol (fmt, &end, 10));
         if ('$' == *end)
             paramno = arg;
         else

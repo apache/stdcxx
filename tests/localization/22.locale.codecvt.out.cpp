@@ -39,11 +39,11 @@
 #include <cstring>   // for strcpy(), strlen()
 #include <cwchar>    // for codecvt
 
-#include <driver.h>      // for rw_test(), ...
-#include <file.h>        // for rw_fwrite()
+#include <rw_driver.h>   // for rw_test(), ...
+#include <rw_file.h>     // for rw_fwrite()
 #include <rw_locale.h>   // for rw_locales(), rw_set_locale_root()
 #include <rw_printf.h>   // for rw_sprintf()
-#include <valcmp.h>      // for rw_strcmp()
+#include <rw_valcmp.h>   // for rw_strcmp()
 
 /****************************************************************************/
 

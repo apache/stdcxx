@@ -27,7 +27,7 @@
  * 
  **************************************************************************/
 
-#include <driver.h>
+#include <rw_driver.h>
 
 // compile out all test code if extensions disabled
 #ifndef _RWSTD_NO_EXT_CXX_0X

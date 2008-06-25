@@ -32,8 +32,9 @@
 
 void test (const std::string& str, const std::streamsize width)
 {
-    char buf[10];
-    std::ostrstream os (buf, sizeof(buf));
+    enum { bufsize = 10 };
+    char buf[bufsize];
+    std::ostrstream os (buf, bufsize);
 
     os.width (width);
     os.exceptions (std::ios_base::failbit | std::ios_base::badbit);

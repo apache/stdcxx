@@ -27,7 +27,8 @@
  **************************************************************************/
 
 #include <functional>
-#include <driver.h>
+
+#include <rw_driver.h>
 
 #if defined (__HP_aCC) && _RWSTD_HP_aCC_MAJOR < 6
 

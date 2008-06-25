@@ -33,11 +33,11 @@
 #include <cassert>     // for assert
 #include <cstdio>      // for printf()
 
-#include <cmdopt.h>
-#include <driver.h>
+#include <rw_cmdopt.h>
+#include <rw_driver.h>
 #include <rw_alarm.h>    // for rw_alarm()
 #include <rw_thread.h>   // for rw_thread_pool()
-#include <valcmp.h>
+#include <rw_valcmp.h>
 
 /**************************************************************************/
 

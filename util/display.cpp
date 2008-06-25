@@ -34,6 +34,34 @@
 #include "display.h"
 #include "target.h"   /* for target_status */
 
+#include <time.h>      /* for CLK_TCK, CLOCKS_PER_SEC */
+
+#ifndef _WIN32
+#  include <unistd.h>   /* for _SC_CLK_TCK, sysconf() */
+#endif
+
+#if defined (_SC_CLK_TCK)
+
+/* dynamically determine the number of clock ticks per second */
+static const float TICKS_PER_SEC = float (sysconf (_SC_CLK_TCK));
+
+#elif defined CLOCKS_PER_SEC
+
+/* use the POSIX (and MSVC 6.0) CLOCKS_PER_SEC constant */
+static const float TICKS_PER_SEC = CLOCKS_PER_SEC;
+
+#elif defined CLK_TCK
+
+/* use CLK_TCK if it's defined (e.g., pre-MSVC 6.0) */
+static const float TICKS_PER_SEC = CLK_TCK;
+
+#else
+
+/* if all else fails, assume the standard 1 million ticks per second */
+static const float TICKS_PER_SEC = 1000000UL;
+
+#endif
+
 
 /**
    ProcessStatus enum lookup table for 'short' (6 character) strings.

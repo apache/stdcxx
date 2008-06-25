@@ -162,7 +162,7 @@ typedef std::wstreampos     X_wstreampos;
 
 // additional compilation tests
 
-#include <driver.h>
+#include <rw_driver.h>
 
 static void
 test_synopsis ()

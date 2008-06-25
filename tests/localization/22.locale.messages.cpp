@@ -28,9 +28,9 @@
 
 #include <locale>
 
-#include <driver.h>      // for rw_test()
-#include <environ.h>     // for rw_putenv()
-#include <file.h>        // for rw_nextfd()
+#include <rw_driver.h>   // for rw_test()
+#include <rw_environ.h>  // for rw_putenv()
+#include <rw_file.h>     // for rw_nextfd()
 #include <rw_locale.h>   // for rw_locales(), rw_create_catalog()
 #include <rw_process.h>  // for rw_system()
 

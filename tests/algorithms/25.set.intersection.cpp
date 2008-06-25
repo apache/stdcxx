@@ -29,9 +29,9 @@
 #include <algorithm>    // for set_intersection 
 #include <cstddef>      // for size_t
 
-#include <alg_test.h>
+#include <rw_alg_test.h>
 #include <rw_value.h>   // for UserClass
-#include <driver.h>     // for rw_test()
+#include <rw_driver.h>  // for rw_test()
 
 /**************************************************************************/
 

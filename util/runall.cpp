@@ -573,7 +573,7 @@ main (int argc, char *argv [])
 
                 while (!feof (lst)) {
                     char buf [PATH_MAX];
-                    target = fgets (buf, sizeof (buf), lst);
+                    target = fgets (buf, int (sizeof buf), lst);
 
                     if (ferror (lst)) {
                         warn ("Error reading %s: %s\n", lst_name, strerror (errno));

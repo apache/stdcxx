@@ -34,9 +34,9 @@
 #include <algorithm>    // for make_heap, sort_heap, push_heap, pop_heap
 #include <cstring>      // for strlen, size_t
 
-#include <alg_test.h>
-#include <rw_value.h>   // for UserClass
-#include <driver.h>     // for rw_test()
+#include <rw_alg_test.h>
+#include <rw_value.h>      // for UserClass
+#include <rw_driver.h>     // for rw_test()
 
 /**************************************************************************/
 

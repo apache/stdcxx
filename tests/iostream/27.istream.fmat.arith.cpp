@@ -33,7 +33,7 @@
 #include <rw_exception.h>
 #include <rw_printf.h>
 #include <rw_streambuf.h>
-#include <driver.h>
+#include <rw_driver.h>
 
 /***********************************************************************/
 

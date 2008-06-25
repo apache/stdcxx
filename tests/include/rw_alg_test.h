@@ -31,7 +31,7 @@
 
 #include <rw/_iterbase.h>   // for iterator
 
-#include <testdefs.h>
+#include <rw_testdefs.h>
 
 // generate a unique sequential number starting from 0
 _TEST_EXPORT int gen_seq ();

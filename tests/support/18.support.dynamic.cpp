@@ -28,7 +28,8 @@
 
 #include <new>
 #include <memory>
-#include <driver.h>
+
+#include <rw_driver.h>
 
 #include <rw/_defs.h>
 #include <rw/_error.h>

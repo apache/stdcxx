@@ -30,9 +30,9 @@
 #include <locale>
 #include <cstdio>      // for sprintf()
 
-#include <cmdopt.h>    // for rw_enabled()
-#include <driver.h>    // for rw_assert(), rw_test(), ...
-#include <valcmp.h>    // for rw_strncmp()
+#include <rw_cmdopt.h>    // for rw_enabled()
+#include <rw_driver.h>    // for rw_assert(), rw_test(), ...
+#include <rw_valcmp.h>    // for rw_strncmp()
 
 /**************************************************************************/
 

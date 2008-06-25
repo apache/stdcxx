@@ -30,7 +30,7 @@
 #define RW_ALLOCATOR_INCLUDED
 
 
-#include <testdefs.h>
+#include <rw_testdefs.h>
 
 
 _RWSTD_NAMESPACE (std) {

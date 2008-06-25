@@ -45,7 +45,7 @@ int main ()
 
     buf.overflow ('x');
 
-    const int write_positions = buf.epptr () - buf.pbase ();
+    const int write_positions = int (buf.epptr () - buf.pbase ());
 
     const int pass = 1 < write_positions;
 

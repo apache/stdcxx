@@ -27,7 +27,7 @@
  * 
  **************************************************************************/
 
-#include <valcmp.h>
+#include <rw_valcmp.h>
 
 #include <stdio.h>   // for fprintf, size_t
 

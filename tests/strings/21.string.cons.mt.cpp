@@ -31,9 +31,9 @@
 
 #include <cstddef>      // for size_t
 
-#include <driver.h>     // for rw_test()
+#include <rw_driver.h>  // for rw_test()
 #include <rw_thread.h>  // for rw_thread_pool(), ...
-#include <valcmp.h>     // for rw_strncmp()
+#include <rw_valcmp.h>  // for rw_strncmp()
 
 /**************************************************************************/
 

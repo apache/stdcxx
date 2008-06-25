@@ -35,7 +35,7 @@
 
 #include <rw_char.h>  // for UserChar
 #include <rw_rand.h>  // for rw_rand()
-#include <driver.h>   // for rw_test(), ...
+#include <rw_driver.h>   // for rw_test(), ...
 
 
 #define NLOOPS 128

@@ -29,8 +29,9 @@
 
 
 #include <locale>      // for ctype, locale
+
 #include <rw_char.h>   // for UserChar
-#include <testdefs.h>
+#include <rw_testdefs.h>
 
 
 struct _TEST_EXPORT UserCtypeBase: std::ctype_base

@@ -30,7 +30,7 @@
 #define RW_OPT_DIAGS_H_INCLUDED
 
 
-#include <testdefs.h>
+#include <rw_testdefs.h>
 
 
 enum diag_t {

@@ -29,11 +29,12 @@
 
 #include <rw_allocator.h>
 #include <rw_new.h>         // for operator_new()
-#include <driver.h>         // for rw_assert()
+#include <rw_driver.h>         // for rw_assert()
+#include <rw_exception.h>   // for rw_throw()
+
 #include <new>              // for bad_alloc, placement new
 #include <stdarg.h>         // for va_arg(), va_list
 #include <string.h>         // for memset()
-#include <rw_exception.h>   // for rw_throw()
 
 /**************************************************************************/
 

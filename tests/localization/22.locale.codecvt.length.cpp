@@ -39,10 +39,10 @@
 #include <cstring>   // for strcpy(), strlen()
 #include <cwchar>    // for mbstate_t
 
-#include <any.h>         // for rw_any
-#include <cmdopt.h>      // for rw_enabled()
-#include <driver.h>      // for rw_test()
-#include <file.h>        // for rw_fwrite()
+#include <rw_any.h>      // for rw_any
+#include <rw_cmdopt.h>   // for rw_enabled()
+#include <rw_driver.h>   // for rw_test()
+#include <rw_file.h>     // for rw_fwrite()
 #include <rw_locale.h>   // for rw_localedef(), rw_find_mb_locale()
 #include <rw_printf.h>   // for rw_printf()
 
@@ -510,7 +510,7 @@ test_wcodecvt_byname_libc_based ()
 #undef TEST
 #define TEST(from, nc, maxi, res)                       \
     test_length (wchar_t (), __LINE__, 0, cvt_libc,     \
-                 from, std::size_t (nc), std::size_t (maxi), res)
+                 from, std::size_t (nc), maxi, res)
 
     TEST (0,      0, 0, 0);
     TEST ("",     0, 0, 0);

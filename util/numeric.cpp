@@ -163,24 +163,24 @@ void Def::write_numeric (std::string dir_name)
     num_punct_out_.decimal_point_off [1] = 0;
 
     num_punct_out_.thousands_sep_off [1] = 
-        num_punct_out_.decimal_point_off [1] 
-        + (num_st_.wdecimal_point.size () + 1) * sizeof (wchar_t);
+        unsigned (num_punct_out_.decimal_point_off [1] 
+        + (num_st_.wdecimal_point.size () + 1) * sizeof (wchar_t));
 
     num_punct_out_.decimal_point_off [0] = 
-        num_punct_out_.thousands_sep_off [1]
-        + (num_st_.wthousands_sep.size() + 1) * sizeof (wchar_t);
+        unsigned (num_punct_out_.thousands_sep_off [1]
+        + (num_st_.wthousands_sep.size() + 1) * sizeof (wchar_t));
 
     num_punct_out_.thousands_sep_off [0] = 
-        num_punct_out_.decimal_point_off [0] 
-        + num_st_.decimal_point.size () + 1;
+        unsigned (num_punct_out_.decimal_point_off [0] 
+        + num_st_.decimal_point.size () + 1);
 
     num_punct_out_.grouping_off =
-        num_punct_out_.thousands_sep_off [0]
-        + num_st_.thousands_sep.size () + 1;
+        unsigned (num_punct_out_.thousands_sep_off [0]
+        + num_st_.thousands_sep.size () + 1);
 
     num_punct_out_.punct_ext_off =
-        num_punct_out_.grouping_off
-        + num_st_.grouping.size () + 1;
+        unsigned (num_punct_out_.grouping_off
+        + num_st_.grouping.size () + 1);
 
     // compute the alignment requirement of any offset member
     const std::size_t align = sizeof num_punct_out_.punct_ext_off;
@@ -191,31 +191,31 @@ void Def::write_numeric (std::string dir_name)
     // compute the amount of padding between the two structs
     const std::size_t pad = misalign ? align - misalign : 0;
 
-    num_punct_out_.punct_ext_off += pad;
+    num_punct_out_.punct_ext_off += unsigned (pad);
 
     // calculate the offsets of members of the numeric extension struct
 
     num_out_.truename_off [1] = 0;
 
     num_out_.falsename_off [1] =
-        num_out_.truename_off [1]
-        + (num_st_.wtruename.size() + 1) * sizeof (wchar_t);
+        unsigned (num_out_.truename_off [1]
+        + (num_st_.wtruename.size() + 1) * sizeof (wchar_t));
 
     num_out_.truename_off [0] =
-        num_out_.falsename_off [1]
-        + (num_st_.wfalsename.size() + 1) * sizeof (wchar_t);
+        unsigned (num_out_.falsename_off [1]
+        + (num_st_.wfalsename.size() + 1) * sizeof (wchar_t));
 
     num_out_.falsename_off [0] =
-        num_out_.truename_off [0]
-        + num_st_.truename.size() + 1;
+        unsigned (num_out_.truename_off [0]
+        + num_st_.truename.size() + 1);
 
     num_out_.codeset_off =
-        num_out_.falsename_off [0]
-        + num_st_.falsename.size() + 1;
+        unsigned (num_out_.falsename_off [0]
+        + num_st_.falsename.size() + 1);
 
     num_out_.charmap_off =
-        num_out_.codeset_off
-        + charmap_.get_code_set_name().size() + 1;
+        unsigned (num_out_.codeset_off
+        + charmap_.get_code_set_name().size() + 1);
 
     issue_diag (I_WRITE, false, 0,
                 "%s layout:\n"

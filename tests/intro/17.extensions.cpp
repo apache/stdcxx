@@ -295,7 +295,7 @@ struct messages { /* empty */ };
 
 /***********************************************************************/
 
-#include <driver.h>
+#include <rw_driver.h>
 
 bool predicate (int /* unused */) { return true; }
 

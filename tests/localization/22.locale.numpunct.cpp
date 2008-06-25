@@ -42,8 +42,8 @@
 #include <cstring>   // for strcmp()
 #include <locale>
 
-#include <driver.h>
-#include <environ.h>
+#include <rw_driver.h>
+#include <rw_environ.h>
 #include <rw_locale.h>
 
 /**************************************************************************/

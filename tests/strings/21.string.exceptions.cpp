@@ -31,7 +31,7 @@
 #include <stdexcept>
 #include <string>
 
-#include <driver.h>
+#include <rw_driver.h>
 
 // uses setjmp() and longjmp() to verify correct function if exception
 // exception support is disabled

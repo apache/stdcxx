@@ -32,9 +32,9 @@
 #include <cstddef>     // for size_t
 
 #include <rw_printf.h>
-#include <alg_test.h>
+#include <rw_alg_test.h>
 #include <rw_value.h>   // for UserClass
-#include <driver.h>
+#include <rw_driver.h>
 
 #ifndef _RWSTD_NO_REPLACEABLE_NEW_DELETE
    // disabled for compilers such as IBM VAC++ or MSVC

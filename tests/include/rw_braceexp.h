@@ -28,7 +28,7 @@
 #define RW_BRACEEXP_H_INCLUDED
 
 
-#include <testdefs.h>
+#include <rw_testdefs.h>
 
 // rw_brace_expand() performs brace expansion similar to the csh shell.
 // the base grammar for the brace expansion is supposed to be..

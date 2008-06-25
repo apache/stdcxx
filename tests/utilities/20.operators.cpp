@@ -58,7 +58,7 @@
 #include <utility>
 #include <cstddef>  // for std::size_t
 
-#include <driver.h>
+#include <rw_driver.h>
 
 /**************************************************************************/
 
@@ -169,7 +169,7 @@ struct BinaryPredicate
 template <class T>
 struct RandomNumberGenerator
 {
-    T operator() (int) const {
+    T operator() (T) const {
         return T ();
     }
 };
@@ -397,7 +397,7 @@ void test_random_access_iterators (T, RandomAccessIterator)
 
     typedef RandomAccessIterator I;
 
-    RandomNumberGenerator<T> rndgen;
+    RandomNumberGenerator<typename I::difference_type> rndgen;
 
     std::random_shuffle (I (), I ());
     std::random_shuffle (I (), I (), rndgen);

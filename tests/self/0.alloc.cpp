@@ -30,7 +30,7 @@
 
 #include <rw_alloc.h>    // for rw_alloc, rw_free
 #include <rw_printf.h>   // for rw_printf
-#include <driver.h>
+#include <rw_driver.h>
 
 static jmp_buf mark;
 

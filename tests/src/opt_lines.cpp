@@ -31,7 +31,7 @@
 
 #include "opt_lines.h"
 
-#include <cmdopt.h>
+#include <rw_cmdopt.h>
 
 #include <assert.h>
 #include <stdio.h>
@@ -187,7 +187,7 @@ _rw_enable_line (int argc, char *argv[], int flags)
         parg = end;
 
         if (0 <= first && first < line) {
-            _rw_enable_lines (first, line, flags);
+            _rw_enable_lines (int (first), int (line), flags);
             first = -1;
         }
     }

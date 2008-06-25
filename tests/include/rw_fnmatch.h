@@ -28,7 +28,7 @@
 #define RW_FNMATCH_H_INCLUDED
 
 
-#include <testdefs.h>
+#include <rw_testdefs.h>
 
 
 // rw_fnmatch() matches patterns as described in the Shell and Utilities

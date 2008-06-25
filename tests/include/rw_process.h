@@ -28,7 +28,7 @@
 #define RW_PROCESS_H_INCLUDED
 
 
-#include <testdefs.h>
+#include <rw_testdefs.h>
 
 typedef _RWSTD_SSIZE_T rw_pid_t;
 

@@ -37,12 +37,12 @@
 #include <cwchar>        // for wcsftime(), wcslen()
 #include <cassert>       // for assert()
 
-#include <driver.h>      // for rw_test(), ...
-#include <environ.h>     // for rw_putenv()
-#include <file.h>        // for pcs_write(), ...
+#include <rw_driver.h>   // for rw_test(), ...
+#include <rw_environ.h>  // for rw_putenv()
+#include <rw_file.h>     // for pcs_write(), ...
 #include <rw_locale.h>   // for rw_localedef(), ...
 #include <rw_printf.h>   // for rw_snprintf()
-#include <valcmp.h>      // for rw_strncmp()
+#include <rw_valcmp.h>   // for rw_strncmp()
 
 
 #if _RWSTD_PATH_SEP == '/'

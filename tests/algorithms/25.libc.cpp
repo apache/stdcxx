@@ -30,9 +30,9 @@
 #include <csignal>      // for signal
 #include <csetjmp>      // for setjmp, longjmp
 
-#include <alg_test.h>
+#include <rw_alg_test.h>
 #include <rw_value.h>   // for UserClass
-#include <driver.h>     // for rw_test()
+#include <rw_driver.h>  // for rw_test()
 
 /**************************************************************************/
 

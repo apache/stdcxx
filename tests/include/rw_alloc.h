@@ -28,7 +28,7 @@
 #define RW_ALLOC_H_INCLUDED
 
 
-#include <testdefs.h>   // for test config macros
+#include <rw_testdefs.h>   // for test config macros
 
 enum {
     RW_PROT_NONE  = 0,

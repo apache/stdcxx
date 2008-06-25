@@ -53,26 +53,20 @@
 #include "cmdopt.h"
 
 const char* exe_name; /**< Alias for process argv [0]. */
-#if !defined (_WIN32) && !defined (_WIN64)
+
+#ifndef _WIN32
+
 const char escape_code = '\\';
 const char default_path_sep = '/';
 const char suffix_sep = '.';
 const size_t exe_suffix_len = 0;
-#if defined (_SC_CLK_TCK)
-const float TICKS_PER_SEC = sysconf (_SC_CLK_TCK);
-#elif defined (CLK_TCK)
-const float TICKS_PER_SEC = CLK_TCK;
-#elif defined (CLOCKS_PER_SEC)
-const float TICKS_PER_SEC = CLOCKS_PER_SEC;
-#else
-#  error Unable to determine number of clock ticks in a second.
-#endif
-#else
+
+#else   /* Win32 */
+
 const char escape_code = '^';
 const char default_path_sep = '\\';
 const char suffix_sep = '.';
 const size_t exe_suffix_len = 4; /* strlen(".exe") == 4 */
-const float TICKS_PER_SEC = CLOCKS_PER_SEC;
 
 #  ifndef _WIN32_WINNT
 #    define _WIN32_WINNT 0x0500
@@ -521,7 +515,7 @@ eval_options (int argc, char **argv, struct target_opts* defaults,
                     bad_value (optname, optarg);
 
                 errno = 0;
-                defaults->timeout = strtol (optarg, &end, 10);
+                defaults->timeout = unsigned (strtol (optarg, &end, 10));
                 if (*end || errno)
                     bad_value (optname, optarg);
             }
@@ -581,7 +575,7 @@ eval_options (int argc, char **argv, struct target_opts* defaults,
                     errno = 0;
                     const long code = strtol (optarg, &end, 10);
                     if ('\0' == *end && !errno)
-                        exit (code);
+                        exit (int (code));
                 }
             }
             else if (   sizeof opt_help - 1 == arglen
@@ -603,7 +597,7 @@ eval_options (int argc, char **argv, struct target_opts* defaults,
                     errno = 0;
                     const long nsec = strtol (optarg, &end, 10);
                     if ('\0' == *end && 0 <= nsec && !errno) {
-                        rw_sleep (nsec);
+                        rw_sleep (int (nsec));
                         break;
                     }
                 }

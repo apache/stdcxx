@@ -35,8 +35,8 @@
 
 #include <rw_locale.h>
 #include <rw_thread.h>
-#include <driver.h>
-#include <valcmp.h>    // for rw_strncmp ()
+#include <rw_driver.h>
+#include <rw_valcmp.h>    // for rw_strncmp ()
 
 
 // maximum number of threads allowed by the command line interface
@@ -322,7 +322,7 @@ thread_func (void*)
         if (rw_thread_pool_timeout_expired ())
             break;
 
-        const int inx = i % nlocales;
+        const std::size_t inx = i % nlocales;
         const MyCodecvtData& data = my_codecvt_data [inx];
 
         // construct a named locale, get a reference to the codecvt

@@ -56,9 +56,9 @@
 #  define SIGPIPE   13   /* HP-UX, Linux, and SunOS value */
 #endif   // SIGPIPE
 
-#include <driver.h>
-#include <file.h>
-#include <valcmp.h>
+#include <rw_driver.h>
+#include <rw_file.h>
+#include <rw_valcmp.h>
 
 
 #define REMOVE_FILE(tmpfname) \

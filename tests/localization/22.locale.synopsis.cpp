@@ -42,7 +42,7 @@
 #include <iterator>
 #include <locale>
 
-#include <driver.h>
+#include <rw_driver.h>
 
 static void
 test_lc_defs ()

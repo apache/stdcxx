@@ -51,7 +51,7 @@
 #  include <ieeefp.h>   // for fpclass, isnan
 #endif   // _RWSTD_NO_IEEEFP_H
 
-#include <driver.h>
+#include <rw_driver.h>
 
 // use FLT_ROUNDS if available, otherwise (e.g., when <ieeefp.h> must
 // be #included to bring the macro in), fall back on our own macro

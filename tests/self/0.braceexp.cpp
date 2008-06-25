@@ -26,7 +26,7 @@
  **************************************************************************/
 
 #include <rw_braceexp.h>
-#include <environ.h>      // for rw_putenv()
+#include <rw_environ.h>   // for rw_putenv()
 
 #include <stdio.h>        // for fprintf(), size_t, stderr
 #include <stdlib.h>       // for free()

@@ -37,8 +37,8 @@
 
 #include <rw_locale.h>
 #include <rw_thread.h>
-#include <driver.h>    // for rw_assert ()
-#include <valcmp.h>    // for rw_strncmp ()
+#include <rw_driver.h>    // for rw_assert ()
+#include <rw_valcmp.h>    // for rw_strncmp ()
 
 #define MAX_THREADS      32
 #define MAX_LOOPS    100000

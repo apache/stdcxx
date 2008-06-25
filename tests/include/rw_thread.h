@@ -29,7 +29,7 @@
 #ifndef RW_RWTHREAD_H_INCLUDED
 #define RW_RWTHREAD_H_INCLUDED
 
-#include <testdefs.h>
+#include <rw_testdefs.h>
 
 
 extern "C" {

@@ -65,8 +65,8 @@
 #  include <langinfo.h>
 #endif  // _WIN32
 
-#include <driver.h>
-#include <file.h>        // for SLASH
+#include <rw_driver.h>
+#include <rw_file.h>        // for SLASH
 #include <rw_locale.h>   // for rw_locale_query()
 
 /**************************************************************************/

@@ -27,7 +27,7 @@
  * 
  **************************************************************************/
 
-#include <cmdopt.h>
+#include <rw_cmdopt.h>
 
 #include <stdio.h>
 #include <string.h>
