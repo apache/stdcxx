@@ -28,13 +28,16 @@
  **************************************************************************/
 
 #include <rw_driver.h>
-#include <rw_printf.h> // for rwsprintfa()
-#include <stdlib.h>    // for free()
+#include <rw/_defs.h>
 
 // compile out all test code if extensions disabled
 #ifndef _RWSTD_NO_EXT_CXX_0X
 
 #include <type_traits>
+
+#include <rw_printf.h> // for rwsprintfa()
+
+#include <stdlib.h>    // for free()
 
 /**************************************************************************/
 

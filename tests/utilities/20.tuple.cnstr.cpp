@@ -26,13 +26,18 @@
  * 
  **************************************************************************/
 
+#include <rw_driver.h>
+#include <rw/_defs.h>
+
+// compile out all test code if extensions disabled
+#ifndef _RWSTD_NO_EXT_CXX_0X
+
 #include <tuple>
 
 #include "20.tuple.h"
 
 /**************************************************************************/
 
-#include <rw_driver.h>
 
 static void
 test_default_ctor ()
@@ -345,6 +350,18 @@ run_test (int /*unused*/, char* /*unused*/ [])
 
     return 0;
 }
+
+#else // !_RWSTD_NO_EXT_CXX_0X
+
+static int
+run_test (int, char*[])
+{
+    rw_warn (0, 0, __LINE__,
+             "test disabled because _RWSTD_NO_EXT_CXX_0X is defined");
+    return 0;
+}
+
+#endif // !_RWSTD_NO_EXT_CXX_0X
 
 /*extern*/ int
 main (int argc, char* argv [])
