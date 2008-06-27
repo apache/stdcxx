@@ -37,7 +37,7 @@
  * permissions and limitations under the License.
  *
  * Copyright 1994-2006 Rogue Wave Software.
- * 
+ *
  **************************************************************************/
 
 #ifndef _RWSTD_FUNCTIONAL_INCLUDED
@@ -45,10 +45,11 @@
 
 
 #include <rw/_funcbase.h>
+#include <rw/_ref_wrap.h>
 #include <rw/_defs.h>
 
 
-_RWSTD_NAMESPACE (std) { 
+_RWSTD_NAMESPACE (std) {
 
 
 // 20.3.2 - Arithmetic operations
@@ -663,7 +664,7 @@ mem_fun_ref (_Result (_TypeT::*__fun)(_Arg) const)
 }   // namespace std
 
 
-_RWSTD_NAMESPACE (__rw) { 
+_RWSTD_NAMESPACE (__rw) {
 
 
 // extension: returns the argument

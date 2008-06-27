@@ -24,8 +24,8 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2008 Rogue Wave Software.
- * 
+ * Copyright 2008 Rogue Wave Software, Inc.
+ *
  **************************************************************************/
 
 #ifndef _RWSTD_RW_REF_WRAP_INCLUDED
@@ -36,17 +36,66 @@
 #  if !defined _RWSTD_NO_EXT_CXX_0X
 
 
-_RWSTD_NAMESPACE (__rw) {
+_RWSTD_NAMESPACE (std) {
 
 
 template <class _Type>
-class __rw_ref_wrap
+class reference_wrapper
 {
+    _Type* _C_ptr;
 
+public:
+
+    typedef _Type type;
+
+    reference_wrapper (_Type& __x)
+        : _C_ptr (&__x) { /* empty */ }
+
+    reference_wrapper (const reference_wrapper<_Type>& __x)
+        : _C_ptr (__x._C_ptr) { /* empty */ }
+
+    reference_wrapper& operator= (const reference_wrapper<_Type>& __x) {
+        _C_ptr = __x._C_ptr;
+        return *this;
+    }
+
+    operator _Type& () const { return *_C_ptr; }
+
+    _Type& get() const { return *_C_ptr; }
 };
 
 
-}   // namespace __rw
+template <class _Type>
+inline reference_wrapper<_Type>
+ref (_Type& __x)
+{
+    return reference_wrapper<_Type> (__x);
+}
+
+template <class _Type>
+inline reference_wrapper<_Type>
+ref (reference_wrapper<_Type>& __x)
+{
+    return reference_wrapper<_Type> (__x);
+}
+
+
+template <class _Type>
+inline reference_wrapper<const _Type>
+cref (const _Type& __x)
+{
+    return reference_wrapper<const _Type> (__x);
+}
+
+template <class _Type>
+inline reference_wrapper<const _Type>
+cref (reference_wrapper<const _Type>& __x)
+{
+    return reference_wrapper<const _Type> (__x);
+}
+
+
+}   // namespace std
 
 
 #  endif   // !defined _RWSTD_NO_EXT_CXX_0X
