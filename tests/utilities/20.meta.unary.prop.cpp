@@ -39,6 +39,12 @@
 
 /**************************************************************************/
 
+// function with C linkage
+extern "C" typedef void cfun_t ();
+
+// incomplete type (never defined)
+struct incomplete_t;
+
 struct struct_t {
     int i_; float f_;
 };
@@ -249,6 +255,11 @@ void test_is_const ()
     TEST (std::is_const,  V void, false);
     TEST (std::is_const, CV void, true);
 
+    // incomplete type other than void
+    TEST (std::is_const,    incomplete_t, false);
+    TEST (std::is_const, C  incomplete_t, true);
+    TEST (std::is_const,  V incomplete_t, false);
+    TEST (std::is_const, CV incomplete_t, true);
 
     TEST (std::is_const,    int, false);
     TEST (std::is_const, C  int, true);
@@ -283,11 +294,29 @@ void test_is_const ()
     TEST (std::is_const, CV int&, false);
 
     // array types
+    TEST (std::is_const,    int [], false);
+    TEST (std::is_const, C  int [], true);
+    TEST (std::is_const,  V int [], false);
+    TEST (std::is_const, CV int [], true);
+
     TEST (std::is_const,    int [2], false);
     TEST (std::is_const, C  int [2], true);
     TEST (std::is_const,  V int [2], false);
     TEST (std::is_const, CV int [2], true);
+
+    // array of incomplete type
+    TEST (std::is_const,    incomplete_t [], false);
+    TEST (std::is_const, C  incomplete_t [], true);
+    TEST (std::is_const,  V incomplete_t [], false);
+    TEST (std::is_const, CV incomplete_t [], true);
+
+    // C++ function, C function, and pointers to member functions
+    TEST (std::is_const,    void (),                    false);
+    TEST (std::is_const,    cfun_t,                     false);
+    TEST (std::is_const,    void (struct_t::*)(),       false);
+    TEST (std::is_const,    void (struct_t::*)() const, false);
 }
+
 
 void test_is_volatile ()
 {
@@ -295,6 +324,12 @@ void test_is_volatile ()
     TEST (std::is_volatile, C  void, false);
     TEST (std::is_volatile,  V void, true);
     TEST (std::is_volatile, CV void, true);
+
+    // incomplete type other than void
+    TEST (std::is_volatile,    incomplete_t, false);
+    TEST (std::is_volatile, C  incomplete_t, false);
+    TEST (std::is_volatile,  V incomplete_t, true);
+    TEST (std::is_volatile, CV incomplete_t, true);
 
     TEST (std::is_volatile,    int, false);
     TEST (std::is_volatile, C  int, false);
@@ -329,11 +364,29 @@ void test_is_volatile ()
     TEST (std::is_volatile, CV int&, false);
 
     // array types
+    TEST (std::is_volatile,    int [], false);
+    TEST (std::is_volatile, C  int [], false);
+    TEST (std::is_volatile,  V int [], true);
+    TEST (std::is_volatile, CV int [], true);
+
     TEST (std::is_volatile,    int [2], false);
     TEST (std::is_volatile, C  int [2], false);
     TEST (std::is_volatile,  V int [2], true);
     TEST (std::is_volatile, CV int [2], true);
+
+    // array of incomplete type
+    TEST (std::is_volatile,    incomplete_t [], false);
+    TEST (std::is_volatile, C  incomplete_t [], false);
+    TEST (std::is_volatile,  V incomplete_t [], true);
+    TEST (std::is_volatile, CV incomplete_t [], true);
+
+    // C++ function, C function, and pointers to member functions
+    TEST (std::is_volatile,    void (),                       false);
+    TEST (std::is_volatile,    cfun_t,                        false);
+    TEST (std::is_volatile,    void (struct_t::*)(),          false);
+    TEST (std::is_volatile,    void (struct_t::*)() volatile, false);
 }
+
 
 static void test_has_trivial_assign ()
 {
@@ -376,6 +429,11 @@ static void test_has_nothrow_assign ()
 
 static void test_is_trivial ()
 {
+    TEST (std::is_trivial,    void, false);
+    TEST (std::is_trivial, C  void, false);
+    TEST (std::is_trivial, V  void, false);
+    TEST (std::is_trivial, CV void, false);
+
     TEST (std::is_trivial, long, true);
     TEST (std::is_trivial, C long, true);
     TEST (std::is_trivial, V long, true);
