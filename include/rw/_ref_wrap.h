@@ -1,6 +1,8 @@
 // -*- C++ -*-
 /***************************************************************************
  *
+ * _ref_wrap.h - reference wrappers for <functional> header
+ *
  * This is an internal header file used to implement the C++ Standard
  * Library. It should never be #included directly by a program.
  *
@@ -39,6 +41,8 @@
 _RWSTD_NAMESPACE (std) {
 
 
+// 20.5.5, class template reference_wrapper:
+
 template <class _Type>
 class reference_wrapper
 {
@@ -48,20 +52,27 @@ public:
 
     typedef _Type type;
 
-    reference_wrapper (_Type& __x)
+    reference_wrapper (type& __x)
         : _C_ptr (&__x) { /* empty */ }
 
-    reference_wrapper (const reference_wrapper<_Type>& __x)
+    reference_wrapper (const reference_wrapper& __x)
         : _C_ptr (__x._C_ptr) { /* empty */ }
 
-    reference_wrapper& operator= (const reference_wrapper<_Type>& __x) {
+    reference_wrapper& operator= (const reference_wrapper& __x) {
+        _RWSTD_ASSERT (0 != __x._C_ptr);
         _C_ptr = __x._C_ptr;
         return *this;
     }
 
-    operator _Type& () const { return *_C_ptr; }
+    operator type& () const {
+        _RWSTD_ASSERT (0 != _C_ptr);
+        return *_C_ptr;
+    }
 
-    _Type& get() const { return *_C_ptr; }
+    type& get() const {
+        _RWSTD_ASSERT (0 != _C_ptr);
+        return *_C_ptr;
+    }
 };
 
 

@@ -3,6 +3,9 @@
  *
  * _forward - forward/move helpers for <utility> header
  *
+ * This is an internal header file used to implement the C++ Standard
+ * Library. It should never be #included directly by a program.
+ *
  * $Id$
  *
  ***************************************************************************
@@ -23,7 +26,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2008 Rogue Wave Software.
+ * Copyright 2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -40,8 +43,9 @@
 _RWSTD_NAMESPACE (std) {
 
 
-// [20.2.2]  forward/move helpers
+// 20.2.2, forward/move helpers:
 
+_EXPORT
 template <class _Type>
 struct identity
 {
@@ -51,6 +55,8 @@ struct identity
         return __x;
     }
 };
+
+#    define _RWSTD_IDENTITY(_Type)          _STD::identity<_Type>::type
 
 
 #    if !defined _RWSTD_NO_RVALUE_REFERENCES
@@ -63,17 +69,22 @@ forward (_TYPENAME identity<_Type>::type&& __x)
     return __x;
 }
 
+
 _EXPORT
 template <class _Type>
-_TYPENAME _RW::__rw_remove_reference<_Type>::type&&
+_TYPENAME _RWSTD_REMOVE_REFERENCE(_Type)&&
 move (_Type&& __x)
 {
     return __x;
 }
 
-#      define _RWSTD_MOVE(__x)   std::move (__x)
+#      define _RWSTD_FORWARD(_Type, __x)    _STD::forward<_Type> (__x)
+#      define _RWSTD_MOVE(__x)              std::move (__x)
+
 #    else   // no rvalue references
-#      define _RWSTD_MOVE(__x)   (__x)
+
+#      define _RWSTD_FORWARD(_Type, __x)    (__x)
+#      define _RWSTD_MOVE(__x)              (__x)
 
 #    endif   // !defined _RWSTD_NO_RVALUE_REFERENCES
 

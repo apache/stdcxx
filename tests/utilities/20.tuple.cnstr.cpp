@@ -22,12 +22,11 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2008 Rogue Wave Software.
- * 
+ * Copyright 2008 Rogue Wave Software, Inc.
+ *
  **************************************************************************/
 
 #include <rw_driver.h>
-#include <rw/_defs.h>
 
 // compile out all test code if extensions disabled
 #ifndef _RWSTD_NO_EXT_CXX_0X
@@ -37,7 +36,6 @@
 #include "20.tuple.h"
 
 /**************************************************************************/
-
 
 static void
 test_default_ctor ()
@@ -70,9 +68,12 @@ test_value_copy_ctor ()
     rw_info (0, __FILE__, __LINE__, "value copy constructor");
 
     const int i = 1;
-    const IntTuple it (i);
+    IntTuple it1 (i); _RWSTD_UNUSED (it1);
+    const IntTuple it2 (i); _RWSTD_UNUSED (it2);
+
     ConstIntTuple ct (i); _RWSTD_UNUSED (ct);
-    NestedTuple nt (it);
+
+    NestedTuple nt (it2); _RWSTD_UNUSED (nt);
 
     const long l = 1;
     const char* s = "string";
@@ -101,10 +102,10 @@ test_value_move_ctor ()
 {
     rw_info (0, __FILE__, __LINE__, "value move constructor");
 
-    IntTuple it (1); //_RWSTD_UNUSED (it);
+    const IntTuple it (1);
     ConstIntTuple ct (1); _RWSTD_UNUSED (ct);
     PairTuple pt (1L, "string"); _RWSTD_UNUSED (pt);
-    //NestedTuple nt (it); _RWSTD_UNUSED (nt);
+    NestedTuple nt (it); _RWSTD_UNUSED (nt);
 
     BigTuple bt (true, 'a', 1, 1.0, (void*)0, UserClass ());
     _RWSTD_UNUSED (bt);
@@ -137,7 +138,7 @@ test_homo_copy_ctor ()
     const ConstIntTuple ct1;
     ConstIntTuple ct2 (ct1); _RWSTD_UNUSED (ct2);
 
-    PairTuple pt1;
+    const PairTuple pt1;
     PairTuple pt2 (pt1); _RWSTD_UNUSED (pt2);
 
     const NestedTuple nt1;
@@ -248,7 +249,7 @@ test_hetero_copy_ctor ()
              "copy constructor (heterogenous tuples)");
 
     const int i1 = 0; const char c = 'a'; const double d = 1.2;
-    void* const p = 0; UserClass uc;
+    void* const p = 0; const UserClass uc;
     BigTuple bt1 (i1, c, i1, d, p, uc); _RWSTD_UNUSED (bt1);
 
     const bool b = true; const int i2 = 'a';
@@ -356,8 +357,8 @@ run_test (int /*unused*/, char* /*unused*/ [])
 static int
 run_test (int, char*[])
 {
-    rw_warn (0, 0, __LINE__,
-             "test disabled because _RWSTD_NO_EXT_CXX_0X is defined");
+    rw_info (0, 0, __LINE__,
+             "tests for C++0x tuple extension disabled");
     return 0;
 }
 

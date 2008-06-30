@@ -81,7 +81,7 @@ template <class Type, class AType>
 shared_ptr<Type> factory (AType&& at)
 {
     return shared_ptr<Type> (new Type (std::forward<AType> (at)));
-};
+}
 
 static void
 test_forward ()

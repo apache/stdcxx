@@ -22,12 +22,11 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2008 Rogue Wave Software.
- * 
+ * Copyright 2008 Rogue Wave Software, Inc.
+ *
  **************************************************************************/
 
 #include <rw_driver.h>
-#include <rw/_defs.h>
 
 // compile out all test code if extensions disabled
 #ifndef _RWSTD_NO_EXT_CXX_0X
@@ -37,7 +36,6 @@
 #include "20.tuple.h"
 
 /**************************************************************************/
-
 
 static void
 test_tuple_size ()
@@ -151,8 +149,8 @@ run_test (int /*argc*/, char* /*argv*/ [])
 static int
 run_test (int, char*[])
 {
-    rw_warn (0, 0, __LINE__,
-             "test disabled because _RWSTD_NO_EXT_CXX_0X is defined");
+    rw_info (0, 0, __LINE__,
+             "tests for C++0x tuple extension disabled");
     return 0;
 }
 
