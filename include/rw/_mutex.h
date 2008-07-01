@@ -124,14 +124,13 @@
 
 #  ifdef _RWSTD_NO_FWD_DECLARATIONS
 
-     // prevent #including unneeded headers, i.e. <winsock.h> because
-     // this causes the error "WinSock.h has already been included"
+     // #including <windows.h> without WIN32_LEAN_AND_MEAN macro defined
+     // may cause an errors "WinSock.h has already been included"
      // when <winsock2.h> has been included after this header
-#    define WIN32_LEAN_AND_MEAN
 #    include <windows.h>
 #    define _RWSTD_MUTEX_T _RTL_CRITICAL_SECTION
 
-#  else   // if defined (_RWSTD_NO_FWD_DECLARATIONS)
+#  else   // if !defined (_RWSTD_NO_FWD_DECLARATIONS)
 
    // avoid #including this header (MFC doesn't like it)
    // #  include <windows.h>
