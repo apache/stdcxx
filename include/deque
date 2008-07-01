@@ -941,9 +941,4 @@ swap (deque<_TypeT, _Allocator> &__lhs, deque<_TypeT, _Allocator> &__rhs)
 #endif
 
 
-#ifndef _RWSTD_NO_STL_SPECIALIZATION
-#  include "deque_spec.h"
-#endif   // _RWSTD_NO_STL_SPECIALIZATION
-
-
 #endif   // _RWSTD_DEQUE_INCLUDED
