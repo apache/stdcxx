@@ -37,11 +37,16 @@
 // various tuple types for test purposes
 
 typedef std::tuple < >                      EmptyTuple;
+
 typedef std::tuple < int >                  IntTuple;
 typedef std::tuple < const int >            ConstIntTuple;
-typedef std::tuple < long, const char* >    PairTuple;
-typedef std::tuple < UserClass >            UserTuple;
+typedef std::tuple < int& >                 IntRefTuple;
+
 typedef std::tuple < std::tuple < int > >   NestedTuple;
+
+typedef std::tuple < long, const char* >    PairTuple;
+
+typedef std::tuple < UserClass >            UserTuple;
 
 #define BigList      bool, char, int, double, void*, UserClass
 #define BigListSize  6

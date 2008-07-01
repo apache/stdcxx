@@ -55,6 +55,9 @@ test_make_tuple ()
     const int j = 3;
     IntTuple3 it3 = std::make_tuple (1, i, j);
 
+    IntRefTuple rt1 = std::make_tuple (std::ref (i));
+
+    std::tuple<const int&> rt2 = std::make_tuple (std::cref (i));
 }
 
 /**************************************************************************/

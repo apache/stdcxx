@@ -45,7 +45,6 @@ _RWSTD_NAMESPACE (std) {
 
 // 20.2.2, forward/move helpers:
 
-_EXPORT
 template <class _Type>
 struct identity
 {
@@ -61,25 +60,23 @@ struct identity
 
 #    if !defined _RWSTD_NO_RVALUE_REFERENCES
 
-_EXPORT
 template <class _Type>
-_Type&&
+inline _Type&&
 forward (_TYPENAME identity<_Type>::type&& __x)
 {
     return __x;
 }
 
 
-_EXPORT
 template <class _Type>
-_TYPENAME _RWSTD_REMOVE_REFERENCE(_Type)&&
+inline _TYPENAME _RWSTD_REMOVE_REFERENCE(_Type)&&
 move (_Type&& __x)
 {
     return __x;
 }
 
 #      define _RWSTD_FORWARD(_Type, __x)    _STD::forward<_Type> (__x)
-#      define _RWSTD_MOVE(__x)              std::move (__x)
+#      define _RWSTD_MOVE(__x)              _STD::move (__x)
 
 #    else   // no rvalue references
 

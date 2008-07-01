@@ -45,6 +45,7 @@ test_default_ctor ()
     EmptyTuple et; _RWSTD_UNUSED (et);
     IntTuple it; _RWSTD_UNUSED (it);
     ConstIntTuple ct; _RWSTD_UNUSED (ct);
+    //IntRefTuple rt; _RWSTD_UNUSED (rt); // ill-formed for references
     PairTuple pt; _RWSTD_UNUSED (pt);
     NestedTuple nt; _RWSTD_UNUSED (nt);
     BigTuple bt; _RWSTD_UNUSED (bt);
@@ -67,11 +68,11 @@ test_value_copy_ctor ()
 {
     rw_info (0, __FILE__, __LINE__, "value copy constructor");
 
-    const int i = 1;
+    int i = 1;
     IntTuple it1 (i); _RWSTD_UNUSED (it1);
     const IntTuple it2 (i); _RWSTD_UNUSED (it2);
-
     ConstIntTuple ct (i); _RWSTD_UNUSED (ct);
+    IntRefTuple rt (i); _RWSTD_UNUSED (rt);
 
     NestedTuple nt (it2); _RWSTD_UNUSED (nt);
 
@@ -102,10 +103,20 @@ test_value_move_ctor ()
 {
     rw_info (0, __FILE__, __LINE__, "value move constructor");
 
-    const IntTuple it (1);
-    ConstIntTuple ct (1); _RWSTD_UNUSED (ct);
+    IntTuple it1 (1); _RWSTD_UNUSED (it1);
+    IntTuple it2 (int ()); _RWSTD_UNUSED (it2);
+
+    const IntTuple it3 (1); _RWSTD_UNUSED (it3);
+    const IntTuple it4 (const IntTuple ()); _RWSTD_UNUSED (it4);
+
+    ConstIntTuple ct1 (1); _RWSTD_UNUSED (ct1);
+    ConstIntTuple ct2 (ConstIntTuple ()); _RWSTD_UNUSED (ct2);
+
+    IntRefTuple rt2 (int ()); _RWSTD_UNUSED (rt2);
+
+    NestedTuple nt (ct1); _RWSTD_UNUSED (nt);
+
     PairTuple pt (1L, "string"); _RWSTD_UNUSED (pt);
-    NestedTuple nt (it); _RWSTD_UNUSED (nt);
 
     BigTuple bt (true, 'a', 1, 1.0, (void*)0, UserClass ());
     _RWSTD_UNUSED (bt);
@@ -137,6 +148,9 @@ test_homo_copy_ctor ()
 
     const ConstIntTuple ct1;
     ConstIntTuple ct2 (ct1); _RWSTD_UNUSED (ct2);
+
+    int i; const IntRefTuple rt1 (i);
+    IntRefTuple rt2 (rt1); _RWSTD_UNUSED (rt2);
 
     const PairTuple pt1;
     PairTuple pt2 (pt1); _RWSTD_UNUSED (pt2);

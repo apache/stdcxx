@@ -97,8 +97,8 @@ public:
 
 #    if !defined _RWSTD_NO_RVALUE_REFERENCES
 
-    //tuple (tuple&& __tuple)
-        //: _Base (_RWSTD_FORWARD (_Base, __tuple)) { /* empty */ }
+    tuple (tuple&& __tuple)
+        : _Base (_RWSTD_FORWARD (_Base, __tuple)) { /* empty */ }
 
     tuple& operator= (tuple&& __tuple) {
         _Base::operator= (_RWSTD_FORWARD (_Base, __tuple));
@@ -109,9 +109,9 @@ public:
     _EXPLICIT tuple (_TypesU&&... __values)
         : _Base (_RWSTD_FORWARD (_TypesU, __values)...) { /* empty */ }
 
-    //template <class... _TypesU>
-    //tuple (tuple<_TypesU...>&& __tuple)
-        //: _Base (_RWSTD_FORWARD (_BaseU, __tuple)) { /* empty */ }
+    template <class... _TypesU>
+    tuple (tuple<_TypesU...>&& __tuple)
+        : _Base (_RWSTD_FORWARD (_BaseU, __tuple)) { /* empty */ }
 
     template <class... _TypesU>
     tuple& operator= (tuple<_TypesU...>&& __tuple) {

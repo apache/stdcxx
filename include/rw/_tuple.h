@@ -100,8 +100,8 @@ public:
 #      if !defined _RWSTD_NO_RVALUE_REFERENCES
 
     __rw_tuple (__rw_tuple&& __tuple)
-        : _Base (_RWSTD_FORWARD (_Base, __tuple._C_tail ()))
-        , _C_data (_RWSTD_MOVE (__tuple._C_data)) { /* empty */ }
+        : _Base (std::move<_Base&&> (__tuple._C_tail ()))
+        , _C_data (_RWSTD_FORWARD (_HeadT, __tuple._C_data)) { /* empty */ }
 
     __rw_tuple& operator= (__rw_tuple&& __tuple) {
         _Base::operator= (_RWSTD_FORWARD (_Base, __tuple._C_tail ()));
