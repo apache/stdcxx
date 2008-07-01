@@ -842,9 +842,4 @@ list<_TypeT, _Allocator>::swap (list &__x)
 #endif
 
 
-#ifndef _RWSTD_NO_STL_SPECIALIZATION
-#  include "list_spec.h"
-#endif   // _RWSTD_NO_STL_SPECIALIZATION
-
-
 #endif   //_RWSTD_LIST_INCLUDED
