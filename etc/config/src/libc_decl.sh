@@ -348,7 +348,8 @@ for h in $hdrs ; do
         echo "$CXX -c -DCHECK_DECL $CXXFLAGS $WARNFLAGS "   \
              "-DHDRNAME=\"<$hdrname>\" -DFUNNAME=$funname " \
              "-DFUN=$f -DTAKE_ADDR=$take_addr "             \
-             "$tmpsrc -o $tmpobj" >>$logfile 2>&1
+             "$tmpsrc -o $tmpobj"                           \
+             "&& $LD $tmpobj $LDFLAGS -l$lib" >>$logfile 2>&1
 
         # spell out all arguments just like above, being careful
         # about quoting HDRNAME
