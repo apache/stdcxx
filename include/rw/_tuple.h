@@ -55,7 +55,7 @@ _RWSTD_NAMESPACE (__rw) {
 
 #  if !defined _RWSTD_NO_VARIADIC_TEMPLATES
 
-template <class... _Types>
+template <class... _TypesT>
 class __rw_tuple;
 
 _RWSTD_SPECIALIZED_CLASS
@@ -177,28 +177,28 @@ public:
 struct __rw_ignore { /* empty */ };
 
 
-template <class _Type>
+template <class _TypeT>
 struct __rw_deduce_ref
 {
-    typedef _Type   _C_type;
+    typedef _TypeT  _C_type;
 };
 
-template <class _Type>
-struct __rw_deduce_ref<_STD::reference_wrapper<_Type> >
+template <class _TypeT>
+struct __rw_deduce_ref<_STD::reference_wrapper<_TypeT> >
 {
-    typedef _Type&  _C_type;
+    typedef _TypeT& _C_type;
 };
 
-template <class _Type>
-struct __rw_deduce_ref<const _STD::reference_wrapper<_Type> >
+template <class _TypeT>
+struct __rw_deduce_ref<const _STD::reference_wrapper<_TypeT> >
 {
-    typedef _Type&  _C_type;
+    typedef _TypeT& _C_type;
 };
 
-template <class _Type>
+template <class _TypeT>
 struct __rw_make_tuple
 {
-    typedef _TYPENAME _RWSTD_DECAY (_Type)                  _C_decay;
+    typedef _TYPENAME _RWSTD_DECAY (_TypeT)                 _C_decay;
     typedef _TYPENAME __rw_deduce_ref<_C_decay>::_C_type    _C_type;
 };
 
@@ -236,4 +236,3 @@ bool operator< (const __rw_tuple<>& /*__x*/,
 
 
 #endif   // _RWSTD_TUPLE_INCLUDED
-

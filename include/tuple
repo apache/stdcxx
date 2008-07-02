@@ -52,7 +52,7 @@ _RWSTD_NAMESPACE (std) {
 
 // 20.3.1, class template tuple:
 
-template <class... _Types>
+template <class... _TypesT>
 class tuple;
 
 _RWSTD_SPECIALIZED_CLASS
@@ -74,6 +74,9 @@ public:
 
     tuple ()
         : _Base () { /* empty */ }
+
+    // employ _RWSTD_STATIC_CAST to ensure compiler binds to correct
+    // base class ctors and operators
 
     tuple (const tuple& __tuple)
         : _Base (_RWSTD_STATIC_CAST (const _Base&, __tuple)) { /* empty */ }
@@ -264,8 +267,8 @@ public:
 template <class _Type, class _Alloc>
 struct uses_allocator;
 
-template <class... _Types, class _Alloc>
-struct uses_allocator<tuple<_Types...>, _Alloc>
+template <class... _TypesT, class _Alloc>
+struct uses_allocator<tuple<_TypesT...>, _Alloc>
     : _RW::__rw_true_type
 {
     // empty
@@ -275,8 +278,8 @@ struct uses_allocator<tuple<_Types...>, _Alloc>
 template <class _Type>
 struct constructible_with_allocator_prefix;
 
-template <class... _Types>
-struct constructible_with_allocator_prefix<tuple<_Types...> >
+template <class... _TypesT>
+struct constructible_with_allocator_prefix<tuple<_TypesT...> >
     : _RW::__rw_true_type
 {
     // empty
@@ -290,12 +293,12 @@ const _RW::__rw_ignore ignore = _RW::__rw_ignore ();
 
 #    if !defined _RWSTD_NO_RVALUE_REFERENCES
 
-template <class... _Types>
-tuple<_TYPENAME _RW::__rw_make_tuple<_Types>::_C_type...>
-make_tuple (_Types&&... __values)
+template <class... _TypesT>
+tuple<_TYPENAME _RW::__rw_make_tuple<_TypesT>::_C_type...>
+make_tuple (_TypesT&&... __values)
 {
-    typedef tuple<_TYPENAME _RW::__rw_make_tuple<_Types>::_C_type...> _Tuple;
-    return _Tuple (_RWSTD_FORWARD (_Types, __values)...);
+    typedef tuple<_TYPENAME _RW::__rw_make_tuple<_TypesT>::_C_type...> _Tuple;
+    return _Tuple (_RWSTD_FORWARD (_TypesT, __values)...);
 }
 
 
@@ -322,25 +325,25 @@ tuple_cat (const tuple<_TypesT...>& __x,
            const tuple<_TypesU...>& __y);
 
 
-template <class... _Types>
-tuple<_Types&...> tie (_Types&...);
+template <class... _TypesT>
+tuple<_TypesT&...> tie (_TypesT&...);
 
 
 // 20.3.1.4, tuple helper classes:
 
-template <class _Types>
+template <class _TypesT>
 class tuple_size;
 
-template <class... _Types>
-class tuple_size< tuple<_Types...> >
+template <class... _TypesT>
+class tuple_size< tuple<_TypesT...> >
     : public _RW::__rw_integral_constant< _RWSTD_SIZE_T,
-                                          sizeof... (_Types) >
+                                          sizeof... (_TypesT) >
 {
     // empty
 };
 
 
-template <int _Index, class... _Types>
+template <_RWSTD_SIZE_T _Index, class... _TypesT>
 struct tuple_element;
 
 template <class _Head, class... _Tail>
@@ -363,7 +366,7 @@ struct tuple_element<0, tuple<_Head, _Tail...> >
     _C_get (const _Tuple& __tuple) { return __tuple._C_head (); }
 };
 
-template <int _Index, class _Head, class... _Tail>
+template <_RWSTD_SIZE_T _Index, class _Head, class... _Tail>
 struct tuple_element<_Index, tuple<_Head, _Tail...> >
     : public tuple_element<_Index - 1, tuple<_Tail...> >
 {
@@ -373,7 +376,7 @@ struct tuple_element<_Index, tuple<_Head, _Tail...> >
 
 // 20.3.1.5, element access:
 
-template <int _Index, class _Head, class... _Tail>
+template <_RWSTD_SIZE_T _Index, class _Head, class... _Tail>
 _TYPENAME tuple_element<_Index, tuple<_Head, _Tail...> >::_Ref
 get (tuple<_Head, _Tail...>& __tuple)
 {
@@ -381,7 +384,7 @@ get (tuple<_Head, _Tail...>& __tuple)
     return _Tuple::_C_get (__tuple);
 }
 
-template <int _Index, class _Head, class... _Tail>
+template <_RWSTD_SIZE_T _Index, class _Head, class... _Tail>
 _TYPENAME tuple_element<_Index, tuple<_Head, _Tail...> >::_ConstRef
 get (const tuple<_Head, _Tail...>& __tuple)
 {

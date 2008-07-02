@@ -42,42 +42,42 @@ _RWSTD_NAMESPACE (std) {
 
 // 20.2.2, forward/move helpers:
 
-template <class _Type>
+template <class _TypeT>
 struct identity
 {
-    typedef _Type type;
+    typedef _TypeT  type;
 
-    const _Type& operator() (const _Type& __x) const {
+    const type& operator() (const type& __x) const {
         return __x;
     }
 };
 
-#  define _RWSTD_IDENTITY(_Type)          _STD::identity<_Type>::type
+#  define _RWSTD_IDENTITY(_TypeT)         _STD::identity<_TypeT>::type
 
 
 #  if !defined _RWSTD_NO_RVALUE_REFERENCES
 
-template <class _Type>
-inline _Type&&
-forward (_TYPENAME identity<_Type>::type&& __x)
+template <class _TypeT>
+inline _TypeT&&
+forward (_TYPENAME identity<_TypeT>::type&& __x)
 {
     return __x;
 }
 
 
-template <class _Type>
-inline _TYPENAME _RWSTD_REMOVE_REFERENCE(_Type)&&
-move (_Type&& __x)
+template <class _TypeT>
+inline _TYPENAME _RWSTD_REMOVE_REFERENCE(_TypeT)&&
+move (_TypeT&& __x)
 {
     return __x;
 }
 
-#    define _RWSTD_FORWARD(_Type, __x)    _STD::forward<_Type> (__x)
+#    define _RWSTD_FORWARD(_TypeT, __x)   _STD::forward<_TypeT> (__x)
 #    define _RWSTD_MOVE(__x)              _STD::move (__x)
 
 #  else   // no rvalue references
 
-#    define _RWSTD_FORWARD(_Type, __x)    (__x)
+#    define _RWSTD_FORWARD(_TypeT, __x)   (__x)
 #    define _RWSTD_MOVE(__x)              (__x)
 
 #  endif   // !defined _RWSTD_NO_RVALUE_REFERENCES

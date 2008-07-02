@@ -41,14 +41,14 @@ _RWSTD_NAMESPACE (std) {
 
 // 20.5.5, class template reference_wrapper:
 
-template <class _Type>
+template <class _TypeT>
 class reference_wrapper
 {
-    _Type* _C_ptr;
+    _TypeT* _C_ptr;
 
 public:
 
-    typedef _Type type;
+    typedef _TypeT  type;
 
     reference_wrapper (type& __x)
         : _C_ptr (&__x) { /* empty */ }
@@ -74,33 +74,33 @@ public:
 };
 
 
-template <class _Type>
-inline reference_wrapper<_Type>
-ref (_Type& __x)
+template <class _TypeT>
+inline reference_wrapper<_TypeT>
+ref (_TypeT& __x)
 {
-    return reference_wrapper<_Type> (__x);
+    return reference_wrapper<_TypeT> (__x);
 }
 
-template <class _Type>
-inline reference_wrapper<_Type>
-ref (reference_wrapper<_Type>& __x)
+template <class _TypeT>
+inline reference_wrapper<_TypeT>
+ref (reference_wrapper<_TypeT>& __x)
 {
-    return reference_wrapper<_Type> (__x);
+    return reference_wrapper<_TypeT> (__x);
 }
 
 
-template <class _Type>
-inline reference_wrapper<const _Type>
-cref (const _Type& __x)
+template <class _TypeT>
+inline reference_wrapper<const _TypeT>
+cref (const _TypeT& __x)
 {
-    return reference_wrapper<const _Type> (__x);
+    return reference_wrapper<const _TypeT> (__x);
 }
 
-template <class _Type>
-inline reference_wrapper<const _Type>
-cref (reference_wrapper<const _Type>& __x)
+template <class _TypeT>
+inline reference_wrapper<const _TypeT>
+cref (reference_wrapper<const _TypeT>& __x)
 {
-    return reference_wrapper<const _Type> (__x);
+    return reference_wrapper<const _TypeT> (__x);
 }
 
 
