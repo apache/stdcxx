@@ -35,11 +35,17 @@
 
 #  include <rw/_defs.h>
 
-#  if !defined _RWSTD_NO_EXT_CXX_0X
+#  include <rw/_allocator.h>        // for std::allocator_arg_t
+#  include <rw/_forward.h>          // for _RWSTD_FORWARD, _RWSTD_MOVE
+#  include <rw/_meta_other.h>       // for _RWSTD_DECAY
 
-#    include <rw/_allocator.h>      // for std::allocator_arg_t
-#    include <rw/_forward.h>        // for _RWSTD_FORWARD, _RWSTD_MOVE
-#    include <rw/_ref_wrap.h>       // for std::reference_wrapper
+
+_RWSTD_NAMESPACE (std) {
+
+template <class _TypeT>
+class reference_wrapper;
+
+}   // namespace std
 
 
 _RWSTD_NAMESPACE (__rw) {
@@ -47,7 +53,7 @@ _RWSTD_NAMESPACE (__rw) {
 
 // internal tuple class template
 
-#    if !defined _RWSTD_NO_VARIADIC_TEMPLATES
+#  if !defined _RWSTD_NO_VARIADIC_TEMPLATES
 
 template <class... _Types>
 class __rw_tuple;
@@ -97,10 +103,10 @@ public:
         return *this;
     }
 
-#      if !defined _RWSTD_NO_RVALUE_REFERENCES
+#    if !defined _RWSTD_NO_RVALUE_REFERENCES
 
     __rw_tuple (__rw_tuple&& __tuple)
-        : _Base (std::move<_Base&&> (__tuple._C_tail ()))
+        : _Base (_STD::move<_Base&&> (__tuple._C_tail ()))
         , _C_data (_RWSTD_FORWARD (_HeadT, __tuple._C_data)) { /* empty */ }
 
     __rw_tuple& operator= (__rw_tuple&& __tuple) {
@@ -140,7 +146,7 @@ public:
     __rw_tuple (_STD::allocator_arg_t, const _Alloc& __alloc,
                 __rw_tuple<_TypesU...>&& __tuple);
 
-#      endif   // !defined _RWSTD_NO_RVALUE_REFERENCES
+#    endif   // !defined _RWSTD_NO_RVALUE_REFERENCES
 
     template <class _Alloc>
     __rw_tuple (_STD::allocator_arg_t, const _Alloc& __alloc);
@@ -223,13 +229,11 @@ bool operator< (const __rw_tuple<>& /*__x*/,
     return false;
 }
 
-#    endif   // !defined _RWSTD_NO_VARIADIC_TEMPLATES
+#  endif   // !defined _RWSTD_NO_VARIADIC_TEMPLATES
 
 
 }   // namespace __rw
 
-
-#  endif   // !defined _RWSTD_NO_EXT_CXX_0X
 
 #endif   // _RWSTD_TUPLE_INCLUDED
 

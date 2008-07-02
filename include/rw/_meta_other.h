@@ -31,9 +31,13 @@
 #define _RWSTD_RW_META_OTHER_H_INCLUDED
 
 #include <rw/_defs.h>
+
 #include <rw/_meta_cat.h>
 #include <rw/_meta_ref.h>
+#include <rw/_meta_prop.h>
 #include <rw/_meta_ptr.h>
+
+#include <rw/_static_assert.h>
 
 _RWSTD_NAMESPACE (__rw) {
 

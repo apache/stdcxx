@@ -36,10 +36,12 @@
 #    error _RWSTD_NO_EXT_CXX_0X defined and C++0x header included
 #  endif   // defined _RWSTD_NO_EXT_CXX_0X
 
-#  include <type_traits>
+#  include <rw/_forward.h>          // for _RWSTD_FORWARD, _RWSTD_MOVE
+#  include <rw/_meta_cv.h>          // for _RWSTD_ADD_CONST
+#  include <rw/_meta_help.h>        // for __rw_integral_constant
+#  include <rw/_meta_ref.h>         // for _RWSTD_ADD_LVALUE_REFERENCE
+#  include <rw/_pair.h>             // for std::pair
 
-#  include <rw/_forward.h>
-#  include <rw/_pair.h>
 #  include <rw/_tuple.h>
 
 #  if !defined _RWSTD_NO_VARIADIC_TEMPLATES

@@ -35,8 +35,6 @@
 
 #  include <rw/_defs.h>
 
-#  if !defined _RWSTD_NO_EXT_CXX_0X
-
 
 _RWSTD_NAMESPACE (std) {
 
@@ -108,7 +106,5 @@ cref (reference_wrapper<const _Type>& __x)
 
 }   // namespace std
 
-
-#  endif   // !defined _RWSTD_NO_EXT_CXX_0X
 
 #endif   // _RWSTD_RW_REF_WRAP_INCLUDED

@@ -34,10 +34,7 @@
 #  define _RWSTD_RW_FORWARD_INCLUDED
 
 #  include <rw/_defs.h>
-
-#  if !defined _RWSTD_NO_EXT_CXX_0X
-
-#    include <rw/_meta_ref.h>   // for __rw_remove_reference
+#  include <rw/_meta_ref.h>     // for __rw_remove_reference
 
 
 _RWSTD_NAMESPACE (std) {
@@ -55,10 +52,10 @@ struct identity
     }
 };
 
-#    define _RWSTD_IDENTITY(_Type)          _STD::identity<_Type>::type
+#  define _RWSTD_IDENTITY(_Type)          _STD::identity<_Type>::type
 
 
-#    if !defined _RWSTD_NO_RVALUE_REFERENCES
+#  if !defined _RWSTD_NO_RVALUE_REFERENCES
 
 template <class _Type>
 inline _Type&&
@@ -75,20 +72,18 @@ move (_Type&& __x)
     return __x;
 }
 
-#      define _RWSTD_FORWARD(_Type, __x)    _STD::forward<_Type> (__x)
-#      define _RWSTD_MOVE(__x)              _STD::move (__x)
+#    define _RWSTD_FORWARD(_Type, __x)    _STD::forward<_Type> (__x)
+#    define _RWSTD_MOVE(__x)              _STD::move (__x)
 
-#    else   // no rvalue references
+#  else   // no rvalue references
 
-#      define _RWSTD_FORWARD(_Type, __x)    (__x)
-#      define _RWSTD_MOVE(__x)              (__x)
+#    define _RWSTD_FORWARD(_Type, __x)    (__x)
+#    define _RWSTD_MOVE(__x)              (__x)
 
-#    endif   // !defined _RWSTD_NO_RVALUE_REFERENCES
+#  endif   // !defined _RWSTD_NO_RVALUE_REFERENCES
 
 
 }   // namespace std
 
-
-#  endif   // !defined _RWSTD_NO_EXT_CXX_0X
 
 #endif   // _RWSTD_RW_FORWARD_INCLUDED

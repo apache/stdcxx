@@ -46,6 +46,11 @@
 
 #include <rw/_funcbase.h>
 #include <rw/_ref_wrap.h>
+
+#ifndef _RWSTD_EXT_CXX_0X
+#  include <rw/_forward.h>
+#endif
+
 #include <rw/_defs.h>
 
 
