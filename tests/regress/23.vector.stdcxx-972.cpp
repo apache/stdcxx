@@ -1,11 +1,18 @@
-
-/***************************************************************************
+/************************************************************************
+ *
+ * 23.vector.stdcxx-972.cpp - regression test for STDCXX-972
+ *
+ * https://issues.apache.org/jira/browse/STDCXX-972
+ *
+ * $Id$
+ *
+ ***************************************************************************
  *
  * Licensed to the Apache Software  Foundation (ASF) under one or more
  * contributor  license agreements.  See  the NOTICE  file distributed
  * with  this  work  for  additional information  regarding  copyright
  * ownership.   The ASF  licenses this  file to  you under  the Apache
- * License, Version  2.0 (the  License); you may  not use  this file
+ * License, Version  2.0 (the  "License"); you may  not use  this file
  * except in  compliance with the License.   You may obtain  a copy of
  * the License at
  *
@@ -17,19 +24,30 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1999-2007 Rogue Wave Software, Inc.
- * 
  **************************************************************************/
 
-#include "config.h"
+#include <vector> // for vector
 
-// establish dependencies on the config tests and define config
-// macros used in the header below (the are not autodetected
-// in headers)
-#ifndef _RWSTD_NO_MEMBER_TEMPLATES
-#  define NO_MEMBER_TEMPLATES
-#endif   // _RWSTD_NO_MEMBER_TEMPLATES
 
-// explicitly instantiate the template defined in the header
-#define INSTANTIATE
-#include "extern_template_imp.h"
+void test ()
+{
+    typedef std::vector<bool>      Vector;
+    typedef Vector::iterator       Iter;
+    typedef Vector::const_iterator CIter;
+
+    Vector vec (10);
+
+    Iter   it = vec.begin ();
+    CIter cit = vec.begin ();
+
+    5 + it;
+    5 + cit;
+}
+
+
+int main ()
+{
+    test ();
+    // compile-time only test
+    return 0;
+}
