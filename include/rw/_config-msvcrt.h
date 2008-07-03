@@ -93,11 +93,6 @@
 #  define _RWSTD_LONG_LONG __int64
 #endif   // _MSC_VER <= 1300 || _RWSTD_NO_LONG_LONG
 
-#if defined (_WIN64)
-     // FIXME: handle by forward declaring fuctions in <rw/_mutex.h>
-#  define _RWSTD_NO_FWD_DECLARATIONS
-#endif   // _WIN64
-
 #if defined (WIN32) && !defined(_WIN32)
 #  define _WIN32
 #endif

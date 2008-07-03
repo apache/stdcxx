@@ -261,9 +261,9 @@ private:
     
     typedef __rw_rb_tree_node<_Alloc,_Val,_Key,_KeyOf> _C_node_t; 
     typedef _RWSTD_ALLOC_TYPE (_Alloc,_Val)            _C_val_alloc_t;
-    typedef _TYPENAME _C_node_t::_C_key_alloc_t        _C_key_alloc_t;
-    typedef _TYPENAME _C_node_t::_C_node_alloc_t       _C_node_alloc_t;
-    typedef _TYPENAME _C_node_t::_C_link_t             _C_link_t;
+    typedef _RWSTD_REBIND (_Alloc, _Key)               _C_key_alloc_t;
+    typedef _RWSTD_REBIND (_Alloc, _C_node_t)          _C_node_alloc_t;
+    typedef _TYPENAME _C_node_alloc_t::pointer         _C_link_t;
 
 public:
     

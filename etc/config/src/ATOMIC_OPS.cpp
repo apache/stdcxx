@@ -1,4 +1,4 @@
-// checking for inline member templates
+// checking for atomic operations
 
 /***************************************************************************
  *
@@ -22,31 +22,47 @@
  * 
  **************************************************************************/
 
-struct A
+#if defined (_WIN32) && !defined (_WIN64)
+
+#include <stdio.h>
+#include <windows.h>
+
+
+extern "C" {
+
+typedef int  __stdcall pfiipv_t (int*);
+typedef int  __stdcall pfiip_t (volatile int*);
+typedef long __stdcall pfllp_t (long*);
+typedef long __stdcall pfllpv_t (volatile long*);
+
+}   // extern "C"
+
+
+const char* foo (pfiip_t) { return "int"; }
+const char* foo (pfiipv_t) { return "volatile int"; }
+
+const char* foo (pfllp_t) { return "long"; }
+const char* foo (pfllpv_t) { return "volatile long"; }
+
+
+int main ()
 {
-    template <class T>
-    struct AB { };
+    // determine the argument type of InterlockedIncrement()
+    // (the type changes from long* to volatile long* depending
+    // on the version/patch of MSVC)
 
-    template <class T>
-    void foo (T) { }
-};
+    printf ("#define _RWSTD_INTERLOCKED_T %s\n", foo (InterlockedIncrement));
 
-
-template <class T>
-struct B
-{
-    template <class U>
-    struct BB { };
-
-    template <class U>
-    void foo (U) { }
-};
-
-
-// check that member templates are usable
-void foo (A a, A::AB<int> aab, B<int> b, B<char>::BB<int> bbb)
-{
-    a.foo (aab);
-
-    b.foo (bbb);
+    return 0;
 }
+
+#else   // not 32-bit Windows
+
+#include <stdio.h>
+
+int main ()
+{
+   return 0;
+}
+
+#endif   // Windows

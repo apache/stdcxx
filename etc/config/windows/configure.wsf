@@ -391,11 +391,11 @@ function checkArchitecture()
             sizes += "-";
         }
     }
-    var rxLP32 = /24?4/;
-    var rxILP32 = /44?4/;
-    var rxILP64 = /88?8/;
+    var rxLP32 = /24.4/;
+    var rxILP32 = /44.4/;
+    var rxILP64 = /88.8/;
     var rxLLP64 = /4488/;
-    var rxLP64 = /48?8/;
+    var rxLP64 = /48.8/;
     var arch;
     if (rxLP32.test(sizes))
     {
@@ -920,7 +920,7 @@ function checkDependencies(srcText, configText, dumpUnresolved)
         var dep = /_RWSTD_(?:NO_)?(\S+)/.exec(deps[i])[1];
         // remove _IN_LIBC | _IN_LIBM from dependency string
         dep = dep.replace(/_IN_LIB[CM]/, "");
-        var rx = new RegExp("_RWSTD_NO_" + dep);
+        var rx = new RegExp("\\s+_RWSTD_NO_" + dep + "\\s+");
         if (!rx.test(configText))
         {
             if (dumpUnresolved)

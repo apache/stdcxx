@@ -122,12 +122,21 @@
 
 #elif defined (_WIN32)
 
+#  ifdef __MINGW32__
+#    define _RWSTD_CRITICAL_SECTION _CRITICAL_SECTION
+#  else
+#    define _RWSTD_CRITICAL_SECTION _RTL_CRITICAL_SECTION
+#  endif
+
 #  ifdef _RWSTD_NO_FWD_DECLARATIONS
 
+     // #including <windows.h> without WIN32_LEAN_AND_MEAN macro defined
+     // may cause an errors "WinSock.h has already been included"
+     // when <winsock2.h> has been included after this header
 #    include <windows.h>
-#    define _RWSTD_MUTEX_T _RTL_CRITICAL_SECTION
+#    define _RWSTD_MUTEX_T _RWSTD_CRITICAL_SECTION
 
-#  else   // if defined (_RWSTD_NO_FWD_DECLARATIONS)
+#  else   // if !defined (_RWSTD_NO_FWD_DECLARATIONS)
 
    // avoid #including this header (MFC doesn't like it)
    // #  include <windows.h>
@@ -135,19 +144,32 @@
 extern "C" {
 
 // but rather declare these globals here
-struct _RTL_CRITICAL_SECTION;
+struct _RWSTD_CRITICAL_SECTION;
 
 __declspec (dllimport) void __stdcall
-InitializeCriticalSection (_RTL_CRITICAL_SECTION*);
+InitializeCriticalSection (_RWSTD_CRITICAL_SECTION*);
 
 __declspec (dllimport) void __stdcall
-EnterCriticalSection (_RTL_CRITICAL_SECTION*);
+EnterCriticalSection (_RWSTD_CRITICAL_SECTION*);
 
 __declspec (dllimport) void __stdcall
-LeaveCriticalSection (_RTL_CRITICAL_SECTION*);
+LeaveCriticalSection (_RWSTD_CRITICAL_SECTION*);
 
 __declspec (dllimport) void __stdcall
-DeleteCriticalSection (_RTL_CRITICAL_SECTION*);
+DeleteCriticalSection (_RWSTD_CRITICAL_SECTION*);
+
+#    if defined (_RWSTD_INTERLOCKED_T) && !defined (_MSC_VER)
+
+__declspec (dllimport) long __stdcall
+InterlockedIncrement (_RWSTD_INTERLOCKED_T*);
+
+__declspec (dllimport) long __stdcall
+InterlockedDecrement (_RWSTD_INTERLOCKED_T*);
+
+__declspec (dllimport) long __stdcall
+InterlockedExchange (_RWSTD_INTERLOCKED_T*, long);
+
+#    endif   // _RWSTD_INTERLOCKED_T && !_MSC_VER
 
 }   // extern "C"
 
@@ -199,15 +221,40 @@ extern "C" long long __cdecl _InterlockedExchange64 (volatile long long*,
 #        pragma intrinsic (_InterlockedExchange64)
 #      endif   // _RWSTD_MSVC
 #    endif   // _M_X64
+#  elif defined (_RWSTD_INTERLOCKED_T)
+
+inline long _InterlockedIncrement (volatile long *__x)
+{
+    return InterlockedIncrement (
+        _RWSTD_CONST_CAST (_RWSTD_INTERLOCKED_T*, __x));
+}
+
+inline long _InterlockedDecrement (volatile long *__x)
+{
+    return InterlockedDecrement (
+        _RWSTD_CONST_CAST (_RWSTD_INTERLOCKED_T*, __x));
+}
+
+inline long _InterlockedExchange (volatile long *__x, long __y)
+{
+    return InterlockedExchange (
+        _RWSTD_CONST_CAST (_RWSTD_INTERLOCKED_T*, __x), __y);
+}
+
 #  endif   // _MSC_VER
 
 
 _RWSTD_NAMESPACE (__rw) { 
 
+#  ifndef _MSC_VER
+#    define __try               if (1)
+#    define __except(ignore)    else if (0)
+#  endif   // _MSC_VER
+
 // Win32/64 throws non-C++ exceptions rather than returning error status
 // from some system calls like most other operating systems do
 
-inline int __rw_mutex_init (_RTL_CRITICAL_SECTION *__mutex)
+inline int __rw_mutex_init (_RWSTD_CRITICAL_SECTION *__mutex)
 {
     __try {
         InitializeCriticalSection (__mutex);
@@ -218,7 +265,7 @@ inline int __rw_mutex_init (_RTL_CRITICAL_SECTION *__mutex)
     return 0;
 }
 
-inline int __rw_mutex_destroy (_RTL_CRITICAL_SECTION *__mutex)
+inline int __rw_mutex_destroy (_RWSTD_CRITICAL_SECTION *__mutex)
 {
     __try {
         DeleteCriticalSection (__mutex);
@@ -229,7 +276,7 @@ inline int __rw_mutex_destroy (_RTL_CRITICAL_SECTION *__mutex)
     return 0;
 }
 
-inline int __rw_mutex_lock (_RTL_CRITICAL_SECTION *__mutex)
+inline int __rw_mutex_lock (_RWSTD_CRITICAL_SECTION *__mutex)
 {
     __try {
         EnterCriticalSection (__mutex);
@@ -240,7 +287,7 @@ inline int __rw_mutex_lock (_RTL_CRITICAL_SECTION *__mutex)
     return 0;
 }
 
-inline int __rw_mutex_unlock (_RTL_CRITICAL_SECTION *__mutex)
+inline int __rw_mutex_unlock (_RWSTD_CRITICAL_SECTION *__mutex)
 {
     __try {
         LeaveCriticalSection (__mutex);
@@ -252,13 +299,18 @@ inline int __rw_mutex_unlock (_RTL_CRITICAL_SECTION *__mutex)
 }
 
 #  define _RWSTD_MUTEX_INIT(mutex)      \
-   __rw_mutex_init (_RWSTD_REINTERPRET_CAST (_RTL_CRITICAL_SECTION*, &mutex))
+   __rw_mutex_init (_RWSTD_REINTERPRET_CAST (_RWSTD_CRITICAL_SECTION*, &mutex))
 #  define _RWSTD_MUTEX_DESTROY(mutex)   \
-   __rw_mutex_destroy (_RWSTD_REINTERPRET_CAST (_RTL_CRITICAL_SECTION*, &mutex))
+   __rw_mutex_destroy (_RWSTD_REINTERPRET_CAST (_RWSTD_CRITICAL_SECTION*, &mutex))
 #  define _RWSTD_MUTEX_LOCK(mutex)      \
-   __rw_mutex_lock (_RWSTD_REINTERPRET_CAST (_RTL_CRITICAL_SECTION*, &mutex))
+   __rw_mutex_lock (_RWSTD_REINTERPRET_CAST (_RWSTD_CRITICAL_SECTION*, &mutex))
 #  define _RWSTD_MUTEX_UNLOCK(mutex)    \
-   __rw_mutex_unlock (_RWSTD_REINTERPRET_CAST (_RTL_CRITICAL_SECTION*, &mutex))
+   __rw_mutex_unlock (_RWSTD_REINTERPRET_CAST (_RWSTD_CRITICAL_SECTION*, &mutex))
+
+#  ifndef _MSC_VER
+#    undef __try
+#    undef __except
+#  endif   // _MSC_VER
 
 }   // namespace __rw
 
