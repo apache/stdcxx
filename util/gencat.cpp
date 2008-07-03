@@ -114,11 +114,7 @@ int main (int argc, char *argv[])
 
 #ifdef _WIN32
 
-#  ifndef _WIN64
-#    define PLATFORM "X86"
-#  else   // _WIN64
-#    define PLATFORM "X64"
-#  endif  // _WIN64
+#  ifndef __MINGW32__
 
     const char* const env_vars [] = {
         "VS90COMNTOOLS", "VS80COMNTOOLS",
@@ -138,14 +134,35 @@ int main (int argc, char *argv[])
         cmd.push_back ('\"');
     }
 
+    if (!cmd.empty ())
+        cmd += " && ";
+
+#  endif   // !__MINGW32__
+
     const char* const dll_name = argv [0];
     const char* const rc_name = argv [1];
 
     std::string res_name (rc_name);
     change_ext (res_name, ".res");
 
-    if (!cmd.empty ())
-        cmd += " && ";
+#  ifdef __MINGW32__
+
+    cmd += "windres -O coff -i ";
+    cmd += rc_name;
+    cmd += " -o ";
+    cmd += res_name;
+    cmd += " && gcc -shared -o ";
+    cmd += dll_name;
+    cmd += ' ';
+    cmd += res_name;
+
+#  else
+
+#    ifndef _WIN64
+#      define PLATFORM "X86"
+#    else   // _WIN64
+#      define PLATFORM "X64"
+#    endif  // _WIN64
 
     cmd += "rc ";
     cmd += rc_name;
@@ -154,6 +171,8 @@ int main (int argc, char *argv[])
     cmd += ' ';
     cmd += res_name;
     
+#  endif   // __MINGW32__
+
     const int ret = std::system (cmd.c_str ());
 
     std::remove (res_name.c_str ());
