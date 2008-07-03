@@ -22,9 +22,6 @@
  * 
  **************************************************************************/
 
-// both tests must successfully compile
-#include "INLINE_MEMBER_TEMPLATES.cpp"
-
 struct C
 {
     template <class T>

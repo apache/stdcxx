@@ -106,6 +106,10 @@ close (bool __close_file /* = true */)
             _C_file    = 0;
             _C_cur_pos = _C_beg_pos = pos_type (off_type (-1));
 
+            // reset input/output sequences to prevent any
+            // subsequent I/O attempts on closed file
+            this->setg (0, 0, 0);
+            this->setp (0, 0);
         }
 
         // rethrow the caught exception
@@ -119,6 +123,11 @@ close (bool __close_file /* = true */)
         // zero out the file pointer except when detaching fd
         _C_file    = 0;
         _C_cur_pos = _C_beg_pos = pos_type (off_type (-1));
+
+        // reset input/output sequences to prevent any
+        // subsequent I/O attempts on closed file
+        this->setg (0, 0, 0);
+        this->setp (0, 0);
     }
 
     return __retval;

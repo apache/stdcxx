@@ -1008,12 +1008,6 @@
      #defined at  configuration time  according to the  declaration of
      the POSIX function iconv().
 
-  o  _RWSTD_NO_INLINE_MEMBER_TEMPLATES [auto, lib, over]
-
-     #defined  at  configuration  time  for C++  implementations  that
-     reject member templates completely defined within the body of the
-     class or template of which they are a member.
-
   o  _RWSTD_NO_INSTANTIATE_DEFAULT_ARGS [auto, over]
 
      #defined  at  configuration  time  for C++  implementations  that
