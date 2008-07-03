@@ -28,8 +28,9 @@
 
 #include <rw_driver.h>
 
- // compile out all test code if extensions disabled
- #ifndef _RWSTD_NO_EXT_CXX_0X
+// compile out all test code if extensions disabled
+#if    !defined(_RWSTD_NO_EXT_CXX_0X) \
+    && !defined(_RWSTD_NO_RVALUE_REFERENCES)
 
 #include <functional>           // for reference_wrapper
 #include <tuple>
@@ -106,17 +107,28 @@ run_test (int /*argc*/, char* /*argv*/ [])
     return 0;
 }
 
-#else // !_RWSTD_NO_EXT_CXX_0X
+#else // _RWSTD_NO_EXT_CXX_0X || _RWSTD_NO_RVALUE_REFERENCES
 
 static int
 run_test (int, char*[])
 {
-    rw_info (0, 0, __LINE__,
-             "tests for C++0x tuple extension disabled");
+#if defined (_RWSTD_NO_EXT_CXX_0X)
+
+    rw_warn (0, 0, __LINE__,
+             "test disabled because _RWSTD_NO_EXT_CXX_0X is defined");
+
+#elif defined (_RWSTD_NO_RVALUE_REFERENCES)
+
+    rw_warn (0, 0, __LINE__,
+	         "test disabled because _RWSTD_NO_RVALUE_REFERENCES is "
+			 "defined");
+
+#endif
+
     return 0;
 }
 
-#endif // !_RWSTD_NO_EXT_CXX_0X
+#endif // _RWSTD_NO_EXT_CXX_0X || _RWSTD_NO_RVALUE_REFERENCES
 
 /*extern*/ int
 main (int argc, char* argv [])

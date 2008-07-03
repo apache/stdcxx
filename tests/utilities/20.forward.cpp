@@ -43,19 +43,18 @@ struct Foo
    Foo (int& ) { }
 };
 
-// compile tests
-
-typedef std::identity<Foo> FooIdent;
-typedef std::identity<Foo>::type FooIdentType;
-
-_RWSTD_STATIC_ASSERT ((_RW::__rw_is_same<Foo, FooIdentType>::value),
-                      "(is_same<Foo, FooIdentType>), got false, "
-                      "expected true");
 
 static void
 test_identity ()
 {
     rw_info (0, __FILE__, __LINE__, "std::identity<T> class template");
+
+    typedef std::identity<Foo> FooIdent;
+    typedef std::identity<Foo>::type FooIdentType;
+
+    _RWSTD_STATIC_ASSERT ((_RW::__rw_is_same<Foo, FooIdentType>::value),
+                          "is_same<Foo, FooIdentType>::value is false, "
+                          "expected true");
 
     int i = 1;
     FooIdent foo_ident;
@@ -64,6 +63,8 @@ test_identity ()
 }
 
 /**************************************************************************/
+
+#ifndef _RWSTD_NO_RVALUE_REFERENCES
 
 // using example from standard as a test case
 
@@ -83,6 +84,8 @@ shared_ptr<Type> factory (AType&& at)
     return shared_ptr<Type> (new Type (std::forward<AType> (at)));
 }
 
+/**************************************************************************/
+
 static void
 test_forward ()
 {
@@ -99,21 +102,23 @@ test_move ()
 
 }
 
+#endif // _RWSTD_NO_RVALUE_REFERENCES
+
 /**************************************************************************/
 
 static int
 run_test (int /*unused*/, char* /*unused*/ [])
 {
+    test_identity ();
 
 #if !defined _RWSTD_NO_RVALUE_REFERENCES
 
-    test_identity ();
     test_forward ();
     test_move ();
 
 #else // no rvalue references
 
-    rw_info (true, __FILE__, __LINE__,
+    rw_warn (0, 0, __LINE__,
              "No compiler support for rvalue references; tests disabled.");
 
 #endif   // !defined _RWSTD_NO_RVALUE_REFERENCES
