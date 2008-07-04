@@ -145,6 +145,20 @@
 #  endif
 #endif   // __CYGWIN__
 
+#ifdef __MINGW32__
+#  ifdef _RWSHARED
+     // disabe exporting timeplate instantations in shared builds
+     // see STDCXX-507
+#    define _RWSTD_NO_EXTERN_TEMPLATE
+#  endif
+
+   // operator new and delete is not reliably replaceable across
+   // shared library boundaries, which includes the shared library
+   // version of the language support library
+   // on MinGW the language support library is always shared
+#  define _RWSTD_NO_REPLACEABLE_NEW_DELETE
+#endif   // __MINGW32__
+
 #ifdef _RWSTD_OS_OSF1
       // sizeof (long double) == sizeof (double), 'L' causes SIGSEGV
 #   define _RWSTD_LDBL_PRINTF_PREFIX   ""

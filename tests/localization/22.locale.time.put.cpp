@@ -142,7 +142,7 @@ std::size_t rw_strftime (char *buf, std::size_t bufsize,
     if (!tmb)
         tmb = &tmp;
 
-#ifdef _MSC_VER
+#if defined (_MSC_VER) || defined (__MINGW32__)
 
     // ms crt aborts if you use out of range values in debug
     if (tmb->tm_hour < 0 || 24 <= tmb->tm_hour)
@@ -281,11 +281,11 @@ std::size_t rw_strftime (char *buf, std::size_t bufsize,
 
     const std::size_t n = std::strftime (buf, bufsize, patbuf, tmb);
 
-#else   // if !defined (_MSC_VER)
+#else   // !_MSC_VER && !__MINGW32__
 
     const std::size_t n = std::strftime (buf, bufsize, pat, tmb);
 
-#endif   // _MSC_VER
+#endif   // _MSC_VER || __MINGW32__
 
     RW_ASSERT (n < bufsize);
 
@@ -298,11 +298,12 @@ std::size_t rw_strftime (wchar_t *wbuf, std::size_t bufsize,
 { 
     static const std::tm tmp = std::tm ();
 
-#if !defined (_RWSTD_NO_WCSFTIME_WCHAR_T_FMAT) && !defined (_MSC_VER)
+#if    !defined (_RWSTD_NO_WCSFTIME_WCHAR_T_FMAT) \
+    && !defined (_MSC_VER) && !defined (__MINGW32__)
 
     std::size_t n = std::wcsftime (wbuf, bufsize, wpat, tmb ? tmb : &tmp);
 
-#else   // if defined (_RWSTD_NO_WCSFTIME) || defined (_MSC_VER)
+#else   // _RWSTD_NO_WCSFTIME || _MSC_VER || __MINGW32__
 
     char pat [1024];
     char buf [1024];
@@ -311,7 +312,7 @@ std::size_t rw_strftime (wchar_t *wbuf, std::size_t bufsize,
     std::size_t n = rw_strftime (buf, bufsize, pat, tmb ? tmb : &tmp);
     widen (wbuf, buf);
 
-#endif   // _RWSTD_NO_WCSFTIME, _MSC_VER
+#endif   // _RWSTD_NO_WCSFTIME, _MSC_VER, __MINGW32__
 
     RW_ASSERT (n < bufsize);
 
