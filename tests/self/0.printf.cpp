@@ -51,6 +51,8 @@
 #include <time.h>       // for struct tm
 #include <locale.h>     // for LC_ALL, ...
 
+#include <cwchar>       // for WEOF
+
 
 // disable tests for function name in "%{lF}"
 #define _RWSTD_NO_SPRINTFA_FUNNAME
@@ -341,7 +343,7 @@ test_character ()
     TEST ("%{lc}", L'A',    0, 0, "A");
     TEST ("%{lc}", L'Z',    0, 0, "Z");
     TEST ("%{lc}", L'\xff', 0, 0, "\\xff");
-    TEST ("%{lc}", -1,      0, 0, "EOF");
+    TEST ("%{lc}", WEOF,    0, 0, "EOF");
 
     //////////////////////////////////////////////////////////////////
     printf ("%s\n", "extension: \"%{#lc}\": quoted escaped wide character");
@@ -357,7 +359,7 @@ test_character ()
     TEST ("%{#lc}", L'A',    0, 0, "'A'");
     TEST ("%{#lc}", L'Z',    0, 0, "'Z'");
     TEST ("%{#lc}", L'\xff', 0, 0, "'\\xff'");
-    TEST ("%{#lc}", -1,      0, 0, "EOF");
+    TEST ("%{#lc}", WEOF,    0, 0, "EOF");
 }
 
 /***********************************************************************/
