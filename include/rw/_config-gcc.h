@@ -123,6 +123,7 @@
 
 #undef _RWSTD_NO_DEPRECATED_LIBC_IN_STD
 
+/*** CygWin ***************************************************************/
 #ifdef __CYGWIN__
      // use our own C++ libc headers
 #  undef _RWSTD_NO_NEW_HEADER
@@ -134,7 +135,7 @@
 #  endif
 
 #  ifdef _RWSHARED
-     // disabe exporting timeplate instantations in shared builds
+     // disable exporting tmeplate instantiations in shared builds
      // see STDCXX-507
 #    define _RWSTD_NO_EXTERN_TEMPLATE
 
@@ -145,9 +146,10 @@
 #  endif
 #endif   // __CYGWIN__
 
+/*** MinGW ****************************************************************/
 #ifdef __MINGW32__
 #  ifdef _RWSHARED
-     // disabe exporting timeplate instantations in shared builds
+     // disable exporting temeplate instantiations in shared builds
      // see STDCXX-507
 #    define _RWSTD_NO_EXTERN_TEMPLATE
 #  endif
@@ -159,6 +161,7 @@
 #  define _RWSTD_NO_REPLACEABLE_NEW_DELETE
 #endif   // __MINGW32__
 
+/*** Tru64 UNIX ***********************************************************/
 #ifdef _RWSTD_OS_OSF1
       // sizeof (long double) == sizeof (double), 'L' causes SIGSEGV
 #   define _RWSTD_LDBL_PRINTF_PREFIX   ""
@@ -166,6 +169,7 @@
 
 #endif   // _RWSTD_OS_OSF1
 
+/*** Solaris **************************************************************/
 #ifdef _RWSTD_OS_SUNOS
 
      // _SOLARIS_THREADS #defined when the -threads option is used on SunOS
