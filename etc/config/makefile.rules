@@ -158,6 +158,9 @@ endif   # eq ($(NO_DOT_O),)
 # creates and sets the POSIX TMPDIR environment variable to a temporary
 # directory before running the programs which is then removed when done
 #
+# The variable TZ is used in examples and initialized in GNUmakefile.exm
+# (see rev.561060)
+#
 # PlumHall specific:
 # for all "top level" tests that failed to build, find and build all
 # subtests (the little tests the main test consists of)
