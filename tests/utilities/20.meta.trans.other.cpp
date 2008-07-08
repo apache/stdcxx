@@ -38,6 +38,7 @@
 #include <rw_printf.h> // for rwsprintfa()
 
 #include <stdlib.h>    // for free()
+#include <stddef.h>    // for size_t
 
 /**************************************************************************/
 
@@ -157,7 +158,8 @@ static void test_aligned_storage ()
     {                                                              \
       typedef std::aligned_storage<Size, Align>::type storage_t;   \
       test_aligned_storage(__LINE__,                               \
-          Size, sizeof (storage_t), Align, __alignof (storage_t)); \
+          Size, sizeof (storage_t), Align,                         \
+          std::alignment_of<storage_t>::value);                    \
     } typedef void __dummy
 
     TEST (1, 1);
@@ -180,18 +182,19 @@ static void test_aligned_storage ()
     {                                                              \
       typedef std::aligned_storage<Size>::type storage_t;          \
       test_aligned_storage(__LINE__,                               \
-          Size, sizeof (storage_t), 0, __alignof (storage_t));     \
+          Size, sizeof (storage_t), 0,                             \
+          std::alignment_of<storage_t>::value);                    \
     } typedef void __dummy
 
     // test default alignment
     TEST (1);
-    TEST (1);
-    TEST (1);
-    TEST (1);
+    TEST (2);
+    TEST (4);
+    TEST (8);
 
-    TEST (9);
-    TEST (9);
-    TEST (9);
+    TEST (3);
+    TEST (5);
+    TEST (7);
     TEST (9);
 
     TEST (55);
@@ -475,5 +478,4 @@ int main (int argc, char *argv[])
                     run_test,
                     0);
 }
-
 

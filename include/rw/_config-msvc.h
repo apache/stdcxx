@@ -103,6 +103,7 @@
 #  define _RWSTD_TT_IS_ABSTRACT(T)         __is_abstract(T) 
 #  define _RWSTD_TT_IS_BASE_OF(T,U)        __is_base_of(T,U)
 #  define _RWSTD_TT_IS_CLASS(T)            __is_class(T) 
+#  define _RWSTD_TT_IS_POD(T)              __is_pod(T)
 #  define _RWSTD_TT_IS_CONVERTIBLE(T,U)    __is_convertible_to(T,U) 
 #  define _RWSTD_TT_IS_EMPTY(T)            __is_empty(T) 
 #  define _RWSTD_TT_IS_ENUM(T)             __is_enum(T) 
@@ -110,15 +111,9 @@
 #  define _RWSTD_TT_IS_UNION(T)            __is_union(T) 
 
 #  define _RWSTD_TT_ALIGN_OF(T)            __alignof(T)
-#  define _RWSTD_TT_ALIGNED_POD(N)         struct { __declspec(align(N)) char __fill; }
-#  define _RWSTD_TT_MAX_ALIGNMENT          16
-//#  define _RWSTD_TT_MAX_ALIGNMENT          8192
+#  define _RWSTD_TT_ALIGNED_POD(N)         \
+      struct {__declspec(align(Align)) unsigned char _C_align; }
 
-// __is_pod only seems to work for pod-class and pod-union types according
-// to the old definition of pod. it needs to exclude scalar types, as well
-// as types which are both trivial and standard layout. so, we work around
-// that by using our fallback.
-#  define _RWSTD_TT_IS_POD(T)              __is_pod(T)
-
+#  define _RWSTD_TT_MAX_ALIGNMENT          8192
 #endif // _MSC_FULL_VER >= 140050215
 

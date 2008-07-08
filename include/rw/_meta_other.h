@@ -36,6 +36,7 @@
 #include <rw/_meta_ref.h>
 #include <rw/_meta_prop.h>
 #include <rw/_meta_ptr.h>
+#include <rw/_static_assert.h>
 
 #include <rw/_static_assert.h>
 
@@ -56,37 +57,13 @@ struct __rw_conditional<false, _TypeT, _TypeU>
 #define _RWSTD_CONDITIONAL(C,T,U) _RW::__rw_conditional<C,T,U>::type
 
 
-// Helper for __rw_aligned_storage. Specializations define a member type
-// that is aligned on power of two boundaries.
-template <_RWSTD_SIZE_T _Align>
-struct __rw_aligned_storage_impl;
-
-#define _RWSTD_ALIGNED_STORAGE_SPEC(N)              \
-  template <> struct __rw_aligned_storage_impl<N> { \
-      typedef _RWSTD_TT_ALIGNED_POD(N) _C_type;     \
-}
-
-_RWSTD_ALIGNED_STORAGE_SPEC(1);
-_RWSTD_ALIGNED_STORAGE_SPEC(2);
-_RWSTD_ALIGNED_STORAGE_SPEC(4);
-_RWSTD_ALIGNED_STORAGE_SPEC(8);
-_RWSTD_ALIGNED_STORAGE_SPEC(16);
-_RWSTD_ALIGNED_STORAGE_SPEC(32);
-_RWSTD_ALIGNED_STORAGE_SPEC(64);
-_RWSTD_ALIGNED_STORAGE_SPEC(128);
-_RWSTD_ALIGNED_STORAGE_SPEC(256);
-_RWSTD_ALIGNED_STORAGE_SPEC(512);
-_RWSTD_ALIGNED_STORAGE_SPEC(1024);
-_RWSTD_ALIGNED_STORAGE_SPEC(2048);
-_RWSTD_ALIGNED_STORAGE_SPEC(4096);
-_RWSTD_ALIGNED_STORAGE_SPEC(8192);
 
 // Helper for __rw_default_alignment. The member value will evaluate
 // to the nearest power of two that is a valid alignment value that
 // is less than or equal to _Size.
 template <_RWSTD_SIZE_T _Size, _RWSTD_SIZE_T _N,
-          bool _Done =    (_RWSTD_TT_MAX_ALIGNMENT <= _N * 2)
-                       || (_Size < _N * 2)>
+          bool =    (_RWSTD_TT_MAX_ALIGNMENT <= _N * 2)
+                 || (_Size < _N * 2)>
 struct __rw_default_alignment_impl
 {
     enum { value = __rw_default_alignment_impl<_Size, _N * 2>::value };
@@ -113,27 +90,85 @@ struct __rw_default_alignment
     enum { value = __rw_default_alignment_impl<_Size, 1>::value };
 };
 
+#ifdef __GNUG__
 
 template <_RWSTD_SIZE_T _Size,
           _RWSTD_SIZE_T _Align = __rw_default_alignment<_Size>::value>
 struct __rw_aligned_storage
 {
-    _RWSTD_STATIC_ASSERT (_Size != 0,
-                          "Unsupported size");
-    
-    _RWSTD_STATIC_ASSERT ((_Align & (_Align - 1)) == 0 || _Align == 0,
-                          "Unsupported alignment"); // expect power of 2
-    
-    _RWSTD_STATIC_ASSERT (_Align <= _RWSTD_TT_MAX_ALIGNMENT,
-                          "Unsupported alignment"); // expect less than max
-
-    typedef union {
-        unsigned char __size [_Size];
-
-        typename
-        __rw_aligned_storage_impl<_Align>::_C_type __align;
+    typedef struct {
+        _RWSTD_TT_ALIGNED_POD (_Align) _C_align;
+        unsigned char _C_size [_Size];
     } type;
 };
+
+
+#else // !__GNUG__
+
+// Helper for __rw_aligned_storage. Specializations define a member type
+// that is aligned on power of two boundaries.
+template <_RWSTD_SIZE_T _Align>
+struct __rw_aligned_storage_impl;
+
+#define _RWSTD_ALIGNED_STORAGE_SPEC(N)              \
+  template <> struct __rw_aligned_storage_impl<N> { \
+      typedef _RWSTD_TT_ALIGNED_POD (N) _C_type;  };
+
+_RWSTD_ALIGNED_STORAGE_SPEC(1)
+_RWSTD_ALIGNED_STORAGE_SPEC(2)
+_RWSTD_ALIGNED_STORAGE_SPEC(4)
+_RWSTD_ALIGNED_STORAGE_SPEC(8)
+_RWSTD_ALIGNED_STORAGE_SPEC(16)
+
+#if (32 <= _RWSTD_TT_MAX_ALIGNMENT)
+  _RWSTD_ALIGNED_STORAGE_SPEC(32)
+#endif
+
+#if (64 <= _RWSTD_TT_MAX_ALIGNMENT)
+  _RWSTD_ALIGNED_STORAGE_SPEC(64)
+#endif
+
+#if (128 <= _RWSTD_TT_MAX_ALIGNMENT)
+  _RWSTD_ALIGNED_STORAGE_SPEC(128)
+#endif
+
+#if (256 <= _RWSTD_TT_MAX_ALIGNMENT)
+  _RWSTD_ALIGNED_STORAGE_SPEC(256)
+#endif
+
+#if (512 <= _RWSTD_TT_MAX_ALIGNMENT)
+  _RWSTD_ALIGNED_STORAGE_SPEC(512)
+#endif
+
+#if (1024 <= _RWSTD_TT_MAX_ALIGNMENT)
+  _RWSTD_ALIGNED_STORAGE_SPEC(1024)
+#endif
+
+#if (2048 <= _RWSTD_TT_MAX_ALIGNMENT)
+  _RWSTD_ALIGNED_STORAGE_SPEC(2048)
+#endif 
+
+#if (4096 <= _RWSTD_TT_MAX_ALIGNMENT)
+  _RWSTD_ALIGNED_STORAGE_SPEC(4096)
+#endif  
+
+#if (8192 <= _RWSTD_TT_MAX_ALIGNMENT)
+  _RWSTD_ALIGNED_STORAGE_SPEC(8192)
+#endif
+
+template <_RWSTD_SIZE_T _Size,
+          _RWSTD_SIZE_T _Align = __rw_default_alignment<_Size>::value>
+struct __rw_aligned_storage
+{
+    typedef union {
+        typename
+        __rw_aligned_storage_impl<_Align>::_C_type _C_align;
+
+        unsigned char _C_size [_Size];
+    } type;
+};
+
+#endif // !__GNUG__
 
 
 #ifndef _RWSTD_NO_VARIADIC_TEMPLATES

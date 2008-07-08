@@ -83,17 +83,18 @@ struct __rw_add_lvalue_reference_impl<_TypeT, false, true>
 {
     // for rval reference types, _C_type shall become the corresponding
     // lvalue reference type
-    typedef _TYPENAME __rw_remove_reference<_TypeT>::type& _C_type;
+    typedef typename __rw_remove_reference<_TypeT>::type& _C_type;
 };
 
 template <class _TypeT>
 struct __rw_add_lvalue_reference
 {
-    typedef _TYPENAME
+    typedef typename
     __rw_add_lvalue_reference_impl<_TypeT>::_C_type type;
 };
 
-#define _RWSTD_ADD_LVALUE_REFERENCE(T) _RW::__rw_add_lvalue_reference<T>::type
+#define _RWSTD_ADD_LVALUE_REFERENCE(T) \
+    _RW::__rw_add_lvalue_reference<T>::type
 
 
 template <class _TypeT, bool =    __rw_is_object<_TypeT>::value
@@ -121,11 +122,12 @@ struct __rw_add_rvalue_reference_impl<_TypeT, true>
 template <class _TypeT>
 struct __rw_add_rvalue_reference
 {
-    typedef _TYPENAME
+    typedef typename
     __rw_add_rvalue_reference_impl<_TypeT>::_C_type type;
 };
 
-#define _RWSTD_ADD_RVALUE_REFERENCE(T) _RW::__rw_add_rvalue_reference<T>::type
+#define _RWSTD_ADD_RVALUE_REFERENCE(T) \
+    _RW::__rw_add_rvalue_reference<T>::type
 
 } // namespace __rw
 

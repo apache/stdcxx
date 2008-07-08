@@ -37,8 +37,9 @@ _RWSTD_NAMESPACE (__rw) {
 
 template <class _TypeT>
 struct __rw_is_reference
-    : __rw_integral_constant<bool,    __rw_is_lvalue_reference<_TypeT>::value
-                                   || __rw_is_rvalue_reference<_TypeT>::value>
+    : __rw_integral_constant<bool,
+	         __rw_is_lvalue_reference<_TypeT>::value
+          || __rw_is_rvalue_reference<_TypeT>::value>
 {
 };
 
@@ -46,8 +47,9 @@ struct __rw_is_reference
 
 template <class _TypeT>
 struct __rw_is_arithmetic
-    : __rw_integral_constant<bool,    __rw_is_integral<_TypeT>::value
-                                   || __rw_is_floating_point<_TypeT>::value>
+    : __rw_integral_constant<bool,
+	         __rw_is_integral<_TypeT>::value
+          || __rw_is_floating_point<_TypeT>::value>
 {
 };
 
@@ -76,8 +78,9 @@ struct __rw_is_object
 
 template <class _TypeT>
 struct __rw_is_member_pointer
-    : __rw_integral_constant<bool,    __rw_is_member_function_pointer<_TypeT>::value
-                                   || __rw_is_member_object_pointer<_TypeT>::value>
+    : __rw_integral_constant<bool,
+	         __rw_is_member_function_pointer<_TypeT>::value
+          || __rw_is_member_object_pointer<_TypeT>::value>
 {
 };
 

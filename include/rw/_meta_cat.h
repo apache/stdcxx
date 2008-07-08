@@ -184,13 +184,37 @@ struct __rw_is_rvalue_reference<_TypeT&&> : __rw_true_type
     _RW::__rw_is_rvalue_reference<T>::value
 
 
+
 template <class _TypeT>
-struct __rw_is_enum
-    : __rw_integral_constant<bool, _RWSTD_TT_IS_ENUM(_TypeT)>
+struct __rw_is_class_or_union
 {
+    struct _C_no  { };
+    struct _C_yes { _C_no __pad[2]; };
+
+    template <class _TypeU>
+    static _C_yes _C_is (int, long _TypeU::*);
+
+    template <class _TypeU>
+    static _C_no  _C_is (int, ...);
+
+    enum { value =
+        sizeof (_C_yes) == sizeof (_C_is<_TypeT>(0, 0))
+    };
 };
 
-#define _RWSTD_IS_ENUM(T) _RW::__rw_is_enum<T>::value
+// if one of _RWSTD_TT_IS_CLASS or _RWSTD_TT_IS_UNION is defined, then
+// this will all work out. if neither is defined, then we say all class
+// types (including unios) are classes and none of them are unions.
+#if !defined (_RWSTD_TT_IS_CLASS) && !defined (_RWSTD_TT_IS_UNION)
+#  define _RWSTD_TT_IS_CLASS(T) _RW::__rw_is_class_or_union<T>::value
+#  define _RWSTD_TT_IS_UNION(T) 0
+#elif !defined (_RWSTD_TT_IS_CLASS)
+#  define _RWSTD_TT_IS_CLASS(T) \
+      _RW::__rw_is_class_or_union<T>::value && !_RWSTD_TT_IS_UNION(T)
+#elif !defined (_RWSTD_TT_IS_UNION)
+#  define _RWSTD_TT_IS_UNION(T)  \
+      _RW::__rw_is_class_or_union<T>::value && !_RWSTD_TT_IS_CLASS(T)
+#endif
 
 template <class _TypeT>
 struct __rw_is_union
@@ -210,43 +234,110 @@ struct __rw_is_class
 #define _RWSTD_IS_CLASS(T) _RW::__rw_is_class<T>::value
 
 
+
+
+#ifndef _RWSTD_TT_IS_ENUM
+
 template <class _TypeT, bool =    __rw_is_void<_TypeT>::value
                                || __rw_is_array<_TypeT>::value
+                               || __rw_is_integral<_TypeT>::value
+                               || __rw_is_floating_point<_TypeT>::value
                                || __rw_is_lvalue_reference<_TypeT>::value
-                               || __rw_is_rvalue_reference<_TypeT>::value>
+                               || __rw_is_rvalue_reference<_TypeT>::value
+                               || __rw_is_class_or_union<_TypeT>::value>
+struct __rw_is_enum_impl
+{
+    enum { _C_value = 0 };
+};
+
+//
+template <class _TypeT>
+struct __rw_is_enum_impl<_TypeT, false>
+{
+    struct _C_no { };
+    struct _C_yes { _C_no __pad [2]; };
+
+    // supply first argument to prevent HP aCC warnings
+    static _C_no _C_is (int, ...);
+    static _C_yes _C_is (int, double);
+
+    static _TypeT& _C_make ();
+
+    enum {
+        _C_value = sizeof (_C_yes) == sizeof (_C_is (0, _C_make ()))
+    };
+};
+
+#  define _RWSTD_TT_IS_ENUM(T) _RW::__rw_is_enum_impl<T>::_C_value
+#endif // _RWSTD_TT_IS_ENUM
+
+template <class _TypeT>
+struct __rw_is_enum
+    : __rw_integral_constant<bool, _RWSTD_TT_IS_ENUM(_TypeT)>
+{
+};
+
+#define _RWSTD_IS_ENUM(T) _RW::__rw_is_enum<T>::value
+
+
+
+
+#ifndef _RWSTD_TT_IS_FUNCTION
+
+//
+// This template prevents the partial specialization below from
+// being instantiated on types for which it would fail or give
+// invalid results. i.e. it avoids creating references to void or
+// arrays with unknown length and for returning bad results for
+// references to functions.
+//
+template <class _TypeT, bool =    __rw_is_void<_TypeT>::value
+                               || __rw_is_array<_TypeT>::value
+                               || __rw_is_pointer<_TypeT>::value
+                               || __rw_is_lvalue_reference<_TypeT>::value
+                               || __rw_is_rvalue_reference<_TypeT>::value
+                               || __rw_is_class_or_union<_TypeT>::value>
 struct __rw_is_function_impl
 {
     enum { _C_value = 0 };
 };
 
+//
+// This specialization determines if _TypeT is a function type. This
+// is done by testing that a _TypeT is implicitly convertible to a
+// pointer to _TypeT. This special case is only true for functions
+// and member functions.
+//
 template <class _TypeT>
 struct __rw_is_function_impl<_TypeT, false>
 {
     typedef _TypeT& _TypeT_Ref;
-    typedef _TypeT* _TypeT_Ptr;
+	typedef _TypeT* _TypeT_Ptr;
 
     struct _C_no  { };
     struct _C_yes { _C_no __pad [2]; };
 
-    static _C_yes _C_is (int, _TypeT_Ptr);
-    static _C_no  _C_is (int, ...);
+    static _C_yes _C_is (_TypeT_Ptr);
+
+    template <class _TypeU>
+    static _C_no  _C_is (_TypeU);
 
     static _TypeT_Ref _C_make ();
 
-    enum { _C_value = sizeof (_C_yes) == sizeof (_C_is (0, _C_make ())) };
+    enum { _C_value = sizeof (_C_yes) == sizeof (_C_is (_C_make ())) };
 };
+
+#  define _RWSTD_TT_IS_FUNCTION(T) _RW::__rw_is_function_impl<T>::_C_value
+#endif //_RWSTD_TT_IS_FUNCTION
 
 template <class _TypeT>
 struct __rw_is_function
-#ifdef _RWSTD_TT_IS_FUNCTION
     : __rw_integral_constant<bool, _RWSTD_TT_IS_FUNCTION(_TypeT)>
-#else
-    : __rw_integral_constant<bool, __rw_is_function_impl<_TypeT>::_C_value>
-#endif   // _RWSTD_TT_IS_FUNCTION
 {
 };
 
 #define _RWSTD_IS_FUNCTION(T) _RW::__rw_is_function<T>::value
+
 
 template <class _TypeT>
 struct __rw_is_member_object_pointer : __rw_false_type

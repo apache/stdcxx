@@ -180,11 +180,11 @@ static void test_is_base_of ()
     
     TEST (std::is_base_of, struct_A, struct_A, true);
     TEST (std::is_base_of, derived_<struct_A>,
-                            derived_<struct_A>, true);
+                           derived_<struct_A>, true);
 
     TEST (std::is_base_of, class_B, class_B, true);
     TEST (std::is_base_of, derived_<class_B>,
-                            derived_<class_B>, true);
+                           derived_<class_B>, true);
 
     TEST (std::is_base_of, union_C, union_C, false);
 
@@ -193,10 +193,10 @@ static void test_is_base_of ()
     TEST (std::is_base_of, class_B, derived_<class_B>, true);
 
     // protected inheritance
-    TEST (std::is_base_of, derived_protected_<struct_A> , struct_A , true);
+    TEST (std::is_base_of, struct_A, derived_protected_<struct_A>, true);
 
     // private inheritance
-    TEST (std::is_base_of, derived_private_<struct_A> , struct_A , true);
+    TEST (std::is_base_of, struct_A, derived_private_<struct_A>, true);
 
     // other combinations should fail
     TEST (std::is_base_of, signed char, char, false);
