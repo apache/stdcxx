@@ -127,7 +127,7 @@ public:
 
     template <class _HeadU, class... _TailU>
     __rw_tuple& operator= (__rw_tuple<_HeadU, _TailU...>&& __tuple) {
-        _Base::operator= (_RWSTD_FORWARD (_Base, __tuple._C_tail ()));
+        _Base::operator= (_RWSTD_MOVE (__tuple._C_tail ()));
         _C_data = _RWSTD_MOVE (__tuple._C_head ());
         return *this;
     }
@@ -174,7 +174,14 @@ public:
 };
 
 
-struct __rw_ignore { /* empty */ };
+struct __rw_ignore
+{
+    template <class _TypeT>
+    inline __rw_ignore const&
+    operator= (const _TypeT& /*unused*/) const {
+        return *this;
+    }
+};
 
 
 template <class _TypeT>

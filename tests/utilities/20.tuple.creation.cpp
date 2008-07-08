@@ -63,11 +63,23 @@ test_make_tuple ()
 
 /**************************************************************************/
 
+#include <cstring>
+
 static void
 test_tie ()
 {
     rw_info (0, __FILE__, __LINE__, "tie");
 
+    int i = 0; double d = 0.0; const char* s = 0;
+    std::tie (i, std::ignore, s)
+        = std::make_tuple (256, 3.14159, "string");
+
+    rw_assert (i == 256, __FILE__, __LINE__,
+               "i == 256, got false, expected true");
+    rw_assert (d == 0.0, __FILE__, __LINE__,
+               "d == 0.0, got false, expected true");
+    rw_assert (0 == std::strcmp (s, "string"), __FILE__, __LINE__,
+               "s == \"string\", got false, expected true");
 }
 
 /**************************************************************************/

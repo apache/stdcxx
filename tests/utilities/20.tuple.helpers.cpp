@@ -58,7 +58,7 @@ test_tuple_size ()
 
     TEST (PairTuple, 2);
 
-    TEST (BigTuple, BigListSize);
+    TEST (BigTuple, BIG_SIZE);
 }
 
 /**************************************************************************/
