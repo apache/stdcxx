@@ -15,7 +15,7 @@
     implied.   See  the License  for  the  specific language  governing
     permissions and limitations under the License.
 
-    Copyright 1999-2007 Rogue Wave Software, Inc.
+    Copyright 1999-2008 Rogue Wave Software, Inc.
 -->
 
 <HTML>
@@ -33,7 +33,7 @@
 
 <UL><PRE>
 std::istream_iterator&lt;int, char&gt; intstream(std::cin), eof;
-std::istream_iterator&lt;int, char&gt;::iterator where = 
+std::istream_iterator&lt;int, char&gt; where = 
          std::find(intstream, eof, 7);
 </PRE></UL>
 <P>The element denoted by an iterator for an input stream is valid only until the next element in the stream is requested. Also, since an input stream iterator is an input iterator, elements can only be accessed, not modified by assignment. Finally, elements can be accessed only once, and only in a forward moving direction.</P>
