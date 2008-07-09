@@ -397,7 +397,11 @@ void test_random_access_iterators (T, RandomAccessIterator)
 
     typedef RandomAccessIterator I;
 
+#if defined _RWSTD_NO_DEBUG_ITER
     RandomNumberGenerator<typename I::difference_type> rndgen;
+#else
+    RandomNumberGenerator<T> rndgen;
+#endif
 
     std::random_shuffle (I (), I ());
     std::random_shuffle (I (), I (), rndgen);
