@@ -177,10 +177,7 @@ public:
 struct __rw_ignore
 {
     template <class _TypeT>
-    inline __rw_ignore const&
-    operator= (const _TypeT& /*unused*/) const {
-        return *this;
-    }
+    void operator= (const _TypeT&) const {}
 };
 
 
