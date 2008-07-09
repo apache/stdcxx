@@ -35,7 +35,7 @@
 #include <cstring>              // for strcmp
 #include <tuple>
 
-#include <rw_valcmp.h>          // for rw_dblcmp
+#include <rw_valcmp.h>          // for rw_fltcmp
 
 #include "20.tuple.h"
 
@@ -135,7 +135,9 @@ verify_tuple (const BigTuple& bt)
     rw_assert (std::get<2> (bt) == INT_VALUE, __FILE__, __LINE__,
                "std::get<2> (bt), got %d, expected %d",
                std::get<2> (bt), INT_VALUE);
-    int result = rw_dblcmp (std::get<3> (bt), DBL_VALUE);
+    // compare as floats because floats promoted to doubles will not
+    // be equal even if the values are logically equal
+    int result = rw_fltcmp (std::get<3> (bt), DBL_VALUE);
     rw_assert (0 == result, __FILE__, __LINE__,
                "std::get<3> (bt), got %f, expected %f",
                std::get<3> (bt), DBL_VALUE);
