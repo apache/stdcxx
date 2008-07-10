@@ -200,5 +200,20 @@
 #  define _RWSTD_TT_MAX_ALIGNMENT           16
 #  define _RWSTD_TT_ALIGNED_POD(N) \
      struct { unsigned char _C_align __attribute__ ((aligned ((N)))); }
+
+#  ifdef __GXX_EXPERIMENTAL_CXX0X__
+     // enable C++ 0x features disabled in builds
+     // configured without -std=c++0x or -std=gnu++0x
+
+     // C++ 0x features supported since 4.3.0
+#    undef _RWSTD_NO_VARIADIC_TEMPLATES
+#    undef _RWSTD_NO_RVALUE_REFERENCES
+
+#    ifndef _RWSTD_EXT_CXX_0X
+       // enable our C++ 0x extensions in GNU gcc C++ 0x mode
+#      define _RWSTD_EXT_CXX_0X
+#    endif
+#  endif
+
 #endif   // __GNUC__ >= 4.3
 
