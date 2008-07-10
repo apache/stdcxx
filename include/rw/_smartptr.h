@@ -312,7 +312,7 @@ public:
         return _C_ptr;
     }
 
-    _TYPENAME _RW::__rw_nonvoid_ref<element_type>::_C_ref
+    typename _RW::__rw_nonvoid_ref<element_type>::_C_ref
     operator*() const {
         _RWSTD_ASSERT (0 != get ());
         return *get ();

@@ -81,7 +81,7 @@ class basic_string: private _Allocator
 public:
   
     typedef _Traits                               traits_type;
-    typedef _TYPENAME traits_type::char_type      value_type;
+    typedef typename traits_type::char_type      value_type;
     typedef _Allocator                            allocator_type;
 
     typedef _RW::__string_ref<value_type, traits_type, allocator_type>
@@ -92,12 +92,12 @@ public:
     typedef  _RWSTD_REBIND(allocator_type, _C_string_ref_type)  
         _C_ref_alloc_type;
 
-    typedef _TYPENAME allocator_type::size_type       size_type;
-    typedef _TYPENAME allocator_type::difference_type difference_type;
-    typedef _TYPENAME allocator_type::reference       reference;
-    typedef _TYPENAME allocator_type::const_reference const_reference;
-    typedef _TYPENAME allocator_type::pointer         pointer;
-    typedef _TYPENAME allocator_type::const_pointer   const_pointer;
+    typedef typename allocator_type::size_type       size_type;
+    typedef typename allocator_type::difference_type difference_type;
+    typedef typename allocator_type::reference       reference;
+    typedef typename allocator_type::const_reference const_reference;
+    typedef typename allocator_type::pointer         pointer;
+    typedef typename allocator_type::const_pointer   const_pointer;
 
 #ifndef _RWSTD_NO_DEBUG_ITER
 
@@ -928,7 +928,7 @@ _C_unlink (pointer __ptr)
 
 
 template <class _CharT, class _Traits, class _Alloc>
-inline _TYPENAME basic_string<_CharT, _Traits, _Alloc>::size_type
+inline typename basic_string<_CharT, _Traits, _Alloc>::size_type
 basic_string<_CharT, _Traits, _Alloc>::
 _C_grow (size_type __from, size_type __to) const
 {
@@ -958,7 +958,7 @@ basic_string (const basic_string<_CharT, _Traits, _Allocator> &__s)
 
 
 template <class _CharT, class _Traits , class _Allocator>
-inline _TYPENAME basic_string<_CharT, _Traits, _Allocator>::iterator
+inline typename basic_string<_CharT, _Traits, _Allocator>::iterator
 basic_string<_CharT, _Traits, _Allocator>::
 begin ()
 {
@@ -976,7 +976,7 @@ begin ()
 
 
 template <class _CharT, class _Traits , class _Allocator>
-inline _TYPENAME basic_string<_CharT, _Traits, _Allocator>::size_type
+inline typename basic_string<_CharT, _Traits, _Allocator>::size_type
 basic_string<_CharT, _Traits, _Allocator>::
 max_size () const
 {
@@ -1005,7 +1005,7 @@ erase (size_type __pos, size_type __n)
 
 
 template <class _CharT, class _Traits , class _Allocator>
-inline _TYPENAME basic_string<_CharT, _Traits, _Allocator>::const_reference 
+inline typename basic_string<_CharT, _Traits, _Allocator>::const_reference 
 basic_string<_CharT, _Traits, _Allocator>::
 operator[] (size_type __pos) const
 {
@@ -1024,7 +1024,7 @@ operator[] (size_type __pos) const
 
 
 template <class _CharT, class _Traits , class _Allocator>
-inline _TYPENAME basic_string<_CharT, _Traits, _Allocator>::reference
+inline typename basic_string<_CharT, _Traits, _Allocator>::reference
 basic_string<_CharT, _Traits, _Allocator>::
 operator[] (size_type __pos)
 {
@@ -1044,7 +1044,7 @@ operator[] (size_type __pos)
 
 
 template <class _CharT, class _Traits , class _Allocator>
-inline _TYPENAME basic_string<_CharT, _Traits, _Allocator>::const_reference
+inline typename basic_string<_CharT, _Traits, _Allocator>::const_reference
 basic_string<_CharT, _Traits, _Allocator>::
 at (size_type __pos) const
 {
@@ -1059,7 +1059,7 @@ at (size_type __pos) const
 
 
 template <class _CharT, class _Traits , class _Allocator>
-inline _TYPENAME basic_string<_CharT, _Traits, _Allocator>::reference
+inline typename basic_string<_CharT, _Traits, _Allocator>::reference
 basic_string<_CharT, _Traits, _Allocator>::
 at (size_type __pos)
 {
@@ -1153,7 +1153,7 @@ replace (size_type __pos1, size_type __n1, const basic_string &__str,
 
 
 template <class _CharT, class _Traits , class _Allocator>
-inline _TYPENAME basic_string<_CharT, _Traits, _Allocator>::size_type
+inline typename basic_string<_CharT, _Traits, _Allocator>::size_type
 basic_string<_CharT, _Traits, _Allocator>::
 find (value_type __c, size_type __pos) const
 {
@@ -1333,7 +1333,7 @@ inline bool
 operator== (const _CharT*                                    __lhs, 
             const basic_string<_CharT, _Traits, _Allocator>& __rhs)
 {
-    const _TYPENAME basic_string<_CharT, _Traits, _Allocator>::size_type
+    const typename basic_string<_CharT, _Traits, _Allocator>::size_type
         __n = _Traits::length (__lhs);
 
     // avoid using basic_string<>::compare() for efficiency
@@ -1528,7 +1528,7 @@ _RWSTD_NAMESPACE (__rw) {
 
 #  ifndef _RWSTD_NO_NONDEDUCED_CONTEXT
 #    define _RWSTD_STRING_SIZE_TYPE \
-            _TYPENAME _STD::basic_string<_CharT, _Traits, _Allocator>::size_type
+            typename _STD::basic_string<_CharT, _Traits, _Allocator>::size_type
 #  else
 #    define _RWSTD_STRING_SIZE_TYPE _RWSTD_SIZE_T
 #  endif   // _RWSTD_NO_NONDEDUCED_CONTEXT

@@ -99,9 +99,9 @@ class basic_filebuf: public basic_streambuf<_CharT, _Traits>
 public:
     typedef _CharT                          char_type;
     typedef _Traits                         traits_type;
-    typedef _TYPENAME traits_type::int_type int_type;
-    typedef _TYPENAME traits_type::pos_type pos_type;
-    typedef _TYPENAME traits_type::off_type off_type;
+    typedef typename traits_type::int_type int_type;
+    typedef typename traits_type::pos_type pos_type;
+    typedef typename traits_type::off_type off_type;
 
     // 27.8.1.2, p1
     basic_filebuf ()
@@ -292,7 +292,7 @@ inline basic_filebuf<_CharT, _Traits>::~basic_filebuf ()
 
 
 template<class _CharT, class _Traits>
-inline _TYPENAME basic_filebuf<_CharT, _Traits>::off_type
+inline typename basic_filebuf<_CharT, _Traits>::off_type
 basic_filebuf<_CharT, _Traits>::
 _C_crlf_extern_count (const char* __start, const char* __finish) const
 {
@@ -324,7 +324,7 @@ _C_crlf_extern_count (const char* __start, const char* __finish) const
 
 
 template<class _CharT, class _Traits>
-inline _TYPENAME basic_filebuf<_CharT, _Traits>::off_type
+inline typename basic_filebuf<_CharT, _Traits>::off_type
 basic_filebuf<_CharT, _Traits>::
 _C_crlf_intern_count (const char_type* __start,
                       const char_type* __finish) const
@@ -364,9 +364,9 @@ public:
 
     typedef _CharT                          char_type;
     typedef _Traits                         traits_type;
-    typedef _TYPENAME traits_type::int_type int_type;
-    typedef _TYPENAME traits_type::pos_type pos_type;
-    typedef _TYPENAME traits_type::off_type off_type;
+    typedef typename traits_type::int_type int_type;
+    typedef typename traits_type::pos_type pos_type;
+    typedef typename traits_type::off_type off_type;
 
     // NOTE: the ctors below pass the address of an unitialized
     //       member variable, _C_filebuf, to a base class ctor
@@ -465,9 +465,9 @@ public:
 
     typedef _CharT                          char_type;
     typedef _Traits                         traits_type;
-    typedef _TYPENAME traits_type::int_type int_type;
-    typedef _TYPENAME traits_type::pos_type pos_type;
-    typedef _TYPENAME traits_type::off_type off_type;
+    typedef typename traits_type::int_type int_type;
+    typedef typename traits_type::pos_type pos_type;
+    typedef typename traits_type::off_type off_type;
 
     // NOTE: the ctors below pass the address of an unitialized
     //       member variable, _C_filebuf, to a base class ctor
@@ -565,9 +565,9 @@ public:
 
     typedef _CharT                          char_type;
     typedef _Traits                         traits_type;
-    typedef _TYPENAME traits_type::int_type int_type;
-    typedef _TYPENAME traits_type::pos_type pos_type;
-    typedef _TYPENAME traits_type::off_type off_type;
+    typedef typename traits_type::int_type int_type;
+    typedef typename traits_type::pos_type pos_type;
+    typedef typename traits_type::off_type off_type;
 
     // NOTE: the ctors below pass the address of an unitialized
     //       member variable, _C_filebuf, to a base class ctor

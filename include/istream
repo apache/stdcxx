@@ -129,9 +129,9 @@ public:
 
     typedef _CharT                                    char_type;
     typedef _Traits                                   traits_type;
-    typedef _TYPENAME traits_type::int_type           int_type;
-    typedef _TYPENAME traits_type::pos_type           pos_type;
-    typedef _TYPENAME traits_type::off_type           off_type;
+    typedef typename traits_type::int_type           int_type;
+    typedef typename traits_type::pos_type           pos_type;
+    typedef typename traits_type::off_type           off_type;
       
     // 27.6.1.1.1, p1
     _EXPLICIT basic_istream (basic_streambuf<char_type, traits_type> *__sb)
@@ -362,7 +362,7 @@ private:
 
 
 template<class _CharT, class _Traits>
-inline _TYPENAME basic_istream<_CharT, _Traits>::int_type
+inline typename basic_istream<_CharT, _Traits>::int_type
 basic_istream<_CharT, _Traits>::
 get ()
 {
@@ -445,7 +445,7 @@ operator>>(basic_streambuf<char_type, traits_type> *__sb)
 
 
 template<class _CharT, class _Traits>
-inline _TYPENAME basic_istream<_CharT, _Traits>::int_type
+inline typename basic_istream<_CharT, _Traits>::int_type
 basic_istream<_CharT, _Traits>::peek ()
 {
     _RWSTD_ASSERT (0 != this->rdbuf ());
@@ -543,7 +543,7 @@ inline basic_istream<_CharT, _Traits>&
 ws (basic_istream<_CharT, _Traits> &__strm)
 {
     // construct a sentry to flush tied stream (if any) and lock
-    const _TYPENAME basic_istream<_CharT, _Traits>::sentry
+    const typename basic_istream<_CharT, _Traits>::sentry
         __ipfx (__strm, true /* noskipws */);
 
     // if sentry is okay, skip whitespace and set eofbit
@@ -572,9 +572,9 @@ public:
     // prevent ambiguity between types defined in the bases
     typedef _CharT                          char_type;
     typedef _Traits                         traits_type;
-    typedef _TYPENAME traits_type::int_type int_type;
-    typedef _TYPENAME traits_type::pos_type pos_type;
-    typedef _TYPENAME traits_type::off_type off_type;
+    typedef typename traits_type::int_type int_type;
+    typedef typename traits_type::pos_type pos_type;
+    typedef typename traits_type::off_type off_type;
 
     _EXPLICIT basic_iostream (basic_streambuf<_CharT, _Traits> *__sb)
         : basic_istream<_CharT, _Traits>(__sb), 

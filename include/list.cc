@@ -55,7 +55,7 @@ list<_TypeT, _Allocator>::
 
 
 template <class _TypeT, class _Allocator>
-_TYPENAME list<_TypeT, _Allocator>::iterator 
+typename list<_TypeT, _Allocator>::iterator 
 list<_TypeT, _Allocator>::erase (iterator __first, iterator __last)
 {
     _RWSTD_ASSERT_RANGE (begin (), __first);

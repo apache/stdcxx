@@ -90,16 +90,16 @@ private:
 
 public:
 
-    typedef _TYPENAME _C_repT::reference              reference;
-    typedef _TYPENAME _C_repT::const_reference        const_reference;
-    typedef _TYPENAME _C_repT::iterator               iterator;
-    typedef _TYPENAME _C_repT::const_iterator         const_iterator;
-    typedef _TYPENAME _C_repT::size_type              size_type;
-    typedef _TYPENAME _C_repT::difference_type        difference_type;
-    typedef _TYPENAME _C_repT::pointer                pointer;
-    typedef _TYPENAME _C_repT::const_pointer          const_pointer;
-    typedef _TYPENAME _C_repT::reverse_iterator       reverse_iterator;
-    typedef _TYPENAME _C_repT::const_reverse_iterator const_reverse_iterator;
+    typedef typename _C_repT::reference              reference;
+    typedef typename _C_repT::const_reference        const_reference;
+    typedef typename _C_repT::iterator               iterator;
+    typedef typename _C_repT::const_iterator         const_iterator;
+    typedef typename _C_repT::size_type              size_type;
+    typedef typename _C_repT::difference_type        difference_type;
+    typedef typename _C_repT::pointer                pointer;
+    typedef typename _C_repT::const_pointer          const_pointer;
+    typedef typename _C_repT::reverse_iterator       reverse_iterator;
+    typedef typename _C_repT::const_reverse_iterator const_reverse_iterator;
 
     struct value_compare: binary_function<value_type, value_type, bool> {
         // explicitly specified template arg-list below
@@ -298,16 +298,16 @@ private:
 
 public:
 
-    typedef _TYPENAME _C_repT::reference              reference;
-    typedef _TYPENAME _C_repT::const_reference        const_reference;
-    typedef _TYPENAME _C_repT::iterator               iterator;
-    typedef _TYPENAME _C_repT::const_iterator         const_iterator; 
-    typedef _TYPENAME _C_repT::size_type              size_type;
-    typedef _TYPENAME _C_repT::difference_type        difference_type;
-    typedef _TYPENAME _C_repT::pointer                pointer;
-    typedef _TYPENAME _C_repT::const_pointer          const_pointer; 
-    typedef _TYPENAME _C_repT::reverse_iterator       reverse_iterator;
-    typedef _TYPENAME _C_repT::const_reverse_iterator const_reverse_iterator;
+    typedef typename _C_repT::reference              reference;
+    typedef typename _C_repT::const_reference        const_reference;
+    typedef typename _C_repT::iterator               iterator;
+    typedef typename _C_repT::const_iterator         const_iterator; 
+    typedef typename _C_repT::size_type              size_type;
+    typedef typename _C_repT::difference_type        difference_type;
+    typedef typename _C_repT::pointer                pointer;
+    typedef typename _C_repT::const_pointer          const_pointer; 
+    typedef typename _C_repT::reverse_iterator       reverse_iterator;
+    typedef typename _C_repT::const_reverse_iterator const_reverse_iterator;
 
     struct value_compare: binary_function<value_type, value_type, bool> {
         // explicitly specified template arg-list below

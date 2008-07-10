@@ -335,98 +335,98 @@ struct is_convertible
 template <class _TypeT>
 struct remove_const
 {
-    typedef _TYPENAME _RW::__rw_remove_const<_TypeT>::type type;
+    typedef typename _RW::__rw_remove_const<_TypeT>::type type;
 };
 
 template <class _TypeT>
 struct remove_volatile
 {
-    typedef _TYPENAME _RW::__rw_remove_volatile<_TypeT>::type type;
+    typedef typename _RW::__rw_remove_volatile<_TypeT>::type type;
 };
 
 template <class _TypeT>
 struct remove_cv
 {
-    typedef _TYPENAME _RW::__rw_remove_cv<_TypeT>::type type;
+    typedef typename _RW::__rw_remove_cv<_TypeT>::type type;
 };
 
 template <class _TypeT>
 struct add_const
 {
-    typedef _TYPENAME _RW::__rw_add_const<_TypeT>::type type;
+    typedef typename _RW::__rw_add_const<_TypeT>::type type;
 };
 
 template <class _TypeT>
 struct add_volatile
 {
-    typedef _TYPENAME _RW::__rw_add_volatile<_TypeT>::type type;
+    typedef typename _RW::__rw_add_volatile<_TypeT>::type type;
 };
 
 template <class _TypeT>
 struct add_cv
 {
-    typedef _TYPENAME _RW::__rw_add_cv<_TypeT>::type type;
+    typedef typename _RW::__rw_add_cv<_TypeT>::type type;
 };
 
 template <class _TypeT>
 struct remove_reference
 {
-    typedef _TYPENAME _RW::__rw_remove_reference<_TypeT>::type type;
+    typedef typename _RW::__rw_remove_reference<_TypeT>::type type;
 };
 
 template <class _TypeT>
 struct add_lvalue_reference
 {
-    typedef _TYPENAME _RW::__rw_add_lvalue_reference<_TypeT>::type type;
+    typedef typename _RW::__rw_add_lvalue_reference<_TypeT>::type type;
 };
 
 template <class _TypeT>
 struct add_rvalue_reference
 {
-    typedef _TYPENAME _RW::__rw_add_rvalue_reference<_TypeT>::type type;
+    typedef typename _RW::__rw_add_rvalue_reference<_TypeT>::type type;
 };
 
 template <class _TypeT>
 struct make_signed
 {
-    typedef _TYPENAME _RW::__rw_make_signed<_TypeT>::type type;
+    typedef typename _RW::__rw_make_signed<_TypeT>::type type;
 };
 
 template <class _TypeT>
 struct make_unsigned
 {
-    typedef _TYPENAME _RW::__rw_make_unsigned<_TypeT>::type type;
+    typedef typename _RW::__rw_make_unsigned<_TypeT>::type type;
 };
 
 template <class _TypeT>
 struct remove_extent
 {
-    typedef _TYPENAME _RW::__rw_remove_extent<_TypeT>::type type;
+    typedef typename _RW::__rw_remove_extent<_TypeT>::type type;
 };
 
 template <class _TypeT>
 struct remove_all_extents
 {
-    typedef _TYPENAME _RW::__rw_remove_all_extents<_TypeT>::type type;
+    typedef typename _RW::__rw_remove_all_extents<_TypeT>::type type;
 };
 
 template <class _TypeT>
 struct remove_pointer
 {
-    typedef _TYPENAME _RW::__rw_remove_pointer<_TypeT>::type type;
+    typedef typename _RW::__rw_remove_pointer<_TypeT>::type type;
 };
 
 template <class _TypeT>
 struct add_pointer
 {
-    typedef _TYPENAME _RW::__rw_add_pointer<_TypeT>::type type;
+    typedef typename _RW::__rw_add_pointer<_TypeT>::type type;
 };
 
 template <_RWSTD_SIZE_T _Len,
           _RWSTD_SIZE_T _Align = _RW::__rw_default_alignment<_Len>::value>
 struct aligned_storage
 {
-    typedef _TYPENAME _RW::__rw_aligned_storage<_Len, _Align>::type type;
+    typedef typename _RW::__rw_aligned_storage<_Len, _Align>::type type;
 };
 
 #ifndef _RWSTD_NO_VARIADIC_TEMPLATES
@@ -456,7 +456,7 @@ struct aligned_union
 template <class _TypeT>
 struct decay
 {
-    typedef _TYPENAME _RW::__rw_decay<_TypeT>::type type;
+    typedef typename _RW::__rw_decay<_TypeT>::type type;
 };
 
 template <bool _Enable, class _TypeT = void>
@@ -473,7 +473,7 @@ struct enable_if<false, _TypeT>
 template <bool _Select, class _TypeT, class _TypeU>
 struct conditional
 {
-    typedef _TYPENAME
+    typedef typename
     _RW::__rw_conditional<_Select, _TypeT, _TypeU>::type type;
 };
 

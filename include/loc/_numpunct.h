@@ -136,7 +136,7 @@ _RW::__rw_facet_id numpunct<wchar_t>::id;
 
 
 template <class _CharT>
-inline _TYPENAME numpunct<_CharT>::char_type
+inline typename numpunct<_CharT>::char_type
 numpunct<_CharT>::decimal_point () const
 {
     if (!(_C_flags & _RW::__rw_dp)) {
@@ -154,7 +154,7 @@ numpunct<_CharT>::decimal_point () const
 
 
 template <class _CharT>
-inline _TYPENAME numpunct<_CharT>::char_type
+inline typename numpunct<_CharT>::char_type
 numpunct<_CharT>::thousands_sep () const
 {
     if (!(_C_flags & _RW::__rw_ts)) {
@@ -189,7 +189,7 @@ inline string numpunct<_CharT>::grouping () const
 
 
 template <class _CharT>
-inline _TYPENAME numpunct<_CharT>::string_type
+inline typename numpunct<_CharT>::string_type
 numpunct<_CharT>::truename () const
 {
     if (!(_C_flags & _RW::__rw_tn)) {
@@ -207,7 +207,7 @@ numpunct<_CharT>::truename () const
 
 
 template <class _CharT>
-inline _TYPENAME numpunct<_CharT>::string_type
+inline typename numpunct<_CharT>::string_type
 numpunct<_CharT>::falsename () const
 {
     if (!(_C_flags & _RW::__rw_fn)) {

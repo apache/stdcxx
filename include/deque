@@ -97,11 +97,11 @@ class __rw_deque_iter
 public:
 
     typedef _Allocator                               allocator_type;
-    typedef _TYPENAME allocator_type::size_type      size_type;
-    typedef _TYPENAME _C_iter_base::value_type       value_type;
-    typedef _TYPENAME _C_iter_base::difference_type  difference_type;
-    typedef _TYPENAME _C_iter_base::pointer          pointer;
-    typedef _TYPENAME _C_iter_base::reference        reference;
+    typedef typename allocator_type::size_type      size_type;
+    typedef typename _C_iter_base::value_type       value_type;
+    typedef typename _C_iter_base::difference_type  difference_type;
+    typedef typename _C_iter_base::pointer          pointer;
+    typedef typename _C_iter_base::reference        reference;
 
     typedef random_access_iterator_tag               iterator_category;
     
@@ -110,7 +110,7 @@ public:
     _C_mutable_iter;
 
     typedef _RWSTD_REBIND (allocator_type, value_type*) _C_node_alloc_type;
-    typedef _TYPENAME _C_node_alloc_type::pointer       _C_node_pointer;
+    typedef typename _C_node_alloc_type::pointer       _C_node_pointer;
 
     
     static size_type _C_bufsize () {
@@ -277,8 +277,8 @@ inline _DiffT
 operator- (const _RWSTD_DEQUE_ITER(1) &__x, const _RWSTD_DEQUE_ITER(2) &__y)
 {
     // _RWSTD_ASSERT_RANGE (__x, __y);
-    typedef _TYPENAME _RWSTD_DEQUE_ITER(1)::pointer _Pointer1;
-    typedef _TYPENAME _RWSTD_DEQUE_ITER(2)::pointer _Pointer2;
+    typedef typename _RWSTD_DEQUE_ITER(1)::pointer _Pointer1;
+    typedef typename _RWSTD_DEQUE_ITER(2)::pointer _Pointer2;
 
     if (_Pointer1 () == __x._C_cur && _Pointer2 () == __y._C_cur) {
         // __x and __y are end-iterator's of the empty deque's
@@ -356,12 +356,12 @@ public:
 
     typedef _TypeT                                    value_type;
     typedef _Allocator                                allocator_type;
-    typedef _TYPENAME allocator_type::size_type       size_type;
-    typedef _TYPENAME allocator_type::difference_type difference_type;
-    typedef _TYPENAME allocator_type::pointer         pointer;
-    typedef _TYPENAME allocator_type::const_pointer   const_pointer;
-    typedef _TYPENAME allocator_type::reference       reference;
-    typedef _TYPENAME allocator_type::const_reference const_reference;
+    typedef typename allocator_type::size_type       size_type;
+    typedef typename allocator_type::difference_type difference_type;
+    typedef typename allocator_type::pointer         pointer;
+    typedef typename allocator_type::const_pointer   const_pointer;
+    typedef typename allocator_type::reference       reference;
+    typedef typename allocator_type::const_reference const_reference;
 
     typedef _RWSTD_ALLOC_TYPE (allocator_type, value_type) _C_value_alloc_type;
 
@@ -374,7 +374,7 @@ public:
 
     typedef _RWSTD_REBIND (allocator_type, value_type*) _C_node_alloc_type;
 
-    typedef _TYPENAME _C_node_alloc_type::pointer       _C_node_pointer;
+    typedef typename _C_node_alloc_type::pointer       _C_node_pointer;
 
 #ifndef _RWSTD_NO_DEBUG_ITER
 

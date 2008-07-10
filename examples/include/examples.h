@@ -39,11 +39,6 @@
 #endif   // _RWSTD_NO_NAMESPACE
 
 
-#ifdef _RWSTD_NO_TYPENAME
-# define typename
-#endif   // _RWSTD_NO_TYPENAME
-
-
 #ifdef _RWSTD_NO_FOR_LOCAL_SCOPE
 #  define for if (0) ; else for
 #endif   // _RWSTD_NO_FOR_LOCAL_SCOPE

@@ -157,7 +157,7 @@ void test_auto_ptr (T*, const char *tname)
 
     // exercise 20.4.5, p2 - auto_ptr<> interface
 
-    typedef _TYPENAME std::auto_ptr<T>::element_type element_type;
+    typedef typename std::auto_ptr<T>::element_type element_type;
 
     // verify that element_type is the same as T
     element_type *elem = (T*)0;

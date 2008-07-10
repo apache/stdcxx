@@ -253,11 +253,11 @@ struct logical_not : unary_function<_TypeT, bool>
 // 20.3.5, p2
 template <class _Predicate>
 class unary_negate
-    : public unary_function<_TYPENAME _Predicate::argument_type, bool>
+    : public unary_function<typename _Predicate::argument_type, bool>
 {
     _Predicate _C_pred;
 public:
-    _RWSTD_UNARY_FUNCTION_TYPES (_TYPENAME _Predicate::argument_type, bool);
+    _RWSTD_UNARY_FUNCTION_TYPES (typename _Predicate::argument_type, bool);
 
     _EXPLICIT unary_negate (const _Predicate &__pred) : _C_pred (__pred) { }
 
@@ -278,14 +278,14 @@ inline unary_negate<_Predicate> not1 (const _Predicate &__pred)
 // 20.3.5, p4
 template <class _Predicate>
 class binary_negate
-    : public binary_function<_TYPENAME _Predicate::first_argument_type,
-                             _TYPENAME _Predicate::second_argument_type, bool>
+    : public binary_function<typename _Predicate::first_argument_type,
+                             typename _Predicate::second_argument_type, bool>
 {
     _Predicate _C_pred;
 public:
 
-    _RWSTD_BINARY_FUNCTION_TYPES (_TYPENAME _Predicate::first_argument_type,
-                                  _TYPENAME _Predicate::second_argument_type,
+    _RWSTD_BINARY_FUNCTION_TYPES (typename _Predicate::first_argument_type,
+                                  typename _Predicate::second_argument_type,
                                   bool);
 
     _EXPLICIT binary_negate (const _Predicate &__pred) : _C_pred (__pred) { }
@@ -310,19 +310,19 @@ inline binary_negate<_Predicate> not2 (const _Predicate &__pred)
 // 20.3.6.1
 template <class _Operation>
 class binder1st
-    : public unary_function<_TYPENAME _Operation::second_argument_type,
-                            _TYPENAME _Operation::result_type>
+    : public unary_function<typename _Operation::second_argument_type,
+                            typename _Operation::result_type>
 {
 protected:
     _Operation                                op;
-    _TYPENAME _Operation::first_argument_type value;
+    typename _Operation::first_argument_type value;
 public:
 
-    _RWSTD_UNARY_FUNCTION_TYPES (_TYPENAME _Operation::second_argument_type,
-                                 _TYPENAME _Operation::result_type);
+    _RWSTD_UNARY_FUNCTION_TYPES (typename _Operation::second_argument_type,
+                                 typename _Operation::result_type);
 
     binder1st (const _Operation                                &__oper,
-               const _TYPENAME _Operation::first_argument_type &__x)
+               const typename _Operation::first_argument_type &__x)
         : op (__oper), value (__x) { }
 
     result_type
@@ -337,7 +337,7 @@ template <class _Operation, class _TypeT>
 inline binder1st<_Operation>
 bind1st (const _Operation &__oper, const _TypeT &__x)
 {
-    typedef _TYPENAME _Operation::first_argument_type first_argument_type;
+    typedef typename _Operation::first_argument_type first_argument_type;
 
     return binder1st<_Operation>(__oper, first_argument_type (__x));
 }
@@ -346,19 +346,19 @@ bind1st (const _Operation &__oper, const _TypeT &__x)
 // 20.3.6.3
 template <class _Operation>
 class binder2nd
-    : public unary_function<_TYPENAME _Operation::first_argument_type,
-                            _TYPENAME _Operation::result_type>
+    : public unary_function<typename _Operation::first_argument_type,
+                            typename _Operation::result_type>
 {
 protected:
     _Operation                                 op;
-    _TYPENAME _Operation::second_argument_type value;
+    typename _Operation::second_argument_type value;
 public:
 
-    _RWSTD_UNARY_FUNCTION_TYPES (_TYPENAME _Operation::first_argument_type,
-                                 _TYPENAME _Operation::result_type);
+    _RWSTD_UNARY_FUNCTION_TYPES (typename _Operation::first_argument_type,
+                                 typename _Operation::result_type);
 
     binder2nd (const _Operation                                 &__oper,
-               const _TYPENAME _Operation::second_argument_type &__y)
+               const typename _Operation::second_argument_type &__y)
         : op (__oper), value (__y) { }
 
     result_type
@@ -373,7 +373,7 @@ template <class _Operation, class _TypeT>
 inline binder2nd<_Operation>
 bind2nd (const _Operation &__oper, const _TypeT &__x)
 {
-    typedef _TYPENAME _Operation::second_argument_type second_argument_type;
+    typedef typename _Operation::second_argument_type second_argument_type;
     return binder2nd<_Operation>(__oper, second_argument_type (__x));
 }
 

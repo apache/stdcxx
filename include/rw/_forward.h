@@ -59,14 +59,14 @@ struct identity
 
 template <class _TypeT>
 inline _TypeT&&
-forward (_TYPENAME identity<_TypeT>::type&& __x)
+forward (typename identity<_TypeT>::type&& __x)
 {
     return __x;
 }
 
 
 template <class _TypeT>
-inline _TYPENAME _RWSTD_REMOVE_REFERENCE(_TypeT)&&
+inline typename _RWSTD_REMOVE_REFERENCE(_TypeT)&&
 move (_TypeT&& __x)
 {
     return __x;

@@ -724,7 +724,7 @@ void test_elem_access (const std::bitset<N>*)
                        N, _j, test_set<N>(b).bits ());
 
             // exercise std::bitset<N>::reference
-            _TYPENAME std::bitset<N>::reference r = b [_j];
+            typename std::bitset<N>::reference r = b [_j];
 
             // std::bitset<N>::reference::flip()
             r.flip ();

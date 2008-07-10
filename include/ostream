@@ -63,9 +63,9 @@ class basic_ostream: virtual public basic_ios<_CharT, _Traits>
 public:
     typedef _CharT                             char_type;
     typedef _Traits                            traits_type;
-    typedef _TYPENAME traits_type::int_type    int_type;
-    typedef _TYPENAME traits_type::pos_type    pos_type;
-    typedef _TYPENAME traits_type::off_type    off_type;
+    typedef typename traits_type::int_type    int_type;
+    typedef typename traits_type::pos_type    pos_type;
+    typedef typename traits_type::off_type    off_type;
       
     typedef basic_ios<char_type, traits_type>  ios_type;
 

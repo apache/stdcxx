@@ -169,9 +169,9 @@ public:
     template <class _CharT, class _Traits, class _Allocator>
     _EXPLICIT
     bitset (const basic_string<_CharT, _Traits, _Allocator> &__str,
-            _TYPENAME basic_string<_CharT, _Traits,
+            typename basic_string<_CharT, _Traits,
                                    _Allocator>::size_type __pos = 0,
-            _TYPENAME basic_string<_CharT, _Traits,
+            typename basic_string<_CharT, _Traits,
                                    _Allocator>::size_type __n =
                                        _RWSTD_SIZE_MAX,
             _CharT __b0 = '0', _CharT __b1 = '1') {

@@ -169,7 +169,7 @@ _C_deallocate_buffers ()
 
 
 template <class _Key, class _Val, class _KeyOf, class _Comp, class _Alloc>
-_TYPENAME __rb_tree<_Key, _Val, _KeyOf, _Comp, _Alloc>::iterator
+typename __rb_tree<_Key, _Val, _KeyOf, _Comp, _Alloc>::iterator
 __rb_tree<_Key, _Val, _KeyOf, _Comp, _Alloc>::
 _C_insert (_C_link_t __x, _C_link_t __y, const value_type &__v)
 {
@@ -177,8 +177,8 @@ _C_insert (_C_link_t __x, _C_link_t __y, const value_type &__v)
     ++_C_size;
 
     // for notational convenience
-    const _TYPENAME _C_node_t::_C_color_t _Red   = _C_node_t::_C_red;
-    const _TYPENAME _C_node_t::_C_color_t _Black = _C_node_t::_C_black;
+    const typename _C_node_t::_C_color_t _Red   = _C_node_t::_C_red;
+    const typename _C_node_t::_C_color_t _Black = _C_node_t::_C_black;
     const _C_link_t                       _Null  = _C_link_t ();
 
     if (   __y == _C_end || _Null != __x
@@ -328,7 +328,7 @@ _C_insert (const value_type &__v, _STD::pair<iterator, bool> &__ret,
 
 
 template <class _Key, class _Val, class _KeyOf, class _Comp, class _Alloc>
-_TYPENAME __rb_tree<_Key, _Val, _KeyOf, _Comp, _Alloc>::iterator 
+typename __rb_tree<_Key, _Val, _KeyOf, _Comp, _Alloc>::iterator 
 __rb_tree<_Key, _Val, _KeyOf, _Comp, _Alloc>::
 insert (iterator __it, const value_type &__v, bool __dup)
 {
@@ -399,7 +399,7 @@ insert (iterator __it, const value_type &__v, bool __dup)
 
 
 template <class _Key, class _Val, class _KeyOf, class _Comp, class _Alloc>
-_TYPENAME __rb_tree<_Key, _Val, _KeyOf, _Comp, _Alloc>::iterator 
+typename __rb_tree<_Key, _Val, _KeyOf, _Comp, _Alloc>::iterator 
 __rb_tree<_Key, _Val, _KeyOf, _Comp, _Alloc>::erase (iterator __it)
 {
     _RWSTD_ASSERT_RANGE (begin (), __it);
@@ -422,8 +422,8 @@ __rb_tree<_Key, _Val, _KeyOf, _Comp, _Alloc>::erase (iterator __it)
         return end ();
 
     // for notational convenience
-    const _TYPENAME _C_node_t::_C_color_t _Red   = _C_node_t::_C_red;
-    const _TYPENAME _C_node_t::_C_color_t _Black = _C_node_t::_C_black;
+    const typename _C_node_t::_C_color_t _Red   = _C_node_t::_C_red;
+    const typename _C_node_t::_C_color_t _Black = _C_node_t::_C_black;
     const _C_link_t                       _Null  = _C_link_t ();
 
     // returned iterator pointing to the element just past `it'
@@ -762,7 +762,7 @@ __rb_tree<_Key, _Val, _KeyOf, _Comp, _Alloc>::erase (iterator __it)
 
 
 template <class _Key, class _Val, class _KeyOf, class _Comp, class _Alloc>
-_TYPENAME __rb_tree<_Key, _Val, _KeyOf, _Comp, _Alloc>::size_type 
+typename __rb_tree<_Key, _Val, _KeyOf, _Comp, _Alloc>::size_type 
 __rb_tree<_Key, _Val, _KeyOf, _Comp, _Alloc>::
 erase (const key_type &__x)
 {
@@ -777,7 +777,7 @@ erase (const key_type &__x)
 
 
 template <class _Key, class _Val, class _KeyOf, class _Comp, class _Alloc>
-_TYPENAME __rb_tree<_Key, _Val, _KeyOf, _Comp, _Alloc>::_C_link_t 
+typename __rb_tree<_Key, _Val, _KeyOf, _Comp, _Alloc>::_C_link_t 
 __rb_tree<_Key, _Val, _KeyOf, _Comp, _Alloc>::
 _C_copy (_C_link_t __x, _C_link_t __p)
 {
@@ -818,7 +818,7 @@ _C_erase (_C_link_t __x)
 
 
 template <class _Key, class _Val, class _KeyOf, class _Comp, class _Alloc>
-_TYPENAME __rb_tree<_Key, _Val, _KeyOf, _Comp, _Alloc>::iterator 
+typename __rb_tree<_Key, _Val, _KeyOf, _Comp, _Alloc>::iterator 
 __rb_tree<_Key, _Val, _KeyOf, _Comp, _Alloc>::
 erase (iterator __first, iterator __last)
 {
@@ -851,7 +851,7 @@ erase (iterator __first, iterator __last)
 
 
 template <class _Key, class _Val, class _KeyOf, class _Comp, class _Alloc>
-_TYPENAME __rb_tree<_Key, _Val, _KeyOf, _Comp, _Alloc>::iterator 
+typename __rb_tree<_Key, _Val, _KeyOf, _Comp, _Alloc>::iterator 
 __rb_tree<_Key, _Val, _KeyOf, _Comp, _Alloc>::
 find (const key_type &__k)
 {
@@ -863,7 +863,7 @@ find (const key_type &__k)
 
 
 template <class _Key, class _Val, class _KeyOf, class _Comp, class _Alloc>
-_TYPENAME __rb_tree<_Key, _Val, _KeyOf, _Comp, _Alloc>::iterator 
+typename __rb_tree<_Key, _Val, _KeyOf, _Comp, _Alloc>::iterator 
 __rb_tree<_Key, _Val, _KeyOf, _Comp, _Alloc>::
 lower_bound (const key_type &__k)
 {
@@ -884,7 +884,7 @@ lower_bound (const key_type &__k)
 
 
 template <class _Key, class _Val, class _KeyOf, class _Comp, class _Alloc>
-_TYPENAME __rb_tree<_Key, _Val, _KeyOf, _Comp, _Alloc>::iterator 
+typename __rb_tree<_Key, _Val, _KeyOf, _Comp, _Alloc>::iterator 
 __rb_tree<_Key, _Val, _KeyOf, _Comp, _Alloc>::
 upper_bound (const key_type &__k)
 {
@@ -904,12 +904,12 @@ upper_bound (const key_type &__k)
 
 
 template <class _Key, class _Val, class _KeyOf, class _Comp, class _Alloc>
-_TYPENAME __rb_tree<_Key, _Val, _KeyOf, _Comp, _Alloc>::size_type
+typename __rb_tree<_Key, _Val, _KeyOf, _Comp, _Alloc>::size_type
 __rb_tree<_Key, _Val, _KeyOf, _Comp, _Alloc>::
 _C_depth (const_iterator __it, size_type *__rank /* = 0 */) const
 {
     // for notational convenience
-    const _TYPENAME _C_node_t::_C_color_t _Black = _C_node_t::_C_black;
+    const typename _C_node_t::_C_color_t _Black = _C_node_t::_C_black;
     const _C_link_t                       _Null  = _C_link_t ();
 
     const _C_link_t __node = _ITER_NODE (__it);
@@ -919,7 +919,7 @@ _C_depth (const_iterator __it, size_type *__rank /* = 0 */) const
 
 #ifdef _RWSTDDEBUG
 
-    const _TYPENAME _C_node_t::_C_color_t _Red = _C_node_t::_C_red;
+    const typename _C_node_t::_C_color_t _Red = _C_node_t::_C_red;
 
     if (_Red == __node->_C_color) {
 
@@ -975,7 +975,7 @@ _C_depth (const_iterator __it, size_type *__rank /* = 0 */) const
 
 
 template <class _Key, class _Val, class _KeyOf, class _Comp, class _Alloc>
-_TYPENAME __rb_tree<_Key, _Val, _KeyOf, _Comp, _Alloc>::size_type
+typename __rb_tree<_Key, _Val, _KeyOf, _Comp, _Alloc>::size_type
 __rb_tree<_Key, _Val, _KeyOf, _Comp, _Alloc>::
 _C_level (const_iterator __it) const
 {

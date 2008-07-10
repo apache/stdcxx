@@ -57,7 +57,7 @@ struct is_char<char>
 // this function should available _only_ if T is char
 template <class T>
 int
-enabled_if_char (_TYPENAME std::enable_if<is_char<T>::val>::type* = 0)
+enabled_if_char (typename std::enable_if<is_char<T>::val>::type* = 0)
 {
     return 1;
 }
@@ -65,7 +65,7 @@ enabled_if_char (_TYPENAME std::enable_if<is_char<T>::val>::type* = 0)
 // this function should be available if T is _not_ char
 template <class T>
 int
-enabled_if_char (_TYPENAME std::enable_if<!is_char<T>::val>::type* = 0)
+enabled_if_char (typename std::enable_if<!is_char<T>::val>::type* = 0)
 {
     return 0;
 }

@@ -334,7 +334,7 @@ void
 __rw_assign_range (vector<_TypeT, _Allocator> *__self,
                    _InputIter __first, _InputIter __last, input_iterator_tag)
 {
-    typedef _TYPENAME vector<_TypeT, _Allocator>::iterator iterator;
+    typedef typename vector<_TypeT, _Allocator>::iterator iterator;
 
 #endif   // _RWSTD_NO_MEMBER_TEMPLATES
 
@@ -400,13 +400,13 @@ void
 __rw_assign_range (vector<_TypeT, _Allocator> *__self,
                    _FwdIter __first, _FwdIter __last, forward_iterator_tag)
 {
-    typedef _TYPENAME vector<_TypeT, _Allocator>::value_type value_type;
-    typedef _TYPENAME vector<_TypeT, _Allocator>::allocator_type
+    typedef typename vector<_TypeT, _Allocator>::value_type value_type;
+    typedef typename vector<_TypeT, _Allocator>::allocator_type
         allocator_type;
-    typedef _TYPENAME vector<_TypeT, _Allocator>::_C_value_alloc_type
+    typedef typename vector<_TypeT, _Allocator>::_C_value_alloc_type
         _C_value_alloc_type;
-    typedef _TYPENAME vector<_TypeT, _Allocator>::size_type size_type;
-    typedef _TYPENAME vector<_TypeT, _Allocator>::iterator  iterator;
+    typedef typename vector<_TypeT, _Allocator>::size_type size_type;
+    typedef typename vector<_TypeT, _Allocator>::iterator  iterator;
 
 #endif   // _RWSTD_NO_MEMBER_TEMPLATES
 
@@ -494,11 +494,11 @@ void
 __rw_insert_range (vector<_TypeT, _Allocator> *__self, _VectorIter __it,
                    _InputIter __first, _InputIter __last, input_iterator_tag)
 {
-    typedef _TYPENAME vector<_TypeT, _Allocator>::value_type value_type;
-    typedef _TYPENAME vector<_TypeT, _Allocator>::allocator_type
+    typedef typename vector<_TypeT, _Allocator>::value_type value_type;
+    typedef typename vector<_TypeT, _Allocator>::allocator_type
         allocator_type;
-    typedef _TYPENAME vector<_TypeT, _Allocator>::size_type size_type;
-    typedef _TYPENAME vector<_TypeT, _Allocator>::pointer   pointer;
+    typedef typename vector<_TypeT, _Allocator>::size_type size_type;
+    typedef typename vector<_TypeT, _Allocator>::pointer   pointer;
 
 #endif   // _RWSTD_NO_MEMBER_TEMPLATES
 
@@ -596,14 +596,14 @@ __rw_insert_range (vector<_TypeT, _Allocator> *__self,  _VectorIter __it,
                    _FwdIter __first, _FwdIter __last,
                    forward_iterator_tag)
 {
-    typedef _TYPENAME vector<_TypeT, _Allocator>::value_type value_type;
-    typedef _TYPENAME vector<_TypeT, _Allocator>::allocator_type
+    typedef typename vector<_TypeT, _Allocator>::value_type value_type;
+    typedef typename vector<_TypeT, _Allocator>::allocator_type
         allocator_type;
-    typedef _TYPENAME vector<_TypeT, _Allocator>::_C_value_alloc_type
+    typedef typename vector<_TypeT, _Allocator>::_C_value_alloc_type
         _C_value_alloc_type;
-    typedef _TYPENAME vector<_TypeT, _Allocator>::size_type size_type;
-    typedef _TYPENAME vector<_TypeT, _Allocator>::pointer pointer;
-    typedef _TYPENAME vector<_TypeT, _Allocator>::iterator iterator;
+    typedef typename vector<_TypeT, _Allocator>::size_type size_type;
+    typedef typename vector<_TypeT, _Allocator>::pointer pointer;
+    typedef typename vector<_TypeT, _Allocator>::iterator iterator;
 
 #endif   // _RWSTD_NO_MEMBER_TEMPLATES
 

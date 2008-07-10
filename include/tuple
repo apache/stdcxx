@@ -294,10 +294,10 @@ const _RW::__rw_ignore ignore = _RW::__rw_ignore ();
 #    if !defined _RWSTD_NO_RVALUE_REFERENCES
 
 template <class... _TypesT>
-inline tuple<_TYPENAME _RW::__rw_make_tuple<_TypesT>::_C_type...>
+inline tuple<typename _RW::__rw_make_tuple<_TypesT>::_C_type...>
 make_tuple (_TypesT&&... __values)
 {
-    typedef tuple<_TYPENAME _RW::__rw_make_tuple<_TypesT>::_C_type...> _Tuple;
+    typedef tuple<typename _RW::__rw_make_tuple<_TypesT>::_C_type...> _Tuple;
     return _Tuple (_RWSTD_FORWARD (_TypesT, __values)...);
 }
 
@@ -359,9 +359,9 @@ struct tuple_element<0, tuple<_Head, _Tail...> >
 
     typedef _RW::__rw_tuple<_Head, _Tail...>    _Tuple;
 
-    typedef _TYPENAME _RWSTD_ADD_LVALUE_REFERENCE (_Head)       _Ref;
-    typedef _TYPENAME _RWSTD_ADD_CONST (_Head)                  _ConstHead;
-    typedef _TYPENAME _RWSTD_ADD_LVALUE_REFERENCE (_ConstHead)  _ConstRef;
+    typedef typename _RWSTD_ADD_LVALUE_REFERENCE (_Head)       _Ref;
+    typedef typename _RWSTD_ADD_CONST (_Head)                  _ConstHead;
+    typedef typename _RWSTD_ADD_LVALUE_REFERENCE (_ConstHead)  _ConstRef;
 
     static _Ref
     _C_get (_Tuple& __tuple) { return __tuple._C_head (); }
@@ -381,7 +381,7 @@ struct tuple_element<_Index, tuple<_Head, _Tail...> >
 // 20.3.1.5, element access:
 
 template <_RWSTD_SIZE_T _Index, class _Head, class... _Tail>
-inline _TYPENAME tuple_element<_Index, tuple<_Head, _Tail...> >::_Ref
+inline typename tuple_element<_Index, tuple<_Head, _Tail...> >::_Ref
 get (tuple<_Head, _Tail...>& __tuple)
 {
     typedef tuple_element<_Index, tuple<_Head, _Tail...> > _Tuple;
@@ -389,7 +389,7 @@ get (tuple<_Head, _Tail...>& __tuple)
 }
 
 template <_RWSTD_SIZE_T _Index, class _Head, class... _Tail>
-inline _TYPENAME tuple_element<_Index, tuple<_Head, _Tail...> >::_ConstRef
+inline typename tuple_element<_Index, tuple<_Head, _Tail...> >::_ConstRef
 get (const tuple<_Head, _Tail...>& __tuple)
 {
     typedef tuple_element<_Index, tuple<_Head, _Tail...> > _Tuple;

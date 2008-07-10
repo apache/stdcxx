@@ -1188,10 +1188,6 @@
      the  public library  header  <new> do  not  include the  required
      exception specifications.
 
-  o  _RWSTD_NO_TYPENAME [auto]
-
-     #defined when they keyword typename isn't fully supported.
-
   o  _RWSTD_NO_COLLAPSE_STATIC_LOCALS [auto]
 
      #defined when  the compiler/linker fail to  collapse static local

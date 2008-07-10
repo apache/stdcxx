@@ -55,7 +55,7 @@ do_close (messages_base::catalog __cat) const
 
 
 template <class _CharT>
-_TYPENAME messages<_CharT>::string_type
+typename messages<_CharT>::string_type
 messages<_CharT>::do_get (messages_base::catalog __cat,
                           int                    __set,
                           int                    __msgid,
@@ -67,7 +67,7 @@ messages<_CharT>::do_get (messages_base::catalog __cat,
         typedef _STD::codecvt<_CharT, char, _RWSTD_MBSTATE_T>
             _CodeCvt;
 
-        typedef _TYPENAME _CodeCvt::state_type state_type;
+        typedef typename _CodeCvt::state_type state_type;
 
         const _CodeCvt& __codecvt =
             _RWSTD_USE_FACET (_CodeCvt, _RW::__rw_get_locale (__cat));

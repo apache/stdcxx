@@ -103,9 +103,9 @@ public:
     typedef _Traits                         traits_type;
     typedef _Allocator                      allocator_type;   // lwg issue 251
 
-    typedef _TYPENAME traits_type::int_type int_type;
-    typedef _TYPENAME traits_type::pos_type pos_type;
-    typedef _TYPENAME traits_type::off_type off_type;
+    typedef typename traits_type::int_type int_type;
+    typedef typename traits_type::pos_type pos_type;
+    typedef typename traits_type::off_type off_type;
 
     _EXPLICIT
     basic_stringbuf (ios_base::openmode __mode = _RW::__rw_in_out)
@@ -259,9 +259,9 @@ public:
     typedef _Traits                          traits_type;
     typedef _Allocator                       allocator_type;
 
-    typedef _TYPENAME traits_type::int_type  int_type;
-    typedef _TYPENAME traits_type::pos_type  pos_type;
-    typedef _TYPENAME traits_type::off_type  off_type;
+    typedef typename traits_type::int_type  int_type;
+    typedef typename traits_type::pos_type  pos_type;
+    typedef typename traits_type::off_type  off_type;
   
     _EXPLICIT
     basic_istringstream (ios_base::openmode __mode = ios_base::in)
@@ -327,9 +327,9 @@ public:
     typedef _Traits                         traits_type;
     typedef _Allocator                      allocator_type;
 
-    typedef _TYPENAME traits_type::int_type int_type;
-    typedef _TYPENAME traits_type::pos_type pos_type;
-    typedef _TYPENAME traits_type::off_type off_type;
+    typedef typename traits_type::int_type int_type;
+    typedef typename traits_type::pos_type pos_type;
+    typedef typename traits_type::off_type off_type;
 
     // NOTE: the constructors pass the address of a yet uninitialized
     //       data member to the constructor of the base class
@@ -397,9 +397,9 @@ public:
     typedef _Traits                         traits_type;
     typedef _Allocator                      allocator_type;
 
-    typedef _TYPENAME traits_type::int_type int_type;
-    typedef _TYPENAME traits_type::pos_type pos_type;
-    typedef _TYPENAME traits_type::int_type off_type;
+    typedef typename traits_type::int_type int_type;
+    typedef typename traits_type::pos_type pos_type;
+    typedef typename traits_type::int_type off_type;
 
     _EXPLICIT
     basic_stringstream (ios_base::openmode __mode = _RW::__rw_in_out)

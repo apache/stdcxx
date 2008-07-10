@@ -202,8 +202,8 @@ struct __rw_deduce_ref<const _STD::reference_wrapper<_TypeT> >
 template <class _TypeT>
 struct __rw_make_tuple
 {
-    typedef _TYPENAME _RWSTD_DECAY (_TypeT)                 _C_decay;
-    typedef _TYPENAME __rw_deduce_ref<_C_decay>::_C_type    _C_type;
+    typedef typename _RWSTD_DECAY (_TypeT)                 _C_decay;
+    typedef typename __rw_deduce_ref<_C_decay>::_C_type    _C_type;
 };
 
 

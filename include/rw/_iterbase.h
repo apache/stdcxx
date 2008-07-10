@@ -57,11 +57,11 @@ _RWSTD_NAMESPACE (std) {
 template <class _Iterator>
 struct iterator_traits
 {
-    typedef _TYPENAME _Iterator::value_type        value_type;
-    typedef _TYPENAME _Iterator::difference_type   difference_type;
-    typedef _TYPENAME _Iterator::pointer           pointer;
-    typedef _TYPENAME _Iterator::reference         reference;
-    typedef _TYPENAME _Iterator::iterator_category iterator_category;
+    typedef typename _Iterator::value_type        value_type;
+    typedef typename _Iterator::difference_type   difference_type;
+    typedef typename _Iterator::pointer           pointer;
+    typedef typename _Iterator::reference         reference;
+    typedef typename _Iterator::iterator_category iterator_category;
 };
 
 
@@ -128,7 +128,7 @@ inline _Category
 __iterator_category (const iterator<_Category, _TypeT,
                                     _Distance, _Pointer, _Reference>&)
 {
-    typedef _TYPENAME iterator<_Category, _TypeT, _Distance, _TypeT*,
+    typedef typename iterator<_Category, _TypeT, _Distance, _TypeT*,
                                _TypeT&>::iterator_category _IterCategory;
 
     return _IterCategory ();
@@ -187,7 +187,7 @@ inline bool __is_random_access_iterator (random_access_iterator_tag)
 #ifndef _RWSTD_NO_CLASS_PARTIAL_SPEC
 
 template <class _Iterator>
-inline _TYPENAME iterator_traits<_Iterator>::value_type*
+inline typename iterator_traits<_Iterator>::value_type*
 __value_type (const _Iterator*)
 { 
     return 0;
@@ -216,7 +216,7 @@ inline _TypeT* __value_type (const _TypeT* const*)
 #ifndef _RWSTD_NO_CLASS_PARTIAL_SPEC
 
 template <class _Iterator>
-inline _TYPENAME iterator_traits<_Iterator>::difference_type*
+inline typename iterator_traits<_Iterator>::difference_type*
 __distance_type (_Iterator)
 { 
     return 0;
@@ -337,10 +337,10 @@ inline void __distance (const _RandomAccessIterator &__first,
 
 // 24.3.4, p4
 template <class _ForwardIterator>
-inline _TYPENAME iterator_traits<_ForwardIterator>::difference_type
+inline typename iterator_traits<_ForwardIterator>::difference_type
 distance (_ForwardIterator __first, _ForwardIterator __last)
 {
-    _TYPENAME iterator_traits<_ForwardIterator>::difference_type __n = 0;
+    typename iterator_traits<_ForwardIterator>::difference_type __n = 0;
 
     __distance (__first, __last, __n,
                 _RWSTD_ITERATOR_CATEGORY (_ForwardIterator, __first));
@@ -408,11 +408,11 @@ class __rw_debug_iter
 
 public:
 
-    typedef _TYPENAME traits_type::value_type         value_type;
-    typedef _TYPENAME traits_type::difference_type    difference_type;
-    typedef _TYPENAME traits_type::reference          reference;
-    typedef _TYPENAME traits_type::pointer            pointer;
-    typedef _TYPENAME traits_type::iterator_category  iterator_category;
+    typedef typename traits_type::value_type         value_type;
+    typedef typename traits_type::difference_type    difference_type;
+    typedef typename traits_type::reference          reference;
+    typedef typename traits_type::pointer            pointer;
+    typedef typename traits_type::iterator_category  iterator_category;
 
     typedef __rw_debug_iter <container_type, _MutableIterator,
                              _MutableIterator>        _C_mutable_iterator;
@@ -584,7 +584,7 @@ _RWSTD_NAMESPACE (std) {
 
 
 #ifndef _RWSTD_NO_NONDEDUCED_CONTEXT
-# define _RWSTD_CONT_DIFF_TYPE _TYPENAME _Cont::difference_type 
+# define _RWSTD_CONT_DIFF_TYPE typename _Cont::difference_type 
 #else
 # define _RWSTD_CONT_DIFF_TYPE _RWSTD_PTRDIFF_T 
 #endif
@@ -615,7 +615,7 @@ operator+ (_RWSTD_CONT_DIFF_TYPE                               __n,
 // and non-const iterators, respectively (allows symmetry)
 
 template <class _Cont, class _Iter1, class _Iter2, class _MutIter>
-inline _TYPENAME _Cont::difference_type
+inline typename _Cont::difference_type
 operator- (const _RW::__rw_debug_iter<_Cont, _Iter1, _MutIter> &__x,
            const _RW::__rw_debug_iter<_Cont, _Iter2, _MutIter> &__y)
 {

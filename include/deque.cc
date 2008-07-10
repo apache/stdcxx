@@ -67,7 +67,7 @@ operator= (const deque &__rhs)
 
 
 template <class _TypeT, class _Allocator>
-_TYPENAME deque<_TypeT, _Allocator>::iterator 
+typename deque<_TypeT, _Allocator>::iterator 
 deque<_TypeT, _Allocator>::
 insert (iterator __it, const_reference __x)
 {
@@ -108,7 +108,7 @@ insert (iterator __it, const_reference __x)
 
 
 template <class _TypeT, class _Allocator>
-_TYPENAME deque<_TypeT, _Allocator>::iterator 
+typename deque<_TypeT, _Allocator>::iterator 
 deque<_TypeT, _Allocator>::
 erase (iterator __it)
 {
@@ -138,7 +138,7 @@ erase (iterator __it)
     
 
 template <class _TypeT, class _Allocator>
-_TYPENAME deque<_TypeT, _Allocator>::iterator 
+typename deque<_TypeT, _Allocator>::iterator 
 deque<_TypeT, _Allocator>::
 erase (iterator __first, iterator __last)
 {
@@ -537,7 +537,7 @@ __rw_assign_range (deque<_TypeT, _Allocator> *__self,
                    _InputIter __first, _InputIter __last, input_iterator_tag)
 {
     typedef deque<_TypeT, _Allocator> _Deque;
-    typedef _TYPENAME _Deque::iterator iterator;
+    typedef typename _Deque::iterator iterator;
     
 #endif   // _RWSTD_NO_MEMBER_TEMPLATES
 
@@ -692,9 +692,9 @@ __rw_insert_range (deque<_TypeT, _Allocator> *__self, _DequeIter __it,
 
 {
     typedef deque<_TypeT, _Allocator>         _Deque;
-    typedef _TYPENAME _Deque::difference_type difference_type;
-    typedef _TYPENAME _Deque::size_type       size_type;
-    typedef _TYPENAME _Deque::iterator        iterator;
+    typedef typename _Deque::difference_type difference_type;
+    typedef typename _Deque::size_type       size_type;
+    typedef typename _Deque::iterator        iterator;
 
 #endif   // _RWSTD_NO_MEMBER_TEMPLATES
 

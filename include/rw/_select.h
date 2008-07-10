@@ -89,7 +89,7 @@ _RWSTD_SPECIALIZE_IS_INT (wchar_t);
 
 #if !defined (__SUNPRO_CC) || __SUNPRO_CC > 0x530
 #  define _RWSTD_DISPATCH(iter)   \
-       (_TYPENAME _RW::__rw_select_int< iter >::_SelectT (1))
+       (typename _RW::__rw_select_int< iter >::_SelectT (1))
 
 #else
    // working around a SunPro 5.3 a prior bug (PR #28739)
@@ -141,7 +141,7 @@ struct __rw_same_type
     enum { _C_val = sizeof (test (_C_Type<_TypeT> (),
                                   _C_Type<_TypeU> ())) == sizeof (_C_yes) };
 
-    typedef _TYPENAME __rw_bool_t<_C_val>::_C_type _C_type;
+    typedef typename __rw_bool_t<_C_val>::_C_type _C_type;
 };
 
 #endif   // _RWSTD_NO_CLASS_PARTIAL_SPEC
