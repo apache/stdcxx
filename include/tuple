@@ -86,7 +86,7 @@ public:
         return *this;
     }
 
-    _EXPLICIT
+    explicit
     tuple (const _TypesT&... __values)
         : _Base (__values...) { /* empty */ }
 
@@ -111,7 +111,7 @@ public:
     }
 
     template <class... _TypesU>
-    _EXPLICIT tuple (_TypesU&&... __values)
+    explicit tuple (_TypesU&&... __values)
         : _Base (_RWSTD_FORWARD (_TypesU, __values)...) { /* empty */ }
 
     template <class... _TypesU>
@@ -184,7 +184,7 @@ public:
         return *this;
     }
 
-    _EXPLICIT
+    explicit
     tuple (const _TypeT1& __x, const _TypeT2& __y)
         : _Base (__x, __y) { /* empty */ }
 
@@ -211,7 +211,7 @@ public:
 #    if !defined _RWSTD_NO_RVALUE_REFERENCES
 
     template <class _TypeU1, class _TypeU2>
-    _EXPLICIT tuple (_TypeU1&& __x, _TypeU2&& __y)
+    explicit tuple (_TypeU1&& __x, _TypeU2&& __y)
         : _Base (_RWSTD_FORWARD (_TypeU1, __x),
                  _RWSTD_FORWARD (_TypeU2, __y)) { /* empty */ }
 

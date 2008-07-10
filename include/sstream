@@ -107,18 +107,18 @@ public:
     typedef typename traits_type::pos_type pos_type;
     typedef typename traits_type::off_type off_type;
 
-    _EXPLICIT
+    explicit
     basic_stringbuf (ios_base::openmode __mode = _RW::__rw_in_out)
         : basic_streambuf<char_type, traits_type>(__mode) {
         this->_C_own_buf (true);
     }
 
-    _EXPLICIT
+    explicit
     basic_stringbuf (const _C_string_type&,
                      ios_base::openmode = _RW::__rw_in_out);
 
     // undetectable extension
-    _EXPLICIT
+    explicit
     basic_stringbuf (const char_type*,
                      ios_base::openmode = _RW::__rw_in_out);
 
@@ -263,19 +263,19 @@ public:
     typedef typename traits_type::pos_type  pos_type;
     typedef typename traits_type::off_type  off_type;
   
-    _EXPLICIT
+    explicit
     basic_istringstream (ios_base::openmode __mode = ios_base::in)
         : basic_istream<char_type, traits_type>(rdbuf ()),
           _C_sb (__mode | ios_base::in) { }
 
-    _EXPLICIT
+    explicit
     basic_istringstream (const _C_string_type& __str, 
                          ios_base::openmode __mode = ios_base::in)
         : basic_istream<char_type, traits_type>(rdbuf ()),
           _C_sb (__str, __mode | ios_base::in) { }
 
     // undetectable extension
-    _EXPLICIT
+    explicit
     basic_istringstream (const char_type   * __s, 
                          ios_base::openmode __mode = ios_base::in)
         : basic_istream<char_type, traits_type>(rdbuf ()),
@@ -333,19 +333,19 @@ public:
 
     // NOTE: the constructors pass the address of a yet uninitialized
     //       data member to the constructor of the base class
-    _EXPLICIT
+    explicit
     basic_ostringstream (ios_base::openmode __mode = ios_base::out)
         : basic_ostream<char_type, traits_type> (rdbuf ()),
           _C_sb (__mode | ios_base::out) { }
         
-    _EXPLICIT
+    explicit
     basic_ostringstream (const _C_string_type  &__str, 
                          ios_base::openmode  __mode = ios_base::out)
         : basic_ostream<char_type, traits_type>(rdbuf ()),
           _C_sb (__str, __mode | ios_base::out) { }
 
     // undetectable extension
-    _EXPLICIT
+    explicit
     basic_ostringstream (const char_type    *__s, 
                          ios_base::openmode  __mode = ios_base::out)
         : basic_ostream<char_type, traits_type>(rdbuf ()),
@@ -401,19 +401,19 @@ public:
     typedef typename traits_type::pos_type pos_type;
     typedef typename traits_type::int_type off_type;
 
-    _EXPLICIT
+    explicit
     basic_stringstream (ios_base::openmode __mode = _RW::__rw_in_out)
         : basic_iostream<char_type, traits_type>(rdbuf ()),
           _C_sb (__mode) { }
 
-    _EXPLICIT
+    explicit
     basic_stringstream (const _C_string_type &__str,
                         ios_base::openmode __mode = _RW::__rw_in_out)
         : basic_iostream<char_type, traits_type>(rdbuf ()),
           _C_sb (__str, __mode) { }
 
     // undetectable extension
-    _EXPLICIT
+    explicit
     basic_stringstream (const char_type    *__s, 
                         ios_base::openmode __mode = _RW::__rw_in_out)
         : basic_iostream<char_type, traits_type>(rdbuf ()),

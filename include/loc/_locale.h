@@ -175,7 +175,7 @@ struct _RWSTD_CLASS_EXPORT locale
     _RWSTD_MEMBER_EXPORT locale (const locale&) _THROWS (());
 
     // 22.1.1.2, p6
-    _RWSTD_MEMBER_EXPORT _EXPLICIT locale (const char*);
+    _RWSTD_MEMBER_EXPORT explicit locale (const char*);
 
     // 22.1.1.2, p9
     _RWSTD_MEMBER_EXPORT locale (const locale&, const char*, category);
@@ -280,7 +280,7 @@ struct _RWSTD_CLASS_EXPORT locale
 
 private:
 
-    _RWSTD_MEMBER_EXPORT _EXPLICIT locale (_RW::__rw_locale &__rhs) 
+    _RWSTD_MEMBER_EXPORT explicit locale (_RW::__rw_locale &__rhs) 
         _THROWS (())
         : _C_body (&__rhs) { }
 

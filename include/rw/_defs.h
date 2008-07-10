@@ -494,13 +494,6 @@
 #endif // _RWSTD_NO_BOOL
 
 
-#ifndef _RWSTD_NO_EXPLICIT
-#  define _EXPLICIT   explicit
-#else
-#  define _EXPLICIT   /* empty */
-#endif
-
-
 #ifndef _RWSTD_NO_EXPORT
 #  define _EXPORT   export
 #else

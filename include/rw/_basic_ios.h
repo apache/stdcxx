@@ -90,7 +90,7 @@ public:
 
     // 27.4.4.1, p1 - NOTE: `sb' may point to a yet uninitialized
     //  object; it is unsafe to reference any of its members
-    _EXPLICIT basic_ios (streambuf_type *__sb) {
+    explicit basic_ios (streambuf_type *__sb) {
         init (__sb);
     }
 

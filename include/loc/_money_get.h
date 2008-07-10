@@ -58,7 +58,7 @@ struct money_get: _RW::__rw_facet
     basic_string<char_type, char_traits<char_type>, allocator<char_type> >
     string_type;
 
-    _EXPLICIT money_get (_RWSTD_SIZE_T __ref = 0)
+    explicit money_get (_RWSTD_SIZE_T __ref = 0)
         : _RW::__rw_facet (__ref) { }
 
     iter_type get (iter_type __begin, iter_type __end, bool __intl,

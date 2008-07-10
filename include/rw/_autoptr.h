@@ -129,7 +129,7 @@ public:
     typedef _TypeT element_type;
 
     // 20.4.5.1, p1
-    _EXPLICIT auto_ptr (element_type* __p = 0) _THROWS (())
+    explicit auto_ptr (element_type* __p = 0) _THROWS (())
      : _C_ptr (__p) { }
 
     // 20.4.5.1, p2

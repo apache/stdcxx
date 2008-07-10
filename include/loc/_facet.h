@@ -64,7 +64,7 @@ protected:
 
 #endif   // !MSVC || 5 <= stdcxx version
 
-    _EXPLICIT __rw_facet (_RWSTD_SIZE_T = 0);
+    explicit __rw_facet (_RWSTD_SIZE_T = 0);
 
     virtual ~__rw_facet ();
 

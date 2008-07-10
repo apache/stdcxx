@@ -259,7 +259,7 @@ class unary_negate
 public:
     _RWSTD_UNARY_FUNCTION_TYPES (typename _Predicate::argument_type, bool);
 
-    _EXPLICIT unary_negate (const _Predicate &__pred) : _C_pred (__pred) { }
+    explicit unary_negate (const _Predicate &__pred) : _C_pred (__pred) { }
 
     result_type operator() (const argument_type &__x) const {
         return !_C_pred (__x);
@@ -288,7 +288,7 @@ public:
                                   typename _Predicate::second_argument_type,
                                   bool);
 
-    _EXPLICIT binary_negate (const _Predicate &__pred) : _C_pred (__pred) { }
+    explicit binary_negate (const _Predicate &__pred) : _C_pred (__pred) { }
 
     result_type operator() (const first_argument_type  &__x,
                             const second_argument_type &__y) const {
@@ -386,7 +386,7 @@ struct pointer_to_unary_function : unary_function<_Arg, _Result>
 {
     _RWSTD_UNARY_FUNCTION_TYPES (_Arg, _Result);
 
-    _EXPLICIT pointer_to_unary_function (result_type (*__fun)(argument_type))
+    explicit pointer_to_unary_function (result_type (*__fun)(argument_type))
         : _C_fn (__fun) {}
 
     result_type operator() (argument_type __x) const {
@@ -414,7 +414,7 @@ struct pointer_to_binary_function
 {
     _RWSTD_BINARY_FUNCTION_TYPES (_Arg1, _Arg2, _Result);
 
-    _EXPLICIT
+    explicit
     pointer_to_binary_function (result_type (*__fun)(first_argument_type,
                                                     second_argument_type))
         : _C_fn (__fun) { }
@@ -447,7 +447,7 @@ struct mem_fun_t: unary_function<_TypeT*, _Result>
 {
     _RWSTD_UNARY_FUNCTION_TYPES (_TypeT*, _Result);
 
-    _EXPLICIT mem_fun_t (result_type (_TypeT::*__fun)()) : _C_fn (__fun) { }
+    explicit mem_fun_t (result_type (_TypeT::*__fun)()) : _C_fn (__fun) { }
 
     result_type operator() (argument_type __x) const {
         return (__x->*_C_fn)();
@@ -465,7 +465,7 @@ struct mem_fun1_t: binary_function<_TypeT*, _Arg, _Result>
 {
     _RWSTD_BINARY_FUNCTION_TYPES (_TypeT*, _Arg, _Result);
 
-    _EXPLICIT
+    explicit
     mem_fun1_t (result_type (_TypeT::*__fun)(second_argument_type))
         : _C_fn (__fun) { }
 
@@ -502,7 +502,7 @@ struct mem_fun_ref_t: unary_function<_TypeT, _Result>
 {
     _RWSTD_UNARY_FUNCTION_TYPES (_TypeT, _Result);
 
-    _EXPLICIT mem_fun_ref_t (result_type (_TypeT::*__fun)()) : _C_fn (__fun) { }
+    explicit mem_fun_ref_t (result_type (_TypeT::*__fun)()) : _C_fn (__fun) { }
 
     result_type operator() (argument_type &__x) const {
         return (__x.*_C_fn)();
@@ -520,7 +520,7 @@ struct mem_fun1_ref_t : binary_function<_TypeT, _Arg, _Result>
 {
     _RWSTD_BINARY_FUNCTION_TYPES (_TypeT, _Arg, _Result);
 
-    _EXPLICIT
+    explicit
     mem_fun1_ref_t (result_type (_TypeT::*__fun)(second_argument_type))
         : _C_fn (__fun) { }
 
@@ -558,7 +558,7 @@ struct const_mem_fun_t: unary_function<const _TypeT*, _Result>
 {
     _RWSTD_UNARY_FUNCTION_TYPES (const _TypeT*, _Result);
 
-    _EXPLICIT const_mem_fun_t (result_type (_TypeT::*__fun)() const)
+    explicit const_mem_fun_t (result_type (_TypeT::*__fun)() const)
         : _C_fn (__fun) { }
 
     result_type operator() (argument_type __x) const {
@@ -577,7 +577,7 @@ struct const_mem_fun1_t: binary_function<const _TypeT*, _Arg, _Result>
 {
     _RWSTD_BINARY_FUNCTION_TYPES (const _TypeT*, _Arg, _Result);
 
-    _EXPLICIT
+    explicit
     const_mem_fun1_t (result_type (_TypeT::*__fun)(second_argument_type) const)
         : _C_fn (__fun) { }
 
@@ -615,7 +615,7 @@ struct const_mem_fun_ref_t: unary_function<_TypeT, _Result>
 {
     _RWSTD_UNARY_FUNCTION_TYPES (_TypeT, _Result);
 
-    _EXPLICIT const_mem_fun_ref_t (result_type (_TypeT::*__fun)() const)
+    explicit const_mem_fun_ref_t (result_type (_TypeT::*__fun)() const)
         : _C_fn (__fun) { }
 
     result_type operator() (const argument_type &__x) const {
@@ -634,7 +634,7 @@ struct const_mem_fun1_ref_t : binary_function<_TypeT, _Arg, _Result>
 {
     _RWSTD_BINARY_FUNCTION_TYPES (_TypeT, _Arg, _Result);
 
-    _EXPLICIT
+    explicit
     const_mem_fun1_ref_t
         (result_type (_TypeT::*__fun)(second_argument_type) const)
             : _C_fn (__fun) { }

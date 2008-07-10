@@ -45,11 +45,11 @@ _RWSTD_NAMESPACE (__rw) {
 
 struct _RWSTD_EXPORT __rw_failure: __rw_exception
 {
-    _EXPLICIT __rw_failure (const _STD::string &__what)
+    explicit __rw_failure (const _STD::string &__what)
         : __rw_exception (__what) { }
 
     // extension
-    _EXPLICIT __rw_failure (const char *__what = 0)
+    explicit __rw_failure (const char *__what = 0)
         : __rw_exception (__what) { }
 
     virtual ~__rw_failure () _THROWS (());

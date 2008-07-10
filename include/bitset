@@ -167,7 +167,7 @@ public:
 
     // 23.3.5.1, p3
     template <class _CharT, class _Traits, class _Allocator>
-    _EXPLICIT
+    explicit
     bitset (const basic_string<_CharT, _Traits, _Allocator> &__str,
             typename basic_string<_CharT, _Traits,
                                    _Allocator>::size_type __pos = 0,
@@ -187,7 +187,7 @@ public:
 
     // 23.3.5.1, p3
     template <class _CharT, class _Traits, class _Allocator>
-    _EXPLICIT
+    explicit
     bitset (const basic_string<_CharT, _Traits, _Allocator> &__str,
             _RWSTD_SIZE_T __pos = 0, _RWSTD_SIZE_T __n = _RWSTD_SIZE_MAX,
             _CharT __b0 = '0', _CharT __b1 = '1') {
@@ -204,7 +204,7 @@ public:
 #  ifndef _RWSTD_NO_MEMBER_TEMPLATE_OVERLOAD
 
     // extension
-    _EXPLICIT
+    explicit
     bitset (const string &__str,
             _RWSTD_SIZE_T __pos = 0, _RWSTD_SIZE_T __n = _RWSTD_SIZE_MAX,
             char __b0 = '0', char __b1 = '1') {
@@ -217,7 +217,7 @@ public:
 #    ifndef _RWSTD_NO_WCHAR_T
 
     // extension
-    _EXPLICIT
+    explicit
     bitset (const wstring &__str,
             _RWSTD_SIZE_T __pos = 0, _RWSTD_SIZE_T __n = _RWSTD_SIZE_MAX,
             wchar_t __b0 = L'0', wchar_t __b1 = L'1') {
@@ -235,7 +235,7 @@ public:
 #ifndef _RWSTD_NO_EXT_BITSET_CTOR_CHAR_ARRAY
 
     // extension
-    _EXPLICIT
+    explicit
     bitset (const char *__str,
             _RWSTD_SIZE_T __pos = 0, _RWSTD_SIZE_T __n = _RWSTD_SIZE_MAX,
             char __b0 = '0', char __b1 = '1') {
@@ -248,7 +248,7 @@ public:
 #  ifndef _RWSTD_NO_WCHAR_T
 
     // extension
-    _EXPLICIT
+    explicit
     bitset (const wchar_t *__str,
             _RWSTD_SIZE_T __pos = 0, _RWSTD_SIZE_T __n = _RWSTD_SIZE_MAX,
             wchar_t __b0 = L'0', wchar_t __b1 = L'1') {
@@ -264,7 +264,7 @@ public:
     // uses char_traits<CharT>::length() to compute the length of the string
     // and char_traits<CharT>::eq() to compare characters with `b0' and `b1'
     template <class _CharT>
-    _EXPLICIT
+    explicit
     bitset (const _CharT *__str,
             _RWSTD_SIZE_T __pos = 0, _RWSTD_SIZE_T __n = _RWSTD_SIZE_MAX,
             _CharT __b0 = '0', _CharT __b1 = '1') {

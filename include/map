@@ -118,7 +118,7 @@ public:
     };
 
     // 23.3.1.1, p1
-    _EXPLICIT
+    explicit
     map (const key_compare &__cmp   = key_compare (),
          const allocator_type &__alloc = allocator_type ()) 
         : _C_rep (__cmp, __alloc) { }
@@ -324,7 +324,7 @@ public:
         value_compare (key_compare __cmp): comp (__cmp) { /* empty */ }
     };
 
-    _EXPLICIT
+    explicit
     multimap (const key_compare &__cmp = key_compare (),
               const allocator_type &__alloc = allocator_type ())
       : _C_rep (__cmp, __alloc) { }

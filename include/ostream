@@ -70,7 +70,7 @@ public:
     typedef basic_ios<char_type, traits_type>  ios_type;
 
     // 27.6.2.2, p1
-    _EXPLICIT basic_ostream (basic_streambuf<char_type, traits_type> *__sb) {
+    explicit basic_ostream (basic_streambuf<char_type, traits_type> *__sb) {
         this->init (__sb);
     }
 
@@ -89,7 +89,7 @@ public:
     // 27.6.2.3
     struct sentry: _RW::__rw_guard {
 
-        _EXPLICIT
+        explicit
         sentry (basic_ostream<char_type, traits_type> &__strm)
             : _RW::__rw_guard (__strm.rdbuf () ? __strm._C_bufmutex () : 0),
               _C_strm (__strm), _C_ok (_C_strm._C_opfx ().good ()) { }

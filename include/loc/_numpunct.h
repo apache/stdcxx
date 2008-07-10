@@ -60,7 +60,7 @@ struct numpunct: _RW::__rw_facet
     basic_string<char_type, char_traits<char_type>, allocator<char_type> >
     string_type;
 
-    _EXPLICIT numpunct (_RWSTD_SIZE_T __ref = 0)
+    explicit numpunct (_RWSTD_SIZE_T __ref = 0)
         : _RW::__rw_facet (__ref), _C_flags (0) { }
 
     virtual ~numpunct ();
@@ -234,7 +234,7 @@ class numpunct_byname: public numpunct<_CharT>
 
 public:
 
-    _EXPLICIT numpunct_byname (const char *__name, _RWSTD_SIZE_T __refs = 0)
+    explicit numpunct_byname (const char *__name, _RWSTD_SIZE_T __refs = 0)
         : numpunct<_CharT>(__refs) {
         this->_C_set_name (__name, _C_namebuf, sizeof _C_namebuf);
     }

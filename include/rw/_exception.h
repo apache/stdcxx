@@ -69,9 +69,9 @@ public:
 
     __rw_exception (const __rw_exception&);
 
-    _EXPLICIT __rw_exception (const _STD::string&);
+    explicit __rw_exception (const _STD::string&);
     
-    _EXPLICIT __rw_exception (const char*);
+    explicit __rw_exception (const char*);
 
     virtual ~__rw_exception () _THROWS (());
 

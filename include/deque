@@ -434,13 +434,13 @@ public:
 
 #endif   // _RWSTD_NO_CLASS_PARTIAL_SPEC 
 
-    _EXPLICIT
+    explicit
     deque (const allocator_type &__alloc = allocator_type ())
       : allocator_type (__alloc) {
         _C_init ();
     }
 
-    _EXPLICIT
+    explicit
     deque (size_type __n, const_reference __x = value_type (), 
            const allocator_type &__alloc = allocator_type ())
         : allocator_type (__alloc) {

@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2008 Rogue Wave Software.
+ * Copyright 1994-2008 Rogue Wave Software, Inc.
  *
  **************************************************************************/
 
@@ -391,8 +391,6 @@ test_facets ()
 
 /***************************************************************************/
 
-#ifndef _RWSTD_NO_EXPLICIT
-
 // helper to verify that locale and facet ctors are explicit
 // not defined since they must not be referenced if test is successful
 void is_explicit (const std::locale&);
@@ -424,8 +422,6 @@ struct has_implicit_ctor
 
 // calls to the overloaded is_explicit() resolve to the function below
 void is_explicit (const has_implicit_ctor&) { /* empty */ }
-
-#endif   // _RWSTD_NO_EXPLICIT
 
 /***************************************************************************/
 
@@ -1075,7 +1071,7 @@ struct numpunct<UDC>: locale::facet
     // working around an MSVC 6.0 bug
     typedef locale::facet           Base;
 
-    _EXPLICIT numpunct (size_t refs = 0)
+    explicit numpunct (size_t refs = 0)
         : Base (refs) { /* empty */ }
 
     static locale::id id;
@@ -1558,7 +1554,7 @@ struct moneypunct<UDC, false>: locale::facet, money_base
     // working around an MSVC 6.0 bug
     typedef locale::facet           Base;
 
-    _EXPLICIT moneypunct (size_t refs = 0)
+    explicit moneypunct (size_t refs = 0)
         : Base (refs), money_base () { /* empty */ }
 
     static locale::id id;
@@ -1588,7 +1584,7 @@ struct moneypunct<UDC, true>: locale::facet, money_base
     // working around an MSVC 6.0 bug
     typedef locale::facet           Base;
 
-    _EXPLICIT moneypunct (size_t refs = 0)
+    explicit moneypunct (size_t refs = 0)
         : Base (refs), money_base () { /* empty */ }
 
     static locale::id id;

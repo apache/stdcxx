@@ -177,7 +177,7 @@ class shared_ptr
     _TypeT  *_C_ptr;
 
     template <class _TypeU>
-    _EXPLICIT
+    explicit
     shared_ptr (const shared_ptr<_TypeU> &__rhs, const _TypeT*)
         : _C_pbody (__rhs._C_pbody) {
         if (_C_pbody)
@@ -193,7 +193,7 @@ public:
     shared_ptr (): _C_pbody (0), _C_ptr (0) { }
 
     template <class _TypeU>
-    _EXPLICIT
+    explicit
     shared_ptr (_TypeU *__ptr)
         : _C_pbody (__ptr ? new _RW::__rw_ptr_body<_TypeU>(__ptr) : 0),
           _C_ptr (__ptr) { /* empty */ }
@@ -217,7 +217,7 @@ public:
     }
 
     template <class _TypeU>
-    _EXPLICIT
+    explicit
     shared_ptr (const weak_ptr<_TypeU> &__rhs)
         : _C_pbody (__rhs._C_pbody), _C_ptr (__rhs._C_ptr) {
         if (_C_pbody) {
@@ -228,7 +228,7 @@ public:
     }
 
     template <class _TypeU>
-    _EXPLICIT
+    explicit
     shared_ptr (auto_ptr<_TypeU>&);
 
     // [util.smartptr.shared.dest] destructor

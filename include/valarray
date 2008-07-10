@@ -77,7 +77,7 @@ public:
     valarray () { }
 
     // 26.3.2.1, p2
-    _EXPLICIT valarray (_RWSTD_SIZE_T __size)
+    explicit valarray (_RWSTD_SIZE_T __size)
         : _C_array (value_type (), __size) { }
 
     // 26.3.2.1, p3

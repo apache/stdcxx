@@ -113,7 +113,7 @@ public:
     reverse_iterator () { }
 
     // 24.4.1.3.1, p1
-    _EXPLICIT reverse_iterator (iterator_type __rhs) : current (__rhs) { }
+    explicit reverse_iterator (iterator_type __rhs) : current (__rhs) { }
  
 
 #ifndef _RWSTD_NO_MEMBER_TEMPLATES
@@ -306,7 +306,7 @@ public:
 
     __reverse_bi_iterator () { }
 
-    _EXPLICIT __reverse_bi_iterator (const iterator_type &__rhs) 
+    explicit __reverse_bi_iterator (const iterator_type &__rhs) 
         : current (__rhs) { }
 
 
@@ -414,7 +414,7 @@ class back_insert_iterator: public _RWSTD_INSERT_ITERATOR_BASE (_Container)
 public:
     typedef _Container container_type;
 
-    _EXPLICIT back_insert_iterator (container_type& __rhs)
+    explicit back_insert_iterator (container_type& __rhs)
         : container (&__rhs) { }
 
     back_insert_iterator&
@@ -453,7 +453,7 @@ class front_insert_iterator: public _RWSTD_INSERT_ITERATOR_BASE (_Container)
 public:
     typedef _Container container_type;
 
-    _EXPLICIT front_insert_iterator (container_type& __rhs)
+    explicit front_insert_iterator (container_type& __rhs)
         : container (&__rhs) { }
 
     front_insert_iterator&

@@ -124,12 +124,12 @@ public:
       : _C_re (__re), _C_im (__im) { }
 
     // defined after the definition of the incomplete complex<double>
-    _EXPLICIT complex (const complex<double>&);
+    explicit complex (const complex<double>&);
     
 #ifndef _RWSTD_NO_LONG_DOUBLE
 
     // defined after the definition of the incomplete complex<long double>
-    _EXPLICIT complex (const complex<long double>&);
+    explicit complex (const complex<long double>&);
 
 #endif   // _RWSTD_NO_LONG_DOUBLE
 
@@ -217,7 +217,7 @@ public:
 #ifndef _RWSTD_NO_LONG_DOUBLE
 
     // defined after the definition of the incomplete complex<long double>
-    _EXPLICIT complex (const complex<long double>&);
+    explicit complex (const complex<long double>&);
 
 #endif   // _RWSTD_NO_LONG_DOUBLE
 

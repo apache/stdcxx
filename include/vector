@@ -155,11 +155,11 @@ public:
 
 public:
 
-    _EXPLICIT
+    explicit
     vector (const allocator_type &__alloc = allocator_type ())
         : allocator_type (__alloc), _C_begin (), _C_end (), _C_bufend () { }
 
-    _EXPLICIT
+    explicit
     vector (size_type __n, const_reference __x = value_type (),
             const allocator_type &__alloc = allocator_type ())
         : allocator_type (__alloc), _C_begin (), _C_end (), _C_bufend () {
@@ -1117,7 +1117,7 @@ public:
 
 #if !defined (__SUNPRO_CC) || __SUNPRO_CC > 0x530
     // working around a SunPro 5.3 bug (see PR #25962)
-    _EXPLICIT
+    explicit
 #endif   // SunPro > 5.3
     vector (size_type __n, bool __val = bool (), 
        const _Allocator&  __alloc = allocator_type ())

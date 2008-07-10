@@ -87,7 +87,7 @@ public:
         return *this;
     }
 
-    _EXPLICIT
+    explicit
     __rw_tuple (const _HeadT& __head, const _TailT&... __tail)
         : _Base (__tail...), _C_data (__head) { /* empty */ }
 
@@ -116,7 +116,7 @@ public:
     }
 
     template <class _HeadU, class... _TailU>
-    _EXPLICIT __rw_tuple (_HeadU&& __head, _TailU&&... __tail)
+    explicit __rw_tuple (_HeadU&& __head, _TailU&&... __tail)
         : _Base (_RWSTD_FORWARD (_TailU, __tail)...)
         , _C_data (_RWSTD_MOVE (__head)) { /* empty */ }
 

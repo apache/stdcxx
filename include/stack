@@ -86,7 +86,7 @@ protected:
 
 public:
 
-    _EXPLICIT
+    explicit
     stack (const container_type &__c = container_type ()) 
         : c (__c) { }
 

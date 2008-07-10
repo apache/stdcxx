@@ -134,7 +134,7 @@ public:
     typedef typename traits_type::off_type           off_type;
       
     // 27.6.1.1.1, p1
-    _EXPLICIT basic_istream (basic_streambuf<char_type, traits_type> *__sb)
+    explicit basic_istream (basic_streambuf<char_type, traits_type> *__sb)
         : _C_gcount (0) {
         this->init (__sb);
     }
@@ -156,7 +156,7 @@ public:
     struct sentry: _RW::__rw_guard {
 
         // 27.6.1.1.2, p2 - assumes 0 != __strm.rdbuf ()
-        _EXPLICIT sentry (basic_istream &__strm, bool __noskipws = false)
+        explicit sentry (basic_istream &__strm, bool __noskipws = false)
             : _RW::__rw_guard (__strm._C_bufmutex ()),
               _C_ok (__strm._C_ipfx (__noskipws).good ()) { /* no-op */ }
 
@@ -576,7 +576,7 @@ public:
     typedef typename traits_type::pos_type pos_type;
     typedef typename traits_type::off_type off_type;
 
-    _EXPLICIT basic_iostream (basic_streambuf<_CharT, _Traits> *__sb)
+    explicit basic_iostream (basic_streambuf<_CharT, _Traits> *__sb)
         : basic_istream<_CharT, _Traits>(__sb), 
           basic_ostream<_CharT, _Traits>(__sb)
         { /* 27.6.1.5.1, p1 */ }

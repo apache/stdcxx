@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2001-2006 Rogue Wave Software.
+ * Copyright 2001-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -65,13 +65,13 @@ struct test_set
         bits_ [N] = '\0';   // null-terminate
     }
 
-    _EXPLICIT test_set (unsigned long val) {
+    explicit test_set (unsigned long val) {
         for (std::size_t i = 0; i != N; ++i)
             set (i, !!(val & (1UL << i)));
         bits_ [N] = '\0';   // NUL-terminate
     }
 
-    _EXPLICIT test_set (const std::bitset<N> &rhs) {
+    explicit test_set (const std::bitset<N> &rhs) {
         for (std::size_t i = 0; i != N; ++i)
             set (i, rhs.test (i));
         bits_ [N] = '\0';   // NUL-terminate
@@ -187,8 +187,6 @@ struct test_set
 
 /**************************************************************************/
 
-#ifndef _RWSTD_NO_EXPLICIT
-
 // helper to verify that bitset ctor is explicit
 // not defined since it must not be referenced if test is successful
 // static commented out to prevent gcc warning: function declared
@@ -205,8 +203,6 @@ struct has_implicit_ctor
 // calls to the overloaded is_explicit() resolve to the function below
 static void
 is_explicit (const has_implicit_ctor&) { }
-
-#endif   // _RWSTD_NO_EXPLICIT
 
 
 static void
@@ -239,15 +235,14 @@ test_synopsis (std::bitset<0>*)
     MEMFUN (Reference&, flip, ());
 
     // 23.3.5.1 - verify bitset ctors
-#if    !defined (_RWSTD_NO_EXPLICIT) \
-    && (!defined (__SUNPRO_CC) || __SUNPRO_CC > 0x530) \
+#if    (!defined (__SUNPRO_CC) || __SUNPRO_CC > 0x530) \
     && (!defined (__GNUG__) || __GNUG__ >= 3)
     // working around a SunPro 5.2 bug (see PR #25959)
 
     // verify that bitset ctor is declared explicit
     is_explicit (std::string ());
 
-#endif   // _RWSTD_NO_EXPLICIT && SunPro > 5.3
+#endif   // SunPro > 5.3
 
     // verify default arguments
     (void)Bitset (std::string ());

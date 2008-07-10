@@ -72,7 +72,7 @@ public:
     typedef _CharT                         char_type;
     typedef _InputIter                     iter_type;
 
-    _EXPLICIT time_get (_RWSTD_SIZE_T __ref = 0)
+    explicit time_get (_RWSTD_SIZE_T __ref = 0)
         : _RW::__rw_facet (__ref) { }
 
     dateorder date_order() const { 
@@ -203,7 +203,7 @@ class time_get_byname: public time_get<_CharT, _InputIter>
 
 public:
 
-    _EXPLICIT time_get_byname (const char *__name, _RWSTD_SIZE_T __ref = 0)
+    explicit time_get_byname (const char *__name, _RWSTD_SIZE_T __ref = 0)
         : time_get<_CharT, _InputIter>(__ref) {
         this->_C_set_name (__name, _C_namebuf, sizeof _C_namebuf);
     }

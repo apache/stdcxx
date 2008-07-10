@@ -88,7 +88,7 @@ protected:
 
 public:
 
-    _EXPLICIT
+    explicit
     queue (const container_type &__c = container_type ())
         : c (__c) { }
 
@@ -193,7 +193,7 @@ protected:
 
 public:
 
-    _EXPLICIT
+    explicit
     priority_queue (const _Compare       &__cmp = _Compare (),
                     const container_type &__c   = container_type ())
         : c (__c), comp (__cmp) {

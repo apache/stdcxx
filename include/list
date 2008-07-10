@@ -378,14 +378,14 @@ protected:
 
 public:
 
-    _EXPLICIT
+    explicit
     list (const allocator_type& __alloc = allocator_type ())
         : allocator_type (__alloc), _RWSTD_NODE_BUFFER_INIT(0,0)
           _C_next_avail (0), _C_last (0), _C_node (0), _C_length (0) {
         _C_init (true);
     }
     
-    _EXPLICIT
+    explicit
     list (size_type             __n, 
           const_reference       __x     = value_type (),
           const allocator_type &__alloc = allocator_type ())
