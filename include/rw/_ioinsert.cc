@@ -143,7 +143,7 @@ __rw_insert (_STD::basic_ostream<_CharT, _Traits> &__strm,
             const _RWSTD_STREAMSIZE __pad = __width - __len;
 
             typedef _TYPENAME
-                __rw_is_same<_CharT, _StringT>::_C_type _Same;
+                __rw_same_type<_CharT, _StringT>::_C_type _Same;
 
             if (__pad > 0) {
                 const int __padbits =
