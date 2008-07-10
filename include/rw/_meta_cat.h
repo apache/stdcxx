@@ -312,7 +312,7 @@ template <class _TypeT>
 struct __rw_is_function_impl<_TypeT, false>
 {
     typedef _TypeT& _TypeT_Ref;
-	typedef _TypeT* _TypeT_Ptr;
+    typedef _TypeT* _TypeT_Ptr;
 
     struct _C_no  { };
     struct _C_yes { _C_no __pad [2]; };

@@ -157,10 +157,10 @@ struct __rw_is_empty_impl<_TypeT, false>
 #elif defined (_MSC_VER)
 
 template <class _TypeT>
-struct __rw_is_empty_impl<_TypeT>
+struct __rw_is_empty_impl
 {
-    enum { _C_value = __rw_is_class<_TypeT>::value
-	                  && _RWSTD_TT_IS_EMPTY (_TypeT) };
+    enum { _C_value =    __rw_is_class<_TypeT>::value
+                      && _RWSTD_TT_IS_EMPTY (_TypeT) };
 };
 
 

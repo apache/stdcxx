@@ -225,6 +225,12 @@ static void test_is_base_of ()
 
     TEST (std::is_base_of, int[], int*, false);
     TEST (std::is_base_of, int*, int[], false);
+
+    TEST (std::is_base_of, struct_A, class_B, false);
+    TEST (std::is_base_of, class_B, struct_A, false);
+
+    TEST (std::is_base_of, derived_<struct_A>, struct_A, false);
+    TEST (std::is_base_of, derived_<class_B>, class_B, false);
 }
 
 static void test_is_convertible ()
@@ -334,9 +340,27 @@ static void test_is_convertible ()
     TEST (std::is_convertible, int (), int (&)(char), false);
 
     TEST (std::is_convertible, int*, void*, true);
-    TEST (std::is_convertible, int (*)(), void*, false);
+    TEST (std::is_convertible, int (*)(), void*, true);
 
-    //TEST (std::is_convertible, int (*)(derived_<struct_A>::*), int (*)(struct_A::*), true);
+    TEST (std::is_convertible,
+          int (*)(derived_<struct_A>*),
+          int (*)(struct_A*), false);
+
+    TEST (std::is_convertible,
+          int (*)(struct_A*),
+          int (*)(derived_<struct_A>*), false);
+
+    // pointer to derived member convertible to
+    // pointer to base member
+    TEST (std::is_convertible,
+          int derived_<struct_A>::*,
+          int struct_A::*, false);
+
+    // pointer to base member convertible to
+    // pointer to derived member
+    TEST (std::is_convertible,
+          int struct_A::*,
+          int derived_<struct_A>::*, true);
 
     TEST (std::is_convertible, int, double, true);
     TEST (std::is_convertible, const int, double, true);

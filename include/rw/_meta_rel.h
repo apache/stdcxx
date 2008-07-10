@@ -60,35 +60,8 @@ struct __rw_is_same<_TypeT, _TypeT> : __rw_true_type
 #define _RWSTD_IS_SAME(T,U) _RW::__rw_is_same<T,U>::value
 
 
-
-template <class _From, class _To>
-struct __rw_is_convertible_impl
-{
-    struct _C_no  { };
-    struct _C_yes { _C_no __pad [2]; };
-
-    struct _Dummy
-    {
-        template <class _Anything>
-        _Dummy (_Anything);
-    };
-
-    template <class _TypeT>
-    static _C_no _C_is (_Dummy, _TypeT);
-    static _C_yes _C_is (_To, int);
-
-    static _From _C_make ();
-
-    enum { _C_value = sizeof (_C_yes) == sizeof (_C_is (_C_make (), 0)) };
-};
-
-
-
 #ifndef _RWSTD_TT_IS_BASE_OF
 
-//
-// This fallback tests if a pointer to _Base is convertible to a
-// pointer of _Derived after both types have been cv-stripped.
 //
 // This little gem was taken from a comp.lang.c++.moderated post
 // by Rani Sharoni [see http://tinyurl.com/6pdv3k]
@@ -104,6 +77,9 @@ struct __rw_is_base_of_impl
     struct _C_no  { };
     struct _C_yes { _C_no __pad [2]; };
 
+    // the template is used so that the compiler will prefer the
+    // non-template _C_is, in case that the conversion would be
+    // ambiguous (as it is in the case where the types are unrelated).
     template <class _TypeT>
     static _C_yes _C_is (_NoCV_Derived&, _TypeT);
     static _C_no _C_is  (_NoCV_Base&   , int);
@@ -114,11 +90,9 @@ struct __rw_is_base_of_impl
         operator _NoCV_Derived& ();
     };
 
-    static _C_nest _C_make ();
-
     enum { _C_value = 
            __rw_is_same<_NoCV_Base, _NoCV_Derived>::value
-        || sizeof (_C_yes) == sizeof (_C_is (_C_make (), 0)) };
+        || sizeof (_C_yes) == sizeof (_C_is (_C_nest (), 0)) };
 };
 
 //
@@ -148,6 +122,28 @@ struct __rw_is_base_of
 
 
 #ifndef _RWSTD_TT_IS_CONVERTIBLE
+
+template <class _From, class _To>
+struct __rw_is_convertible_impl
+{
+    struct _C_no  { };
+    struct _C_yes { _C_no __pad [2]; };
+
+    struct _Dummy
+    {
+        template <class _Anything>
+        _Dummy (_Anything);
+    };
+
+    template <class _TypeT>
+    static _C_no _C_is (_Dummy, _TypeT);
+    static _C_yes _C_is (_To, int);
+
+    static _From _C_make ();
+
+    enum { _C_value = sizeof (_C_yes) == sizeof (_C_is (_C_make (), 0)) };
+};
+
 template <class _TypeT, class _TypeU,
           bool = __rw_is_array<_TypeT>::value,
           bool = __rw_is_function<_TypeT>::value>
@@ -166,7 +162,7 @@ struct __rw_is_convertible_3<_TypeT, _TypeU, true, false>
     typedef typename __rw_add_pointer<_TypeV>::type _TypeT_Ptr;
 
     enum { _C_value =
-	    __rw_is_convertible_impl<_TypeT_Ptr, _TypeU>::_C_value };
+        __rw_is_convertible_impl<_TypeT_Ptr, _TypeU>::_C_value };
 };
 
 template <class _TypeT, class _TypeU>
@@ -177,7 +173,7 @@ struct __rw_is_convertible_3<_TypeT, _TypeU, false, true>
     typedef typename __rw_add_pointer<_TypeT>::type _TypeT_Ptr;
 
     enum { _C_value =
-	       __rw_is_convertible_impl<_TypeT_Ref, _TypeU>::_C_value
+           __rw_is_convertible_impl<_TypeT_Ref, _TypeU>::_C_value
         || __rw_is_convertible_impl<_TypeT_Ptr, _TypeU>::_C_value };
 };
         
@@ -222,6 +218,21 @@ struct __rw_is_convertible_1<_TypeT, _TypeU, true, true>
 
 #  define _RWSTD_TT_IS_CONVERTIBLE(T,U) \
      _RW::__rw_is_convertible_1<T,U>::_C_value
+
+#elif defined (_MSC_VER)
+
+template <class _TypeT, class _TypeU>
+struct __rw_is_convertible_1
+{
+    enum { _C_value =
+         __rw_is_void<_TypeT>::value && __rw_is_void<_TypeU>::value
+      || _RWSTD_TT_IS_CONVERTIBLE(_TypeT, _TypeU) };
+};
+
+#  undef _RWSTD_TT_IS_CONVERTIBLE
+#  define _RWSTD_TT_IS_CONVERTIBLE(T,U) \
+     _RW::__rw_is_convertible_1<T,U>::_C_value
+
 #endif // _RWSTD_TT_IS_CONVERTIBLE
 
 template <class _TypeT, class _TypeU>
