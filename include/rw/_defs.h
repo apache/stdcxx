@@ -1580,15 +1580,15 @@ _RWSTD_NAMESPACE (std) {
 #endif   // _RWSTD_NO_MEMBER_TEMPLATES
 
 
-#if defined (va_copy) || !defined _RWSTD_NO_VA_COPY
+#if 2 < __GNUG__
+   // use gcc builtin by default
+#  define _RWSTD_VA_COPY(va_dst, va_src) \
+          __builtin_va_copy (va_dst, va_src)
+#elif defined (va_copy) || !defined _RWSTD_NO_VA_COPY
    // either va_copy() is already #defined (because <stdarg.h>
    // is already #included), or it was detected at configuration
 #  define _RWSTD_VA_COPY(va_dst, va_src) \
           va_copy (va_dst, va_src)
-#elif 2 < __GNUG__
-   // no va_copy() macro detected, use gcc builtin
-#  define _RWSTD_VA_COPY(va_dst, va_src) \
-          __builtin_va_copy (va_dst, va_src)
 #elif defined (_RWSTD_NO_VA_LIST_ARRAY)
    // va_list is not an array, use ordinary assignment to copy
 #  define _RWSTD_VA_COPY(va_dst, va_src) \
