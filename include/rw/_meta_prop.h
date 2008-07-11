@@ -32,6 +32,7 @@
 
 #include <rw/_defs.h>
 #include <rw/_meta_cat.h>
+#include <rw/_meta_comp.h>
 #include <rw/_meta_arr.h>
 #include <rw/_meta_cv.h>
 
@@ -75,27 +76,24 @@ struct __rw_is_volatile<volatile _TypeT> : __rw_true_type
 template <class _TypeT>
 struct __rw_is_pod_impl
 {
-    typedef typename
-    __rw_remove_all_extents<_TypeT>::type _TypeU;
-
-    typedef typename
-    __rw_remove_cv<_TypeU>::type _NoCV_TypeU;
+    typedef typename __rw_remove_all_extents<_TypeT>::type _TypeU;
+    typedef typename __rw_remove_cv<_TypeU>::type _NoCV_TypeU;
 
     enum { _C_value = __rw_is_scalar<_NoCV_TypeU>::value };
 };
 
 #    define _RWSTD_TT_IS_POD(T) _RW::__rw_is_pod_impl<T>::_C_value
-#elif defined (_MSC_VER)
+#elif defined (_MSC_VER) || defined (__EDG_VERSION__)
 
 template <class _TypeT>
 struct __rw_is_pod_impl
 {
-    typedef typename __rw_remove_cv<_TypeT> _TypeU;
-    typedef typename __rw_remove_all_extents<_TypeT>::type _TypeV;
+    typedef typename __rw_remove_all_extents<_TypeT>::type _TypeU;
+    typedef typename __rw_remove_cv<_TypeU>::type _NoCV_TypeU;
 
     // the MSVC provided __is_pod works for pod class types only
-    enum { _C_value =    __rw_is_scalar<_TypeV>::value
-                      || _RWSTD_TT_IS_POD(_TypeV) };
+    enum { _C_value =    __rw_is_scalar<_NoCV_TypeU>::value
+                      || _RWSTD_TT_IS_POD(_NoCV_TypeU) };
 };
 
 #  undef  _RWSTD_TT_IS_POD
@@ -112,7 +110,7 @@ struct __rw_is_pod
 
 
 #ifndef _RWSTD_TT_IS_STANDARD_LAYOUT
-#  define _RWSTD_TT_IS_STANDARD_LAYOUT(T) _RWSTD_TT_IS_POD(T)
+#  define _RWSTD_TT_IS_STANDARD_LAYOUT(T) _RWSTD_IS_POD(T)
 #endif // _RWSTD_TT_IS_STANDARD_LAYOUT
 
 template <class _TypeT>
@@ -154,7 +152,7 @@ struct __rw_is_empty_impl<_TypeT, false>
 };
 
 #  define _RWSTD_TT_IS_EMPTY(T) _RW::__rw_is_empty_impl<T>::_C_value
-#elif defined (_MSC_VER)
+#elif defined (_MSC_VER) || defined (__EDG_VERSION__)
 
 template <class _TypeT>
 struct __rw_is_empty_impl
@@ -166,7 +164,7 @@ struct __rw_is_empty_impl
 
 #  undef _RWSTD_TT_IS_EMPTY
 #  define _RWSTD_TT_IS_EMPTY(T) _RW::__rw_is_empty_impl<T>::_C_value
-#endif // !_RWSTD_TT_IS_EMPTY || _MSC_VER
+#endif // !_RWSTD_TT_IS_EMPTY || _MSC_VER || __EDG_VERSION__
 
 template <class _TypeT>
 struct __rw_is_empty
@@ -280,7 +278,22 @@ struct __rw_is_abstract
 #ifndef _RWSTD_TT_HAS_TRIVIAL_CTOR
    // this is just a best guess
 #  define _RWSTD_TT_HAS_TRIVIAL_CTOR(T) _RW::__rw_is_pod<T>::value
-#endif // _RWSTD_TT_HAS_TRIVIAL_CTOR
+#elif defined (__EDG_VERSION__)
+
+template <class _TypeT>
+struct __rw_has_trivial_ctor_impl
+{
+    typedef typename __rw_remove_all_extents<_TypeT>::type _TypeU;
+    typedef typename __rw_remove_cv<_TypeU>::type _NoCV_TypeU;
+
+    enum { _C_value =    __rw_is_scalar<_NoCV_TypeU>::value
+                      || _RWSTD_TT_HAS_TRIVIAL_CTOR (_NoCV_TypeU) };
+};
+
+#  undef _RWSTD_TT_HAS_TRIVIAL_CTOR
+#  define _RWSTD_TT_HAS_TRIVIAL_CTOR(T) \
+     _RW::__rw_has_trivial_ctor_impl<T>::_C_value
+#endif // !_RWSTD_TT_HAS_TRIVIAL_CTOR || __EDG_VERSION
 
 template <class _TypeT>
 struct __rw_has_trivial_ctor
@@ -296,7 +309,22 @@ struct __rw_has_trivial_ctor
 #ifndef _RWSTD_TT_HAS_TRIVIAL_COPY
 #  define _RWSTD_TT_HAS_TRIVIAL_COPY(T) \
     _RW::__rw_is_pod<T>::value || _RW::__rw_is_reference<T>::value
-#endif // _RWSTD_TT_HAS_TRIVIAL_COPY
+#elif defined (__EDG_VERSION__)
+
+template <class _TypeT>
+struct __rw_has_trivial_copy_impl
+{
+    typedef typename __rw_remove_all_extents<_TypeT>::type _TypeU;
+    typedef typename __rw_remove_cv<_TypeU>::type _NoCV_TypeU;
+
+    enum { _C_value =    __rw_is_reference<_NoCV_TypeU>::value
+                      || __rw_is_scalar<_NoCV_TypeU>::value
+                      || _RWSTD_TT_HAS_TRIVIAL_COPY (_NoCV_TypeU) };
+}; 
+#  undef _RWSTD_TT_HAS_TRIVIAL_COPY
+#  define _RWSTD_TT_HAS_TRIVIAL_COPY(T) \
+     _RW::__rw_has_trivial_copy_impl<T>::_C_value
+#endif // !_RWSTD_TT_HAS_TRIVIAL_COPY || __EDG_VERSION__
 
 template <class _TypeT>
 struct __rw_has_trivial_copy
@@ -308,12 +336,27 @@ struct __rw_has_trivial_copy
 
 
 
-
 #ifndef _RWSTD_TT_HAS_TRIVIAL_ASSIGN
 #  define _RWSTD_TT_HAS_TRIVIAL_ASSIGN(T) \
     _RW::__rw_is_pod<T>::value && !_RW::__rw_is_const<T>::value \
                                && !_RW::__rw_is_reference<T>::value
-#endif // _RWSTD_TT_HAS_TRIVIAL_ASSIGN
+#elif defined (__EDG_VERSION__)
+
+template <class _TypeT>
+struct __rw_has_trivial_assign_impl
+{
+    typedef typename __rw_remove_all_extents<_TypeT>::type _TypeU;
+
+    enum { _C_value =    !__rw_is_const<_TypeU>::value
+                      && !__rw_is_reference<_TypeU>::value
+                      && (   __rw_is_scalar<_TypeU>::value
+                          || _RWSTD_TT_HAS_TRIVIAL_ASSIGN (_TypeU)) };
+};
+
+#  undef _RWSTD_TT_HAS_TRIVIAL_ASSIGN
+#  define _RWSTD_TT_HAS_TRIVIAL_ASSIGN(T) \
+     _RW::__rw_has_trivial_assign_impl<T>::_C_value
+#endif // !_RWSTD_TT_HAS_TRIVIAL_ASSIGN || __EDG_VERSION__
 
 template <class _TypeT>
 struct __rw_has_trivial_assign
@@ -329,7 +372,24 @@ struct __rw_has_trivial_assign
 #ifndef _RWSTD_TT_HAS_TRIVIAL_DTOR
 #  define _RWSTD_TT_HAS_TRIVIAL_DTOR(T) \
     _RW::__rw_is_pod<T>::value && !_RW::__rw_is_reference<T>::value
-#endif // _RWSTD_TT_HAS_TRIVIAL_DTOR
+#elif defined (__EDG_VERSION__)
+
+template <class _TypeT>
+struct __rw_has_trivial_dtor_impl
+{
+    typedef typename __rw_remove_all_extents<_TypeT>::type _TypeU;
+    typedef typename __rw_remove_cv<_TypeU>::type _NoCV_TypeU;
+
+    enum { _C_value =    __rw_is_scalar<_NoCV_TypeU>::value
+                      || __rw_is_reference<_NoCV_TypeU>::value
+                      || _RWSTD_TT_HAS_TRIVIAL_DTOR (_NoCV_TypeU) };
+};
+
+#  undef _RWSTD_TT_HAS_TRIVIAL_DTOR
+#  define _RWSTD_TT_HAS_TRIVIAL_DTOR(T) \
+    _RW::__rw_has_trivial_dtor_impl<T>::_C_value
+
+#endif // !_RWSTD_TT_HAS_TRIVIAL_DTOR || __EDG_VERSION__
 
 template <class _TypeT>
 struct __rw_has_trivial_dtor
@@ -343,11 +403,8 @@ struct __rw_has_trivial_dtor
 template <class _TypeT>
 struct __rw_is_trivial_impl
 {
-    typedef typename
-    __rw_remove_cv<_TypeT>::type _NoCV_TypeT;
-
-    typedef typename
-    __rw_remove_all_extents<_NoCV_TypeT>::type _NoCV_TypeU;
+    typedef typename __rw_remove_all_extents<_TypeT>::type _TypeU;
+    typedef typename __rw_remove_cv<_TypeU>::type _NoCV_TypeU;
 
     enum { _C_value =    __rw_is_scalar<_NoCV_TypeU>::value
                       || __rw_has_trivial_ctor<_NoCV_TypeU>::value
@@ -370,7 +427,21 @@ struct __rw_is_trivial
 
 #ifndef _RWSTD_TT_HAS_NOTHROW_CTOR
 #  define _RWSTD_TT_HAS_NOTHROW_CTOR(T) _RW::__rw_has_trivial_ctor<T>::value
-#endif //_RWSTD_TT_HAS_NOTHROW_CTOR
+#elif defined (__EDG_VERSION__)
+
+template <class _TypeT>
+struct __rw_has_nothrow_ctor_impl
+{
+    typedef typename __rw_remove_all_extents<_TypeT>::type _TypeU;
+
+    enum { _C_value =    __rw_has_trivial_ctor<_TypeT>::value
+                      || _RWSTD_TT_HAS_NOTHROW_CTOR (_TypeU) };
+};
+
+#  undef _RWSTD_TT_HAS_NOTHROW_CTOR
+#  define _RWSTD_TT_HAS_NOTHROW_CTOR(T) \
+     _RW::__rw_has_nothrow_ctor_impl<T>::_C_value
+#endif // !_RWSTD_TT_HAS_NOTHROW_CTOR || __EDG_VERSION__
 
 template <class _TypeT>
 struct __rw_has_nothrow_ctor
@@ -384,7 +455,21 @@ struct __rw_has_nothrow_ctor
 
 #ifndef _RWSTD_TT_HAS_NOTHROW_COPY
 #  define _RWSTD_TT_HAS_NOTHROW_COPY(T) _RW::__rw_has_trivial_copy<T>::value
-#endif // _RWSTD_TT_HAS_NOTHROW_COPY
+#elif defined (__EDG_VERSION__)
+
+template <class _TypeT>
+struct __rw_has_nothrow_copy_impl
+{
+    typedef typename __rw_remove_all_extents<_TypeT>::type _TypeU;
+
+    enum { _C_value =    __rw_has_trivial_copy<_TypeT>::value
+                      || _RWSTD_TT_HAS_NOTHROW_COPY (_TypeU) };
+};
+
+#  undef _RWSTD_TT_HAS_NOTHROW_COPY
+#  define _RWSTD_TT_HAS_NOTHROW_COPY(T) \
+     _RW::__rw_has_nothrow_copy_impl<T>::_C_value
+#endif // !_RWSTD_TT_HAS_NOTHROW_COPY || __EDG_VERSION__
 
 template <class _TypeT>
 struct __rw_has_nothrow_copy
@@ -399,7 +484,23 @@ struct __rw_has_nothrow_copy
 
 #ifndef _RWSTD_TT_HAS_NOTHROW_ASSIGN
 #  define _RWSTD_TT_HAS_NOTHROW_ASSIGN(T) _RW::__rw_has_trivial_assign<T>::value
-#endif // _RWSTD_TT_HAS_NOTHROW_ASSIGN
+#elif defined (__EDG_VERSION__)
+
+template <class _TypeT>
+struct __rw_has_nothrow_assign_impl
+{
+    typedef typename __rw_remove_all_extents<_TypeT>::type _TypeU;
+
+    enum { _C_value =    !__rw_is_const<_TypeU>::value
+                      && !__rw_is_reference<_TypeU>::value
+                      && (   __rw_has_trivial_assign<_TypeT>::value
+                          || _RWSTD_TT_HAS_NOTHROW_ASSIGN (_TypeU)) };
+};
+
+#  undef _RWSTD_TT_HAS_NOTHROW_ASSIGN
+#  define _RWSTD_TT_HAS_NOTHROW_ASSIGN(T) \
+     _RW::__rw_has_nothrow_assign_impl<T>::_C_value
+#endif // !_RWSTD_TT_HAS_NOTHROW_ASSIGN || __EDG_VERSION__
 
 template <class _TypeT>
 struct __rw_has_nothrow_assign

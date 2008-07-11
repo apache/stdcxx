@@ -96,6 +96,7 @@ struct abstract_t
 template <class T>
 struct member_t
 {
+    member_t (T);
     T val;
 };
 
@@ -690,13 +691,16 @@ static void test_is_signed ()
     TEST (std::is_signed, signed short, true);
     TEST (std::is_signed, signed int, true);
     TEST (std::is_signed, signed long, true);
-    TEST (std::is_signed, signed long long, true);
 
     TEST (std::is_signed, unsigned char, false);
     TEST (std::is_signed, unsigned short, false);
     TEST (std::is_signed, unsigned int, false);
     TEST (std::is_signed, unsigned long, false);
+
+#ifndef _RWSTD_NO_LONG_LONG
+    TEST (std::is_signed,   signed long long, true);
     TEST (std::is_signed, unsigned long long, false);
+#endif
 
     TEST (std::is_signed, float, true);
     TEST (std::is_signed, double, true);
@@ -718,13 +722,16 @@ static void test_is_unsigned ()
     TEST (std::is_unsigned, signed short, false);
     TEST (std::is_unsigned, signed int, false);
     TEST (std::is_unsigned, signed long, false);
-    TEST (std::is_unsigned, signed long long, false);
 
     TEST (std::is_unsigned, unsigned char, true);
     TEST (std::is_unsigned, unsigned short, true);
     TEST (std::is_unsigned, unsigned int, true);
     TEST (std::is_unsigned, unsigned long, true);
+
+#ifndef _RWSTD_NO_LONG_LONG
+    TEST (std::is_unsigned, signed long long, false);
     TEST (std::is_unsigned, unsigned long long, true);
+#endif
 
     TEST (std::is_unsigned, float, false);
     TEST (std::is_unsigned, double, false);

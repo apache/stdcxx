@@ -70,12 +70,14 @@ enabled_if_char (typename std::enable_if<!is_char<T>::val>::type* = 0)
     return 0;
 }
 
-static int _cond_if_char (void* = 0)
+// must have external linkage
+int _cond_if_char (void*)
 {
     return 0;
 }
 
-static int _cond_if_char (long* = 0)
+// must have external linkage
+int _cond_if_char (long*)
 {
     return 1;
 }
