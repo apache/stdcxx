@@ -25,7 +25,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2001-2007 Rogue Wave Software, Inc.
+ * Copyright 2001-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -54,10 +54,6 @@
    // std::uncaught_exception() not thread-safe in the front-end demo
 #  define _RWSTD_NO_UNCAUGHT_EXCEPTION
 #endif   // _RWSTD_REENTRANT
-
-#ifndef _RWSTD_NO_MBSTATE_T
-#  define _RWSTD_NO_MBSTATE_T
-#endif   // _RWSTD_NO_MBSTATE_T
 
 #undef _RWSTD_NO_DEPRECATED_C_HEADERS
 #undef _RWSTD_NO_PURE_C_HEADERS
