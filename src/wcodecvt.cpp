@@ -86,7 +86,7 @@ mbrlen (const char*, _RWSTD_SIZE_T, _RWSTD_MBSTATE_T*) _LIBC_THROWS();
 
 #  undef _RWSTD_NO_MBLEN
 
-extern "C" _RWSTD_SIZE_T
+extern "C" int
 mblen (const char*, _RWSTD_SIZE_T) _LIBC_THROWS();
 
 #endif   // _RWSTD_NO_MBLEN && !_RWSTD_NO_MBLEN_IN_LIBC
