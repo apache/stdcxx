@@ -23,7 +23,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -38,7 +38,29 @@ _RWSTD_NAMESPACE (std) {
 
 extern "C" {
 
-typedef char jmp_buf [8];
+#ifdef _RWSTD_OS_LINUX
+
+#  if 4 == _RWSTD_LONG_SIZE
+// ILP32: sizeof (jmp_buf) == 156
+typedef long jmp_buf [39];
+#  elif 8 == _RWSTD_LONG_SIZE
+// ILP64: sizeof (jmp_buf) == 200
+typedef long jmp_buf [25];
+#  endif
+
+#elif defined _RWSTD_OS_SUNOS
+
+// ILP32: sizeof (jmp_buf) == 48
+// ILP64: sizeof (jmp_buf) == 96
+typedef long jmp_buf [12];
+
+#elif defined _WIN64
+   // FIXME: add size
+#  error "jmp_buf size unknown on WIN64"
+#elif defined _WIN32
+   // FIXME: add size
+#  error "jmp_buf size unknown on WIN32"
+#endif
 
 int setjmp (jmp_buf);
 void longjmp (jmp_buf, int);
