@@ -74,8 +74,8 @@ _USING (std::va_list);
 
 #  undef _RWSTD_NO_MBRLEN
 
-extern "C" _RWSTD_SIZE_T
-mbrlen (const char*, _RWSTD_SIZE_T, _RWSTD_MBSTATE_T*) _LIBC_THROWS();
+extern "C" size_t
+mbrlen (const char*, size_t, _RWSTD_MBSTATE_T*) _LIBC_THROWS();
 
 #endif   // _RWSTD_NO_MBRLEN && !_RWSTD_NO_MBRLEN_IN_LIBC
 
@@ -87,7 +87,7 @@ mbrlen (const char*, _RWSTD_SIZE_T, _RWSTD_MBSTATE_T*) _LIBC_THROWS();
 #  undef _RWSTD_NO_MBLEN
 
 extern "C" int
-mblen (const char*, _RWSTD_SIZE_T) _LIBC_THROWS();
+mblen (const char*, size_t) _LIBC_THROWS();
 
 #endif   // _RWSTD_NO_MBLEN && !_RWSTD_NO_MBLEN_IN_LIBC
 
@@ -99,7 +99,7 @@ mblen (const char*, _RWSTD_SIZE_T) _LIBC_THROWS();
 #  undef _RWSTD_NO_MBTOWC
 
 extern "C" int
-mbtowc (wchar_t*, const char*, _RWSTD_SIZE_T) _LIBC_THROWS();
+mbtowc (wchar_t*, const char*, size_t) _LIBC_THROWS();
 
 #endif   // _RWSTD_NO_MBTOWC && !_RWSTD_NO_MBTOWC_IN_LIBC
 
@@ -110,9 +110,8 @@ mbtowc (wchar_t*, const char*, _RWSTD_SIZE_T) _LIBC_THROWS();
 
 #  undef _RWSTD_NO_WCSRTOMBS
 
-extern "C" _RWSTD_SIZE_T
-wcsrtombs (char*, const wchar_t**,
-           _RWSTD_SIZE_T, _RWSTD_MBSTATE_T*) _LIBC_THROWS();
+extern "C" size_t
+wcsrtombs (char*, const wchar_t**, size_t, _RWSTD_MBSTATE_T*) _LIBC_THROWS();
 
 #endif   // _RWSTD_NO_WCSRTOMBS && !_RWSTD_NO_WCSRTOMBS_IN_LIBC
 
@@ -123,7 +122,7 @@ wcsrtombs (char*, const wchar_t**,
 
 #  undef _RWSTD_NO_WCRTOMB
 
-extern "C" _RWSTD_SIZE_T
+extern "C" size_t
 wcrtomb (char*, wchar_t, _RWSTD_MBSTATE_T*) _LIBC_THROWS();
 
 #endif   // _RWSTD_NO_WCRTOMB && !_RWSTD_NO_WCRTOMB_IN_LIBC
@@ -237,7 +236,7 @@ static const struct {
     { "UCS-LE",      __rw_ucs_le }
 };
 
-static const _RWSTD_SIZE_T
+static const size_t
 __rw_n_ucsmods = sizeof __rw_ucsmods / sizeof *__rw_ucsmods;
 
 
@@ -270,10 +269,10 @@ __rw_mbsinit (const StateT *psrc)
 // behaves just like mbrlen(), except that if the character pointed to
 // by `str' is the NUL character and `emax' is non-zero, the function
 // returns 1
-static inline _RWSTD_SIZE_T
+static inline size_t
 __rw_libc_mbrlen (_RWSTD_MBSTATE_T &state,
                   const char       *str,
-                  _RWSTD_SIZE_T     emax)
+                  size_t            emax)
 {
     _RWSTD_ASSERT (0 != str);
 
@@ -313,7 +312,7 @@ __rw_libc_mbrlen (_RWSTD_MBSTATE_T &state,
 // does a simple transliteration of the UTF-8 encoded character string
 static unsigned int
 __rw_xlit (const _RW::__rw_codecvt_t* impl,
-           const char *utf8s, _RWSTD_SIZE_T sz)
+           const char *utf8s, size_t sz)
 {
     const unsigned int* const ptbls = impl->get_xliteration_tab ();
 
@@ -358,8 +357,8 @@ __rw_libc_do_in (_RWSTD_MBSTATE_T &state,
 
     // compute the length of the source sequence in bytes and
     // the size of the destination buffer in wide characters
-    _RWSTD_SIZE_T src_len  = from_end - from;
-    _RWSTD_SIZE_T dst_size = to_limit - to;
+    size_t src_len  = from_end - from;
+    size_t dst_size = to_limit - to;
 
     // set the initial values to the source and destination pointers
     const char* psrc = from;
@@ -368,7 +367,7 @@ __rw_libc_do_in (_RWSTD_MBSTATE_T &state,
     while (dst_size && src_len) {
 
         // the number of bytes that form the next multibyte character
-        _RWSTD_SIZE_T nbytes;
+        size_t nbytes;
 
 #ifndef _RWSTD_NO_MBRTOWC
         nbytes = mbrtowc (pdst, psrc, src_len, &state);
@@ -379,14 +378,14 @@ __rw_libc_do_in (_RWSTD_MBSTATE_T &state,
 #endif
 
         // -1 indicates an invalid sequence (i.e., error)
-        if (nbytes == (_RWSTD_SIZE_T)(-1)) {
+        if (nbytes == size_t (-1)) {
         res = _STD::codecvt_base::error;
             break;
         }
  
         // -2 indicates an ambiguous but valid subsequence
         // (i.e., ok)
-        if (nbytes == (_RWSTD_SIZE_T)(-2))
+        if (nbytes == size_t (-2))
             break;
 
         // 0 indicates the NUL character (skip over it)
@@ -410,8 +409,8 @@ __rw_libc_do_in (_RWSTD_MBSTATE_T &state,
     // range then we have a "partial" conversion
     if (res == _STD::codecvt_base::ok && src_len && !dst_size) {
         _RWSTD_MBSTATE_T tmp_state = state;
-        _RWSTD_SIZE_T tmp = __rw_libc_mbrlen (tmp_state, psrc, src_len);
-        if (tmp < (_RWSTD_SIZE_T)(-2))
+        size_t tmp = __rw_libc_mbrlen (tmp_state, psrc, src_len);
+        if (tmp < size_t (-2))
             res = _STD::codecvt_base::partial;
     }
 
@@ -442,15 +441,13 @@ __rw_libc_do_out (_RWSTD_MBSTATE_T &state,
 
     // save the value of MB_CUR_MAX and avoid repeatedly using
     // the macro for efficiency (it may expand to a function call)
-    const _RWSTD_SIZE_T mb_cur_max =
-        _RWSTD_STATIC_CAST (_RWSTD_SIZE_T, MB_CUR_MAX);
+    const size_t mb_cur_max = size_t (MB_CUR_MAX);
 
     // the result of conversion
     _STD::codecvt_base::result res = _STD::codecvt_base::ok;
 
     // the size of the available space in the destination range
-    _RWSTD_SIZE_T dst_free =
-        _RWSTD_STATIC_CAST (_RWSTD_SIZE_T, to_limit - to_next);
+    size_t dst_free = size_t (to_limit - to_next);
 
     // small temporary buffer used when the space in the destination
     // buffer is less than MB_CUR_MAX
@@ -472,7 +469,7 @@ __rw_libc_do_out (_RWSTD_MBSTATE_T &state,
 
         // the number of bytes in the resulting multibyte character
         // sequence, not including the terminating NUL
-        _RWSTD_SIZE_T dst_len = 0;
+        size_t dst_len = 0;
 
 #ifndef _RWSTD_NO_WCRTOMB
 
@@ -546,7 +543,7 @@ __rw_libc_do_unshift (_RWSTD_MBSTATE_T& state, char*& to_next, char* to_limit)
     // use libc locale to obtain the shift sequence
     char tmp [_RWSTD_MB_LEN_MAX];
 
-    _RWSTD_SIZE_T ret;
+    size_t ret;
 
 #ifndef _RWSTD_NO_WCRTOMB
     ret = wcrtomb (tmp, wchar_t (0), &state);
@@ -559,7 +556,7 @@ __rw_libc_do_unshift (_RWSTD_MBSTATE_T& state, char*& to_next, char* to_limit)
     if (_RWSTD_SIZE_MAX == ret)
         return  _STD::codecvt_base::error;
 
-    if (ret > (_RWSTD_SIZE_T)(to_limit - to_next)) {
+    if (ret > size_t (to_limit - to_next)) {
         // restore the state and return partial
         state = tmp_state;
         return _STD::codecvt_base::partial;
@@ -576,7 +573,7 @@ __rw_libc_do_unshift (_RWSTD_MBSTATE_T& state, char*& to_next, char* to_limit)
 // for validity by performing a number of computationally
 // relatively expensive tests; used only in strict mode
 static bool
-__rw_utf8validate (const char* from, _RWSTD_SIZE_T nbytes)
+__rw_utf8validate (const char* from, size_t nbytes)
 {
     _RWSTD_ASSERT (0 != from);
     _RWSTD_ASSERT (1 < nbytes && 7 > nbytes);
@@ -622,7 +619,7 @@ __rw_utf8validate (const char* from, _RWSTD_SIZE_T nbytes)
     if (6 == nbytes && 0xfcU == byte [0] && (byte [1] & 0xfcU) == 0x80U)
         return false;
 
-    for (_RWSTD_SIZE_T i = 1; i < nbytes; ++i) {
+    for (size_t i = 1; i < nbytes; ++i) {
         if ((byte [i] & ~0x3fU) != 0x80U)
             return false;   // invalid byte
     }
@@ -699,7 +696,7 @@ __rw_libstd_do_in (const char                *from_end,
             if (strict_utf && tmp) {
 
                 // perform additional expensive UTF-8 validation
-                const _RWSTD_SIZE_T utf_len = tmp - from;
+                const size_t utf_len = tmp - from;
 
                 if (utf_len > 1 && !__rw_utf8validate (from, utf_len))
                     tmp = 0;
@@ -788,9 +785,9 @@ __rw_libstd_do_out (const wchar_t             *from,
         }
 
         // compute the number of bytes available in the destination sequence
-        const _RWSTD_SIZE_T bytes_avail = to_limit - to_next;
+        const size_t bytes_avail = to_limit - to_next;
 
-        _RWSTD_SIZE_T utf8_len;
+        size_t utf8_len;
 
         if (impl) {
 
@@ -869,11 +866,11 @@ __rw_libstd_do_out (const wchar_t             *from,
 
 
 // implements do_length() on top of libc mbrlen()
-static _RWSTD_SIZE_T 
+static size_t 
 __rw_libc_do_length (_RWSTD_MBSTATE_T &state,
                      const char       *from,
                      const char       *from_end,
-                     _RWSTD_SIZE_T     imax)
+                     size_t            imax)
 {
     const char* const from_begin = from;
 
@@ -881,7 +878,7 @@ __rw_libc_do_length (_RWSTD_MBSTATE_T &state,
 
         // compute the maximum length (in bytes) of the multibyte
         // character sequence starting at `from'
-        _RWSTD_SIZE_T nbytes = from_end - from;
+        size_t nbytes = from_end - from;
         if (_RWSTD_MB_LEN_MAX < nbytes)
             nbytes = _RWSTD_MB_LEN_MAX;
 
@@ -892,7 +889,7 @@ __rw_libc_do_length (_RWSTD_MBSTATE_T &state,
         nbytes = __rw_libc_mbrlen (state, from, nbytes);
 
         // stop when an invalid or incomplete character is encountered
-        if (nbytes >= (_RWSTD_SIZE_T)(-2))
+        if (nbytes >= size_t (-2))
             break;
 
         from += nbytes;
@@ -904,10 +901,10 @@ __rw_libc_do_length (_RWSTD_MBSTATE_T &state,
 
 
 // implements do_length() for UTF-8@UCS
-static _RWSTD_SIZE_T
+static size_t
 __rw_utf8_do_length (const char    *from,
                      const char    *from_end,
-                     _RWSTD_SIZE_T  imax,
+                     size_t         imax,
                      int            flags)
 {
     _RWSTD_ASSERT (from <= from_end);
@@ -932,7 +929,7 @@ __rw_utf8_do_length (const char    *from,
         _RWSTD_ASSERT (next <= from_end);
 
         // perform additional expensive UTF-8 validation in strict mode
-        const _RWSTD_SIZE_T utf_len = next - from_next;
+        const size_t utf_len = next - from_next;
 
         if (   strict_utf
             && utf_len > 1 && !__rw_utf8validate (from_next, utf_len))
@@ -968,10 +965,10 @@ __rw_utf8_do_length (const char    *from,
 // Note that the function returns the number of externT characters
 // (i.e., those of type char for the required instantiations).
 
-static _RWSTD_SIZE_T
+static size_t
 __rw_libstd_do_length (const char*                from,
                        const char*                from_end, 
-                       _RWSTD_SIZE_T              imax,
+                       size_t                     imax,
                        int                        flags,
                        const _RW::__rw_codecvt_t* impl)  
 {
@@ -1036,7 +1033,7 @@ _RW::__rw_facet_id codecvt<wchar_t, char, _RWSTD_MBSTATE_T>::id;
 
 
 /* explicit */ codecvt<wchar_t, char, _RWSTD_MBSTATE_T>::
-codecvt (_RWSTD_SIZE_T __ref /* = 0 */)
+codecvt (size_t __ref /* = 0 */)
     : _RW::__rw_facet (__ref)
 {
     // no-op
@@ -1185,7 +1182,7 @@ codecvt<wchar_t, char, _RWSTD_MBSTATE_T>::
 do_length (state_type        &state,
            const extern_type *from,
            const extern_type *from_end,
-           _RWSTD_SIZE_T      imax) const
+           size_t             imax) const
 {
     // 22.2.1.5.2, p9 - preconditions
     _RWSTD_ASSERT (from <= from_end);
@@ -1200,14 +1197,14 @@ do_length (state_type        &state,
         return 0;
 
     // 22.2.1.5.2, p10
-    const _RWSTD_SIZE_T len = from_end - from;
+    const size_t len = from_end - from;
     return int (len < imax ? len : imax);
 }
 
 
 // codecvt_byname <wchar,char> specialization
 codecvt_byname<wchar_t, char, _RWSTD_MBSTATE_T>:: 
-codecvt_byname (const char *name, _RWSTD_SIZE_T ref)
+codecvt_byname (const char *name, size_t ref)
     : codecvt<wchar_t, char, _RWSTD_MBSTATE_T>(ref)
 {
     _C_flags = _RW::__rw_encoding_from_name (name);
@@ -1232,14 +1229,14 @@ codecvt_byname (const char *name, _RWSTD_SIZE_T ref)
     if (mod) {
 
         const char* const   mod_nam = mod + 1;
-        const _RWSTD_SIZE_T mod_len = strlen (mod_nam);
+        const size_t        mod_len = strlen (mod_nam);
 
         // search for one of the known modifiers
         if (mod_len > 2 && !memcmp (mod_nam, "UCS", 3)) {
 
             int flags = 0;
 
-            for (_RWSTD_SIZE_T i = 0; i != _RW::__rw_n_ucsmods; ++i) {
+            for (size_t i = 0; i != _RW::__rw_n_ucsmods; ++i) {
                 if (!strcmp (_RW::__rw_ucsmods [i].mod, mod_nam)) {
                     flags = _RW::__rw_ucsmods [i].flags;
                     break;
@@ -1267,7 +1264,7 @@ codecvt_byname (const char *name, _RWSTD_SIZE_T ref)
     // denoting an external UTF encoding with strict validation rules
     // but slower processing, and their relaxed but faster equivalents,
     // utf-8, utf-16, utf-16-be, utf-16-le
-    const _RWSTD_SIZE_T name_len = strlen (name);
+    const size_t name_len = strlen (name);
 
     if (4 < name_len) {
 
@@ -1560,7 +1557,7 @@ codecvt_byname<wchar_t, char, _RWSTD_MBSTATE_T>::
 do_length (state_type&        state, 
            const extern_type *from, 
            const extern_type *from_end, 
-           _RWSTD_SIZE_T      cmax) const 
+           size_t             cmax) const 
 {
     // 22.2.1.5.2 p1
     _RWSTD_ASSERT (from <= from_end);
@@ -1568,7 +1565,7 @@ do_length (state_type&        state,
     // verify that the range is valid
     _RWSTD_ASSERT (from && from_end || !from && !from_end);
 
-    _RWSTD_SIZE_T len = 0;
+    size_t len = 0;
 
     // test the type of the encoding that the facet is interpreting
     switch (ISO2022_TYPE (_C_flags)) {
@@ -1704,7 +1701,7 @@ do_max_length () const _THROWS (())
 {
     // returns the max value do_length (s, from, from_end, 1) can return
     // for any valid range [from, from_end) - see LWG issue 74 (a DR)
-    _RWSTD_SIZE_T max_len = 0;
+    size_t max_len = 0;
 
     // test the type of the encoding that the facet is interpreting
     switch (ISO2022_TYPE (_C_flags)) {
@@ -1718,14 +1715,14 @@ do_max_length () const _THROWS (())
             // use libc locale
             const _RW::__rw_setlocale clocale (_C_name, LC_CTYPE);
 
-            max_len = _RWSTD_STATIC_CAST (_RWSTD_SIZE_T, MB_CUR_MAX);
+            max_len = size_t (MB_CUR_MAX);
         }
         else {
             // use own implementation
             if (IS_UTF8 (_C_flags))
                 max_len = _UTF8_MB_CUR_MAX;
             else if (impl)
-                max_len = _RWSTD_STATIC_CAST (_RWSTD_SIZE_T, impl->mb_cur_max);
+                max_len = size_t (impl->mb_cur_max);
         }
         break;
     }
