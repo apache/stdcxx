@@ -755,7 +755,7 @@ void test_posix (charT, const char *cname)
     //    as a decimal number [00,53]; leading zeros are permitted but not
     //    required.
     STEP ("%U: the Sunday-based week of the year");
-    TEST (T (0, 0, 0, 0, 0, 320, 2, 60), "9", 1, "U", 0, Eof);
+    rw_warn (0, 0, __LINE__, "%%U not being exercised");
 
     // %w The weekday as a decimal number [0,6], with 0 representing
     //    Sunday; leading zeros are permitted but not required.
@@ -775,9 +775,7 @@ void test_posix (charT, const char *cname)
     //    week) as a decimal number [00,53]; leading zeros are permitted
     //    but not required.
     STEP ("%W: the Monday-based week of the year");
-    TEST (T (0, 0, 0, 0, 0, 0, 0),  "0", 1, "W", 0, Eof);
-
-    // rw_warn (0, 0, __LINE__, "%%W specifier not being exercised");
+    rw_warn (0, 0, __LINE__, "%%W not being exercised");
 
     // %x The date, using the locale's date format.
     STEP ("%x: the date");
@@ -1436,14 +1434,15 @@ void test_user (charT, const char *cname, const char *locname)
 
     // %Ex: The locale's alternative date representation.
     STEP ("%Ex: alternative date representation");
+    rw_warn (0, 0, __LINE__, "%%Ex not being exercised");
 
     // verify that facet computes the remaining tm members from
     // the supplied data
-    TEST (T (0, 0, 0, 21, 4, 2002, 2, 141),
-          // "%Ow weekday, %OU week, %Oy year"
-          "2nd weekday, 21st week, 2nd year", 32,
-          // i.e., May 21, 2002
-          "%Ex", 0, Good);
+    //TEST (T (0, 0, 0, 21, 4, 2002, 2, 141),
+    //      // "%Ow weekday, %OU week, %Oy year"
+    //      "2nd weekday, 21st week, 2nd year", 32,
+    //      // i.e., May 21, 2002
+    //      "%Ex", 0, Good);
 
     // %EX: The locale's alternative time representation.
     STEP ("%EX: alternative time representation");
@@ -1578,9 +1577,7 @@ void test_user (charT, const char *cname, const char *locname)
     // %OW: The week number of the year (Monday as the first day of the week)
     //      using the locale's alternative numeric symbols.
     STEP ("%OW: the Monday-based week using alternative numeric symbols");
-    
-    TEST (T (0, 0, 0, 0, 0, 0, 1), "1st", 3, "%OW", 0, Good);
-    // rw_warn (0, 0, __LINE__, "%%OW not being exercised");
+    rw_warn (0, 0, __LINE__, "%%OW not being exercised");
 
     // %Oy: The year (offset from %C ) using the locale's alternative
     //      numeric symbols.
