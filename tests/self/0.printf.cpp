@@ -30,9 +30,10 @@
 // but not in the compiler's pure C++ libc headers)
 #undef __PURE_CNAME
 
+#include <rw_environ.h> // for rw_putenv()
 #include <rw_printf.h>
 #include <rw_process.h> // for rw_pid_t
-#include <rw_environ.h> // for rw_putenv()
+#include <rw_value.h>   // for UserClass
 
 #include <bitset>       // for bitset
 #include <ios>          // for ios::iostate, ios::openmode, ios::seekdir
@@ -43,13 +44,14 @@
 #include <ctype.h>      // for isdigit()
 #include <errno.h>      // for EXXX, errno
 #include <limits.h>     // for INT_MAX, ...
+#include <locale.h>     // for LC_ALL, ...
 #include <signal.h>     // for SIGABRT, ...
 #include <stdio.h>      // for printf(), ...
 #include <stdlib.h>     // for free(), size_t
 #include <string.h>     // for strcpy()
 #include <stdarg.h>     // for va_arg, ...
 #include <time.h>       // for struct tm
-#include <locale.h>     // for LC_ALL, ...
+#include <wchar.h>      // for WEOF
 
 
 // disable tests for function name in "%{lF}"
@@ -341,7 +343,7 @@ test_character ()
     TEST ("%{lc}", L'A',    0, 0, "A");
     TEST ("%{lc}", L'Z',    0, 0, "Z");
     TEST ("%{lc}", L'\xff', 0, 0, "\\xff");
-    TEST ("%{lc}", -1,      0, 0, "EOF");
+    TEST ("%{lc}", WEOF,    0, 0, "EOF");
 
     //////////////////////////////////////////////////////////////////
     printf ("%s\n", "extension: \"%{#lc}\": quoted escaped wide character");
@@ -357,7 +359,7 @@ test_character ()
     TEST ("%{#lc}", L'A',    0, 0, "'A'");
     TEST ("%{#lc}", L'Z',    0, 0, "'Z'");
     TEST ("%{#lc}", L'\xff', 0, 0, "'\\xff'");
-    TEST ("%{#lc}", -1,      0, 0, "EOF");
+    TEST ("%{#lc}", WEOF,    0, 0, "EOF");
 }
 
 /***********************************************************************/
@@ -813,7 +815,6 @@ test_ios_bitmasks ()
     const int bad  = std::ios_base::badbit;
     const int eof  = std::ios_base::eofbit;
     const int fail = std::ios_base::failbit;
-    const int good = std::ios_base::goodbit;
 
     TEST ("[%{Is}]", 0,                0, 0, "[goodbit]");
     TEST ("[%{Is}]", bad,              0, 0, "[badbit]");
@@ -2924,6 +2925,84 @@ test_conditional ()
 
 /***********************************************************************/
 
+static void
+test_userclass_format ()
+{
+    // %{X=} directive syntax:
+    //
+    //   "X=" [ '#' ] [ '+' ] [ '*' | <n> ] [ '.' [ '*' | '@' | <n> ] ]
+    //
+    // where
+    //   '#' causes UserClass::id_ to be included in output
+    //   '+' forces UserClass::data_.val_ to be formatted as an int
+    //       otherwise it is formatted as an (optionally escaped)
+    //       char
+    //   '*' or <n> is the number of elements in the sequence
+    //       (the first occurrence)
+    //   '*', <n> is the offset of the cursor within the sequence
+    //            (where the cursor is a pair of pointy brackets
+    //            surrounding the element, e.g., >123<)
+    //   '@' is the pointer to the element to be surrended by the
+    //       pair of pointy brackets
+
+    UserClass* const x = UserClass::from_char ("abcdef");
+
+    TEST ("[%{X=*}]", 0, x, 0, "[]");
+    TEST ("[%{X=*}]", 1, x, 0, "[a]");
+    TEST ("[%{X=*}]", 2, x, 0, "[ab]");
+    TEST ("[%{X=*}]", 3, x, 0, "[abc]");
+    TEST ("[%{X=*}]", 4, x, 0, "[abcd]");
+    TEST ("[%{X=*}]", 5, x, 0, "[abcde]");
+    TEST ("[%{X=*}]", 6, x, 0, "[abcdef]");
+
+    TEST ("[%{X=#*}]", 0, x, 0, "[]");
+    TEST ("[%{X=#*}]", 1, x, 0, "[1:a]");
+    TEST ("[%{X=#*}]", 2, x, 0, "[1:a2:b]");
+    TEST ("[%{X=#*}]", 3, x, 0, "[1:a2:b3:c]");
+    TEST ("[%{X=#*}]", 4, x, 0, "[1:a2:b3:c4:d]");
+    TEST ("[%{X=#*}]", 5, x, 0, "[1:a2:b3:c4:d5:e]");
+    TEST ("[%{X=#*}]", 6, x, 0, "[1:a2:b3:c4:d5:e6:f]");
+
+    TEST ("[%{X=+*}]", 0, x, 0, "[]");
+    TEST ("[%{X=+*}]", 1, x, 0, "[97]");
+    TEST ("[%{X=+*}]", 2, x, 0, "[97,98]");
+    TEST ("[%{X=+*}]", 3, x, 0, "[97,98,99]");
+    TEST ("[%{X=+*}]", 4, x, 0, "[97,98,99,100]");
+    TEST ("[%{X=+*}]", 5, x, 0, "[97,98,99,100,101]");
+    TEST ("[%{X=+*}]", 6, x, 0, "[97,98,99,100,101,102]");
+
+    TEST ("[%{X=+*.0}]", 0, x, 0, "[]");
+
+    TEST ("[%{X=+*.0}]", 1, x, 0, "[>97<]");
+
+    TEST ("[%{X=+*.*}]", 2, 0, x, "[>97<,98]");
+    TEST ("[%{X=+*.1}]", 2, x, 0, "[97,>98<]");
+
+    TEST ("[%{X=+*.0}]", 3, x, 0, "[>97<,98,99]");
+    TEST ("[%{X=+*.*}]", 3, 1, x, "[97,>98<,99]");
+    TEST ("[%{X=+*.*}]", 3, 2, x, "[97,98,>99<]");
+
+    TEST ("[%{X=+*.*}]", 4, 0, x, "[>97<,98,99,100]");
+    TEST ("[%{X=+*.*}]", 4, 1, x, "[97,>98<,99,100]");
+    TEST ("[%{X=+*.*}]", 4, 2, x, "[97,98,>99<,100]");
+    TEST ("[%{X=+*.*}]", 4, 3, x, "[97,98,99,>100<]");
+
+    TEST ("[%{X=+*.@}]", 4, x + 3, x, "[97,98,99,>100<]");
+    TEST ("[%{X=+*.@}]", 4, x + 2, x, "[97,98,>99<,100]");
+    TEST ("[%{X=+*.@}]", 4, x + 1, x, "[97,>98<,99,100]");
+    TEST ("[%{X=+*.@}]", 4, x + 0, x, "[>97<,98,99,100]");
+
+    TEST ("[%{X=+#5.*}]", 0, x, 0, "[>1:97<,2:98,3:99,4:100,5:101]");
+    TEST ("[%{X=+#5.*}]", 1, x, 0, "[1:97,>2:98<,3:99,4:100,5:101]");
+    TEST ("[%{X=+#5.*}]", 2, x, 0, "[1:97,2:98,>3:99<,4:100,5:101]");
+    TEST ("[%{X=+#5.*}]", 3, x, 0, "[1:97,2:98,3:99,>4:100<,5:101]");
+    TEST ("[%{X=+#5.*}]", 4, x, 0, "[1:97,2:98,3:99,4:100,>5:101<]");
+
+    delete[] x;
+}
+
+/***********************************************************************/
+
 static int
 user_fun_va (const char *fun_name,   // name of calling function
              char      **pbuf,       // pointer to a buffer
@@ -3318,6 +3397,9 @@ int main ()
     test_width_specific_int ();
 
     test_conditional ();
+
+    // must be exercised before user-defined formatting
+    test_userclass_format ();
 
     test_user_defined_formatting ();
 
