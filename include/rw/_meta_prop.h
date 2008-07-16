@@ -371,7 +371,20 @@ struct __rw_has_trivial_assign
 
 #ifndef _RWSTD_TT_HAS_TRIVIAL_DTOR
 #  define _RWSTD_TT_HAS_TRIVIAL_DTOR(T) \
-    _RW::__rw_is_pod<T>::value && !_RW::__rw_is_reference<T>::value
+    _RW::__rw_is_pod<T>::value && _RW::__rw_is_reference<T>::value
+#elif (__GNUC__ == 4) && (__GNUC_MINOR__ == 3)
+
+template <class _TypeT>
+struct __rw_has_trivial_dtor_impl
+{
+    enum { _C_value =    __rw_is_reference<_TypeT>::value
+                      || _RWSTD_TT_HAS_TRIVIAL_DTOR (_TypeT) };
+};
+
+#  undef _RWSTD_TT_HAS_TRIVIAL_DTOR
+#  define _RWSTD_TT_HAS_TRIVIAL_DTOR(T) \
+    _RW::__rw_has_trivial_dtor_impl<T>::_C_value
+
 #elif defined (__EDG_VERSION__)
 
 template <class _TypeT>

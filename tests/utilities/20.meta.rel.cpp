@@ -340,7 +340,7 @@ static void test_is_convertible ()
     TEST (std::is_convertible, int (), int (&)(char), false);
 
     TEST (std::is_convertible, int*, void*, true);
-    TEST (std::is_convertible, int (*)(), void*, true);
+    TEST (std::is_convertible, int (*)(), void*, false);
 
     TEST (std::is_convertible,
           int (*)(derived_<struct_A>*),
