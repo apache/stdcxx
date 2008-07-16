@@ -119,7 +119,6 @@ public:
 
     value_type value () const { return value_; }
 
-    //void value (const value_type& value) { value_ = value; }
 
     // testing
 
