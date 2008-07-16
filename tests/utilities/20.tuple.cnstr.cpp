@@ -32,12 +32,115 @@
 #if    !defined (_RWSTD_NO_EXT_CXX_0X) \
     && !defined(_RWSTD_NO_RVALUE_REFERENCES)
 
+#include <climits>              // for CHAR_MAX
+#include <cstdlib>              // for rand
 #include <cstring>              // for strcmp
 #include <tuple>
+#include <type_traits>          // for decay
 
 #include <rw_valcmp.h>          // for rw_fltcmp
 
 #include "20.tuple.h"
+
+/**************************************************************************/
+
+// general test function and underlying abstractions
+
+template <class T, class U = T>
+bool equal (const T& x, const U& y)
+{
+    return x == y;
+}
+
+template <>
+bool equal (const float& x, const float& y)
+{
+    return 0 == rw_fltcmp (x, y);
+}
+
+template <>
+bool equal (const char* const& x, const char* const& y)
+{
+    return 0 == std::strcmp (x, y);
+}
+
+
+template <class T, class U>
+void assert (int line, unsigned index, const char* tuple_name,
+             const T& t, const U& u)
+{
+    const char* fmtT = FMT_SPEC (T);
+    const char* fmtU = FMT_SPEC (U);
+    rw_assert (equal (t, u), __FILE__, line,
+               "get<%d, %s> (); got %{@}, expected %{@}",
+               index, tuple_name, fmtT, t, fmtU, u);
+}
+
+void assert (int line, unsigned index, const char* tuple_name,
+             const UserDefined& t, const UserDefined& u)
+{
+    rw_assert (equal (t, u), __FILE__, line,
+               "get<%d, %s> (); got %p [%d], expected %p [%d]",
+               index, tuple_name, &t, t.value (), &u, u.value ());
+
+    UserDefined::size_type a, e;
+
+#undef CHECK
+#define CHECK(N)          \
+    a = UserDefined::actual.N; e = UserDefined::expect.N; \
+    rw_assert (a == e, __FILE__, line, \
+               "UserDefined::" #N "; got %u, expected %u", a, e)
+
+    CHECK (dflt_ctor);
+    CHECK (copy_ctor);
+    CHECK (tmpl_ctor);
+    CHECK (move_ctor);
+    CHECK (copy_asgn);
+    CHECK (tmpl_asgn);
+    CHECK (move_asgn);
+}
+
+template <class T, class U>
+void assert (int line, unsigned index, const char* tuple_name,
+             const std::tuple<T>& t, const std::tuple<U>& u)
+{
+    const char* fmtT = FMT_SPEC (T);
+    const char* fmtU = FMT_SPEC (U);
+    rw_assert (equal (t, u), __FILE__, line,
+               "get<%d, %s> (); got %{@}, expected %{@}",
+               index, tuple_name,
+               fmtT, std::get<0> (t), fmtU, std::get<0> (u));
+}
+
+
+template <unsigned Index, class Tuple, class... Elements>
+/*static*/ void
+test_impl (int line, const Tuple& tuple, const Elements&... values);
+
+// terminating specialization
+template <unsigned Index, class Tuple>
+/*static*/ void
+test_impl (int, const Tuple&) {}
+
+// generic definition
+template <unsigned Index, class Tuple, class Element, class... Elements>
+/*static*/ void
+test_impl (int line, const Tuple& tuple,
+           const Element& value, const Elements&... values)
+{
+    // assume std::get() has been fully tested and works correctly
+    assert (line, Index, TYPE_NAME (Tuple),
+            std::get<Index> (tuple), value);
+
+    test_impl<Index+1> (line, tuple, values...);
+}
+
+template <class Tuple, class... Elements>
+/*static*/ void
+test (int line, const Tuple& tuple, const Elements&... values)
+{
+    test_impl<0> (line, tuple, values...);
+}
 
 /**************************************************************************/
 
@@ -54,99 +157,11 @@ test_default_ctor ()
     NestedTuple nt; _RWSTD_UNUSED (nt);
     BigTuple bt; _RWSTD_UNUSED (bt);
 
-    UserClass::reset_totals ();
+    UserDefined::reset ();
     UserTuple ut; _RWSTD_UNUSED (ut);
-
-    rw_assert (1 == UserClass::n_total_def_ctor_, __FILE__, __LINE__,
-               "tuple<UserClass>::tuple() called %d default ctors, "
-               "expected 1", UserClass::n_total_def_ctor_);
-}
-
-/**************************************************************************/
-
-#define INT_VALUE       int ('a')
-
-// assume that std::get() has been fully tested and works correctly
-#define VERIFY_TUPLE(it) \
-    rw_assert (std::get<0> (it) == INT_VALUE, __FILE__, __LINE__, \
-               "std::get<0> (" #it "), got %d, expected %d", \
-               std::get<0> (it), INT_VALUE);
-
-
-#define LONG_VALUE      INT_VALUE
-#define STRING_VALUE    "string"
-
-static void
-verify_tuple (const PairTuple& pt)
-{
-    rw_assert (std::get<0> (pt) == LONG_VALUE, __FILE__, __LINE__,
-               "std::get<0> (pt), got %d, expected %d",
-               std::get<0> (pt), LONG_VALUE);
-    rw_assert (0 == std::strcmp (std::get<1> (pt), STRING_VALUE),
-               __FILE__, __LINE__,
-               "std::get<1> (pt), got %s, expected %s",
-               std::get<1> (pt), STRING_VALUE);
-}
-
-
-#define USER_VALUE      user_val
-
-static UserClass user_val;
-
-typedef unsigned int uint_t;
-
-static void
-verify_tuple (const UserTuple& ut, int line,
-              uint_t dflt = 0, uint_t copy = 0, uint_t asgn = 0)
-{
-    rw_assert (std::get<0> (ut) == USER_VALUE, __FILE__, line,
-               "std::get<0> (ut), got %d, expected %d",
-               (std::get<0> (ut)).data_.val_,
-               USER_VALUE.data_.val_);
-
-    rw_assert (dflt == UserClass::n_total_def_ctor_, __FILE__, line,
-               "tuple<UserClass>::tuple() called %d default ctors, "
-               "expected %d", UserClass::n_total_def_ctor_, dflt);
-    rw_assert (copy == UserClass::n_total_copy_ctor_, __FILE__, line,
-               "tuple<UserClass>::tuple() called %d copy ctors, "
-               "expected %d", UserClass::n_total_copy_ctor_, copy);
-    rw_assert (asgn == UserClass::n_total_op_assign_, __FILE__, line,
-               "tuple<UserClass>::tuple() called %d assign ops, "
-               "expected %d", UserClass::n_total_op_assign_, asgn);
-}
-
-
-#define BOOL_VALUE      true
-#define CHAR_VALUE      'a'
-#define DBL_VALUE       3.14159
-#define PTR_VALUE       ptr_val
-
-static void* ptr_val = 0;
-
-static void
-verify_tuple (const BigTuple& bt)
-{
-    rw_assert (std::get<0> (bt) == BOOL_VALUE, __FILE__, __LINE__,
-               "std::get<0> (bt), got %b, expected %b",
-               std::get<0> (bt), BOOL_VALUE);
-    rw_assert (std::get<1> (bt) == CHAR_VALUE, __FILE__, __LINE__,
-               "std::get<1> (bt), got %c, expected %c",
-               std::get<1> (bt), CHAR_VALUE);
-    rw_assert (std::get<2> (bt) == INT_VALUE, __FILE__, __LINE__,
-               "std::get<2> (bt), got %d, expected %d",
-               std::get<2> (bt), INT_VALUE);
-    // compare as floats because floats promoted to doubles will not
-    // be equal even if the values are logically equal
-    int result = rw_fltcmp (std::get<3> (bt), DBL_VALUE);
-    rw_assert (0 == result, __FILE__, __LINE__,
-               "std::get<3> (bt), got %f, expected %f",
-               std::get<3> (bt), DBL_VALUE);
-    rw_assert (std::get<4> (bt) == PTR_VALUE, __FILE__, __LINE__,
-               "std::get<4> (bt), got %p, expected %p",
-               std::get<4> (bt), PTR_VALUE);
-    rw_assert ((std::get<5> (bt)) == USER_VALUE, __FILE__, __LINE__,
-               "std::get<5> (bt), got %d, expected %d",
-               (std::get<5> (bt)).data_.val_, INT_VALUE);
+    rw_assert (1 == UserDefined::actual.dflt_ctor, __FILE__, __LINE__,
+               "UserTuple::UserTuple (); called %d default ctors, "
+               "expected 1", UserDefined::actual.dflt_ctor);
 }
 
 /**************************************************************************/
@@ -156,37 +171,39 @@ test_value_copy_ctor ()
 {
     rw_info (0, __FILE__, __LINE__, "value copy constructor");
 
-    const int i = INT_VALUE;
+    const int i = std::rand ();
     IntTuple it1 (i);
-    VERIFY_TUPLE (it1);
+    test (__LINE__, it1, i);
 
     const IntTuple it2 (i);
-    VERIFY_TUPLE (it2);
+    test (__LINE__, it2, i);
 
     ConstIntTuple ct (i);
-    VERIFY_TUPLE (ct);
+    test (__LINE__, ct, i);
 
-    int j = INT_VALUE;
+    int j = std::rand ();
     const IntRefTuple rt (j);
-    VERIFY_TUPLE (rt);
+    test (__LINE__, rt, j);
 
     NestedTuple nt (it2);
-    VERIFY_TUPLE (std::get<0> (nt));
+    //std::get<0> (it2) = std::rand (); // diliberately cause assertion
+    test (__LINE__, nt, it2);
 
-    const long l = LONG_VALUE;
-    const char* s = STRING_VALUE;
-    PairTuple pt (l, s);
-    verify_tuple (pt);
+    const long l = std::rand ();
+    PairTuple pt (l, "string");
+    test (__LINE__, pt, l, (const char*) "string");
 
-    UserClass::reset_totals ();
-    const UserClass& uc = USER_VALUE;
-    UserTuple ut (uc);
-    verify_tuple (ut, __LINE__, 0, 1);
+    const UserDefined ud (i);
+    UserDefined::reset ();
+    UserTuple ut (ud);
+    UserDefined::expect.copy_ctor = 1;
+    test (__LINE__, ut, ud);
 
-    const bool b = BOOL_VALUE; const char c = CHAR_VALUE;
-    const double d = DBL_VALUE; void* const p = PTR_VALUE;
-    BigTuple bt (b, c, i, d, p, uc);
-    verify_tuple (bt);
+    const bool b = true; const char c = 'a';
+    const double d = 3.14159; void* const p = (void*) &i;
+    BigTuple bt (b, c, i, d, p, ud);
+    ++UserDefined::expect.copy_ctor;
+    test (__LINE__, bt, b, c, i, d, p, ud);
 }
 
 /**************************************************************************/
@@ -196,40 +213,47 @@ test_value_move_ctor ()
 {
     rw_info (0, __FILE__, __LINE__, "value move constructor");
 
-    IntTuple it1 (INT_VALUE); // literal constant
-    VERIFY_TUPLE (it1);
-    int i = INT_VALUE;
-    IntTuple it2 (i); // temporary value
-    VERIFY_TUPLE (it2);
+#define INTEGER_CONSTANT        256
 
-    const IntTuple it3 (INT_VALUE);
-    VERIFY_TUPLE (it3);
+    IntTuple it1 (INTEGER_CONSTANT);
+    test (__LINE__, it1, INTEGER_CONSTANT);
+    const int c = std::rand ();
+    int i = c;   // move semantics can alter source value
+    IntTuple it2 (i);   // temporary source value
+    test (__LINE__, it2, c);
+
+    const IntTuple it3 (INTEGER_CONSTANT);
+    test (__LINE__, it3, INTEGER_CONSTANT);
+    i = c;
     const IntTuple it4 (i);
-    VERIFY_TUPLE (it4);
+    test (__LINE__, it4, c);
 
-    ConstIntTuple ct1 (INT_VALUE);
-    VERIFY_TUPLE (ct1);
+    ConstIntTuple ct1 (INTEGER_CONSTANT);
+    test (__LINE__, ct1, INTEGER_CONSTANT);
+    i = c;
     ConstIntTuple ct2 (i);
-    VERIFY_TUPLE (ct2);
+    test (__LINE__, ct2, c);
 
     // ill-formed for tuples with element types containing references
 
-    NestedTuple nt (ct1);
-    VERIFY_TUPLE (std::get<0> (nt));
+    NestedTuple nt (it1);
+    test (__LINE__, nt, it1);
 
-    PairTuple pt (LONG_VALUE, STRING_VALUE);
-    verify_tuple (pt);
+    PairTuple pt (123456789L, "string");
+    test (__LINE__, pt, 123456789L, (const char*) "string");
 
-    UserClass uc (USER_VALUE);
-    UserClass::reset_totals ();
-    UserTuple ut (uc); // may alter temporary/source value
-    // no move semantics in UserClass currently
-    verify_tuple (ut, __LINE__, 0, 1);
+    const UserDefined src (c);
+    UserDefined tmp (src);
+    UserDefined::reset ();
+    UserTuple ut (tmp);
+    UserDefined::expect.move_ctor = 1;
+    test (__LINE__, ut, src);
 
-    void* p = PTR_VALUE;
-    uc = USER_VALUE;
-    BigTuple bt (BOOL_VALUE, CHAR_VALUE, INT_VALUE, DBL_VALUE, p, uc);
-    verify_tuple (bt);
+    tmp = src;  ++UserDefined::expect.copy_asgn;
+    BigTuple bt (true, 'a', INTEGER_CONSTANT, 3.14159, (void*) 0, tmp);
+    ++UserDefined::expect.move_ctor;
+    test (__LINE__, bt,
+          true, 'a', INTEGER_CONSTANT, 3.14159, (void*) 0, src);
 }
 
 /**************************************************************************/
@@ -243,36 +267,40 @@ test_homo_copy_ctor ()
     EmptyTuple et1, et2 (et1);
     _RWSTD_UNUSED (et2);
 
-    const IntTuple it1 (INT_VALUE);
+    const int ci = std::rand ();
+    const IntTuple it1 (ci);
     IntTuple it2 (it1);
-    VERIFY_TUPLE (it2);
+    test (__LINE__, it2, ci);
 
-    const ConstIntTuple& ct1 = it1;
+    const ConstIntTuple& ct1 = it1; // same as copy ctor
     ConstIntTuple ct2 (ct1);
-    VERIFY_TUPLE (it2);
+    test (__LINE__, ct2, ci);
 
-    int i = INT_VALUE;
+    int i = ci;
     const IntRefTuple rt1 (i);
     IntRefTuple rt2 (rt1);
-    VERIFY_TUPLE (rt2);
+    test (__LINE__, rt2, ci);
 
     const NestedTuple nt1 (it1);
     NestedTuple nt2 (nt1);
-    VERIFY_TUPLE (std::get<0> (nt2));
+    test (__LINE__, nt2, it1);
 
-    const PairTuple pt1 (LONG_VALUE, STRING_VALUE);
+    const PairTuple pt1 (1234567890L, "string");
     PairTuple pt2 (pt1);
-    verify_tuple (pt2);
+    test (__LINE__, pt2, 1234567890L, (const char*) "string");
 
-    const UserTuple ut1 (USER_VALUE);
-    UserClass::reset_totals ();
+    UserDefined ud (ci);
+    const UserTuple ut1 (ud);
+    UserDefined::reset ();
     UserTuple ut2 (ut1);
-    verify_tuple (ut2, __LINE__, 0, 1);
+    ++UserDefined::expect.copy_ctor;
+    test (__LINE__, ut2, ud);
 
-    const BigTuple bt1 (BOOL_VALUE, CHAR_VALUE, INT_VALUE, DBL_VALUE,
-                        PTR_VALUE, USER_VALUE);
+    const BigTuple bt1 (true, 'a', ci, 3.14159, (void* const) &i, ud);
+    ++UserDefined::expect.move_ctor; // moved ud to bt1
     BigTuple bt2 (bt1);
-    verify_tuple (bt2);
+    ++UserDefined::expect.copy_ctor; // copied to bt2
+    test (__LINE__, bt2, true, 'a', ci, 3.14159, (void* const) &i, ud);
 }
 
 /**************************************************************************/
@@ -285,33 +313,36 @@ test_homo_move_ctor ()
 
     EmptyTuple et (EmptyTuple ()); _RWSTD_UNUSED (et);
 
-    IntTuple it1 (INT_VALUE);
-    IntTuple it2 (std::move (it1));
-    VERIFY_TUPLE (it2);
+    const int ci = std::rand ();
 
-    ConstIntTuple ct1 (INT_VALUE);
+    IntTuple it1 (ci);
+    IntTuple it2 (std::move (it1));
+    test (__LINE__, it2, ci);
+
+    ConstIntTuple ct1 (ci);
     ConstIntTuple ct2 = std::move (ct1);
-    VERIFY_TUPLE (ct2);
+    test (__LINE__, ct2, ci);
 
     NestedTuple nt1 (it1);
     NestedTuple nt2 = std::move (nt1);
-    VERIFY_TUPLE (std::get<0> (nt2));
+    test (__LINE__, nt2, it1);
 
-    PairTuple pt1 (LONG_VALUE, STRING_VALUE);
+    PairTuple pt1 (1234567890L, "string");
     PairTuple pt2 (std::move (pt1));
-    verify_tuple (pt2);
+    test (__LINE__, pt2, 1234567890L, (const char*) "string");
 
-    BigTuple bt1 (BOOL_VALUE, CHAR_VALUE, INT_VALUE, DBL_VALUE,
-                  PTR_VALUE, USER_VALUE);
-    BigTuple bt2 (std::move (bt1));
-    verify_tuple (bt2);
-
-    const UserClass& uc = USER_VALUE;
-    UserTuple ut1 (uc);
-    UserClass::reset_totals ();
-    // no move semantics in UserClass currently so it uses copy ctor
+    const UserDefined ud (ci);
+    UserTuple ut1 (ud);
+    UserDefined::reset ();
     UserTuple ut2 (std::move (ut1));
-    verify_tuple (ut2, __LINE__, 0, 1);
+    ++UserDefined::expect.move_ctor;
+    test (__LINE__, ut2, ud);
+
+    BigTuple bt1 (true, 'a', ci, 3.14159, (void*) &ci, ud);
+    ++UserDefined::expect.copy_ctor;
+    BigTuple bt2 (std::move (bt1));
+    ++UserDefined::expect.move_ctor;
+    test (__LINE__, bt2, true, 'a', ci, 3.14159, (void*) &ci, ud);
 }
 
 /**************************************************************************/
@@ -327,41 +358,42 @@ test_homo_copy_assign ()
     et2 = et1;
     _RWSTD_UNUSED (et2);
 
-    const IntTuple it1 (INT_VALUE);
+    int i = std::rand ();
+    const IntTuple it1 (i);
     IntTuple it2;
     it2 = it1;
-    VERIFY_TUPLE (it2);
+    test (__LINE__, it2, i);
 
     // copy assignment ill-formed for constant element types
 
-    int i = INT_VALUE;
     const IntRefTuple rt1 (i);
-    int j = 0;
+    int j = -1; // outside range of rand()
     IntRefTuple rt2 (j); // note, different reference
     rt2 = rt1;
-    VERIFY_TUPLE (rt2);
+    test (__LINE__, rt2, i);
 
     NestedTuple nt1 (it1);
     NestedTuple nt2;
     nt2 = nt1;
-    VERIFY_TUPLE (std::get<0> (nt2));
+    test (__LINE__, nt2, it1);
 
-    const PairTuple pt1 (LONG_VALUE, STRING_VALUE);
+    const PairTuple pt1 (long (i), "string");
     PairTuple pt2;
     pt2 = pt1;
-    verify_tuple (pt2);
+    test (__LINE__, pt2, long (i), (const char*) "string");
 
-    const BigTuple bt1 (BOOL_VALUE, CHAR_VALUE, INT_VALUE, DBL_VALUE,
-                        PTR_VALUE, USER_VALUE);
-    BigTuple bt2;
-    bt2 = bt1;
-    verify_tuple (bt2);
-
-    const UserTuple ut1 (USER_VALUE);
+    const UserDefined ud (i);
+    const UserTuple ut1 (ud);
     UserTuple ut2;
-    UserClass::reset_totals ();
-    ut2 = ut1;
-    verify_tuple (ut2, __LINE__, 0, 0, 1);
+    UserDefined::reset ();
+    ut2 = ut1;  ++UserDefined::expect.copy_asgn;
+    test (__LINE__, ut2, ud);
+
+    const BigTuple bt1 (true, 'a', i, 3.14159, (void* const) &i, ud);
+    ++UserDefined::expect.copy_ctor;
+    BigTuple bt2;  ++UserDefined::expect.dflt_ctor;
+    bt2 = bt1;  ++UserDefined::expect.copy_asgn;
+    test (__LINE__, bt2, true, 'a', i, 3.14159, (void* const) &i, ud);
 }
 
 /**************************************************************************/
@@ -376,43 +408,42 @@ test_homo_move_assign ()
     et2 = std::move (et1);
     _RWSTD_UNUSED (et2);
 
-    IntTuple it1 (INT_VALUE);
+    int i = std::rand ();
+
+    IntTuple it1 (i);
     IntTuple it2;
     it2 = std::move (it1);
-    VERIFY_TUPLE (it2);
+    test (__LINE__, it2, i);
 
     // move assignment ill-formed for constant element types
 
     NestedTuple nt1 (it2);
     NestedTuple nt2;
     nt2 = std::move (nt1);
-    VERIFY_TUPLE (std::get<0> (nt2));
+    test (__LINE__, nt2, it2);
 
-    PairTuple pt1 (LONG_VALUE, STRING_VALUE);
+    PairTuple pt1 (1234567890L, "string");
     PairTuple pt2;
     pt2 = std::move (pt1);
-    verify_tuple (pt2);
+    test (__LINE__, pt2, 1234567890L, (const char*) "string");
 
-    BigTuple bt1 (BOOL_VALUE, CHAR_VALUE, INT_VALUE, DBL_VALUE,
-                  PTR_VALUE, USER_VALUE);
-    BigTuple bt2;
-    bt2 = std::move (bt1);
-    verify_tuple (bt2);
-
-    const UserClass& uc = USER_VALUE;
-    UserTuple ut1 (uc);
+    const UserDefined ud (i);
+    UserTuple ut1 (ud);
     UserTuple ut2;
-    UserClass::reset_totals ();
-    ut2 = std::move (ut1);
-    verify_tuple (ut2, __LINE__, 0, 0, 1);
+    UserDefined::reset ();
+    ut2 = std::move (ut1);  ++UserDefined::expect.move_asgn;
+    test (__LINE__, ut2, ud);
+
+    BigTuple bt1 (true, 'a', i, 3.14159, (void* const) &i, ud);
+    BigTuple bt2;
+    UserDefined::reset ();
+    bt2 = std::move (bt1);  ++UserDefined::expect.move_asgn;
+    test (__LINE__, bt2, true, 'a', i, 3.14159, (void* const) &i, ud);
 }
 
 /**************************************************************************/
 
 // heterogenous tests do not apply to empty tuples so no tests required
-
-// UserClass does not currently contain any constructors or assignment
-// operators for heterogenous types so no user tuple tests performed
 
 #include <string>
 
@@ -426,8 +457,8 @@ struct String: public std::string
 
 typedef std::tuple<char>                CompatIntTuple;
 typedef std::tuple<unsigned, String>    CompatPairTuple;
-typedef std::tuple<int, int, short, float, char*,
-                   UserClass>           CompatBigTuple;
+typedef std::tuple<int, int, short, float,
+                   char*, UserDefined>  CompatBigTuple;
 
 static void
 test_hetero_copy_ctor ()
@@ -435,18 +466,24 @@ test_hetero_copy_ctor ()
     rw_info (0, __FILE__, __LINE__,
              "copy constructor (heterogenous tuples)");
 
-    const CompatIntTuple ct1 (INT_VALUE);
-    IntTuple it (ct1);
-    VERIFY_TUPLE (it);
+    int i = 0;
+    do i = std::rand ();
+    while (i > CHAR_MAX);
 
-    CompatPairTuple ct2 (LONG_VALUE, STRING_VALUE);
-    PairTuple pt (ct2);
-    verify_tuple (pt);
+    const CompatIntTuple cit (static_cast<char> (i));
+    IntTuple it (cit);
+    test (__LINE__, it, i);
 
-    const CompatBigTuple ct3 (BOOL_VALUE, CHAR_VALUE, INT_VALUE,
-        DBL_VALUE, (char*) PTR_VALUE, USER_VALUE);
-    BigTuple bt (ct3);
-    verify_tuple (bt);
+    CompatPairTuple cpt (12345U, "string");
+    PairTuple pt (cpt);
+    test (__LINE__, pt, 12345U, (const char*) "string");
+
+    char s [] = "string"; const UserDefined ud (i);
+    const CompatBigTuple cbt (int (true), int ('a'), short (i),
+                              3.14159f, s, ud);
+    UserDefined::reset ();
+    BigTuple bt (cbt);  ++UserDefined::expect.copy_ctor;
+    test (__LINE__, bt, true, 'a', i, 3.14159f, s, ud);
 }
 
 /**************************************************************************/
@@ -457,18 +494,24 @@ test_hetero_move_ctor ()
     rw_info (0, __FILE__, __LINE__,
              "move constructor (heterogenous tuples)");
 
-    CompatIntTuple ct1 (INT_VALUE);
-    IntTuple it (std::move (ct1));
-    VERIFY_TUPLE (it);
+    int i = 0;
+    do i = std::rand ();
+    while (i > CHAR_MAX);
 
-    CompatPairTuple ct2 (LONG_VALUE, STRING_VALUE);
-    PairTuple pt (std::move (ct2));
-    verify_tuple (pt);
+    CompatIntTuple cit (static_cast<char> (i));
+    IntTuple it (std::move (cit));
+    test (__LINE__, it, i);
 
-    CompatBigTuple ct3 (BOOL_VALUE, CHAR_VALUE, INT_VALUE,
-        DBL_VALUE, (char*) PTR_VALUE, USER_VALUE);
-    BigTuple bt (std::move (ct3));
-    verify_tuple (bt);
+    CompatPairTuple cpt (12345U, "string");
+    PairTuple pt (std::move (cpt));
+    test (__LINE__, pt, 12345U, (const char*) "string");
+
+    char s [] = "string"; const UserDefined ud (i);
+    CompatBigTuple cbt (int (true), int ('a'), short (i),
+                        3.14159f, s, ud);
+    UserDefined::reset ();
+    BigTuple bt (std::move (cbt));  ++UserDefined::expect.move_ctor;
+    test (__LINE__, bt, true, 'a', i, 3.14159f, s, ud);
 }
 
 /**************************************************************************/
@@ -478,21 +521,28 @@ test_hetero_copy_assign ()
 {
     rw_info (0, __FILE__, __LINE__,
              "copy assignment operator (heterogenous tuples)");
-    CompatIntTuple ct1 (INT_VALUE);
+
+    int i = 0;
+    do i = std::rand ();
+    while (i > CHAR_MAX);
+
+    CompatIntTuple cit (static_cast<char> (i));
     IntTuple it;
-    it = ct1;
-    VERIFY_TUPLE (it);
+    it = cit;
+    test (__LINE__, it, i);
 
-    CompatPairTuple ct2 (LONG_VALUE, STRING_VALUE);
+    CompatPairTuple cpt (12345U, "string");
     PairTuple pt;
-    pt = ct2;
-    verify_tuple (pt);
+    pt = cpt;
+    test (__LINE__, pt, 12345U, (const char*) "string");
 
-    CompatBigTuple ct3 (BOOL_VALUE, CHAR_VALUE, INT_VALUE,
-        DBL_VALUE, (char*) PTR_VALUE, USER_VALUE);
+    char s [] = "string"; const UserDefined ud (i);
+    CompatBigTuple cbt (int (true), int ('a'), short (i),
+                        3.14159f, s, ud);
     BigTuple bt;
-    bt = ct3;
-    verify_tuple (bt);
+    UserDefined::reset ();
+    bt = cbt;  ++UserDefined::expect.copy_asgn;
+    test (__LINE__, bt, true, 'a', i, 3.14159f, s, ud);
 }
 
 /**************************************************************************/
@@ -503,21 +553,27 @@ test_hetero_move_assign ()
     rw_info (0, __FILE__, __LINE__,
              "move assignment operator (heterogenous tuples)");
 
-    CompatIntTuple ct1 (INT_VALUE);
+    int i = 0;
+    do i = std::rand ();
+    while (i > CHAR_MAX);
+
+    CompatIntTuple cit (i);
     IntTuple it;
-    it = std::move (ct1);
-    VERIFY_TUPLE (it);
+    it = std::move (cit);
+    test (__LINE__, it, i);
 
-    CompatPairTuple ct2 (LONG_VALUE, STRING_VALUE);
+    CompatPairTuple cpt (12345U, "string");
     PairTuple pt;
-    pt = std::move (ct2);
-    verify_tuple (pt);
+    pt = std::move (cpt);
+    test (__LINE__, pt, 12345U, (const char*) "string");
 
-    CompatBigTuple ct3 (BOOL_VALUE, CHAR_VALUE, INT_VALUE,
-        DBL_VALUE, (char*) PTR_VALUE, USER_VALUE);
-    BigTuple bt;
-    bt = std::move (ct3);
-    verify_tuple (bt);
+    char s [] = "string"; const UserDefined ud (i);
+    CompatBigTuple cbt (int (true), int ('a'), short (i),
+                        3.14159f, s, ud);
+    BigTuple bt;  ++UserDefined::expect.move_ctor;
+    UserDefined::reset ();
+    bt = std::move (cbt);  ++UserDefined::expect.move_asgn;
+    test (__LINE__, bt, true, 'a', i, 3.14159f, s, ud);
 }
 
 /**************************************************************************/
@@ -535,12 +591,9 @@ test_alloc_ctors ()
 /**************************************************************************/
 
 static int
-run_test (int /*argc*/, char* argv [])
+run_test (int /*argc*/, char* /*argv*/ [])
 {
     test_default_ctor ();
-
-    ptr_val = argv [0];
-    user_val.data_.val_ = INT_VALUE;
 
     test_value_copy_ctor ();
     test_value_move_ctor ();

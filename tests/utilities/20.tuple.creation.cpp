@@ -84,22 +84,19 @@ test_tie ()
 
 /**************************************************************************/
 
-#define Big1stPart  bool, char, int, double
-#define Big2ndPart  void*, UserClass
-
 static void
 test_tuple_cat ()
 {
     rw_info (0, __FILE__, __LINE__, "tuple_cat");
 
 #define Big1stPart  bool, char, int, double
-#define Big2ndPart  void*, UserClass
+#define Big2ndPart  void*, UserDefined
 
     typedef std::tuple<Big1stPart> Big1stTuple;
     Big1stTuple bt1 (true, 'a', 256, 3.14159);
 
     typedef std::tuple<Big2ndPart> Big2ndTuple;
-    Big2ndTuple bt2 (&bt1, UserClass ());
+    Big2ndTuple bt2 (&bt1, UserDefined ());
 
     //BigTuple bt (tuple_cat (bt1, bt2));
 }

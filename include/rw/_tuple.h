@@ -122,7 +122,7 @@ public:
 
     template <class _HeadU, class... _TailU>
     __rw_tuple (__rw_tuple<_HeadU, _TailU...>&& __tuple)
-        : _Base (_RWSTD_FORWARD (_Base, __tuple._C_tail ()))
+        : _Base (_RWSTD_MOVE (__tuple._C_tail ()))
         , _C_data (_RWSTD_MOVE (__tuple._C_head ())) { /* empty */ }
 
     template <class _HeadU, class... _TailU>

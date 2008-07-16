@@ -73,7 +73,7 @@ private:
     enum {
         inherited,
         const_int,
-        user_class,
+        user_defined,
         int_tuple
     } type_id;
 
@@ -86,8 +86,8 @@ public:
     any_t (const int)
         : rw_any_t (char ()), type_id (const_int) { }
 
-    any_t (UserClass)
-        : rw_any_t (char ()), type_id (user_class) { }
+    any_t (UserDefined)
+        : rw_any_t (char ()), type_id (user_defined) { }
 
     any_t (std::tuple< int >)
         : rw_any_t (char ()), type_id (int_tuple) { }
@@ -95,7 +95,7 @@ public:
     const char* type_name () const
     {
         return type_id == const_int? "const int":
-               type_id == user_class? "UserClass":
+               type_id == user_defined? "UserDefined":
                type_id == int_tuple? "std::tuple<int>":
                rw_any_t::type_name ();
     }
@@ -121,7 +121,7 @@ test_tuple_element ()
     TEST (0, IntTuple, int);
     TEST (0, ConstIntTuple, const int);
     TEST (0, NestedTuple, std::tuple<int>);
-    TEST (0, UserTuple, UserClass);
+    TEST (0, UserTuple, UserDefined);
 
     TEST (0, PairTuple, long);
     TEST (1, PairTuple, const char*);
@@ -131,7 +131,7 @@ test_tuple_element ()
     TEST (2, BigTuple, int);
     TEST (3, BigTuple, double);
     TEST (4, BigTuple, void*);
-    TEST (5, BigTuple, UserClass);
+    TEST (5, BigTuple, UserDefined);
 }
 
 /**************************************************************************/

@@ -184,7 +184,6 @@ public:
         return *this;
     }
 
-    explicit
     tuple (const _TypeT1& __x, const _TypeT2& __y)
         : _Base (__x, __y) { /* empty */ }
 
@@ -211,9 +210,8 @@ public:
 #    if !defined _RWSTD_NO_RVALUE_REFERENCES
 
     template <class _TypeU1, class _TypeU2>
-    explicit tuple (_TypeU1&& __x, _TypeU2&& __y)
-        : _Base (_RWSTD_FORWARD (_TypeU1, __x),
-                 _RWSTD_FORWARD (_TypeU2, __y)) { /* empty */ }
+    tuple (_TypeU1&& __x, _TypeU2&& __y)
+        : _Base (_RWSTD_MOVE (__x), _RWSTD_MOVE (__y)) { /* empty */ }
 
     tuple (tuple&& __tuple)
         : _Base (_RWSTD_FORWARD (_Base, __tuple)) { /* empty */ }

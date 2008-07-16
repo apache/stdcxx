@@ -55,15 +55,15 @@ test_eq ()
     rw_assert (it1 == it2, __FILE__, __LINE__,
                "it1 == it2, got false, expected true");
 
-    UserClass uc;
-    UserTuple ut1 (uc), ut2 (uc);
+    UserDefined ud;
+    UserTuple ut1 (ud), ut2 (ud);
     rw_assert (ut1 == ut1, __FILE__, __LINE__,
                "ut1 == ut1, got false, expected true");
     rw_assert (ut1 == ut2, __FILE__, __LINE__,
                "ut1 == ut2, got false, expected true");
 
-    BigTuple bt1 (true, 'a', 256, 3.14159, &nt1, uc);
-    BigTuple bt2 (true, 'a', 256, 3.14159, &nt1, uc);
+    BigTuple bt1 (true, 'a', 256, 3.14159, &nt1, ud);
+    BigTuple bt2 (true, 'a', 256, 3.14159, &nt1, ud);
     rw_assert (bt1 == bt1, __FILE__, __LINE__,
                "bt1 == bt1, got false, expected true");
     rw_assert (bt1 == bt2, __FILE__, __LINE__,
@@ -87,15 +87,13 @@ test_lt ()
     rw_assert (it1 < it2, __FILE__, __LINE__,
                "it1 < it2, got false, expected true");
 
-    UserClass uc1, uc2;
-    uc1.data_.val_ = 1, uc2.data_.val_ = 2;
-
-    UserTuple ut1 (uc1), ut2 (uc2);
+    UserDefined ud1 (1), ud2 (2);
+    UserTuple ut1 (ud1), ut2 (ud2);
     rw_assert (ut1 < ut2, __FILE__, __LINE__,
                "ut1 < ut2, got false, expected true");
 
-    BigTuple bt1 (true, 'a', 255, 3.14159, &nt1, uc1);
-    BigTuple bt2 (true, 'a', 256, 3.14159, &nt1, uc1);
+    BigTuple bt1 (true, 'a', 255, 3.14159, &nt1, ud1);
+    BigTuple bt2 (true, 'a', 256, 3.14159, &nt1, ud1);
     rw_assert (bt1 < bt2, __FILE__, __LINE__,
                "bt1 < bt2, got false, expected true");
 }

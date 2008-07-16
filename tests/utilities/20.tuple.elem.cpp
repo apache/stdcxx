@@ -48,7 +48,7 @@
 #define USER_VAL    user_val
 
 static void*        ptr_val;
-static UserClass    user_val;
+static UserDefined  user_val;
 
 static void
 test_const_get (const BigTuple& bt)
@@ -75,10 +75,10 @@ test_const_get (const BigTuple& bt)
     rw_assert (p == PTR_VAL, __FILE__, __LINE__,
                "get<4>(bt), got %p, expected %p", p, PTR_VAL);
 
-    const UserClass& uc = std::get<5> (bt);
+    const UserDefined& uc = std::get<5> (bt);
     rw_assert (uc == USER_VAL, __FILE__, __LINE__,
                "get<5>(bt), got %d, expected %d",
-               uc.data_.val_, USER_VAL.data_.val_);
+               uc.value (), USER_VAL.value ());
 }
 
 /**************************************************************************/
@@ -127,14 +127,14 @@ test_get (BigTuple& bt)
     rw_assert (std::get<4> (bt) == &d, __FILE__, __LINE__,
                "get<4>(bt), got %p, expected %p", std::get<4> (bt), &d);
 
-    UserClass& uc = std::get<5> (bt);
+    UserDefined& uc = std::get<5> (bt);
     rw_assert (uc == USER_VAL, __FILE__, __LINE__,
                "get<5>(bt), got %d, expected %d",
-               uc.data_.val_, USER_VAL.data_.val_);
-    uc.data_.val_ = INT_VAL;
-    rw_assert ((std::get<5> (bt)).data_.val_ == INT_VAL, __FILE__, __LINE__,
+               uc.value (), USER_VAL.value ());
+    uc = UserDefined (INT_VAL);
+    rw_assert ((std::get<5> (bt)).value () == INT_VAL, __FILE__, __LINE__,
                "get<5>(bt), got %d, expected %d",
-               (std::get<5> (bt)).data_.val_, INT_VAL);
+               (std::get<5> (bt)).value (), INT_VAL);
 }
 
 /**************************************************************************/
