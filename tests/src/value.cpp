@@ -687,13 +687,13 @@ _rw_fmtxarrayv (char **pbuf, size_t *pbufsize, const char *fmt, va_list va)
     RW_ASSERT (0 != pbufsize);
     RW_ASSERT (0 != fmt);
 
-    va_list* pva      =  0;
+    va_list* pva      =  0;   // pointer to rw_vsnprintf's va_list
     bool     fl_plus  =  false;
     bool     fl_pound =  false;
     int      nelems   = -1;
     int      cursor   = -1;
 
-    const UserClass* pelem    = 0;
+    const UserClass* pelem = 0;
 
     // directive syntax:
     // "X=" [ '#' ] [ '+' ] [ '*' | <n> ] [ '.' [ '*' | '@' | <n> ] ]
@@ -819,19 +819,31 @@ _rw_fmtxarrayv (char **pbuf, size_t *pbufsize, const char *fmt, va_list va)
     // value returned from rw_asnprintf() (i.e., the number of
     // bytes appended) back to the caller
 
+    const char* pointer [2];
+
     for (const UserClass *px = xbeg; px != xbeg + nelems; ++px) {
+
+        if (px == pelem) {
+            pointer [0] = ">";
+            pointer [1] = "<";
+        }
+        else {
+            pointer [0] = "";
+            pointer [1] = "";
+        }
+
         const int n =
             rw_asnprintf (pbuf, pbufsize,
-                          "%{+}%{?}>%{;}"
+                          "%{+}%s"                        // '>'
                           "%{?}%d:%{;}"
-                          "%{?}%d%{?},%{;}%{:}%{lc}%{;}"
-                          "%{?}<%{;}",
-                          px == pelem,                    // '>'
+                          "%{?}%d%s%{?},%{;}%{:}%{lc}%{;}",
+                          pointer [0],                    // ">" or ""
                           fl_pound, px->id_,              // "<id>:"
                           fl_plus, px->data_.val_,        // <val>
+                          pointer [1],                    // "<" or ""
                           px + 1 < xbeg + nelems,         // ','
                           px->data_.val_,                 // <val>
-                          px == pelem);                   // '<'
+                          pointer [1]);                   // "<" or ""
         if (n < 0)
             return n;
 
