@@ -466,9 +466,7 @@ test_hetero_copy_ctor ()
     rw_info (0, __FILE__, __LINE__,
              "copy constructor (heterogenous tuples)");
 
-    int i = 0;
-    do i = std::rand ();
-    while (i > CHAR_MAX);
+    int i = std::rand () % CHAR_MAX;
 
     const CompatIntTuple cit (static_cast<char> (i));
     IntTuple it (cit);
@@ -494,9 +492,7 @@ test_hetero_move_ctor ()
     rw_info (0, __FILE__, __LINE__,
              "move constructor (heterogenous tuples)");
 
-    int i = 0;
-    do i = std::rand ();
-    while (i > CHAR_MAX);
+    int i = std::rand () % CHAR_MAX;
 
     CompatIntTuple cit (static_cast<char> (i));
     IntTuple it (std::move (cit));
@@ -522,9 +518,7 @@ test_hetero_copy_assign ()
     rw_info (0, __FILE__, __LINE__,
              "copy assignment operator (heterogenous tuples)");
 
-    int i = 0;
-    do i = std::rand ();
-    while (i > CHAR_MAX);
+    int i = std::rand () % CHAR_MAX;
 
     CompatIntTuple cit (static_cast<char> (i));
     IntTuple it;
@@ -553,9 +547,7 @@ test_hetero_move_assign ()
     rw_info (0, __FILE__, __LINE__,
              "move assignment operator (heterogenous tuples)");
 
-    int i = 0;
-    do i = std::rand ();
-    while (i > CHAR_MAX);
+    int i = std::rand () % CHAR_MAX;
 
     CompatIntTuple cit (i);
     IntTuple it;
