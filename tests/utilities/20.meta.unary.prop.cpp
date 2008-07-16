@@ -144,16 +144,16 @@ struct virtual_derived_t : virtual T
 };
 
 struct no_trivial_ctor_t {
-    no_trivial_ctor_t () { }
+    no_trivial_ctor_t () _THROWS (()) { }
 };
 
 struct no_trivial_copy_t {
-    no_trivial_copy_t (const no_trivial_copy_t&) { }
+    no_trivial_copy_t (const no_trivial_copy_t&) _THROWS (()) { }
 };
 
 struct no_trivial_assign_t {
     no_trivial_assign_t&
-    operator= (const no_trivial_assign_t&) {
+    operator= (const no_trivial_assign_t&) _THROWS (()) {
         return *this;
     }
 };
