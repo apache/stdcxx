@@ -158,9 +158,16 @@ int main ()
 
 #ifndef _RWSTD_NO_LONG_LONG
 
+#  if !defined __HP_aCC || 199901L <= __STDC_VERSION__
+
+    // HP aCC defines LLONG_MAX and LLONG_MIN only in C99 mode
+    // i.e., with -AC99
+
     assert (LLONG_MIN  != 0);
     assert (LLONG_MAX  >= +9223372036854775807LL);
     assert (ULLONG_MAX >= 18446744073709551615ULL);
+
+#  endif
 
 #endif   // _RWSTD_NO_LONG_LONG
 
