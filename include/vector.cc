@@ -82,20 +82,19 @@ _C_realloc (size_type __n)
     vector __tmp (get_allocator ());
 
     // allocate storage of requested capacity
-    __tmp._C_begin =
-        _RWSTD_VALUE_ALLOC (_C_value_alloc_type, __tmp,
-                            allocate (__cap, this));
+    __tmp._C_alloc._C_begin = _C_alloc.allocate (__cap, this);
 
     // initialize pointers
-    __tmp._C_end    = __tmp._C_begin;
-    __tmp._C_bufend = __tmp._C_begin + __cap;
+    __tmp._C_alloc._C_end    = __tmp._C_alloc._C_begin;
+    __tmp._C_alloc._C_bufend = __tmp._C_alloc._C_begin + __cap;
 
     // copy *this into the temporary one element at a time, as if
     // by calling std::unitialized_copy(), growing the temporary
     // at each iteration so that an exception thrown by the copy
     // ctor will cause the destruction of all already constructed
     // elements (by invoking the temporary's dtor)
-    for (pointer __ptr = _C_begin; !(__ptr == _C_end); ++__ptr) {
+    for (pointer __ptr = _C_alloc._C_begin; !(__ptr == _C_alloc._C_end);
+         ++__ptr) {
         __tmp._C_push_back (*__ptr);
     }
 
@@ -110,10 +109,8 @@ _C_destroy (iterator __first)
 {
     _RWSTD_ASSERT_RANGE (__first, end ());
 
-    _C_value_alloc_type __alloc = _RWSTD_VALUE_ALLOC_CAST (*this);
-
     for (size_type __n = end () - __first; !(0 == __n); --__n)
-        __alloc.destroy (--_C_end);
+        _C_alloc.destroy (--_C_alloc._C_end);
 }
 
 
@@ -170,12 +167,12 @@ _C_insert_1 (const iterator &__it, const_reference __x)
 
         if (__it < end ()) {
 
-            const pointer __end = _C_end;
+            const pointer __end = _C_alloc._C_end;
 
             // construct a copy of the last element in the range [it, end)
             // in the uninitialized slot just past the end of the range
             // and bump up end()
-            _C_push_back (*(_C_end - difference_type (1)));
+            _C_push_back (*(_C_alloc._C_end - difference_type (1)));
 
             // move the remaining elements from the range above one slot
             // toward the end starting with the last element
@@ -218,36 +215,40 @@ _C_insert_n (const iterator &__it, size_type __n, const_reference __x)
         vector __tmp (get_allocator ());
         __tmp.reserve (__size2);
 
-        _RWSTD_ASSERT (!(pointer () == __tmp._C_end));
+        _RWSTD_ASSERT (!(pointer () == __tmp._C_alloc._C_end));
 
         iterator __i;
 
         // copy the initial range prior to `it' as if by a call to
-        // std::uninitialized_copy (begin (), __it, __tmp._C_begin);
+        // uninitialized_copy (begin (), __it, __tmp._C_alloc._C_begin);
         for (__i = begin (); !(__i == __it); ++__i) {
 
-            _RWSTD_ASSERT (!(__tmp._C_end == __tmp._C_bufend));
+            _RWSTD_ASSERT (!(   __tmp._C_alloc._C_end
+                             == __tmp._C_alloc._C_bufend));
 
             __tmp._C_push_back (*__i);
         }
 
         // construct `n' copies of `x' just past the initial range,
         // as if by a call to
-        // std::uninitialized_fill_n (__tmp._C_begin + __size1, __n, __x);
+        // uninitialized_fill_n (__tmp._C_aloc._C_begin + __size1, __n, __x);
         for ( ; __n; --__n) {
 
-            _RWSTD_ASSERT (!(__tmp._C_end == __tmp._C_bufend));
+            _RWSTD_ASSERT (!(   __tmp._C_alloc._C_end
+                             == __tmp._C_alloc._C_bufend));
 
             __tmp._C_push_back (__x);
         }
 
         // copy the final range of elements starting with `it'
         // as if by a call to
-        // uninitialized_copy (__it, end (), __tmp._C_begin + __size1 + __n);
+        // uninitialized_copy (__it, end (),
+        //                     __tmp._C_alloc._C_begin + __size1 + __n);
 
         for (__i = __it; !(__i == end ()); ++__i) {
 
-            _RWSTD_ASSERT (!(__tmp._C_end == __tmp._C_bufend));
+            _RWSTD_ASSERT (!(   __tmp._C_alloc._C_end
+                             == __tmp._C_alloc._C_bufend));
 
             __tmp._C_push_back (*__i);
         }
@@ -262,14 +263,12 @@ _C_insert_n (const iterator &__it, size_type __n, const_reference __x)
     // controlled by *this that need to be moved (copy contructed past
     // the end of the end of the sequence or assigned over existing
     // elements)
-    const pointer __movbeg = _C_begin + __size1;
+    const pointer __movbeg = _C_alloc._C_begin + __size1;
     const pointer __movend = __movbeg + __n;
 
     _RWSTD_ASSERT (_C_make_iter (__movbeg) == __it);
 
-    _C_value_alloc_type __alloc = _RWSTD_VALUE_ALLOC_CAST (*this);
-
-    if (__movend <= _C_end) {
+    if (__movend <= _C_alloc._C_end) {
 
         // the end of the range of existing elements after being
         // moved to make room for the elements to be inserted is
@@ -277,15 +276,16 @@ _C_insert_n (const iterator &__it, size_type __n, const_reference __x)
 
         // compute the beginning of the range of elements whose copies
         // will be constructed just past the current end of the sequence
-        const pointer __ucpbeg = _C_end - __n;
-        const pointer __ucpend = _C_end;
+        const pointer __ucpbeg = _C_alloc._C_end - __n;
+        const pointer __ucpend = _C_alloc._C_end;
 
         // construct copies of elements that will be moved beyond
         // the current end of the sequence controlled by *this
-        _STD::uninitialized_copy (__ucpbeg, _C_end, _C_end, __alloc);
+        _STD::uninitialized_copy (__ucpbeg, _C_alloc._C_end,
+                                  _C_alloc._C_end, _C_alloc);
 
         // advance end to maintain consistent state
-        _C_end += __n;
+        _C_alloc._C_end += __n;
 
         // copy elements the will be overwritten below
         // over the range of elements moved above
@@ -299,17 +299,17 @@ _C_insert_n (const iterator &__it, size_type __n, const_reference __x)
         const size_type __n1 = size () - __size1;
         const size_type __n2 = __n - __n1;
 
-        _STD::uninitialized_fill_n (_C_end, __n2, __x, __alloc);
+        _STD::uninitialized_fill_n (_C_alloc._C_end, __n2, __x, _C_alloc);
 
-        const pointer __end = _C_end;
+        const pointer __end = _C_alloc._C_end;
 
-        _C_end += __n2;
+        _C_alloc._C_end += __n2;
 
         // construct copies of the range of elements [pos, end)
         // past the end of the range of elements inserted above
-        _STD::uninitialized_copy (__movbeg, __end, _C_end, __alloc);
+        _STD::uninitialized_copy (__movbeg, __end, _C_alloc._C_end, _C_alloc);
 
-        _C_end += __end - __movbeg;
+        _C_alloc._C_end += __end - __movbeg;
 
         __n = __n1;
     }
@@ -527,23 +527,23 @@ __rw_insert_range (vector<_TypeT, _Allocator> *__self, _VectorIter __it,
     if (__inx < __size) {
         // swap the inserted elements with the elements before which
         // they should be inserted, as if by calling
-        // std::rotate (__beg, __mid, _C_end)
-        const pointer __beg = __self->_C_begin + __inx;
-        const pointer __mid = __self->_C_begin + __size;
+        // std::rotate (__beg, __mid, _C_alloc._C_end)
+        const pointer __beg = __self->_C_alloc._C_begin + __inx;
+        const pointer __mid = __self->_C_alloc._C_begin + __size;
 
         if (__beg < __mid) {
             for (pointer __p0 = __beg, __p1 = __mid; __p0 < --__p1; ++__p0)
                 _STD::iter_swap (__p0, __p1);
         }
 
-        if (__mid < __self->_C_end) {
-            for (pointer __p0 = __mid, __p1 = __self->_C_end;
+        if (__mid < __self->_C_alloc._C_end) {
+            for (pointer __p0 = __mid, __p1 = __self->_C_alloc._C_end;
                  __p0 < --__p1; ++__p0)
                 _STD::iter_swap (__p0, __p1);
         }
 
-        if (__beg < __self->_C_end) {
-            for (pointer __p0 = __beg, __p1 = __self->_C_end;
+        if (__beg < __self->_C_alloc._C_end) {
+            for (pointer __p0 = __beg, __p1 = __self->_C_alloc._C_end;
                  __p0 < --__p1; ++__p0)
                 _STD::iter_swap (__p0, __p1);
         }
@@ -633,12 +633,12 @@ __rw_insert_range (vector<_TypeT, _Allocator> *__self,  _VectorIter __it,
         // in the sequence controlled by *this that need to be moved
         // (copy contructed past the end of the end of the sequence
         // or assigned over existing elements)
-        const pointer __movbeg = __self->_C_begin + __size1;
+        const pointer __movbeg = __self->_C_alloc._C_begin + __size1;
         const pointer __movend = __movbeg + __size2;
 
         _RWSTD_ASSERT (__self->_C_make_iter (__movbeg) == __it);
 
-        const pointer __end = __self->_C_end;
+        const pointer __end = __self->_C_alloc._C_end;
 
         if (__movend <= __end) {
             // compute the beginning of the range of elements whose copies
@@ -667,7 +667,7 @@ __rw_insert_range (vector<_TypeT, _Allocator> *__self,  _VectorIter __it,
 
             // construct copies of the trailing subsequence of the range
             // of elements being inserted, as if by a call to
-            // std::uninitialized_copy (__mid, __last, _C_end);
+            // std::uninitialized_copy (__mid, __last, _C_alloc._C_end);
 
             for (_FwdIter __m = __mid ; !(__m == __last); ++__m)
                 __self->_C_push_back (*__m);
@@ -675,7 +675,7 @@ __rw_insert_range (vector<_TypeT, _Allocator> *__self,  _VectorIter __it,
             // construct copies of the range of elements [pos, end)
             // past the end of the range of elements inserted above,
             // as if by a call to 
-            // std::uninitialized_copy (__movbeg, __end, _C_end);
+            // std::uninitialized_copy (__movbeg, __end, _C_alloc._C_end);
 
             for (pointer __p = __movbeg; !(__p == __end); ++__p)
                 __self->_C_push_back (*__p);
