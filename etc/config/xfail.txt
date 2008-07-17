@@ -1,0 +1,67 @@
+########################################################################
+#
+# Expected/known failures in stdcxx examples, locales, and tests.
+#
+# Record format:
+#   <program-name>  <config> <status> <issue>
+#                  [<config> <status> <issue>]*
+#
+#   where <program-name>, <status>, and <issue> are ordinary strings
+#   (containing no whitespace), and <config> is a shell globbing
+#   pattern in the format below. All fields are required, as are all
+#   the components the <status> field.
+#
+#   <config>   ::= <os>-<version>-<arch>-<compiler>-<version>-<buildtype>
+#
+#   <os>       ::=   aix | freebsd | hpux | irix | <linux> | solaris
+#                  | tru64 | <windows>
+#   <linux>    ::= linux_redhat | linux_suse
+#   <windows>  ::= win_2000 | win_2003 | win_xp | win_vista
+#
+#   <arch>     ::= alpha | amd64 | em64t | ia64 | pa | ppc | sparc | x86
+#
+#   <compiler> ::=   acc | compaq | eccp | gcc | icc | icl | mipspro
+#                  | msvc | sunpro | vacpp
+#
+########################################################################
+
+########################################################################
+# Known example failures
+#
+# EXAMPLE                                           EXPECTED  ISSUE
+# NAME              PLATFORM AND BUILD TYPE         STATUS    NUMBER
+# ---------------   ------------------------------  --------  ----------
+codecvt             *-*-eccp-*-*                    LINK      STDCXX-592
+codecvt1            *-*-*-*-*                       1         STDCXX-520
+collate             *-*-eccp-*-*                    LINK      STDCXX-592
+ctype               *-*-eccp-*-*                    LINK      STDCXX-592
+limits              aix-*-*-*-*                     DIFF      STDCXX-458
+time_get            *-*-*-*-*                       DIFF      STDCXX-460
+
+########################################################################
+# Known locale failures
+#
+# LOCALE                                            EXPECTED  ISSUE
+# NAME              PLATFORM AND BUILD TYPE         STATUS    NUMBER
+# --------------    ------------------------------  --------  ----------
+br_FR.ISO-8859-1    *.*.*.*.*                       1         STDCXX-372
+hu_HU.ISO-8859-2    *.*.*.*.*                       1         STDCXX-372
+
+
+########################################################################
+# Known test failures
+#
+# TEST                                              EXPECTED  ISSUE
+# NAME              PLATFORM AND BUILD TYPE         STATUS    NUMBER
+# --------          ------------------------------  --------  ----------
+0.strncmp           solaris-*-amd64-sunpro-*-*{D,S} 2         STDCXX-844
+2.smartptr.shared   aix-*-*-vacpp-6.0-{11,15}?      COMP      STDCXX-360
+2.smartptr.shared   aix-*-*-vacpp-9.0-*             COMP      STDCXX-360
+2.smartptr.shared   hpux-*-*-acc-3.*-*              COMP      STDCXX-615
+19.exceptions.mt    aix-5.3-*-vacpp-9.0-{12,15}?    HUP       STDCXX-644
+21.string.assign.stdcxx-629    *-*-*-*-*            ABRT      STDCXX-629
+21.string.insert.stdcxx-632    *-*-*-*-*            ABRT      STDCXX-632
+21.string.replace.stdcxx-170   *-*-*-*-*            ABRT      STDCXX-170
+21.string.stdcxx-162  linux*-*-{amd64,em64t}-*-*-{12,15}{D,S} ABRT STDCXX-162
+23.vector.modifiers.stdcxx-495 *-*-*-*-*            ABRT      STDCXX-495
+26.valarray.binary.stdcxx-237  *-*-*-sunpro-*-*     COMP      STDCXX-807
