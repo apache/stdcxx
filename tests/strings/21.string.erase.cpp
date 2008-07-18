@@ -410,6 +410,10 @@ void test_erase (charT, Traits*, Allocator*,
                 const std::size_t match =
                     rw_match (nres + tcase.off, &(*res_iter), 1);
 
+                // asssert precondition to silence a bogus HP cadvise
+                // warning #20200-D: Potential null pointer dereference 
+                RW_ASSERT (0 != nres);
+
                 rw_assert (1 == match, 0, tcase.line,
                            "line %d. %{$FUNCALL} == %{#c}, got %{#c}",
                            __LINE__, nres[tcase.off], *res_iter);
