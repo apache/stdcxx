@@ -363,6 +363,8 @@ void test_erase (charT, Traits*, Allocator*,
     // pointer to the returned reference
     const String* ret_ptr = 0;
 
+    typedef typename String::size_type size_type;
+
     try {
         switch (func.which_) {
 
@@ -371,11 +373,12 @@ void test_erase (charT, Traits*, Allocator*,
             break;
 
         case Erase (size):
-            ret_ptr = &str.erase (tcase.off);
+            ret_ptr = &str.erase (size_type (tcase.off));
             break;
 
         case Erase (size_size):
-            ret_ptr = &str.erase (tcase.off, tcase.size);
+            ret_ptr = &str.erase (size_type (tcase.off),
+                                  size_type (tcase.size));
             break;
 
         case Erase (iter):
