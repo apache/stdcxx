@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -190,10 +190,15 @@ void exception_loop (int              line /* line number in caller*/,
 
         _TRY {
 
+            // convert an int to size_type to avoid conversion
+            // warnings when passing it to member functions
+            // that expect an unsigned argument
+            const Deque::size_type nelems (n);
+
             switch (mfun) {
             case Assign_n:
                 _RWSTD_ASSERT (x);
-                deq.assign (n, *x);
+                deq.assign (nelems, *x);
                 break;
             case AssignRange:
                 deq.assign (first, last);
@@ -214,7 +219,7 @@ void exception_loop (int              line /* line number in caller*/,
                 break;
             case Insert_n:
                 _RWSTD_ASSERT (x);
-                deq.insert (it, n, *x);
+                deq.insert (it, nelems, *x);
                 break;
             case InsertRange:
                 deq.insert (it, first, last);
