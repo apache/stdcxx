@@ -11,7 +11,7 @@
  * with  this  work  for  additional information  regarding  copyright
  * ownership.   The ASF  licenses this  file to  you under  the Apache
  * License, Version  2.0 (the  "License"); you may  not use  this file
- * except in  compliance with the License.   You may obtain  a copy of
+ * except in  compliance with the License.   You may otain  a copy of
  * the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
@@ -50,91 +50,93 @@
 static void*        ptr_val;
 static UserDefined  user_val;
 
+typedef std::tuple<bool, char, int, double, void*, UserDefined> Tuple;
+
 static void
-test_const_get (const BigTuple& bt)
+test_const_get (const Tuple& t)
 {
     rw_info (0, __FILE__, __LINE__, "get (const)");
 
-    const bool& b = std::get<0> (bt);
-    rw_assert (b == BOOL_VAL, __FILE__, __LINE__, "get<0>(bt), got %s, "
+    const bool& b = std::get<0> (t);
+    rw_assert (b == BOOL_VAL, __FILE__, __LINE__, "get<0>(t), got %s, "
                "expected %s", b? "true": "false", BOOL_VAL? "true": "false");
 
-    const char& c = std::get<1> (bt);
+    const char& c = std::get<1> (t);
     rw_assert (c == CHAR_VAL, __FILE__, __LINE__,
-               "get<1>(bt), got \'%c\', expected \'%c\'", c, CHAR_VAL);
+               "get<1>(t), got \'%c\', expected \'%c\'", c, CHAR_VAL);
 
-    const int& i = std::get<2> (bt);
+    const int& i = std::get<2> (t);
     rw_assert (i == INT_VAL, __FILE__, __LINE__,
-               "get<2>(bt), got %d, expected %d", i, INT_VAL);
+               "get<2>(t), got %d, expected %d", i, INT_VAL);
 
-    const double& d = std::get<3> (bt);
+    const double& d = std::get<3> (t);
     rw_assert (0 == rw_dblcmp (d, DBL_VAL), __FILE__, __LINE__,
-               "get<3>(bt), got %f, expected %f", d, DBL_VAL);
+               "get<3>(t), got %f, expected %f", d, DBL_VAL);
 
-    void* const& p = std::get<4> (bt);
+    void* const& p = std::get<4> (t);
     rw_assert (p == PTR_VAL, __FILE__, __LINE__,
-               "get<4>(bt), got %p, expected %p", p, PTR_VAL);
+               "get<4>(t), got %p, expected %p", p, PTR_VAL);
 
-    const UserDefined& uc = std::get<5> (bt);
+    const UserDefined& uc = std::get<5> (t);
     rw_assert (uc == USER_VAL, __FILE__, __LINE__,
-               "get<5>(bt), got %d, expected %d",
+               "get<5>(t), got %d, expected %d",
                uc.value (), USER_VAL.value ());
 }
 
 /**************************************************************************/
 
 static void
-test_get (BigTuple& bt)
+test_get (Tuple& t)
 {
     rw_info (0, __FILE__, __LINE__, "get");
 
-    bool& b = std::get<0> (bt);
+    bool& b = std::get<0> (t);
     rw_assert (b == BOOL_VAL, __FILE__, __LINE__,
-               "get<0>(bt), got %d, expected %b", b, BOOL_VAL);
+               "get<0>(t), got %d, expected %b", b, BOOL_VAL);
     b = !BOOL_VAL;
-    rw_assert (std::get<0> (bt) == !BOOL_VAL, __FILE__, __LINE__,
-               "get<0>(bt), got %d, expected %b", std::get<0> (bt),
+    rw_assert (std::get<0> (t) == !BOOL_VAL, __FILE__, __LINE__,
+               "get<0>(t), got %d, expected %b", std::get<0> (t),
                !BOOL_VAL);
 
-    char& c = std::get<1> (bt);
+    char& c = std::get<1> (t);
     rw_assert (c == 'a', __FILE__, __LINE__,
-               "get<1>(bt), got %c, expected \'%c\'", c, CHAR_VAL);
+               "get<1>(t), got %c, expected \'%c\'", c, CHAR_VAL);
     c = '1';
-    rw_assert (std::get<1> (bt) == '1', __FILE__, __LINE__,
-               "get<1>(bt), got %c, expected \'1\'", std::get<1> (bt));
+    rw_assert (std::get<1> (t) == '1', __FILE__, __LINE__,
+               "get<1>(t), got %c, expected \'1\'", std::get<1> (t));
 
-    int& i = std::get<2> (bt);
+    int& i = std::get<2> (t);
     rw_assert (i == INT_VAL, __FILE__, __LINE__,
-               "get<2>(bt), got %d, expected %d", i, INT_VAL);
+               "get<2>(t), got %d, expected %d", i, INT_VAL);
     i = INT_VAL+1;
-    rw_assert (std::get<2> (bt) == INT_VAL+1, __FILE__, __LINE__,
-               "get<1>(bt), got %d, expected %d", std::get<2> (bt),
+    rw_assert (std::get<2> (t) == INT_VAL+1, __FILE__, __LINE__,
+               "get<1>(t), got %d, expected %d", std::get<2> (t),
                INT_VAL+1);
 
-    double& d = std::get<3> (bt);
+    double& d = std::get<3> (t);
     rw_assert (0 == rw_dblcmp (d, DBL_VAL), __FILE__, __LINE__,
-               "get<3>(bt), got %f, expected %f", d, DBL_VAL);
+               "get<3>(t), got %f, expected %f", d, DBL_VAL);
     d = DBL_VAL*DBL_VAL;
-    rw_assert (0 == rw_dblcmp (std::get<3> (bt), DBL_VAL*DBL_VAL),
+    rw_assert (0 == rw_dblcmp (std::get<3> (t), DBL_VAL*DBL_VAL),
                __FILE__, __LINE__,
-               "get<3>(bt), got %f, expected %f", std::get<3> (bt),
+               "get<3>(t), got %f, expected %f", std::get<3> (t),
                DBL_VAL*DBL_VAL);
 
-    void* p = std::get<4> (bt);
+    void* p = std::get<4> (t);
     rw_assert (p == PTR_VAL, __FILE__, __LINE__,
-               "get<4>(bt), got %p, expected %p", p, PTR_VAL);
+               "get<4>(t), got %p, expected %p", p, PTR_VAL);
     p = &d;
-    rw_assert (std::get<4> (bt) == &d, __FILE__, __LINE__,
-               "get<4>(bt), got %p, expected %p", std::get<4> (bt), &d);
+    rw_assert (std::get<4> (t) == &d, __FILE__, __LINE__,
+               "get<4>(t), got %p, expected %p", std::get<4> (t), &d);
 
-    UserDefined& uc = std::get<5> (bt);
+    UserDefined& uc = std::get<5> (t);
     rw_assert (uc == USER_VAL, __FILE__, __LINE__,
-               "get<5>(bt), got %d, expected %d",
+               "get<5>(t), got %d, expected %d",
                uc.value (), USER_VAL.value ());
     uc = UserDefined (INT_VAL);
-    rw_assert ((std::get<5> (bt)).value () == INT_VAL, __FILE__, __LINE__,
-               "get<5>(bt), got %d, expected %d",
-               (std::get<5> (bt)).value (), INT_VAL);
+    rw_assert ((std::get<5> (t)).value () == INT_VAL, __FILE__, __LINE__,
+               "get<5>(t), got %d, expected %d",
+               (std::get<5> (t)).value (), INT_VAL);
 }
 
 /**************************************************************************/
@@ -143,10 +145,10 @@ static int
 run_test (int /*argc*/, char* argv [])
 {
     ptr_val = static_cast<void*> (argv [0]);
-    BigTuple bt (BOOL_VAL, CHAR_VAL, INT_VAL, DBL_VAL, PTR_VAL, USER_VAL);
+    Tuple t (BOOL_VAL, CHAR_VAL, INT_VAL, DBL_VAL, PTR_VAL, USER_VAL);
 
-    test_const_get (bt);
-    test_get (bt);
+    test_const_get (t);
+    test_get (t);
 
     return 0;
 }

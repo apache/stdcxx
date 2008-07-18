@@ -46,17 +46,15 @@ test_make_tuple ()
 {
     rw_info (0, __FILE__, __LINE__, "make_tuple");
 
-    IntTuple it1 = std::make_tuple (1);
+    std::tuple<int> it1 = std::make_tuple (1);
 
-    typedef std::tuple<int, int>        IntTuple2;
     int i = 2;
-    IntTuple2 it2 = std::make_tuple (1, i);
+    std::tuple<int, int> it2 = std::make_tuple (1, i);
 
-    typedef std::tuple<int, int, int>   IntTuple3;
     const int j = 3;
-    IntTuple3 it3 = std::make_tuple (1, i, j);
+    std::tuple<int, int, int> it3 = std::make_tuple (1, i, j);
 
-    IntRefTuple rt1 = std::make_tuple (std::ref (i));
+    std::tuple<int&> rt1 = std::make_tuple (std::ref (i));
 
     std::tuple<const int&> rt2 = std::make_tuple (std::cref (i));
 }
@@ -89,16 +87,17 @@ test_tuple_cat ()
 {
     rw_info (0, __FILE__, __LINE__, "tuple_cat");
 
-#define Big1stPart  bool, char, int, double
-#define Big2ndPart  void*, UserDefined
+#define FirstHalf       bool, char, int, double
+#define SecondHalf      void*, UserDefined
 
-    typedef std::tuple<Big1stPart> Big1stTuple;
-    Big1stTuple bt1 (true, 'a', 256, 3.14159);
+    typedef std::tuple<FirstHalf>   FirstTuple;
+    FirstTuple t1 (true, 'a', 256, 3.14159);
 
-    typedef std::tuple<Big2ndPart> Big2ndTuple;
-    Big2ndTuple bt2 (&bt1, UserDefined ());
+    typedef std::tuple<SecondHalf>  SecondTuple;
+    SecondTuple t2 (&t1, UserDefined ());
 
-    //BigTuple bt (tuple_cat (bt1, bt2));
+    typedef std::tuple<FirstHalf, SecondHalf>   WholeTuple;
+    //WholeTuple t3 (tuple_cat (t1, t2));
 }
 
 /**************************************************************************/

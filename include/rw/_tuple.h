@@ -210,7 +210,7 @@ struct __rw_make_tuple
 template <class...  _TypesT, class... _TypesU>
 bool operator== (const __rw_tuple<_TypesT...>& __x,
                  const __rw_tuple<_TypesU...>& __y) {
-    return (__x._C_head () == __y._C_head ())
+    return     (__x._C_head () == __y._C_head ())
             && (__x._C_tail () == __y._C_tail ());
 }
 
@@ -223,8 +223,9 @@ bool operator== (const __rw_tuple<>& /*__x*/,
 template <class...  _TypesT, class... _TypesU>
 bool operator< (const __rw_tuple<_TypesT...>& __x,
                 const __rw_tuple<_TypesU...>& __y) {
-    return (__x._C_head () < __y._C_head ())
-            || (__y._C_tail () < __x._C_tail ());
+    return     (__x._C_head () < __y._C_head ())
+            || (  !(__y._C_head () < __x._C_head ())
+                && (__x._C_tail () < __y._C_tail ()));
 }
 
 _RWSTD_SPECIALIZED_FUNCTION

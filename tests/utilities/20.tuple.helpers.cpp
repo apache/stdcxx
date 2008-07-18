@@ -49,16 +49,22 @@ test_tuple_size ()
                "tuple_size<" #T ">::value, got %d, expected " \
                STRING (S), std::tuple_size<T>::value)
 
-    TEST (EmptyTuple, 0);
+    TEST (std::tuple<>, 0);
 
-    TEST (IntTuple, 1);
-    TEST (ConstIntTuple, 1);
-    TEST (UserTuple, 1);
-    TEST (NestedTuple, 1);
+    TEST (std::tuple<int>, 1);
+    TEST (std::tuple<const int>, 1);
+    TEST (std::tuple<UserDefined>, 1);
+    TEST (std::tuple<std::tuple<int> >, 1);
 
-    TEST (PairTuple, 2);
+#undef TUPLE
+#define TUPLE std::tuple<long, const char*>
 
-    TEST (BigTuple, BIG_SIZE);
+    TEST (TUPLE, 2);
+
+#undef TUPLE
+#define TUPLE std::tuple<bool, char, int, double, void*, UserDefined>
+
+    TEST (TUPLE, 6);
 }
 
 /**************************************************************************/
@@ -106,32 +112,43 @@ test_tuple_element ()
 {
     rw_info (0, __FILE__, __LINE__, "tuple_element");
 
+#undef IS_SAME
 #define IS_SAME(T,U) \
         _RW::__rw_is_same<T, U>::value
+
+#undef TYPE_NAME
 #define TYPE_NAME(T) \
         (any_t (T ())).type_name ()
 
 #undef TEST
 #define TEST(N, T, E) \
-    typedef std::tuple_element<N, T>::type T ## N; \
-    rw_assert (IS_SAME(T ## N, E), __FILE__, __LINE__, \
+{ \
+    typedef std::tuple_element<N, T>::type elem_type; \
+    rw_assert (IS_SAME(elem_type, E), __FILE__, __LINE__, \
                "tuple_element<0, " #T ">::type, got type \"%s\", " \
-               "expected type \"" #E "\"", TYPE_NAME (T##N))
+               "expected type \"" #E "\"", TYPE_NAME (elem_type)); \
+}
 
-    TEST (0, IntTuple, int);
-    TEST (0, ConstIntTuple, const int);
-    TEST (0, NestedTuple, std::tuple<int>);
-    TEST (0, UserTuple, UserDefined);
+    TEST (0, std::tuple<int>, int)
+    TEST (0, std::tuple<const int>, const int)
+    TEST (0, std::tuple<std::tuple<int> >, std::tuple<int>)
+    TEST (0, std::tuple<UserDefined>, UserDefined)
 
-    TEST (0, PairTuple, long);
-    TEST (1, PairTuple, const char*);
+#undef TUPLE
+#define TUPLE std::tuple<long, const char*>
 
-    TEST (0, BigTuple, bool);
-    TEST (1, BigTuple, char);
-    TEST (2, BigTuple, int);
-    TEST (3, BigTuple, double);
-    TEST (4, BigTuple, void*);
-    TEST (5, BigTuple, UserDefined);
+    TEST (0, TUPLE, long)
+    TEST (1, TUPLE, const char*)
+
+#undef TUPLE
+#define TUPLE std::tuple<bool, char, int, double, void*, UserDefined>
+
+    TEST (0, TUPLE, bool)
+    TEST (1, TUPLE, char)
+    TEST (2, TUPLE, int)
+    TEST (3, TUPLE, double)
+    TEST (4, TUPLE, void*)
+    TEST (5, TUPLE, UserDefined)
 }
 
 /**************************************************************************/

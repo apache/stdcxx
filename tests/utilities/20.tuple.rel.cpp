@@ -43,31 +43,36 @@ test_eq ()
 {
     rw_info (0, __FILE__, __LINE__, "operator==");
 
-    EmptyTuple nt1, nt2;
+    std::tuple<> nt1, nt2;
+    // special case
     rw_assert (nt1 == nt1, __FILE__, __LINE__,
                "nt1 == nt1, got false, expected true");
-    rw_assert (nt1 == nt2, __FILE__, __LINE__,
-               "nt1 == nt2, got true, expected false");
 
-    IntTuple it1 (1), it2 (1);
-    rw_assert (it1 == it1, __FILE__, __LINE__,
-               "it1 == it1, got false, expected true");
-    rw_assert (it1 == it2, __FILE__, __LINE__,
-               "it1 == it2, got false, expected true");
+#undef TEST
+#define TEST(expr)      \
+    rw_assert (expr, __FILE__, __LINE__, #expr \
+               "; got %b, expected %b", !(expr), expr)
 
-    UserDefined ud;
-    UserTuple ut1 (ud), ut2 (ud);
-    rw_assert (ut1 == ut1, __FILE__, __LINE__,
-               "ut1 == ut1, got false, expected true");
-    rw_assert (ut1 == ut2, __FILE__, __LINE__,
-               "ut1 == ut2, got false, expected true");
+    TEST (nt1 == nt2);
 
-    BigTuple bt1 (true, 'a', 256, 3.14159, &nt1, ud);
-    BigTuple bt2 (true, 'a', 256, 3.14159, &nt1, ud);
-    rw_assert (bt1 == bt1, __FILE__, __LINE__,
-               "bt1 == bt1, got false, expected true");
-    rw_assert (bt1 == bt2, __FILE__, __LINE__,
-               "bt1 == bt2, got false, expected true");
+    std::tuple<int> it1 (1), it2 (1), it3 (2);
+    TEST (it1 == it1);
+    TEST (it1 == it2);
+    TEST (!(it1 == it3));
+
+    UserDefined ud1 (1), ud2 (2);
+    std::tuple<UserDefined> ut1 (ud1), ut2 (ud1), ut3 (ud2);
+    TEST (ut1 == ut1);
+    TEST (ut1 == ut2);
+    TEST (!(ut1 == ut3));
+
+    std::tuple<bool, char, int, double, void*, UserDefined>
+        bt1 (true, 'a', 255, 3.14159, &nt1, ud1),
+        bt2 (true, 'a', 255, 3.14159, &nt1, ud1),
+        bt3 (true, 'a', 256, 3.14159, &nt1, ud1);
+    TEST (bt1 == bt1);
+    TEST (bt1 == bt2);
+    TEST (!(bt1 == bt3));
 }
 
 /**************************************************************************/
@@ -77,25 +82,36 @@ test_lt ()
 {
     rw_info (0, __FILE__, __LINE__, "operator<");
 
-    EmptyTuple nt1, nt2;
-    rw_assert (!(nt1 < nt1), __FILE__, __LINE__,
-               "nt1 < nt1, got true, expected false");
-    rw_assert (!(nt1 < nt2), __FILE__, __LINE__,
-               "nt1 < nt2, got true, expected false");
+    std::tuple<> nt1, nt2;
+    TEST (!(nt1 < nt1));
+    TEST (!(nt1 < nt2));
 
-    IntTuple it1 (1), it2 (2);
-    rw_assert (it1 < it2, __FILE__, __LINE__,
-               "it1 < it2, got false, expected true");
+    std::tuple<int> it1 (1), it2 (2);
+    TEST (!(it1 < it1));
+    TEST (it1 < it2);
 
     UserDefined ud1 (1), ud2 (2);
-    UserTuple ut1 (ud1), ut2 (ud2);
-    rw_assert (ut1 < ut2, __FILE__, __LINE__,
-               "ut1 < ut2, got false, expected true");
+    std::tuple<UserDefined> ut1 (ud1), ut2 (ud2);
+    TEST (!(ut1 < ut1));
+    TEST (ut1 < ut2);
 
-    BigTuple bt1 (true, 'a', 255, 3.14159, &nt1, ud1);
-    BigTuple bt2 (true, 'a', 256, 3.14159, &nt1, ud1);
+    std::tuple<long, const char*> pt1 (1234L, "string");
+    TEST (!(pt1 < pt1));
+    std::tuple<long, const char*> pt2 (1235L, "string");
+    TEST (pt1 < pt2);
+    std::tuple<long, const char*> pt3 (1234L, "strings");
+    TEST (pt1 < pt3);
+
+    std::tuple<bool, char, int, double, void*, UserDefined>
+        bt1 (true, 'a', 255, 3.14159, &nt1, ud1),
+        bt2 (true, 'a', 256, 3.14159, &nt1, ud1),
+        bt3 (true, 'a', 255, 3.14159, &nt1, ud2);
+    rw_assert (!(bt1 < bt1), __FILE__, __LINE__,
+               "bt1 < bt1, got true, expected false");
     rw_assert (bt1 < bt2, __FILE__, __LINE__,
                "bt1 < bt2, got false, expected true");
+    rw_assert (bt1 < bt3, __FILE__, __LINE__,
+               "bt1 < bt3, got false, expected true");
 }
 
 /**************************************************************************/

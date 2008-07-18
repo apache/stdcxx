@@ -155,34 +155,7 @@ operator< (const UserDefined& lhs, const UserDefined& rhs)
     return lhs.value () < rhs.value ();
 }
 
-inline std::ostream&
-operator< (std::ostream& os, const UserDefined& src)
-{
-    os << "UserDefined@" << &src << " [value_ = " << src.value () << "]";
-    return os;
-}
-
 /**************************************************************************/
-
-// various tuple types for test purposes
-
-typedef std::tuple <>                       EmptyTuple;
-
-typedef std::tuple <int>                    IntTuple;
-typedef std::tuple <const int>              ConstIntTuple;
-typedef std::tuple <int&>                   IntRefTuple;
-
-typedef std::tuple <IntTuple>               NestedTuple;
-
-typedef std::tuple <long, const char*>      PairTuple;
-
-typedef std::tuple <UserDefined>            UserTuple;
-
-#define BIG_TYPES   bool, char, int, double, void*, UserDefined
-#define BIG_SIZE    6
-
-typedef std::tuple <BIG_TYPES>              BigTuple;
-
 
 // tuple names
 
@@ -208,8 +181,8 @@ template <> const char* type_name_<T>::value = S;
 TYPE_NAME (TUPLE, "std::tuple<long, const char*>")
 
 #undef TUPLE
-#define TUPLE           std::tuple<BIG_TYPES>
-// should use BIG_TYPES in string if possible
+#define TUPLE           \
+std::tuple<bool, char, int, double, void*, UserDefined>
 TYPE_NAME (TUPLE, "std::tuple<bool, char, int, double, void*, " \
                   "UserDefined>")
 

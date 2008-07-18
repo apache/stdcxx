@@ -39,6 +39,7 @@
 #include <type_traits>          // for decay
 
 #include <rw_valcmp.h>          // for rw_fltcmp
+#include <rw_allocator.h>       // for UserAlloc
 
 #include "20.tuple.h"
 
@@ -149,18 +150,24 @@ test_default_ctor ()
 {
     rw_info (0, __FILE__, __LINE__, "default constructor");
 
-    EmptyTuple et; _RWSTD_UNUSED (et);
-    IntTuple it; _RWSTD_UNUSED (it);
-    ConstIntTuple ct; _RWSTD_UNUSED (ct);
+    std::tuple<> et; _RWSTD_UNUSED (et);
+    // TODO: enable this test after implementing empty space optimization
+    //rw_assert (sizeof (et) == 0, __FILE__, __LINE__,
+                 //"sizeof (std::tuple<>); got %u, expected 0",
+                 //sizeof (et));
+
+    std::tuple<int> it; _RWSTD_UNUSED (it);
+    std::tuple<const int> ct; _RWSTD_UNUSED (ct);
     // ill-formed for tuples with element types containing references
-    PairTuple pt; _RWSTD_UNUSED (pt);
-    NestedTuple nt; _RWSTD_UNUSED (nt);
-    BigTuple bt; _RWSTD_UNUSED (bt);
+    std::tuple<long, const char*> pt; _RWSTD_UNUSED (pt);
+    std::tuple<std::tuple<int> > nt; _RWSTD_UNUSED (nt);
+    std::tuple<bool, char, int, double, void*, UserDefined> bt;
+    _RWSTD_UNUSED (bt);
 
     UserDefined::reset ();
-    UserTuple ut; _RWSTD_UNUSED (ut);
+    std::tuple<UserDefined> ut; _RWSTD_UNUSED (ut);
     rw_assert (1 == UserDefined::actual.dflt_ctor, __FILE__, __LINE__,
-               "UserTuple::UserTuple (); called %d default ctors, "
+               "std::tuple<UserDefined> ut; called %d default ctors, "
                "expected 1", UserDefined::actual.dflt_ctor);
 }
 
@@ -172,36 +179,37 @@ test_value_copy_ctor ()
     rw_info (0, __FILE__, __LINE__, "value copy constructor");
 
     const int i = std::rand ();
-    IntTuple it1 (i);
+    std::tuple<int> it1 (i);
     test (__LINE__, it1, i);
 
-    const IntTuple it2 (i);
+    const std::tuple<int> it2 (i);
     test (__LINE__, it2, i);
 
-    ConstIntTuple ct (i);
+    std::tuple<const int> ct (i);
     test (__LINE__, ct, i);
 
     int j = std::rand ();
-    const IntRefTuple rt (j);
+    const std::tuple<int&> rt (j);
     test (__LINE__, rt, j);
 
-    NestedTuple nt (it2);
+    std::tuple<std::tuple<int> > nt (it2);
     //std::get<0> (it2) = std::rand (); // diliberately cause assertion
     test (__LINE__, nt, it2);
 
     const long l = std::rand ();
-    PairTuple pt (l, "string");
+    std::tuple<long, const char*> pt (l, "string");
     test (__LINE__, pt, l, (const char*) "string");
 
     const UserDefined ud (i);
     UserDefined::reset ();
-    UserTuple ut (ud);
+    std::tuple<UserDefined> ut (ud);
     UserDefined::expect.copy_ctor = 1;
     test (__LINE__, ut, ud);
 
     const bool b = true; const char c = 'a';
     const double d = 3.14159; void* const p = (void*) &i;
-    BigTuple bt (b, c, i, d, p, ud);
+    std::tuple<bool, char, int, double, void*, UserDefined>
+        bt (b, c, i, d, p, ud);
     ++UserDefined::expect.copy_ctor;
     test (__LINE__, bt, b, c, i, d, p, ud);
 }
@@ -215,42 +223,43 @@ test_value_move_ctor ()
 
 #define INTEGER_CONSTANT        256
 
-    IntTuple it1 (INTEGER_CONSTANT);
+    std::tuple<int> it1 (INTEGER_CONSTANT);
     test (__LINE__, it1, INTEGER_CONSTANT);
     const int c = std::rand ();
     int i = c;   // move semantics can alter source value
-    IntTuple it2 (i);   // temporary source value
+    std::tuple<int> it2 (i);   // temporary source value
     test (__LINE__, it2, c);
 
-    const IntTuple it3 (INTEGER_CONSTANT);
+    const std::tuple<int> it3 (INTEGER_CONSTANT);
     test (__LINE__, it3, INTEGER_CONSTANT);
     i = c;
-    const IntTuple it4 (i);
+    const std::tuple<int> it4 (i);
     test (__LINE__, it4, c);
 
-    ConstIntTuple ct1 (INTEGER_CONSTANT);
+    std::tuple<const int> ct1 (INTEGER_CONSTANT);
     test (__LINE__, ct1, INTEGER_CONSTANT);
     i = c;
-    ConstIntTuple ct2 (i);
+    std::tuple<const int> ct2 (i);
     test (__LINE__, ct2, c);
 
     // ill-formed for tuples with element types containing references
 
-    NestedTuple nt (it1);
+    std::tuple<std::tuple<int> > nt (it1);
     test (__LINE__, nt, it1);
 
-    PairTuple pt (123456789L, "string");
+    std::tuple<long, const char*> pt (123456789L, "string");
     test (__LINE__, pt, 123456789L, (const char*) "string");
 
     const UserDefined src (c);
     UserDefined tmp (src);
     UserDefined::reset ();
-    UserTuple ut (tmp);
+    std::tuple<UserDefined> ut (tmp);
     UserDefined::expect.move_ctor = 1;
     test (__LINE__, ut, src);
 
     tmp = src;  ++UserDefined::expect.copy_asgn;
-    BigTuple bt (true, 'a', INTEGER_CONSTANT, 3.14159, (void*) 0, tmp);
+    std::tuple<bool, char, int, double, void*, UserDefined>
+        bt (true, 'a', INTEGER_CONSTANT, 3.14159, (void*) 0, tmp);
     ++UserDefined::expect.move_ctor;
     test (__LINE__, bt,
           true, 'a', INTEGER_CONSTANT, 3.14159, (void*) 0, src);
@@ -264,41 +273,42 @@ test_homo_copy_ctor ()
     rw_info (0, __FILE__, __LINE__,
              "copy constructor (homogenous tuples)");
 
-    EmptyTuple et1, et2 (et1);
+    std::tuple<> et1, et2 (et1);
     _RWSTD_UNUSED (et2);
 
     const int ci = std::rand ();
-    const IntTuple it1 (ci);
-    IntTuple it2 (it1);
+    const std::tuple<int> it1 (ci);
+    std::tuple<int> it2 (it1);
     test (__LINE__, it2, ci);
 
-    const ConstIntTuple& ct1 = it1; // same as copy ctor
-    ConstIntTuple ct2 (ct1);
+    const std::tuple<const int>& ct1 = it1; // same as copy ctor
+    std::tuple<const int> ct2 (ct1);
     test (__LINE__, ct2, ci);
 
     int i = ci;
-    const IntRefTuple rt1 (i);
-    IntRefTuple rt2 (rt1);
+    const std::tuple<int&> rt1 (i);
+    std::tuple<int&> rt2 (rt1);
     test (__LINE__, rt2, ci);
 
-    const NestedTuple nt1 (it1);
-    NestedTuple nt2 (nt1);
+    const std::tuple<std::tuple<int> > nt1 (it1);
+    std::tuple<std::tuple<int> > nt2 (nt1);
     test (__LINE__, nt2, it1);
 
-    const PairTuple pt1 (1234567890L, "string");
-    PairTuple pt2 (pt1);
+    const std::tuple<long, const char*> pt1 (1234567890L, "string");
+    std::tuple<long, const char*> pt2 (pt1);
     test (__LINE__, pt2, 1234567890L, (const char*) "string");
 
     UserDefined ud (ci);
-    const UserTuple ut1 (ud);
+    const std::tuple<UserDefined> ut1 (ud);
     UserDefined::reset ();
-    UserTuple ut2 (ut1);
+    std::tuple<UserDefined> ut2 (ut1);
     ++UserDefined::expect.copy_ctor;
     test (__LINE__, ut2, ud);
 
-    const BigTuple bt1 (true, 'a', ci, 3.14159, (void* const) &i, ud);
+    const std::tuple<bool, char, int, double, void*, UserDefined>
+        bt1 (true, 'a', ci, 3.14159, (void* const) &i, ud);
     ++UserDefined::expect.move_ctor; // moved ud to bt1
-    BigTuple bt2 (bt1);
+    std::tuple<bool, char, int, double, void*, UserDefined> bt2 (bt1);
     ++UserDefined::expect.copy_ctor; // copied to bt2
     test (__LINE__, bt2, true, 'a', ci, 3.14159, (void* const) &i, ud);
 }
@@ -311,36 +321,38 @@ test_homo_move_ctor ()
     rw_info (0, __FILE__, __LINE__,
              "move constructor (homogenous tuples)");
 
-    EmptyTuple et (EmptyTuple ()); _RWSTD_UNUSED (et);
+    std::tuple<> et (std::tuple<> ()); _RWSTD_UNUSED (et);
 
     const int ci = std::rand ();
 
-    IntTuple it1 (ci);
-    IntTuple it2 (std::move (it1));
+    std::tuple<int> it1 (ci);
+    std::tuple<int> it2 (std::move (it1));
     test (__LINE__, it2, ci);
 
-    ConstIntTuple ct1 (ci);
-    ConstIntTuple ct2 = std::move (ct1);
+    std::tuple<const int> ct1 (ci);
+    std::tuple<const int> ct2 = std::move (ct1);
     test (__LINE__, ct2, ci);
 
-    NestedTuple nt1 (it1);
-    NestedTuple nt2 = std::move (nt1);
+    std::tuple<std::tuple<int> > nt1 (it1);
+    std::tuple<std::tuple<int> > nt2 = std::move (nt1);
     test (__LINE__, nt2, it1);
 
-    PairTuple pt1 (1234567890L, "string");
-    PairTuple pt2 (std::move (pt1));
+    std::tuple<long, const char*> pt1 (1234567890L, "string");
+    std::tuple<long, const char*> pt2 (std::move (pt1));
     test (__LINE__, pt2, 1234567890L, (const char*) "string");
 
     const UserDefined ud (ci);
-    UserTuple ut1 (ud);
+    std::tuple<UserDefined> ut1 (ud);
     UserDefined::reset ();
-    UserTuple ut2 (std::move (ut1));
+    std::tuple<UserDefined> ut2 (std::move (ut1));
     ++UserDefined::expect.move_ctor;
     test (__LINE__, ut2, ud);
 
-    BigTuple bt1 (true, 'a', ci, 3.14159, (void*) &ci, ud);
+    std::tuple<bool, char, int, double, void*, UserDefined>
+        bt1 (true, 'a', ci, 3.14159, (void*) &ci, ud);
     ++UserDefined::expect.copy_ctor;
-    BigTuple bt2 (std::move (bt1));
+    std::tuple<bool, char, int, double, void*, UserDefined>
+        bt2 (std::move (bt1));
     ++UserDefined::expect.move_ctor;
     test (__LINE__, bt2, true, 'a', ci, 3.14159, (void*) &ci, ud);
 }
@@ -353,45 +365,47 @@ test_homo_copy_assign ()
     rw_info (0, __FILE__, __LINE__,
              "copy assignment operator (homogenous tuples)");
 
-    const EmptyTuple et1 = EmptyTuple ();
-    EmptyTuple et2;
+    const std::tuple<> et1 = std::tuple<> ();
+    std::tuple<> et2;
     et2 = et1;
     _RWSTD_UNUSED (et2);
 
     int i = std::rand ();
-    const IntTuple it1 (i);
-    IntTuple it2;
+    const std::tuple<int> it1 (i);
+    std::tuple<int> it2;
     it2 = it1;
     test (__LINE__, it2, i);
 
     // copy assignment ill-formed for constant element types
 
-    const IntRefTuple rt1 (i);
+    const std::tuple<int&> rt1 (i);
     int j = -1; // outside range of rand()
-    IntRefTuple rt2 (j); // note, different reference
+    std::tuple<int&> rt2 (j); // note, different reference
     rt2 = rt1;
     test (__LINE__, rt2, i);
 
-    NestedTuple nt1 (it1);
-    NestedTuple nt2;
+    std::tuple<std::tuple<int> > nt1 (it1);
+    std::tuple<std::tuple<int> > nt2;
     nt2 = nt1;
     test (__LINE__, nt2, it1);
 
-    const PairTuple pt1 (long (i), "string");
-    PairTuple pt2;
+    const std::tuple<long, const char*> pt1 (long (i), "string");
+    std::tuple<long, const char*> pt2;
     pt2 = pt1;
     test (__LINE__, pt2, long (i), (const char*) "string");
 
     const UserDefined ud (i);
-    const UserTuple ut1 (ud);
-    UserTuple ut2;
+    const std::tuple<UserDefined> ut1 (ud);
+    std::tuple<UserDefined> ut2;
     UserDefined::reset ();
     ut2 = ut1;  ++UserDefined::expect.copy_asgn;
     test (__LINE__, ut2, ud);
 
-    const BigTuple bt1 (true, 'a', i, 3.14159, (void* const) &i, ud);
+    const std::tuple<bool, char, int, double, void*, UserDefined>
+        bt1 (true, 'a', i, 3.14159, (void* const) &i, ud);
     ++UserDefined::expect.copy_ctor;
-    BigTuple bt2;  ++UserDefined::expect.dflt_ctor;
+    std::tuple<bool, char, int, double, void*, UserDefined> bt2;
+    ++UserDefined::expect.dflt_ctor;
     bt2 = bt1;  ++UserDefined::expect.copy_asgn;
     test (__LINE__, bt2, true, 'a', i, 3.14159, (void* const) &i, ud);
 }
@@ -404,38 +418,39 @@ test_homo_move_assign ()
     rw_info (0, __FILE__, __LINE__,
              "move assignment operator (homogenous tuples)");
 
-    EmptyTuple et1, et2;
+    std::tuple<> et1, et2;
     et2 = std::move (et1);
     _RWSTD_UNUSED (et2);
 
     int i = std::rand ();
 
-    IntTuple it1 (i);
-    IntTuple it2;
+    std::tuple<int> it1 (i);
+    std::tuple<int> it2;
     it2 = std::move (it1);
     test (__LINE__, it2, i);
 
     // move assignment ill-formed for constant element types
 
-    NestedTuple nt1 (it2);
-    NestedTuple nt2;
+    std::tuple<std::tuple<int> > nt1 (it2);
+    std::tuple<std::tuple<int> > nt2;
     nt2 = std::move (nt1);
     test (__LINE__, nt2, it2);
 
-    PairTuple pt1 (1234567890L, "string");
-    PairTuple pt2;
+    std::tuple<long, const char*> pt1 (1234567890L, "string");
+    std::tuple<long, const char*> pt2;
     pt2 = std::move (pt1);
     test (__LINE__, pt2, 1234567890L, (const char*) "string");
 
     const UserDefined ud (i);
-    UserTuple ut1 (ud);
-    UserTuple ut2;
+    std::tuple<UserDefined> ut1 (ud);
+    std::tuple<UserDefined> ut2;
     UserDefined::reset ();
     ut2 = std::move (ut1);  ++UserDefined::expect.move_asgn;
     test (__LINE__, ut2, ud);
 
-    BigTuple bt1 (true, 'a', i, 3.14159, (void* const) &i, ud);
-    BigTuple bt2;
+    std::tuple<bool, char, int, double, void*, UserDefined>
+        bt1 (true, 'a', i, 3.14159, (void* const) &i, ud);
+    std::tuple<bool, char, int, double, void*, UserDefined> bt2;
     UserDefined::reset ();
     bt2 = std::move (bt1);  ++UserDefined::expect.move_asgn;
     test (__LINE__, bt2, true, 'a', i, 3.14159, (void* const) &i, ud);
@@ -455,10 +470,6 @@ struct String: public std::string
     operator const char* () const { return this->data (); }
 };
 
-typedef std::tuple<char>                CompatIntTuple;
-typedef std::tuple<unsigned, String>    CompatPairTuple;
-typedef std::tuple<int, int, short, float,
-                   char*, UserDefined>  CompatBigTuple;
 
 static void
 test_hetero_copy_ctor ()
@@ -468,19 +479,20 @@ test_hetero_copy_ctor ()
 
     int i = std::rand () % CHAR_MAX;
 
-    const CompatIntTuple cit (static_cast<char> (i));
-    IntTuple it (cit);
+    const std::tuple<char> cit (static_cast<char> (i));
+    std::tuple<int> it (cit);
     test (__LINE__, it, i);
 
-    CompatPairTuple cpt (12345U, "string");
-    PairTuple pt (cpt);
+    std::tuple<unsigned, String> cpt (12345U, "string");
+    std::tuple<long, const char*> pt (cpt);
     test (__LINE__, pt, 12345U, (const char*) "string");
 
     char s [] = "string"; const UserDefined ud (i);
-    const CompatBigTuple cbt (int (true), int ('a'), short (i),
-                              3.14159f, s, ud);
+    const std::tuple<int, int, short, float, char*, UserDefined>
+        cbt (int (true), int ('a'), short (i), 3.14159f, s, ud);
     UserDefined::reset ();
-    BigTuple bt (cbt);  ++UserDefined::expect.copy_ctor;
+    std::tuple<bool, char, int, double, void*, UserDefined> bt (cbt);
+    ++UserDefined::expect.copy_ctor;
     test (__LINE__, bt, true, 'a', i, 3.14159f, s, ud);
 }
 
@@ -494,19 +506,21 @@ test_hetero_move_ctor ()
 
     int i = std::rand () % CHAR_MAX;
 
-    CompatIntTuple cit (static_cast<char> (i));
-    IntTuple it (std::move (cit));
+    std::tuple<char> cit (static_cast<char> (i));
+    std::tuple<int> it (std::move (cit));
     test (__LINE__, it, i);
 
-    CompatPairTuple cpt (12345U, "string");
-    PairTuple pt (std::move (cpt));
+    std::tuple<unsigned, String> cpt (12345U, "string");
+    std::tuple<long, const char*> pt (std::move (cpt));
     test (__LINE__, pt, 12345U, (const char*) "string");
 
     char s [] = "string"; const UserDefined ud (i);
-    CompatBigTuple cbt (int (true), int ('a'), short (i),
-                        3.14159f, s, ud);
+    std::tuple<int, int, short, float, char*, UserDefined>
+        cbt (int (true), int ('a'), short (i), 3.14159f, s, ud);
     UserDefined::reset ();
-    BigTuple bt (std::move (cbt));  ++UserDefined::expect.move_ctor;
+    std::tuple<bool, char, int, double, void*, UserDefined>
+        bt (std::move (cbt));
+    ++UserDefined::expect.move_ctor;
     test (__LINE__, bt, true, 'a', i, 3.14159f, s, ud);
 }
 
@@ -520,20 +534,20 @@ test_hetero_copy_assign ()
 
     int i = std::rand () % CHAR_MAX;
 
-    CompatIntTuple cit (static_cast<char> (i));
-    IntTuple it;
+    std::tuple<char> cit (static_cast<char> (i));
+    std::tuple<int> it;
     it = cit;
     test (__LINE__, it, i);
 
-    CompatPairTuple cpt (12345U, "string");
-    PairTuple pt;
+    std::tuple<unsigned, String> cpt (12345U, "string");
+    std::tuple<long, const char*> pt;
     pt = cpt;
     test (__LINE__, pt, 12345U, (const char*) "string");
 
     char s [] = "string"; const UserDefined ud (i);
-    CompatBigTuple cbt (int (true), int ('a'), short (i),
-                        3.14159f, s, ud);
-    BigTuple bt;
+    std::tuple<int, int, short, float, char*, UserDefined>
+        cbt (int (true), int ('a'), short (i), 3.14159f, s, ud);
+    std::tuple<bool, char, int, double, void*, UserDefined> bt;
     UserDefined::reset ();
     bt = cbt;  ++UserDefined::expect.copy_asgn;
     test (__LINE__, bt, true, 'a', i, 3.14159f, s, ud);
@@ -549,28 +563,27 @@ test_hetero_move_assign ()
 
     int i = std::rand () % CHAR_MAX;
 
-    CompatIntTuple cit (i);
-    IntTuple it;
+    std::tuple<char> cit (i);
+    std::tuple<int> it;
     it = std::move (cit);
     test (__LINE__, it, i);
 
-    CompatPairTuple cpt (12345U, "string");
-    PairTuple pt;
+    std::tuple<unsigned, String> cpt (12345U, "string");
+    std::tuple<long, const char*> pt;
     pt = std::move (cpt);
     test (__LINE__, pt, 12345U, (const char*) "string");
 
     char s [] = "string"; const UserDefined ud (i);
-    CompatBigTuple cbt (int (true), int ('a'), short (i),
-                        3.14159f, s, ud);
-    BigTuple bt;  ++UserDefined::expect.move_ctor;
+    std::tuple<int, int, short, float, char*, UserDefined>
+        cbt (int (true), int ('a'), short (i), 3.14159f, s, ud);
+    std::tuple<bool, char, int, double, void*, UserDefined> bt;
+    ++UserDefined::expect.move_ctor;
     UserDefined::reset ();
     bt = std::move (cbt);  ++UserDefined::expect.move_asgn;
     test (__LINE__, bt, true, 'a', i, 3.14159f, s, ud);
 }
 
 /**************************************************************************/
-
-#include <rw_allocator.h>           // for UserAlloc
 
 static void
 test_alloc_ctors ()
