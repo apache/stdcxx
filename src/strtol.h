@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -35,11 +35,14 @@ _RWSTD_NAMESPACE (__rw) {
 _RWSTD_EXPORT extern const unsigned char
 __rw_digit_map[];
 
+
+// same as strtoul() except that the source sequence must start
+// with a sign (either '+' or '-')
 unsigned long
- __rw_strtoul (const char*, int*, int);
+__rw_strtoul (const char*, int*, int);
 
 long
- __rw_strtol (const char*, int*, int);
+__rw_strtol (const char*, int*, int);
 
 
 #ifdef _RWSTD_LONG_LONG
@@ -75,6 +78,22 @@ __rw_strtoll (const char*, int*, int);
 
 #  endif   // _RWSTD_LLONG_SIZE <= _RWSTD_LONG_SIZE
 #endif   // _RWSTD_LONG_LONG
+
+
+#ifdef __SUNPRO_CC
+
+   // tell the Sun C++ optimizer that the functions do not access
+   // for reading or writing any part of the program state (either
+   // visible at in the caller at the point of the call, or not)
+#  pragma no_side_effect (__rw_strtoul)
+#  pragma no_side_effect (__rw_strtol)
+
+#  ifdef _RWSTD_LONG_LONG
+#    pragma no_side_effect (__rw_strtoull)
+#    pragma no_side_effect (__rw_strtoll)
+#  endif   // _RWSTD_LONG_LONG
+
+#endif   // Sun C++
 
 
 }   // namespace __rw
