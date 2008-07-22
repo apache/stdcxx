@@ -45,6 +45,62 @@ _RWSTD_NAMESPACE (__rw) {
   template <> struct Trait<Type const volatile> : __rw_true_type { }
 
 
+#if defined (__SUNPRO_CC) && (__SUNPRO_CC <= 0x590)
+
+template <class _TypeT>
+struct __rw_is_const_impl
+{
+    struct _C_no  { };
+    struct _C_yes { _C_no __pad [2]; };
+
+    template <class _TypeU>
+    struct _C_nest { };
+
+    template <class _TypeU>
+    static _C_yes _C_test (_C_nest<const _TypeU>*);
+
+    template <class _TypeU>
+    static _C_no  _C_test (_C_nest<_TypeU>*);
+
+    enum { _C_value =
+        sizeof (_C_test ((_C_nest<_TypeT>*)0)) == sizeof (_C_yes)
+    };
+};
+
+template <class _TypeT>
+struct __rw_is_const
+  : __rw_integral_constant<bool, __rw_is_const_impl<_TypeT>::_C_value>
+{
+};
+
+template <class _TypeT>
+struct __rw_is_volatile_impl
+{
+    struct _C_no  { };
+    struct _C_yes { _C_no __pad [2]; };
+
+    template <class _TypeU>
+    struct _C_nest { };
+
+    template <class _TypeU>
+    static _C_yes _C_test (_C_nest<volatile _TypeU>*);
+
+    template <class _TypeU>
+    static _C_no  _C_test (_C_nest<_TypeU>*);
+
+    enum { _C_value =
+        sizeof (_C_test ((_C_nest<_TypeT>*)0)) == sizeof (_C_yes)
+    };
+};
+
+template <class _TypeT>
+struct __rw_is_volatile
+  : __rw_integral_constant<bool, __rw_is_volatile_impl<_TypeT>::_C_value>
+{
+};
+
+#else
+
 template <class _TypeT>
 struct __rw_is_const : __rw_false_type
 {
@@ -54,9 +110,6 @@ template <class _TypeT>
 struct __rw_is_const<const _TypeT> : __rw_true_type
 {
 };
-
-#define _RWSTD_IS_CONST(T) _RW::__rw_is_const<T>::value
-
 
 template <class _TypeT>
 struct __rw_is_volatile : __rw_false_type
@@ -68,6 +121,9 @@ struct __rw_is_volatile<volatile _TypeT> : __rw_true_type
 {
 };
 
+#endif
+
+#define _RWSTD_IS_CONST(T) _RW::__rw_is_const<T>::value
 #define _RWSTD_IS_VOLATILE(T) _RW::__rw_is_volatile<T>::value
 
 
