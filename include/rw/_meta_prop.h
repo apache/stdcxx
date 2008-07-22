@@ -679,11 +679,15 @@ struct __rw_rank<_TypeT [_Size]>
 {
 };
 
+#if !defined (__IBMCPP__) || (900 < __IBMCPP__)
+
 template <class _TypeT>
 struct __rw_rank<_TypeT []>
     : __rw_integral_constant<_RWSTD_SIZE_T, 1 + __rw_rank<_TypeT>::value>
 {
 };
+
+#endif
 
 #define _RWSTD_RANK(T) _RW::__rw_rank<T>::value
 
@@ -702,6 +706,8 @@ struct __rw_extent<_TypeT [_Size], _Depth>
 {
 };
 
+#if !defined (__IBMCPP__) || (900 < __IBMCPP__)
+
 template <class _TypeT, _RWSTD_SIZE_T _Depth>
 struct __rw_extent<_TypeT [], _Depth>
     : __rw_integral_constant<_RWSTD_SIZE_T,
@@ -709,11 +715,15 @@ struct __rw_extent<_TypeT [], _Depth>
 {
 };
 
+#endif
+
 template <class _TypeT, _RWSTD_SIZE_T _Size>
 struct __rw_extent<_TypeT [_Size], 0>
     : __rw_integral_constant<_RWSTD_SIZE_T, _Size>
 {
 };
+
+#if !defined (__IBMCPP__) || (900 < __IBMCPP__)
 
 template <class _TypeT>
 struct __rw_extent<_TypeT [], 0>
@@ -721,8 +731,9 @@ struct __rw_extent<_TypeT [], 0>
 {
 };
 
-#define _RWSTD_EXTENT_1(T)   _RW::__rw_extent<T>::value
-#define _RWSTD_EXTENT_2(T,D) _RW::__rw_extent<T,D>::value
+#endif
+
+#define _RWSTD_EXTENT(T,D) _RW::__rw_extent<T,D>::value
 
 } // namespace __rw
 

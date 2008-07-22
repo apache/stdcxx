@@ -46,11 +46,15 @@ struct __rw_remove_extent<_TypeT [_Size]>
     typedef _TypeT type;
 };
 
+#if !defined (__IBMCPP__) || (900 < __IBMCPP__)
+
 template <class _TypeT>
 struct __rw_remove_extent<_TypeT []>
 {
     typedef _TypeT type;
 };
+
+#endif
 
 #define _RWSTD_REMOVE_EXTENT(T) _RW::__rw_remove_extent<T>::type
 
@@ -66,11 +70,15 @@ struct __rw_remove_all_extents<_TypeT [_Size]>
     typedef typename __rw_remove_all_extents<_TypeT>::type type;
 };
 
+#if !defined (__IBMCPP__) || (900 < __IBMCPP__)
+
 template <class _TypeT>
 struct __rw_remove_all_extents<_TypeT []>
 {
     typedef typename __rw_remove_all_extents<_TypeT>::type type;
 };
+
+#endif
 
 #define _RWSTD_REMOVE_ALL_EXTENTS(T) _RW::__rw_remove_all_extents<T>::type
 

@@ -134,10 +134,14 @@ struct __rw_is_array<_TypeT [_Size]> : __rw_true_type
 {
 };
 
+#if !defined (__IBMCPP__) || (900 < __IBMCPP__)
+
 template <class _TypeT>
 struct __rw_is_array<_TypeT []> : __rw_true_type
 {
 };
+
+#endif
 
 #define _RWSTD_IS_ARRAY(T) _RW::__rw_is_array<T>::value
 
