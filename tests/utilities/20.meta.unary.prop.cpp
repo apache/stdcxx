@@ -236,7 +236,7 @@ void test_trait (int line, size_t depth,
 }
 
 #define _TEST(Trait, Type, Expect)                                   \
-    test_trait (__LINE__, Trait<Type>::value, Expect, #Trait, #Type)
+    test_trait (__LINE__, Trait< Type >::value, Expect, #Trait, #Type)
 
 #define TEST(Trait, Type, Expect)                                    \
     _TEST (Trait, Type, Expect)
@@ -401,9 +401,30 @@ static void test_has_trivial_assign ()
     TEST (std::has_trivial_assign, V long&, false);
     TEST (std::has_trivial_assign, CV long&, false);
 
-    TEST (std::has_trivial_assign, long[2], true);
+    TEST (std::has_trivial_assign, long [2], false);
 
+#if    defined (_RWSTD_TT_HAS_TRIVIAL_ASSIGN) \
+    || defined (_RWSTD_TT_IS_POD)
     TEST (std::has_trivial_assign, struct_t, true);
+#else
+    rw_warn (0, 0, __LINE__,
+             "portions of test_has_trivial_assign() have been disabled "
+             "due to lack of compiler support.");
+#endif
+
+    TEST (std::has_trivial_assign, struct_t [2], false);
+    TEST (std::has_trivial_assign, const struct_t, false);
+    TEST (std::has_trivial_assign, struct_t&, false);
+
+#if defined (_RWSTD_TT_HAS_TRIVIAL_ASSIGN)
+    TEST (std::has_trivial_assign, no_trivial_ctor_t, true);
+    TEST (std::has_trivial_assign, no_trivial_copy_t, true);
+    TEST (std::has_trivial_assign, no_trivial_dtor_t, true);
+#else
+    rw_warn (0, 0, __LINE__,
+             "portions of test_has_trivial_assign() have been disabled "
+             "due to lack of compiler support.");
+#endif
 
     TEST (std::has_trivial_assign, no_trivial_assign_t, false);
     TEST (std::has_trivial_assign, public_derived_t<no_trivial_assign_t>, false);
@@ -421,10 +442,33 @@ static void test_has_nothrow_assign ()
     TEST (std::has_nothrow_assign, V long&, false);
     TEST (std::has_nothrow_assign, CV long&, false);
 
-    TEST (std::has_nothrow_assign, long[2], true);
+    TEST (std::has_nothrow_assign, long [2], false);
 
+#if    defined (_RWSTD_TT_HAS_NOTHROW_ASSIGN) \
+    || defined (_RWSTD_TT_HAS_TRIVIAL_ASSIGN) \
+    || defined (_RWSTD_TT_IS_POD)
     TEST (std::has_nothrow_assign, struct_t, true);
-    TEST (std::has_nothrow_assign, no_trivial_assign_t, true);
+    TEST (std::has_nothrow_assign, volatile struct_t, true);
+#else
+    rw_warn (0, 0, __LINE__,
+             "portions of test_has_nothrow_assign() have been disabled "
+             "due to lack of compiler support.");
+#endif
+
+    TEST (std::has_nothrow_assign, struct_t [2], false);
+    TEST (std::has_nothrow_assign, const struct_t, false);
+    TEST (std::has_nothrow_assign, struct_t&, false);
+
+#if defined (_RWSTD_TT_HAS_NOTHROW_ASSIGN)
+    TEST (std::has_nothrow_assign, no_trivial_ctor_t, true);
+    TEST (std::has_nothrow_assign, no_trivial_copy_t, true);
+    TEST (std::has_nothrow_assign, no_trivial_dtor_t, true);
+#else
+    rw_warn (0, 0, __LINE__,
+             "portions of test_has_nothrow_assign() have been disabled "
+             "due to lack of compiler support.");
+#endif
+
     TEST (std::has_nothrow_assign, throwing_assign_t, false);
 }
 
@@ -445,6 +489,11 @@ static void test_is_trivial ()
     TEST (std::is_trivial, V long&, false);
     TEST (std::is_trivial, CV long&, false);
 
+#if (   defined (_RWSTD_TT_HAS_TRIVIAL_CTOR)   \
+     && defined (_RWSTD_TT_HAS_TRIVIAL_COPY)   \
+     && defined (_RWSTD_TT_HAS_TRIVIAL_ASSIGN) \
+     && defined (_RWSTD_TT_HAS_TRIVIAL_DTOR))  \
+     || defined (_RWSTD_TT_IS_POD)
     TEST (std::is_trivial, class_t, true);
     TEST (std::is_trivial, struct_t, true);
     TEST (std::is_trivial, union_t, true);
@@ -454,6 +503,11 @@ static void test_is_trivial ()
 
     TEST (std::is_trivial, non_empty_t, true);
     TEST (std::is_trivial, public_derived_t<non_empty_t>, true);
+#else
+    rw_warn (0, 0, __LINE__,
+             "portions of test_is_trivial() have been disabled "
+             "due to lack of compiler support.");
+#endif
 
     TEST (std::is_trivial, abstract_t, false);
     TEST (std::is_trivial, public_derived_t<abstract_t>, false);
@@ -473,14 +527,13 @@ static void test_is_trivial ()
 #undef TEST
 #define TEST(Trait,Type,Expect)                                      \
     _TEST(Trait, Type, Expect);                                      \
-    _TEST(Trait, std::add_const<Type>::type, Expect);                \
-    _TEST(Trait, std::add_volatile<Type>::type, Expect);             \
-    _TEST(Trait, std::add_cv<Type>::type, Expect)
+    _TEST(Trait, std::add_const< Type >::type, Expect);              \
+    _TEST(Trait, std::add_volatile< Type >::type, Expect);           \
+    _TEST(Trait, std::add_cv< Type >::type, Expect)
 
 static void test_is_standard_layout ()
 {
     TEST (std::is_standard_layout, long, true);
-    TEST (std::is_standard_layout, non_empty_t, true);
 
     // no non-static data members of non-standard-layout type
     TEST (std::is_standard_layout, member_t<access_controlled_t>, false);
@@ -514,9 +567,24 @@ static void test_is_standard_layout ()
     typedef public_derived_with_member<empty_t,int> derived_from_empty_with_member;
     TEST (std::is_standard_layout, derived_from_empty_with_member, false);
 
+#if    defined (_RWSTD_TT_IS_STANDARD_LAYOUT)   \
+    || defined (_RWSTD_TT_IS_POD)
+    TEST (std::is_standard_layout, non_empty_t, true);
+
+#  if defined (_RWSTD_TT_STRICT_CXX_0X_CONFORM)
+
     // but we are allowed non-static members in one base class
     TEST (std::is_standard_layout, public_derived_t<non_empty_t>, true);
-    TEST (std::is_standard_layout, public_derived_t<public_derived_t<non_empty_t> >, true);
+    TEST (std::is_standard_layout,
+          public_derived_t<public_derived_t<non_empty_t> >, true);
+
+#  endif // _RWSTD_TT_STRICT_CXX_0X_CONFORM
+
+#else
+    rw_warn (0, 0, __LINE__,
+             "portions of test_is_standard_layout() have been disabled "
+             "due to lack of compiler support.");
+#endif
 
     // but not two base classes with non-static members
     typedef public_derived_with_member<non_empty_t, int> derived_from_non_empty_with_member;
@@ -536,13 +604,14 @@ static void test_is_pod ()
     TEST (std::is_pod, long, true);
     TEST (std::is_pod, long [], true);
     TEST (std::is_pod, long [2], true);
-    TEST (std::is_pod, long (*)[2], true);
+    TEST (std::is_pod, long (*) [2], true);
 
     TEST (std::is_pod, void*, true);
     TEST (std::is_pod, void (*)(), true);
-    TEST (std::is_pod, void (*[])(), true);
+    TEST (std::is_pod, void (* [])(), true);
     TEST (std::is_pod, void (class_t::*)(), true);
 
+#if defined (_RWSTD_TT_IS_POD)
     // standard layout and trivial
     // 
     TEST (std::is_pod, struct_t, true);
@@ -550,10 +619,18 @@ static void test_is_pod ()
     TEST (std::is_pod, enum_t, true);
 
     TEST (std::is_pod, empty_t, true);
-    TEST (std::is_pod, public_derived_t<empty_t>, true);
-
     TEST (std::is_pod, non_empty_t, true);
+
+#  if defined (_RWSTD_TT_STRICT_CXX_0X_CONFORM)
+    TEST (std::is_pod, public_derived_t<empty_t>, true);
     TEST (std::is_pod, public_derived_t<non_empty_t>, true);
+#  endif
+
+#else
+    rw_warn (0, 0, __LINE__,
+             "portions of test_is_pod() have been disabled "
+             "due to lack of compiler support.");
+#endif
 
     TEST (std::is_pod, abstract_t, false);
     TEST (std::is_pod, public_derived_t<abstract_t>, false);
@@ -580,8 +657,16 @@ static void test_is_empty ()
 
     TEST (std::is_empty, empty_union, false);
 
+#if    defined(_RWSTD_TT_IS_EMPTY)  \
+    || defined (_RWSTD_TT_IS_CLASS) \
+    || defined (_RWSTD_TT_IS_UNION)
     TEST (std::is_empty, empty_t, true);
     TEST (std::is_empty, public_derived_t<empty_t>, true);
+#else
+    rw_warn (0, 0, __LINE__,
+             "portions of test_is_empty() have been disabled "
+             "due to lack of compiler support.");
+#endif
 
     TEST (std::is_empty, non_empty_t, false);
     TEST (std::is_empty, public_derived_t<non_empty_t>, false);
@@ -598,11 +683,27 @@ static void test_is_empty ()
 
 static void test_is_polymorphic ()
 {
+    // if we can reliably detect a class type, the fallback will evaluate
+    // to true for all polymorphic types. otherwise, it will evaluate to
+    // true for all class and union types.
+
+    TEST (std::is_polymorphic, void, false);
+    TEST (std::is_polymorphic, long, false);
+    TEST (std::is_polymorphic, int*, false);
+
     TEST (std::is_polymorphic, polymorphic_t, true);
     TEST (std::is_polymorphic, public_derived_t<polymorphic_t>, true);
 
+#if    defined (_RWSTD_TT_IS_POLYMORPHIC) \
+    || defined (_RWSTD_TT_IS_CLASS) \
+    || defined (_RWSTD_TT_IS_UNION)
     TEST (std::is_polymorphic, non_polymorphic_t, false);
     TEST (std::is_polymorphic, public_derived_t<non_polymorphic_t>, false);
+#else
+    rw_warn (0, 0, __LINE__,
+             "portions of test_is_polymorphic() have been disabled "
+             "due to lack of compiler support.");
+#endif 
 
     TEST (std::is_polymorphic, abstract_t, true);
     TEST (std::is_polymorphic, public_derived_t<abstract_t>, true);
@@ -610,19 +711,57 @@ static void test_is_polymorphic ()
 
 static void test_is_abstract ()
 {
+    // if we can reliably detect a class type, the fallback will evaluate
+    // to true for all abstract types. otherwise, it will evaluate to
+    // true for all class and union types.
+
+    TEST (std::is_abstract, void, false);
+    TEST (std::is_abstract, long, false);
+    TEST (std::is_abstract, int*, false);
+
     TEST (std::is_abstract, abstract_t, true);
     TEST (std::is_abstract, public_derived_t<abstract_t>, true);
 
+#if    defined (_RWSTD_TT_IS_ABSTRACT) \
+    || defined (_RWSTD_TT_IS_CLASS) \
+    || defined (_RWSTD_TT_IS_UNION)
     TEST (std::is_abstract, polymorphic_t, false); // polymorphic_t is not an abstract type
     TEST (std::is_abstract, public_derived_t<polymorphic_t>, false);
+#else
+    rw_warn (0, 0, __LINE__,
+             "portions of test_is_abstract() have been disabled "
+             "due to lack of compiler support.");
+#endif
 }
 
 static void test_has_trivial_constructor ()
 {
     TEST (std::has_trivial_default_constructor, long, true);
+    TEST (std::has_trivial_default_constructor, const long, true);
+    TEST (std::has_trivial_default_constructor, volatile long, true);
     TEST (std::has_trivial_default_constructor, long&, false);
-    TEST (std::has_trivial_default_constructor, long[2], true);
+    TEST (std::has_trivial_default_constructor, long [2], true);
+
+#if    defined (_RWSTD_TT_HAS_TRIVIAL_CTOR) \
+    || defined (_RWSTD_TT_IS_POD)
     TEST (std::has_trivial_default_constructor, struct_t, true);
+    TEST (std::has_trivial_default_constructor, const struct_t, true);
+    TEST (std::has_trivial_default_constructor, volatile struct_t, true);
+    TEST (std::has_trivial_default_constructor, struct_t [2], true);
+#else
+    rw_warn (0, 0, __LINE__,
+             "portions of test_has_trivial_constructor() have been "
+             "disabled due to lack of compiler support.");
+#endif
+
+#if defined (_RWSTD_TT_HAS_TRIVIAL_CTOR)
+    TEST (std::has_trivial_default_constructor, no_trivial_assign_t, true);
+    TEST (std::has_trivial_default_constructor, no_trivial_dtor_t, true);
+#else
+    rw_warn (0, 0, __LINE__,
+             "portions of test_has_trivial_constructor() have been "
+             "disabled due to lack of compiler support.");
+#endif
 
     TEST (std::has_trivial_default_constructor, no_trivial_ctor_t, false);
     TEST (std::has_trivial_default_constructor, public_derived_t<no_trivial_ctor_t>, false);
@@ -631,10 +770,33 @@ static void test_has_trivial_constructor ()
 static void test_has_trivial_copy ()
 {
     TEST (std::has_trivial_copy_constructor, long, true);
+    TEST (std::has_trivial_copy_constructor, const long, true);
+    TEST (std::has_trivial_copy_constructor, volatile long, true);
     TEST (std::has_trivial_copy_constructor, long&, true);
-    TEST (std::has_trivial_copy_constructor, long[2], true);
+    TEST (std::has_trivial_copy_constructor, long [2], false);
 
+#if    defined (_RWSTD_TT_HAS_TRIVIAL_COPY) \
+    || defined (_RWSTD_TT_IS_POD)
     TEST (std::has_trivial_copy_constructor, struct_t, true);
+    TEST (std::has_trivial_copy_constructor, const struct_t, true);
+    TEST (std::has_trivial_copy_constructor, volatile struct_t, true);
+#else
+    rw_warn (0, 0, __LINE__,
+             "portions of test_has_trivial_copy() have been "
+             "disabled due to lack of compiler support.");
+#endif
+
+    TEST (std::has_trivial_copy_constructor, struct_t [2], false);
+
+#if defined (_RWSTD_TT_HAS_TRIVIAL_COPY)
+    TEST (std::has_trivial_copy_constructor, no_trivial_ctor_t, true);
+    TEST (std::has_trivial_copy_constructor, no_trivial_assign_t, true);
+    TEST (std::has_trivial_copy_constructor, no_trivial_dtor_t, true);
+#else
+    rw_warn (0, 0, __LINE__,
+             "portions of test_has_trivial_copy() have been "
+             "disabled due to lack of compiler support.");
+#endif
 
     TEST (std::has_trivial_copy_constructor, no_trivial_copy_t, false);
     TEST (std::has_trivial_copy_constructor, public_derived_t<no_trivial_copy_t>, false);
@@ -643,9 +805,32 @@ static void test_has_trivial_copy ()
 static void test_has_trivial_destructor ()
 {
     TEST (std::has_trivial_destructor, long, true);
+    TEST (std::has_trivial_destructor, const long, true);
+    TEST (std::has_trivial_destructor, volatile long, true);
     TEST (std::has_trivial_destructor, long&, true);
-    TEST (std::has_trivial_destructor, long[2], true);
+    TEST (std::has_trivial_destructor, long [2], true);
+
+#if    defined (_RWSTD_TT_HAS_TRIVIAL_DTOR) \
+    || defined (_RWSTD_TT_IS_POD)
     TEST (std::has_trivial_destructor, struct_t, true);
+    TEST (std::has_trivial_destructor, const struct_t, true);
+    TEST (std::has_trivial_destructor, volatile struct_t, true);
+    TEST (std::has_trivial_destructor, struct_t [2], true);
+#else
+    rw_warn (0, 0, __LINE__,
+             "portions of test_has_trivial_destructor() have been "
+             "disabled due to lack of compiler support.");
+#endif
+
+#if defined (_RWSTD_TT_HAS_TRIVIAL_DTOR)
+    TEST (std::has_trivial_destructor, no_trivial_ctor_t, true);
+    TEST (std::has_trivial_destructor, no_trivial_copy_t, true);
+    TEST (std::has_trivial_destructor, no_trivial_assign_t, true);
+#else
+    rw_warn (0, 0, __LINE__,
+             "portions of test_has_trivial_destructor() have been "
+             "disabled due to lack of compiler support.");
+#endif
 
     TEST (std::has_trivial_destructor, no_trivial_dtor_t, false);
     TEST (std::has_trivial_destructor, public_derived_t<no_trivial_dtor_t>, false);
@@ -654,20 +839,70 @@ static void test_has_trivial_destructor ()
 static void test_has_nothrow_constructor ()
 {
     TEST (std::has_nothrow_default_constructor, long, true);
+    TEST (std::has_nothrow_default_constructor, const long, true);
+    TEST (std::has_nothrow_default_constructor, volatile long, true);
     TEST (std::has_nothrow_default_constructor, long&, false);
-    TEST (std::has_nothrow_default_constructor, long[2], true);
+    TEST (std::has_nothrow_default_constructor, long [2], true);
 
+#if    defined (_RWSTD_TT_HAS_NOTHROW_CTOR) \
+    || defined (_RWSTD_TT_HAS_TRIVIAL_CTOR) \
+    || defined (_RWSTD_TT_IS_POD)
     TEST (std::has_nothrow_default_constructor, struct_t, true);
+    TEST (std::has_nothrow_default_constructor, const struct_t, true);
+    TEST (std::has_nothrow_default_constructor, volatile struct_t, true);
+    TEST (std::has_nothrow_default_constructor, struct_t [2], true);
+#else
+    rw_warn (0, 0, __LINE__,
+             "portions of test_has_nothrow_constructor() have been "
+             "disabled due to lack of compiler support.");
+#endif
+
+#if defined (_RWSTD_TT_HAS_NOTHROW_CTOR)
+    TEST (std::has_nothrow_default_constructor, no_trivial_ctor_t, true);
+    //TEST (std::has_nothrow_default_constructor, no_trivial_copy_t, true);
+    TEST (std::has_nothrow_default_constructor, no_trivial_assign_t, true);
+    TEST (std::has_nothrow_default_constructor, struct_t, true);
+#else
+    rw_warn (0, 0, __LINE__,
+             "portions of test_has_nothrow_constructor() have been "
+             "disabled due to lack of compiler support.");
+#endif
+
     TEST (std::has_nothrow_default_constructor, throwing_ctor_t, false);
 }
 
 static void test_has_nothrow_copy ()
 {
     TEST (std::has_nothrow_copy_constructor, long, true);
+    TEST (std::has_nothrow_copy_constructor, const long, true);
+    TEST (std::has_nothrow_copy_constructor, volatile long, true);
     TEST (std::has_nothrow_copy_constructor, long&, true);
-    TEST (std::has_nothrow_copy_constructor, long[2], true);
+    TEST (std::has_nothrow_copy_constructor, long [2], false);
 
+#if    defined (_RWSTD_TT_HAS_NOTHROW_COPY) \
+    || defined (_RWSTD_TT_HAS_TRIVIAL_COPY) \
+    || defined (_RWSTD_TT_IS_POD)
     TEST (std::has_nothrow_copy_constructor, struct_t, true);
+    TEST (std::has_nothrow_copy_constructor, const struct_t, true);
+    TEST (std::has_nothrow_copy_constructor, volatile struct_t, true);
+#else
+    rw_warn (0, 0, __LINE__,
+             "portions of test_has_nothrow_copy() have been "
+             "disabled due to lack of compiler support.");
+#endif
+
+    TEST (std::has_nothrow_copy_constructor, struct_t [2], false);
+
+#if defined (_RWSTD_TT_HAS_NOTHROW_COPY)
+    TEST (std::has_nothrow_copy_constructor, no_trivial_ctor_t, true);
+    TEST (std::has_nothrow_copy_constructor, no_trivial_copy_t, true);
+    TEST (std::has_nothrow_copy_constructor, no_trivial_assign_t, true);
+#else
+    rw_warn (0, 0, __LINE__,
+             "portions of test_has_nothrow_copy() have been "
+             "disabled due to lack of compiler support.");
+#endif
+
     TEST (std::has_nothrow_copy_constructor, throwing_copy_t, false);
 }
 
@@ -679,8 +914,16 @@ static void test_has_virtual_destructor ()
     TEST (std::has_virtual_destructor, polymorphic_t, true);
     TEST (std::has_virtual_destructor, public_derived_t<polymorphic_t>, true);
 
+#if    defined (_RWSTD_TT_HAS_VIRTUAL_DTOR) \
+    || defined (_RWSTD_TT_IS_CLASS) \
+    || defined (_RWSTD_TT_IS_UNION)
     TEST (std::has_virtual_destructor, non_polymorphic_t, false);
     TEST (std::has_virtual_destructor, public_derived_t<non_polymorphic_t>, false);
+#else
+    rw_warn (0, 0, __LINE__,
+             "portions of test_has_virtual_destructor() have been "
+             "disabled due to lack of compiler support.");
+#endif
 }
 
 static void test_is_signed ()
@@ -704,14 +947,20 @@ static void test_is_signed ()
 
     TEST (std::is_signed, float, true);
     TEST (std::is_signed, double, true);
+
+#ifndef _RWSTD_NO_LONG_DOUBLE
     TEST (std::is_signed, long double, true);
+#endif
 
     TEST (std::is_signed, enum_t, false);
     TEST (std::is_signed, struct_t, false);
     TEST (std::is_signed, class_t, false);
     TEST (std::is_signed, union_t, false);
 
-    // add tests for references, pointers, arrays and functions
+    TEST (std::is_signed, long&, false);
+    TEST (std::is_signed, long*, false);
+    TEST (std::is_signed, long [2], false);
+    TEST (std::is_signed, long (), false);
 }
 
 static void test_is_unsigned ()
@@ -735,16 +984,69 @@ static void test_is_unsigned ()
 
     TEST (std::is_unsigned, float, false);
     TEST (std::is_unsigned, double, false);
+
+#ifndef _RWSTD_NO_LONG_DOUBLE
     TEST (std::is_unsigned, long double, false);
+#endif
 
     TEST (std::is_unsigned, enum_t, false);
     TEST (std::is_unsigned, struct_t, false);
     TEST (std::is_unsigned, class_t, false);
     TEST (std::is_unsigned, union_t, false);
+
+    TEST (std::is_unsigned, unsigned long&, false);
+    TEST (std::is_unsigned, unsigned long*, false);
+    TEST (std::is_unsigned, unsigned long [2], false);
+    TEST (std::is_unsigned, unsigned long (), false);
 }
 
 static void test_alignment_of ()
 {
+#ifdef _RWSTD_NO_ALIGN_TRAITS
+
+    rw_warn (0, 0, __LINE__,
+             "test_alignment_of() disabled because "
+             "_RWSTD_NO_ALIGN_TRAITS is defined");
+
+#else 
+
+#  undef TEST
+#  define TEST(Trait,Type)                                           \
+     test_trait (__LINE__, #Trait, #Type,                            \
+                 Trait<Type>::value, _RWSTD_TT_ALIGN_OF(Type))
+
+    TEST (std::alignment_of, signed char);
+    TEST (std::alignment_of, signed short);
+    TEST (std::alignment_of, signed int);
+    TEST (std::alignment_of, signed long);
+
+    TEST (std::alignment_of, unsigned char);
+    TEST (std::alignment_of, unsigned short);
+    TEST (std::alignment_of, unsigned int);
+    TEST (std::alignment_of, unsigned long);
+
+#ifndef _RWSTD_NO_LONG_LONG
+    TEST (std::alignment_of, signed long long);
+    TEST (std::alignment_of, unsigned long long);
+#endif
+
+    TEST (std::alignment_of, float);
+    TEST (std::alignment_of, double);
+
+#ifndef _RWSTD_NO_LONG_DOUBLE 
+    TEST (std::alignment_of, long double);
+#endif
+
+    TEST (std::alignment_of, enum_t);
+    TEST (std::alignment_of, struct_t);
+    TEST (std::alignment_of, class_t);
+    TEST (std::alignment_of, union_t);
+    TEST (std::alignment_of, polymorphic_t);
+
+    TEST (std::alignment_of, void*);
+
+#  undef TEST
+#endif  // _RWSTD_TT_ALIGN_OF
 }
 
 static void test_rank ()
@@ -790,7 +1092,7 @@ static void test_extent ()
 #undef TEST
 }
 
-static int run_test (int, char*[])
+static int run_test (int, char* [])
 {
     test_is_const ();
     test_is_volatile ();
@@ -823,7 +1125,7 @@ static int run_test (int, char*[])
 
 /**************************************************************************/
 
-static int run_test (int, char*[])
+static int run_test (int, char* [])
 {
     rw_warn (0, 0, __LINE__,
              "test disabled because _RWSTD_NO_EXT_CXX_0X is defined");
@@ -834,7 +1136,7 @@ static int run_test (int, char*[])
 
 /**************************************************************************/
 
-int main (int argc, char*argv[])
+int main (int argc, char* argv [])
 {
     return rw_test (argc, argv, __FILE__,
                     "meta.unary.prop",

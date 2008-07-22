@@ -296,11 +296,15 @@ struct is_unsigned
 {
 };
 
+#ifndef _RWSTD_NO_ALIGN_TRAITS
+
 template <class _TypeT>
 struct alignment_of
     : integral_constant<_RWSTD_SIZE_T, _RW::__rw_alignment_of<_TypeT>::value>
 {
 };
+
+#endif // _RWSTD_NO_ALIGN_TRAITS
 
 template <class _TypeT>
 struct rank
@@ -422,6 +426,8 @@ struct add_pointer
     typedef typename _RW::__rw_add_pointer<_TypeT>::type type;
 };
 
+#ifndef _RWSTD_NO_ALIGN_TRAITS
+
 template <_RWSTD_SIZE_T _Len,
           _RWSTD_SIZE_T _Align = _RW::__rw_default_alignment<_Len>::value>
 struct aligned_storage
@@ -429,15 +435,17 @@ struct aligned_storage
     typedef typename _RW::__rw_aligned_storage<_Len, _Align>::type type;
 };
 
-#ifndef _RWSTD_NO_VARIADIC_TEMPLATES
+#  ifndef _RWSTD_NO_VARIADIC_TEMPLATES
 
 template <_RWSTD_SIZE_T _Len, class _TypeT, class... _Types>
 struct aligned_union
     : _RW::__rw_aligned_union<_Len, _TypeT, _Types...>
 {
+    static const _RWSTD_SIZE_T alignment_value =
+      _RW::__rw_aligned_union<_Len, _TypeT, _Types...>::_C_align_value;
 };
 
-#else
+#  else  // !_RWSTD_NO_VARIADIC_TEMPLATES
 
 template <_RWSTD_SIZE_T _Len,
           class _Type1                  , class _Type2 = _RW::__rw_empty,
@@ -449,9 +457,15 @@ struct aligned_union
                               _Type1, _Type2, _Type3, _Type4,
                               _Type5, _Type6, _Type7, _Type8>
 {
+    static const _RWSTD_SIZE_T alignment_value =
+      _RW::__rw_aligned_union<_Len, _Type1, _Type2,
+                                    _Type3, _Type4,
+                                    _Type5, _Type6,
+                                    _Type7, _Type8>::_C_align_value;
 };
 
-#endif
+#  endif // !_RWSTD_NO_VARIADIC_TEMPLATES
+#endif // !_RWSTD_NO_ALIGN_TRAITS
 
 template <class _TypeT>
 struct decay

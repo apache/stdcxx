@@ -63,54 +63,68 @@ struct __rw_is_same<_TypeT, _TypeT> : __rw_true_type
 #ifndef _RWSTD_TT_IS_BASE_OF
 
 //
-// This little gem was taken from a comp.lang.c++.moderated post
-// by Rani Sharoni [see http://tinyurl.com/6pdv3k]
+// Primary template  handles case that either of _Base or _Derived
+// is not a class type.
 //
 template <class _Base, class _Derived,
-          bool =   __rw_is_class<_Base>::value
-                && __rw_is_class<_Derived>::value>
+          bool =   !__rw_is_class<_Base>::value
+                || !__rw_is_class<_Derived>::value>
 struct __rw_is_base_of_impl
-{
-    typedef typename __rw_remove_cv<_Derived>::type _NoCV_Derived;
-    typedef typename __rw_remove_cv<_Base>::type _NoCV_Base;
-
-    struct _C_no  { };
-    struct _C_yes { _C_no __pad [2]; };
-
-    // the template is used so that the compiler will prefer the
-    // non-template _C_is, in case that the conversion would be
-    // ambiguous (as it is in the case where the types are unrelated).
-    template <class _TypeT>
-    static _C_yes _C_is (_NoCV_Derived&, _TypeT);
-    static _C_no _C_is  (_NoCV_Base&   , int);
-
-    struct _C_nest
-    {
-        operator _NoCV_Base&    () const;
-        operator _NoCV_Derived& ();
-    };
-
-    enum { _C_value = 
-           __rw_is_same<_NoCV_Base, _NoCV_Derived>::value
-        || sizeof (_C_yes) == sizeof (_C_is (_C_nest (), 0)) };
-};
-
-//
-//
-//
-template <class _Base, class _Derived>
-struct __rw_is_base_of_impl<_Base, _Derived, false>
 {
     enum { _C_value = 0 };
 };
 
-#  define _RWSTD_TT_IS_BASE_OF(T,U) \
+//
+// This specialization is for the case that _Base and
+// _Derived are class types, but not the same type.
+//
+// This little gem was taken from a comp.lang.c++.moderated post
+// by Rani Sharoni [see http://tinyurl.com/6pdv3k]
+//
+template <class _Base, class _Derived>
+struct __rw_is_base_of_impl<_Base, _Derived, false>
+{
+    struct _C_no  { };
+    struct _C_yes { _C_no __pad [2]; };
+
+    struct _C_nest
+    {
+        operator const volatile _Base&    () const;
+        operator const volatile _Derived& ();
+
+        // the template is used so that the compiler will prefer the
+        // non-template _C_is, in case that the conversion would be
+        // ambiguous (as it is in the case where the types are unrelated).
+        template <class _TypeT>
+        static _C_yes _C_is (const volatile _Derived&, _TypeT);
+        static _C_no _C_is  (const volatile _Base&   , int);
+    };
+
+    enum { _C_value = 
+        sizeof (_C_yes) == sizeof (_C_nest::_C_is (_C_nest (), 0))
+    };
+};
+
+//
+// This specialization is for the case that _Base and
+// _Derived are the same class type.
+//
+template <class _TypeT>
+struct __rw_is_base_of_impl<_TypeT, _TypeT, false>
+{
+    enum { _C_value = 1 };
+};
+
+#  define _RWSTD_IS_BASE_OF(T,U) \
      _RW::__rw_is_base_of_impl<T,U>::_C_value
+
+#else
+#  define _RWSTD_IS_BASE_OF(T,U) _RWSTD_TT_IS_BASE_OF(T,U)
 #endif // _RWSTD_TT_IS_BASE_OF
 
 template <class _Base, class _Derived>
 struct __rw_is_base_of
-    : __rw_integral_constant<bool, _RWSTD_TT_IS_BASE_OF(_Base,_Derived)>
+    : __rw_integral_constant<bool, _RWSTD_IS_BASE_OF(_Base,_Derived)>
 {
     //_RWSTD_ASSERT (    _RWSTD_IS_CLASS (_Base)
     //               &&  _RWSTD_IS_CLASS (_Derived)
@@ -118,10 +132,8 @@ struct __rw_is_base_of
     //               ||
 };
 
-#define _RWSTD_IS_BASE_OF(T,U) _RW::__rw_is_base_of<T,U>::value
 
-
-#ifndef _RWSTD_TT_IS_CONVERTIBLE
+#if !defined (_RWSTD_TT_IS_CONVERTIBLE)
 
 template <class _From, class _To>
 struct __rw_is_convertible_impl
@@ -216,7 +228,7 @@ struct __rw_is_convertible_1<_TypeT, _TypeU, true, true>
     enum { _C_value = 1 };
 };
 
-#  define _RWSTD_TT_IS_CONVERTIBLE(T,U) \
+#  define _RWSTD_IS_CONVERTIBLE(T,U) \
      _RW::__rw_is_convertible_1<T,U>::_C_value
 
 #elif defined (_MSC_VER)
@@ -229,22 +241,21 @@ struct __rw_is_convertible_1
       || _RWSTD_TT_IS_CONVERTIBLE(_TypeT, _TypeU) };
 };
 
-#  undef _RWSTD_TT_IS_CONVERTIBLE
-#  define _RWSTD_TT_IS_CONVERTIBLE(T,U) \
+#  define _RWSTD_IS_CONVERTIBLE(T,U) \
      _RW::__rw_is_convertible_1<T,U>::_C_value
 
+#else
+#  define _RWSTD_IS_CONVERTIBLE(T,U) _RWSTD_TT_IS_CONVERTIBLE(T,U)
 #endif // _RWSTD_TT_IS_CONVERTIBLE
 
 template <class _TypeT, class _TypeU>
 struct __rw_is_convertible
-    : __rw_integral_constant<bool, _RWSTD_TT_IS_CONVERTIBLE(_TypeT,_TypeU)>
+    : __rw_integral_constant<bool, _RWSTD_IS_CONVERTIBLE(_TypeT,_TypeU)>
 {
     //_RWSTD_COMPILE_ASSERT (   _RWSTD_IS_COMPLETE (_TypeT)
     //                       || _RWSTD_IS_ARRAY (_TypeT)
     //                       || _RWSTD_IS_VOID (_TypeT));
 };
-
-#define _RWSTD_IS_CONVERTIBLE(T,U) _RW::__rw_is_convertible<T,U>::value
 
 } // namespace __rw
 

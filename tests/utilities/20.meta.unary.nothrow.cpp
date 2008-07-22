@@ -593,8 +593,16 @@ struct L {
 
 
 static int
-run_test (int, char*[])
+test_has_nothrow_copy ()
 {
+#ifndef _RWSTD_TT_HAS_NOTHROW_COPY
+
+    rw_warn (0, 0, __LINE__,
+             "test_has_nothrow_copy() disabled because "
+             "_RWSTD_TT_HAS_NOTHROW_COPY is not defined");
+
+#else
+
     // exercise the has_nothrow_copy_constructor trait
 #define TEST(T)                                                         \
     rw_assert (std::has_nothrow_copy_constructor<T>::value == T::value, \
@@ -607,39 +615,47 @@ run_test (int, char*[])
     TEST (A::A3);
     TEST (A::A4);
     TEST (A::A5);
+#ifndef _RWSTD_NO_RVALUE_REFERENCES
     TEST (A::A6);
     TEST (A::A7);
     TEST (A::A8);
     TEST (A::A9);
+#endif
 
     TEST (B::B1);
     TEST (B::B2);
     TEST (B::B3);
     TEST (B::B4);
+#ifndef _RWSTD_NO_RVALUE_REFERENCES
     TEST (B::B5);
     TEST (B::B6);
     TEST (B::B7);
     TEST (B::B8);
+#endif
 
     TEST (C::C1);
     TEST (C::C2);
     TEST (C::C3);
     TEST (C::C4);
     TEST (C::C5);
+#ifndef _RWSTD_NO_RVALUE_REFERENCES
     TEST (C::C6);
     TEST (C::C7);
     TEST (C::C8);
     TEST (C::C9);
+#endif
 
     TEST (D::D1);
     TEST (D::D2);
     TEST (D::D3);
     TEST (D::D4);
     TEST (D::D5);
+#ifndef _RWSTD_NO_RVALUE_REFERENCES
     TEST (D::D6);
     TEST (D::D7);
     TEST (D::D8);
     TEST (D::D9);
+#endif
 
     TEST (E::E1);
     TEST (E::E2);
@@ -675,8 +691,12 @@ run_test (int, char*[])
     TEST (J::J4);
 
     TEST (K::K1);
+#  ifndef _RWSTD_NO_VARIADIC_TEMPLATES
     TEST (K::K2);
+#  endif
+#  ifndef _RWSTD_NO_RVALUE_REFERENCES
     TEST (K::K3);
+#  endif
     TEST (K::K4);
     TEST (K::K5);
 
@@ -696,6 +716,16 @@ run_test (int, char*[])
     TEST (L::L14);
     TEST (L::L15);
     TEST (L::L16);
+
+#endif
+
+    return 0;
+}
+
+static int
+run_test (int, char*[])
+{
+    test_has_nothrow_copy ();
 
     return 0;
 }

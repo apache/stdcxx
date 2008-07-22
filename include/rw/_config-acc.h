@@ -110,6 +110,6 @@
 #  define _RWSTD_TT_MAX_ALIGNMENT  128
 #  define _RWSTD_TT_ALIGNED_POD(N) \
       struct { unsigned char _C_align __attribute__ ((aligned ((N)))); }
-#endif // 
+#endif // __HP_aCC >= 6.00
 
 

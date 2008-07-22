@@ -57,6 +57,7 @@ struct __rw_conditional<false, _TypeT, _TypeU>
 #define _RWSTD_CONDITIONAL(C,T,U) _RW::__rw_conditional<C,T,U>::type
 
 
+#ifndef _RWSTD_NO_ALIGN_TRAITS
 
 // Helper for __rw_default_alignment. The member value will evaluate
 // to the nearest power of two that is a valid alignment value that
@@ -102,11 +103,9 @@ struct __rw_aligned_storage
     } type;
 };
 
-
 #else // !__GNUG__
 
-// Helper for __rw_aligned_storage. Specializations define a member type
-// that is aligned on power of two boundaries.
+// Helper for __rw_aligned_storage.
 template <_RWSTD_SIZE_T _Align>
 struct __rw_aligned_storage_impl;
 
@@ -181,42 +180,35 @@ struct __rw_biggest;
 template <class _TypeT, class... _Types>
 struct __rw_biggest<_TypeT, _Types...>
 {
-    typedef typename
-    __rw_biggest<_Types...>::type _TypeU;
-
-    typedef typename
-    __rw_conditional<sizeof (_TypeT) < sizeof (_TypeU),
-                     _TypeU, _TypeT>::type type;
+    enum { _C_values = __rw_biggest<_Types...>::_C_value,
+           _C_value  =   sizeof (_TypeT) < _C_values
+                       ? _C_values 
+                       : sizeof (_TypeT) };
 };
 
 template <class _TypeT>
 struct __rw_biggest<_TypeT>
 {
-    typedef _TypeT type;
+    enum { _C_value = sizeof (_TypeT) };
 };
 
-// Helper for __rw_aligned_union. Provides a typedef type that
-// is the type with the strictest alignment requirement in the
-// sequence of provided types.
+// Helper for __rw_aligned_union.
 template <class... _Types>
 struct __rw_strictest;
 
 template <class _TypeT, class... _Types>
 struct __rw_strictest<_TypeT, _Types...>
 {
-    typedef typename
-    __rw_strictest<_Types...>::type _TypeU;
-
-    typedef typename
-    __rw_conditional<   __rw_alignment_of<_TypeT>::value
-                      < __rw_alignment_of<_TypeU>::value,
-                     _TypeU, _TypeT>::type type;
+    enum { _C_values = __rw_strictest<_Types...>::_C_value,
+           _C_value =   __rw_alignment_of<_TypeT>::value < _C_values
+                      ? _C_values
+                      : __rw_alignment_of<_TypeT>::value };
 };
 
 template <class _TypeT>
 struct __rw_strictest<_TypeT>
 {
-    typedef _TypeT type;
+    enum { _C_value = __rw_alignment_of<_TypeT>::value };
 };
 
 template <_RWSTD_SIZE_T _Len, class... _Types>
@@ -225,121 +217,72 @@ struct __rw_aligned_union;
 template <_RWSTD_SIZE_T _Len, class _TypeT, class... _Types>
 struct __rw_aligned_union<_Len, _TypeT, _Types...>
 {
-    typedef typename
-    __rw_biggest<_TypeT, _Types...>::type _C_biggest;
+    enum { _C_len_value   = _Len,
+           _C_size_value  = __rw_biggest<_TypeT, _Types...>::_C_value,
+           _C_align_value = __rw_strictest<_TypeT, _Types...>::_C_value };
 
     typedef typename
-    __rw_strictest<_TypeT, _Types...>::type _C_strictest;
-
-    static const _RWSTD_SIZE_T _C_size_value =
-        sizeof (_C_biggest);
-
-    static const _RWSTD_SIZE_T alignment_value =
-        __rw_alignment_of<_C_strictest>::value;
-
-    typedef typename
-    __rw_aligned_storage<_Len < _C_size_value ? _C_size_value : _Len,
-                         alignment_value>::type type;
+    __rw_aligned_storage<  _C_len_value < _C_size_value
+                         ? _C_size_value : _C_len_value,
+                         _C_align_value>::type type;
 };
-
-#if 0
-#  ifndef _RWSTD_NO_STATIC_CONST_MEMBER_DEFINITION
-
-template <_RWSTD_SIZE_T _Len, class... _Types>
-const _RWSTD_SIZE_T
-__rw_aligned_union<_Len, _Types...>::alignment_value;
-
-template <_RWSTD_SIZE_T _Len, class... _Types>
-const _RWSTD_SIZE_T
-__rw_aligned_union<_Len, _Types...>::_C_size_value;
-
-#  endif // _RWSTD_NO_STATIC_CONST_MEMBER_DEFINITION
-#endif // 0
 
 #else // _RWSTD_NO_VARIADIC_TEMPLATES
 
+// Helper. Gives the largest of a series of values.
+template <unsigned _A    , unsigned _B = 0,
+          unsigned _C = 0, unsigned _D = 0,
+          unsigned _E = 0, unsigned _F = 0,
+          unsigned _G = 0, unsigned _H = 0>
+struct __rw_max_uint
+{
+    enum {
+            _C_ab = _A < _B ? _B : _A,
+            _C_cd = _C < _D ? _D : _C,
+            _C_abcd = _C_ab < _C_cd ? _C_cd : _C_ab,
+
+            _C_ef = _E < _F ? _F : _E,
+            _C_gh = _G < _H ? _H : _G,
+            _C_efgh = _C_ef < _C_gh ? _C_gh : _C_ef,
+
+            _C_value = _C_abcd < _C_efgh ?  _C_efgh : _C_abcd
+    };
+};
+
 struct __rw_empty { };
 
-// Helper for __rw_aligned_union. Provides a typedef type that
-// is the largest type in the sequence of provided types.
+// Helper for __rw_aligned_union.
 template <class _Type1             , class _Type2 = __rw_empty,
           class _Type3 = __rw_empty, class _Type4 = __rw_empty,
           class _Type5 = __rw_empty, class _Type6 = __rw_empty,
           class _Type7 = __rw_empty, class _Type8 = __rw_empty>
 struct __rw_biggest
 {
-    typedef typename
-    __rw_conditional<(sizeof (_Type1) < sizeof (_Type2)),
-                     _Type2, _Type1>::type _Type12;
-
-    typedef typename
-    __rw_conditional<(sizeof (_Type3) < sizeof (_Type4)),
-                     _Type4, _Type3>::type _Type34;
-
-    typedef typename
-    __rw_conditional<(sizeof (_Type5) < sizeof (_Type6)),
-                     _Type6, _Type5>::type _Type56;
-
-    typedef typename
-    __rw_conditional<(sizeof (_Type7) < sizeof (_Type8)),
-                     _Type8, _Type7>::type _Type78;
-
-    typedef typename
-    __rw_conditional<(sizeof (_Type12) < sizeof (_Type34)),
-                     _Type34, _Type12>::type _Type1234;
-
-    typedef typename
-    __rw_conditional<(sizeof (_Type56) < sizeof (_Type78)),
-                     _Type78, _Type56>::type _Type5678;
-
-    typedef typename
-    __rw_conditional<(sizeof (_Type1234) < sizeof (_Type5678)),
-                     _Type5678, _Type1234>::type type;
+    enum { _C_value =
+        __rw_max_uint<sizeof (_Type1), sizeof (_Type2),
+                      sizeof (_Type3), sizeof (_Type4),
+                      sizeof (_Type5), sizeof (_Type6),
+                      sizeof (_Type7), sizeof (_Type8)>::_C_value
+    };
 };
 
-// Helper for __rw_aligned_union. Provides a typedef type that
-// is the type with the strictest alignment requirement in the
-// sequence of provided types.
+// Helper for __rw_aligned_union.
 template <class _Type1             , class _Type2 = __rw_empty,
           class _Type3 = __rw_empty, class _Type4 = __rw_empty,
           class _Type5 = __rw_empty, class _Type6 = __rw_empty,
           class _Type7 = __rw_empty, class _Type8 = __rw_empty>
 struct __rw_strictest
 {
-    typedef typename
-    __rw_conditional<   (__rw_alignment_of<_Type1>::value)
-                      < (__rw_alignment_of<_Type2>::value),
-                     _Type2, _Type1>::type _Type12;
-
-    typedef typename
-    __rw_conditional<   (__rw_alignment_of<_Type3>::value)
-                      < (__rw_alignment_of<_Type4>::value),
-                     _Type4, _Type3>::type _Type34;
-
-    typedef typename
-    __rw_conditional<   (__rw_alignment_of<_Type5>::value)
-                      < (__rw_alignment_of<_Type6>::value),
-                     _Type6, _Type5>::type _Type56;
-
-    typedef typename
-    __rw_conditional<   (__rw_alignment_of<_Type7>::value)
-                      < (__rw_alignment_of<_Type8>::value),
-                     _Type8, _Type7>::type _Type78;
-
-    typedef typename
-    __rw_conditional<   (__rw_alignment_of<_Type12>::value)
-                      < (__rw_alignment_of<_Type34>::value),
-                     _Type34, _Type12>::type _Type1234;
-
-    typedef typename
-    __rw_conditional<   (__rw_alignment_of<_Type56>::value)
-                      < (__rw_alignment_of<_Type78>::value),
-                     _Type78, _Type56>::type _Type5678;
-
-    typedef typename
-    __rw_conditional<   (__rw_alignment_of<_Type1234>::value)
-                      < (__rw_alignment_of<_Type5678>::value),
-                     _Type5678, _Type1234>::type type;
+    enum { _C_value =
+        __rw_max_uint<__rw_alignment_of<_Type1>::value,
+                      __rw_alignment_of<_Type2>::value,
+                      __rw_alignment_of<_Type3>::value,
+                      __rw_alignment_of<_Type4>::value,
+                      __rw_alignment_of<_Type5>::value,
+                      __rw_alignment_of<_Type6>::value,
+                      __rw_alignment_of<_Type7>::value,
+                      __rw_alignment_of<_Type8>::value>::_C_value
+        };
 };
 
 template <_RWSTD_SIZE_T _Len,
@@ -349,47 +292,24 @@ template <_RWSTD_SIZE_T _Len,
           class _Type7 = __rw_empty, class _Type8 = __rw_empty>
 struct __rw_aligned_union
 {
-    typedef typename
-    __rw_biggest<_Type1, _Type2, _Type3, _Type4,
-                      _Type5, _Type6, _Type7, _Type8>::type _C_biggest;
+    enum { _C_len_value   = _Len,
+           _C_size_value  =
+               __rw_biggest<_Type1, _Type2, _Type3, _Type4,
+                            _Type5, _Type6, _Type7, _Type8>::_C_value,
+           _C_align_value =
+               __rw_strictest<_Type1, _Type2, _Type3, _Type4,
+                              _Type5, _Type6, _Type7, _Type8>::_C_value
+    };
 
     typedef typename
-    __rw_strictest<_Type1, _Type2, _Type3, _Type4,
-                         _Type5, _Type6, _Type7, _Type8>::type _C_strictest;
-
-    static const _RWSTD_SIZE_T _C_size_value =
-        sizeof (_C_biggest);
-
-    static const _RWSTD_SIZE_T alignment_value =
-        __rw_alignment_of<_C_strictest>::value;
-
-    typedef typename
-    __rw_aligned_storage<_C_size_value < _Len ? _Len : _C_size_value,
-                         alignment_value>::type type;
+    __rw_aligned_storage<  _C_size_value < _C_len_value
+                         ? _C_len_value : _C_size_value,
+                         _C_align_value>::type type;
 };
-
-#ifndef _RWSTD_NO_STATIC_CONST_MEMBER_DEFINITION
-
-template <_RWSTD_SIZE_T _Len,
-          class _Type1, class _Type2, class _Type3, class _Type4,
-          class _Type5, class _Type6, class _Type7, class _Type8>
-const _RWSTD_SIZE_T
-__rw_aligned_union<_Len,
-                   _Type1, _Type2, _Type3, _Type4,
-                   _Type5, _Type6, _Type7, _Type8>::alignment_value;
-
-template <_RWSTD_SIZE_T _Len,
-          class _Type1, class _Type2, class _Type3, class _Type4,
-          class _Type5, class _Type6, class _Type7, class _Type8>
-const _RWSTD_SIZE_T
-__rw_aligned_union<_Len,
-                   _Type1, _Type2, _Type3, _Type4,
-                   _Type5, _Type6, _Type7, _Type8>::_C_size_value;
-
-#endif // _RWSTD_NO_STATIC_CONST_MEMBER_DEFINITION
 
 #endif // !_RWSTD_NO_VARIADIC_TEMPLATES
 
+#endif // !_RWSTD_NO_ALIGN_TRAITS
 
 
 template <bool _Enable, class _TypeT = void>

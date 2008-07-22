@@ -46,7 +46,7 @@ test_trait (int line,
 {
     // verify that the expected trait is actually working
 
-    if (rw_assert (value != false, 0, __LINE__,
+    if (rw_assert (value != false, 0, line,
                    "%s<%s>::value was %b, expected true",
                    trait_name, type_name, value))
     {
@@ -193,7 +193,8 @@ static void test_is_rvalue_reference ()
     TEST(std::is_rvalue_reference, char&&);
 #else
     rw_warn (0, 0, __LINE__,
-             "no compiler support for rvalue references; test disabled");
+             "test_is_rvalue_reference() disabled because "
+             "_RWSTD_NO_RVALUE_REFERENCES is defined");
 #endif   // _RWSTD_NO_RVALUE_REFERENCES
 }
 
@@ -243,7 +244,16 @@ static void test_is_enum ()
 
 static void test_is_union ()
 {
+#if !defined (_RWSTD_TT_IS_CLASS) && !defined (_RWSTD_TT_IS_UNION)
+
+    rw_warn (0, 0, __LINE__,
+             "test_is_union() disabled because neither of "
+             "_RWSTD_TT_IS_CLASS or _RWSTD_TT_IS_UNION is "
+             "defined");
+
+#else
     TEST (std::is_union, union_t);
+#endif
 }
 
 static void test_is_class ()

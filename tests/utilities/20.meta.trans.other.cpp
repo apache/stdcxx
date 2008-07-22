@@ -156,6 +156,14 @@ void test_aligned_storage(int line,
 
 static void test_aligned_storage ()
 {
+#ifdef _RWSTD_NO_ALIGN_TRAITS
+
+    rw_warn (0, 0, __LINE__,
+             "test_aligned_storage disabled because "
+             "_RWSTD_NO_ALIGN_TRAITS is defined");
+
+#else
+
 #define TEST(Size,Align)                                           \
     {                                                              \
       typedef std::aligned_storage<Size, Align>::type storage_t;   \
@@ -205,9 +213,13 @@ static void test_aligned_storage ()
     TEST (19);
 
 #undef  TEST
+
+#endif // _RWSTD_NO_ALIGN_TRAITS
 }
 
 /**************************************************************************/
+
+#ifndef _RWSTD_NO_ALIGN_TRAITS
 
 struct null_t { };
 
@@ -301,8 +313,19 @@ struct aligned_union_tester
 
 struct struct_t { };
 
+#endif // !_RWSTD_NO_ALIGN_TRAITS
+
+
 static void test_aligned_union ()
 {
+#ifdef _RWSTD_NO_ALIGN_TRAITS
+
+    rw_warn (0, 0, __LINE__,
+             "test_aligned_union disabled because "
+             "_RWSTD_NO_ALIGN_TRAITS is defined");
+
+#else
+
 #define TEST(Len,T1) \
     aligned_union_tester<Len,T1>::test(__LINE__,#T1)
 
@@ -344,6 +367,8 @@ static void test_aligned_union ()
     TEST (17, void (struct_t::*)(), long, int, void*, char);
 
 #undef  TEST
+
+#endif // _RWSTD_NO_ALIGN_TRAITS
 }
 
 /**************************************************************************/

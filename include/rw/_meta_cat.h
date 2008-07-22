@@ -206,41 +206,42 @@ struct __rw_is_class_or_union
     };
 };
 
-// if one of _RWSTD_TT_IS_CLASS or _RWSTD_TT_IS_UNION is defined, then
-// this will all work out. if neither is defined, then we say all class
-// types (including unios) are classes and none of them are unions.
-#if !defined (_RWSTD_TT_IS_CLASS) && !defined (_RWSTD_TT_IS_UNION)
-#  define _RWSTD_TT_IS_CLASS(T) _RW::__rw_is_class_or_union<T>::value
-#  define _RWSTD_TT_IS_UNION(T) 0
-#elif !defined (_RWSTD_TT_IS_CLASS)
-#  define _RWSTD_TT_IS_CLASS(T) \
-      _RW::__rw_is_class_or_union<T>::value && !_RWSTD_TT_IS_UNION(T)
-#elif !defined (_RWSTD_TT_IS_UNION)
-#  define _RWSTD_TT_IS_UNION(T)  \
+#if defined (_RWSTD_TT_IS_UNION)
+#  define _RWSTD_IS_UNION(T) _RWSTD_TT_IS_UNION(T)
+#elif defined (_RWSTD_TT_IS_CLASS)
+#  define _RWSTD_IS_UNION(T)  \
       _RW::__rw_is_class_or_union<T>::value && !_RWSTD_TT_IS_CLASS(T)
+#else
+#  define _RWSTD_IS_UNION(T) 0
 #endif
 
 template <class _TypeT>
 struct __rw_is_union
-    : __rw_integral_constant<bool, _RWSTD_TT_IS_UNION(_TypeT)>
+    : __rw_integral_constant<bool, _RWSTD_IS_UNION(_TypeT)>
 {
 };
 
-#define _RWSTD_IS_UNION(T) _RW::__rw_is_union<T>::value
 
+#if defined (_RWSTD_TT_IS_CLASS)
+#  define _RWSTD_IS_CLASS(T) _RWSTD_TT_IS_CLASS(T)
+#elif defined (_RWSTD_TT_IS_UNION)
+#  define _RWSTD_IS_CLASS(T) \
+      _RW::__rw_is_class_or_union<T>::value && !_RWSTD_TT_IS_UNION(T)
+#else
+#  define _RWSTD_IS_CLASS(T) _RW::__rw_is_class_or_union<T>::value
+#endif
 
 template <class _TypeT>
 struct __rw_is_class
-    : __rw_integral_constant<bool, _RWSTD_TT_IS_CLASS(_TypeT)>
+    : __rw_integral_constant<bool, _RWSTD_IS_CLASS(_TypeT)>
 {
 };
 
-#define _RWSTD_IS_CLASS(T) _RW::__rw_is_class<T>::value
 
 
-
-
-#ifndef _RWSTD_TT_IS_ENUM
+#ifdef _RWSTD_TT_IS_ENUM
+#  define _RWSTD_IS_ENUM(T) _RWSTD_TT_IS_ENUM(T)
+#else
 
 template <class _TypeT, bool =    __rw_is_void<_TypeT>::value
                                || __rw_is_array<_TypeT>::value
@@ -254,7 +255,6 @@ struct __rw_is_enum_impl
     enum { _C_value = 0 };
 };
 
-//
 template <class _TypeT>
 struct __rw_is_enum_impl<_TypeT, false>
 {
@@ -272,21 +272,20 @@ struct __rw_is_enum_impl<_TypeT, false>
     };
 };
 
-#  define _RWSTD_TT_IS_ENUM(T) _RW::__rw_is_enum_impl<T>::_C_value
-#endif // _RWSTD_TT_IS_ENUM
+#  define _RWSTD_IS_ENUM(T) _RW::__rw_is_enum_impl<T>::_C_value
+#endif // !_RWSTD_TT_IS_ENUM
 
 template <class _TypeT>
 struct __rw_is_enum
-    : __rw_integral_constant<bool, _RWSTD_TT_IS_ENUM(_TypeT)>
+    : __rw_integral_constant<bool, _RWSTD_IS_ENUM(_TypeT)>
 {
 };
 
-#define _RWSTD_IS_ENUM(T) _RW::__rw_is_enum<T>::value
 
 
-
-
-#ifndef _RWSTD_TT_IS_FUNCTION
+#ifdef _RWSTD_TT_IS_FUNCTION
+#  define _RWSTD_IS_FUNCTION(T) _RWSTD_TT_IS_FUNCTION(T)
+#else
 
 //
 // This template prevents the partial specialization below from
@@ -331,16 +330,14 @@ struct __rw_is_function_impl<_TypeT, false>
     enum { _C_value = sizeof (_C_yes) == sizeof (_C_is (_C_make ())) };
 };
 
-#  define _RWSTD_TT_IS_FUNCTION(T) _RW::__rw_is_function_impl<T>::_C_value
+#  define _RWSTD_IS_FUNCTION(T) _RW::__rw_is_function_impl<T>::_C_value
 #endif //_RWSTD_TT_IS_FUNCTION
 
 template <class _TypeT>
 struct __rw_is_function
-    : __rw_integral_constant<bool, _RWSTD_TT_IS_FUNCTION(_TypeT)>
+    : __rw_integral_constant<bool, _RWSTD_IS_FUNCTION(_TypeT)>
 {
 };
-
-#define _RWSTD_IS_FUNCTION(T) _RW::__rw_is_function<T>::value
 
 
 template <class _TypeT>

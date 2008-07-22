@@ -1584,4 +1584,15 @@ _RWSTD_NAMESPACE (std) {
           memcpy (va_dst, va_src, sizeof (va_list))
 #endif   // _RWSTD_NO_VA_LIST_ARRAY
 
+
+// disable aligned type traits if compiler support is not
+// configured
+#if    !defined (_RWSTD_TT_ALIGN_OF)    \
+    || !defined (_RWSTD_TT_ALIGNED_POD) \
+    || !defined (_RWSTD_TT_MAX_ALIGNMENT)
+#  ifndef _RWSTD_NO_ALIGN_TRAITS
+#    define _RWSTD_NO_ALIGN_TRAITS
+#  endif
+#endif
+
 #endif   // _RWSTD_RW_DEFS_H_INCLUDED
