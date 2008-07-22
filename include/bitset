@@ -201,7 +201,6 @@ public:
 
 
 #ifndef _RWSTD_NO_EXT_BITSET_CTOR_STRING
-#  ifndef _RWSTD_NO_MEMBER_TEMPLATE_OVERLOAD
 
     // extension
     explicit
@@ -214,7 +213,7 @@ public:
                                    "size_t, size_t)"));
     }
 
-#    ifndef _RWSTD_NO_WCHAR_T
+#  ifndef _RWSTD_NO_WCHAR_T
 
     // extension
     explicit
@@ -227,8 +226,7 @@ public:
                                    "size_t, size_t)"));
     }
 
-#    endif   // _RWSTD_NO_WCHAR_T
-#  endif   // _RWSTD_NO_MEMBER_TEMPLATE_OVERLOAD
+#  endif   // _RWSTD_NO_WCHAR_T
 #endif   // _RWSTD_NO_EXT_BITSET_CTOR_STRING
 
 
@@ -374,9 +372,7 @@ public:
     // 23.3.5.2, p31
     unsigned long to_ulong () const;
 
-#if    !defined (_RWSTD_NO_MEMBER_TEMPLATES) \
-    && !defined (_RWSTD_NO_TEMPLATE_ON_RETURN_TYPE) \
-    && !defined (_RWSTD_NO_MEMBER_TEMPLATE_OVERLOAD)
+#if !defined (_RWSTD_NO_TEMPLATE_ON_RETURN_TYPE)
 
     // 23.3.5.2, p33
     template <class _CharT, class _Traits, class _Allocator>
@@ -410,14 +406,14 @@ public:
 
 #  endif   // !_NO_EXT_BITSET_TO_STRING
 
-#else   // if _MEMBER_TEMPLATES || _NO_TEMPLATE_ON_RETURN_TYPE || ...
+#else   // if _NO_TEMPLATE_ON_RETURN_TYPE
 
     // 23.3.5.2, p33
     string to_string (char = '0', char = '1') const;
 
 # define _RWSTD_BITSET_TO_STRING(ign1, ign2)  to_string ()
 
-#endif   // !_NO_MEMBER_TEMPLATES && !_NO_TEMPLATE_ON_RETURN_TYPE && ...
+#endif   // !_NO_TEMPLATE_ON_RETURN_TYPE
 
     // 23.3.5.2, p35
     _RWSTD_SIZE_T count () const _THROWS (()) {
@@ -563,9 +559,7 @@ bitset<_Size>::to_ulong () const
 }
 
 
-#if    !defined (_RWSTD_NO_MEMBER_TEMPLATES) \
-    && !defined (_RWSTD_NO_TEMPLATE_ON_RETURN_TYPE) \
-    && !defined (_RWSTD_NO_MEMBER_TEMPLATE_OVERLOAD)
+#if !defined (_RWSTD_NO_TEMPLATE_ON_RETURN_TYPE)
 
 // 23.3.5.2, p33
 template <_RWSTD_SIZE_T _Size>
@@ -583,7 +577,7 @@ to_string (_CharT __b0 /* = '0' */, _CharT __b1 /* = '1' */) const
     return __s;
 }
 
-#else   // _NO_MEMBER_TEMPLATES || _NO_TEMPLATE_ON_RETURN_TYPE ...
+#else   // _NO_TEMPLATE_ON_RETURN_TYPE
 
 // 23.3.5.2, p33
 template <_RWSTD_SIZE_T _Size>
@@ -600,7 +594,7 @@ to_string (char __b0 /* = '0' */, char __b1 /* = '1' */) const
     return __s;
 }
 
-#endif   // !_NO_MEMBER_TEMPLATES && !_NO_TEMPLATE_ON_RETURN_TYPE ...
+#endif   // !_NO_TEMPLATE_ON_RETURN_TYPE
 
 
 // 23.3.5.3, p1

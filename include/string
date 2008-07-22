@@ -47,14 +47,12 @@
 _RWSTD_NAMESPACE (std) { 
 
 
-#if    (   defined (_RWSTD_NO_MEMBER_TEMPLATES)   \
-        || defined (_RWSTD_NO_EXTERN_MEMBER_TEMPLATE))
+#if defined _RWSTD_NO_EXTERN_MEMBER_TEMPLATE
 #  define _RWSTD_NO_STRING_OUTLINED_MEMBER_TEMPLATES
 #endif   // _RWSTD_NO_STRING_MEMBER_TEMPLATES
 
 
-#ifndef _RWSTD_NO_MEMBER_TEMPLATES
-#  ifdef _RWSTD_NO_STRING_OUTLINED_MEMBER_TEMPLATES
+#ifdef _RWSTD_NO_STRING_OUTLINED_MEMBER_TEMPLATES
 
 _EXPORT
 template <class _CharT, class _Traits, class _Alloc,
@@ -70,8 +68,7 @@ std::basic_string<_CharT, _Traits, _Alloc>&
 __rw_replace_aux (std::basic_string<_CharT, _Traits, _Alloc>&, 
                   _StringIter, _StringIter, _InputIter, _InputIter);
 
-#  endif   // _RWSTD_NO_STRING_OUTLINED_MEMBER_TEMPLATES
-#endif   // _RWSTD_NO_MEMBER_TEMPLATES
+#endif   // _RWSTD_NO_STRING_OUTLINED_MEMBER_TEMPLATES
 
 
 _EXPORT
@@ -180,8 +177,6 @@ public:
                   const allocator_type& = allocator_type ());
 
 
-#ifndef _RWSTD_NO_MEMBER_TEMPLATES
-
     // 21.3.1, p15
     template <class _InputIter>
     basic_string (_InputIter __first, _InputIter __last, 
@@ -190,8 +185,6 @@ public:
         replace (_C_make_iter (_C_data), _C_make_iter (_C_data),
                  __first, __last);
     }
-
-#endif   // _RWSTD_NO_MEMBER_TEMPLATES
 
     basic_string (const_pointer, const_pointer, const allocator_type&
                   _RWSTD_REDECLARED_DEFAULT (allocator_type ()));
@@ -310,8 +303,6 @@ public:
         return append (__s, traits_type::length (__s));
     }
 
-#ifndef _RWSTD_NO_MEMBER_TEMPLATES
-
     template<class _InputIter>
     basic_string& append (_InputIter __first, _InputIter __last) {
         // resolves to append (size_type, value_type) if _InputIter
@@ -331,14 +322,6 @@ public:
         // unnamed arg is used for overload resolution
         return append (__n, __c);
     }
-
-#else   // if defined (_RWSTD_NO_MEMBER_TEMPLATES)
-
-    basic_string& append (const_pointer __first, const_pointer __last) {
-        return append (__first, __last - __first);
-    }
-
-#endif   // _RWSTD_NO_MEMBER_TEMPLATES
 
     basic_string& append (size_type, value_type);
 
@@ -360,8 +343,6 @@ public:
     }
 
 
-#ifndef _RWSTD_NO_MEMBER_TEMPLATES
-
     template<class _InputIter>
     basic_string& assign (_InputIter __first, _InputIter __last) {
         // resolves to assign (size_type, value_type) if _InputIter
@@ -382,15 +363,6 @@ public:
         // unnamed arg is used for overload resolution
         return replace (size_type (), size (), __n, __c);
     }
-
-#else   // if defined (_RWSTD_NO_MEMBER_TEMPLATES)
-
-    basic_string& assign (const_pointer __first, const_pointer __last) {
-        replace (size_type (), size (), __first, __last - __first);
-        return *this;
-    }
-
-#endif   // _RWSTD_NO_MEMBER_TEMPLATES
 
     basic_string& assign (size_type __n, value_type __c) {
         return replace (size_type (), size (), __n, __c);
@@ -414,8 +386,6 @@ public:
         const size_type __inx = _C_off (__pos);
         return insert (__inx, &__c, 1), begin () + __inx;
     }
-
-#ifndef _RWSTD_NO_MEMBER_TEMPLATES
 
     template<class _InputIter>
     void insert (iterator __p, _InputIter __first, _InputIter __last) {
@@ -460,18 +430,6 @@ public:
     }
 
 #  endif   // _RWSTD_NO_DEBUG_ITER
-
-#else   // if defined (_RWSTD_NO_MEMBER_TEMPLATES)
-
-    void insert (iterator __p, const_pointer __first, const_pointer __last) {
-        if (__first >= _C_data && __first <= _C_data + size ())
-            insert (_C_off (__p), basic_string (__first, __last));
-        else
-            replace (__p, __p, __first, __last);
-    }
-
-#endif   // _RWSTD_NO_MEMBER_TEMPLATES
-    
 
     void insert (iterator __it, size_type __n, value_type __c) {
         replace (_C_off (__it), size_type (), __n, __c);
@@ -581,16 +539,14 @@ public:
         return replace (_C_off (__first), _C_off (__first, __last), __n, __c);
     }
 
-#ifndef _RWSTD_NO_MEMBER_TEMPLATES
-
-#  ifndef _RWSTD_NO_STRING_OUTLINED_MEMBER_TEMPLATES
+#ifndef _RWSTD_NO_STRING_OUTLINED_MEMBER_TEMPLATES
 
     template<class _InputIter>
     basic_string&
     replace (iterator __first1, iterator __last1, 
              _InputIter __first2, _InputIter __last2, void*);
 
-#  else   // if defined (_RWSTD_NO_STRING_OUTLINED_MEMBER_TEMPLATES)
+#else   // if defined (_RWSTD_NO_STRING_OUTLINED_MEMBER_TEMPLATES)
 
     template<class _InputIter>
     basic_string&
@@ -599,7 +555,7 @@ public:
         return __rw_replace (*this, __first1, __last1, __first2, __last2);
     }
 
-#  endif   // _RWSTD_NO_STRING_OUTLINED_MEMBER_TEMPLATES
+#endif   // _RWSTD_NO_STRING_OUTLINED_MEMBER_TEMPLATES
 
     basic_string&
     replace (iterator __first, iterator __last,
@@ -615,18 +571,6 @@ public:
         return replace (__first1, __last1, __first2, __last2,
                         _RWSTD_DISPATCH (_InputIter));
     }
-
-#else   // if defined (_RWSTD_NO_MEMBER_TEMPLATES)
-
-    basic_string&
-    replace (iterator __first1, iterator __last1,
-             const_pointer __first2, const_pointer __last2) {
-        replace (_C_off (__first1), _C_off (__first1, __last1),
-                 __first2, size_type (__last2 - __first2));
-        return *this;
-    }
-
-#endif   // _RWSTD_NO_MEMBER_TEMPLATES
 
 
     // 21.3.5.7, p1

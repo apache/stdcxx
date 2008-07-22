@@ -24,13 +24,6 @@
 
 #include "config.h"
 
-// establish dependencies on the config tests and define config
-// macros used in the header below (the are not autodetected
-// in headers)
-#ifdef _RWSTD_NO_MEMBER_TEMPLATES
-#  define NO_MEMBER_TEMPLATES
-#endif   // _RWSTD_NO_MEMBER_TEMPLATES
-
 // include a file containing the definition of a template
 // and an extern template directive referencing an explicit
 // instantiation of the same template in extern_template_imp.o

@@ -603,19 +603,10 @@ protected:
     // uses transfer_node to merge in list by transfering nodes to list
     void _C_adjacent_merge (iterator, iterator, iterator);
 
-#ifndef _RWSTD_NO_MEMBER_TEMPLATES
-
     // uses transfer_node to merge in list by transfering nodes to list
     template<class _Compare>
     void _C_adjacent_merge (iterator, iterator, iterator, _Compare);
 
-#else   // if defined (_RWSTD_NO_MEMBER_TEMPLATES)
-
-    void _C_adjacent_merge (iterator, iterator, iterator,
-                           bool (*)(const_reference, const_reference));
-
-#endif   // _RWSTD_NO_MEMBER_TEMPLATES
-      
     void _C_insert (iterator __it, size_type __n, const_reference __x) {
         _RWSTD_ASSERT_RANGE (begin (), __it);
 
@@ -655,8 +646,6 @@ public:
 
     void sort ();
 
-#ifndef _RWSTD_NO_MEMBER_TEMPLATES
-
     template<class _Predicate>
     void remove_if (_Predicate);
 
@@ -668,18 +657,6 @@ public:
 
     template<class _Compare>
     void sort (_Compare);
-
-#else   // if defined (_RWSTD_NO_MEMBER_TEMPLATES)
-
-    void remove_if (bool (*)(const_reference));
-
-    void unique (bool (*)(const_reference, const_reference));
-
-    void merge (list &__x, bool (*)(const_reference, const_reference));
-
-    void sort (bool (*)(const_reference, const_reference));
-
-#endif // _RWSTD_NO_MEMBER_TEMPLATES
 
 };
 

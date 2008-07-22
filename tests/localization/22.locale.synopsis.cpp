@@ -442,13 +442,9 @@ struct Facet: std::locale::facet
 
     static std::locale::id id;
 
-#ifdef _RWSTD_NO_MEMBER_TEMPLATES
-
     virtual std::locale::id& _C_get_id () const {
         return id;
     }
-
-#endif   // _RWSTD_NO_MEMBER_TEMPLATES
 };
 
 
@@ -571,14 +567,12 @@ test_locale ()
             ~Facet () {
                 is_dtor_virtual = true;
             }
-#ifdef _RWSTD_NO_MEMBER_TEMPLATES
 
             virtual std::locale::id& _C_get_id () const {
                 static std::locale::id id;
                 return id;
             }
 
-#endif   // _RWSTD_NO_MEMBER_TEMPLATES
         };
 
         // delete a derived object using a pointer to the base
@@ -605,8 +599,6 @@ test_locale ()
 
     // 22.1.1.2, p9
     (void)std::locale (l, "", std::locale::all);
-
-#ifndef _RWSTD_NO_MEMBER_TEMPLATES
 
     Facet *pf = new Facet (1 /* ref count */);
 
@@ -646,8 +638,6 @@ test_locale ()
 
     pf = 0;
 
-#endif   // _RWSTD_NO_MEMBER_TEMPLATES
-
     // 22.1.1.2, p14
     (void)std::locale (l, l, std::locale::all);
 
@@ -670,18 +660,14 @@ test_locale ()
 
 #endif   // __HP_aCC > 33000
 
-#ifndef _RWSTD_NO_MEMBER_TEMPLATES
-
-#  if !defined __HP_aCC || __HP_aCC > 33100
+#if !defined __HP_aCC || __HP_aCC > 33100
 
     // working around an HP aCC bug (see PR #23312)
 
     // 22.1.1.3, p1
     MEMFUN (std::locale, combine<Facet>, (const std::locale&) const);
 
-#  endif   // __HP_aCC > 33000
-
-#endif   // _RWSTD_NO_MEMBER_TEMPLATES
+#endif   // __HP_aCC > 33000
 
     // 22.1.1.3, p5
     MEMFUN (std::string, name, () const);
@@ -701,14 +687,10 @@ test_locale ()
 
 #endif   // _RWSTD_NO_WCHAR_T
 
-#ifndef _RWSTD_NO_MEMBER_TEMPLATES
-
     // exercise a specialization other than on the default char types
     typedef StringTypes<int>::string_type IntString;
 
     MEMFUN (bool, operator(), (const IntString&, const IntString&) const);
-
-#endif   // _RWSTD_NO_MEMBER_TEMPLATES
 
     // 22.1.1.5
     FUN (std::locale, std::locale::global, (const std::locale&));

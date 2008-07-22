@@ -461,9 +461,7 @@ replace (size_type __pos, size_type __len, size_type __count, value_type __val)
 }
 
 
-#ifndef _RWSTD_NO_MEMBER_TEMPLATES
-
-#  ifdef _RWSTD_NO_STRING_OUTLINED_MEMBER_TEMPLATES
+#ifdef _RWSTD_NO_STRING_OUTLINED_MEMBER_TEMPLATES
 
 _EXPORT
 template <class _CharT, class _Traits, class _Alloc,
@@ -484,7 +482,7 @@ __rw_replace (_STD::basic_string<_CharT, _Traits, _Alloc> &__s,
      _C_string_ref_type;
 
 
-#  else   // !defined (_RWSTD_NO_STRING_OUTLINED_MEMBER_TEMPLATES)
+#else   // !defined (_RWSTD_NO_STRING_OUTLINED_MEMBER_TEMPLATES)
 
 template<class _CharT, class _Traits, class _Allocator>
 template<class _InputIter>
@@ -497,7 +495,7 @@ replace (iterator __first1, iterator __last1,
 
     basic_string &__s = *this;
 
-#  endif   // _RWSTD_NO_STRING_OUTLINED_MEMBER_TEMPLATES
+#endif   // _RWSTD_NO_STRING_OUTLINED_MEMBER_TEMPLATES
 
     _RWSTD_ASSERT_RANGE (__first1,
                          __s._C_make_iter (__s._C_data + __s.size ()));
@@ -561,7 +559,7 @@ replace (iterator __first1, iterator __last1,
 // Avoids the possibility of multiple allocations
 // We still have to copy characters over one at a time.
 
-#  ifdef _RWSTD_NO_STRING_OUTLINED_MEMBER_TEMPLATES
+#ifdef _RWSTD_NO_STRING_OUTLINED_MEMBER_TEMPLATES
 
 _EXPORT
 template <class _CharT, class _Traits, class _Alloc,
@@ -583,7 +581,7 @@ __rw_replace_aux (_STD::basic_string<_CharT, _Traits, _Alloc> &__s,
     typedef _RW::__string_ref<value_type, traits_type, allocator_type>
     _C_string_ref_type;
 
-#  else   // if !defined (_RWSTD_NO_STRING_OUTLINED_MEMBER_TEMPLATES)
+#else   // if !defined (_RWSTD_NO_STRING_OUTLINED_MEMBER_TEMPLATES)
 
 template<class _CharT, class _Traits, class _Allocator>
 template<class _InputIter>
@@ -594,7 +592,7 @@ __replace_aux (iterator __first1, iterator __last1,
 {
     basic_string &__s = *this;
 
-#  endif  // _RWSTD_NO_STRING_OUTLINED_MEMBER_TEMPLATES
+#endif  // _RWSTD_NO_STRING_OUTLINED_MEMBER_TEMPLATES
 
     _RWSTD_ASSERT_RANGE (__first1, __s._C_make_iter (__s._C_data 
                                                      + __s.size ()));
@@ -666,8 +664,6 @@ __replace_aux (iterator __first1, iterator __last1,
     }
     return __s;
 }
-
-#endif   // _RWSTD_NO_MEMBER_TEMPLATES
 
 
 template <class _CharT, class _Traits, class _Allocator>

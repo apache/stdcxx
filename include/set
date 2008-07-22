@@ -106,11 +106,7 @@ public:
     typedef typename __rep_type::difference_type         difference_type;
     typedef typename __rep_type::pointer                 pointer;
     typedef typename __rep_type::const_pointer           const_pointer;
-#if !defined (_RWSTD_NO_MEMBER_TEMPLATES)
     typedef typename __rep_type::const_reverse_iterator  reverse_iterator;
-#else
-    typedef typename __rep_type::reverse_iterator        reverse_iterator;
-#endif
     typedef typename __rep_type::const_reverse_iterator
         const_reverse_iterator;
 

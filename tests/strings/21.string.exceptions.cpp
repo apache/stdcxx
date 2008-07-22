@@ -308,8 +308,6 @@ test_max_size_ctor2 ()
 static void
 test_len_ctor ()
 {
-#ifndef _RWSTD_NO_MEMBER_TEMPLATES
-
     rw_info (0, __FILE__, __LINE__, "21.3.1, p15");
 
     int thrown = 0;
@@ -326,8 +324,6 @@ test_len_ctor ()
     rw_assert (1 == thrown, __FILE__, __LINE__,
                "string::string (InputIterator, InputIterator)"
                "failed to use __rw::__rw_throw()");
-
-#endif   // _RWSTD_NO_MEMBER_TEMPLATES
 }
 
 /**************************************************************************/

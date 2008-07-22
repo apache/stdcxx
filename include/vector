@@ -58,8 +58,6 @@ _EXPORT
 template <class _TypeT, class _Allocator = allocator<_TypeT> >
 class vector;
 
-#ifdef _RWSTD_NO_MEMBER_TEMPLATES
-
 // declarations of non-member function templates implementing
 // the functionality of vector member function templates
 
@@ -82,8 +80,6 @@ _EXPORT
 template <class _TypeT, class _Allocator, class _VectorIter, class _FwdIter>
 void __rw_insert_range (vector<_TypeT, _Allocator>*, _VectorIter,
                         _FwdIter, _FwdIter, forward_iterator_tag);
-
-#endif   // _RWSTD_NO_MEMBER_TEMPLATES
 
 
 _EXPORT
@@ -328,8 +324,6 @@ private:
     // implements insert with repetition
     void _C_insert_n (const iterator&, size_type, const_reference);
 
-#ifndef _RWSTD_NO_MEMBER_TEMPLATES
-
     // implements range insert for ForwardIterators
     template <class _FwdIter>
     void _C_insert_range (iterator, _FwdIter, _FwdIter,
@@ -339,12 +333,6 @@ private:
     template <class _InputIter>
     void _C_insert_range (iterator, _InputIter, _InputIter,
                           input_iterator_tag);
-
-#else   // if defined (_RWSTD_NO_MEMBER_TEMPLATES)
-
-public:
-
-#endif   // _RWSTD_NO_MEMBER_TEMPLATES
 
     // implements range assign
     template <class _InputIter>
@@ -1291,6 +1279,7 @@ public:
         else
             _C_insert(end(), __x);
     }
+
     void pop_back () { --_C_end; }
 
     iterator insert (iterator __it, const bool& __x = bool())
@@ -1304,16 +1293,12 @@ public:
         _C_insert(__it, __x);
       return begin() + __n;
     }
+
     void insert (iterator __it, size_type __n, const bool& __x);
 
-#ifndef _RWSTD_NO_MEMBER_TEMPLATES
     template<class _InputIter>
     void insert (iterator __it, _InputIter __first,
                  _InputIter __last);
-#else
-    void insert (iterator __it, const_iterator __first, 
-                 const_iterator __last);
-#endif
 
     iterator erase (iterator __it)
     {
@@ -1322,11 +1307,13 @@ public:
       --_C_end;
       return __it;
     }
+
     iterator erase(iterator __first, iterator __last)
     {
       _C_end = _C_copy(__last, end(), __first);
       return __first;
     }
+
     void swap (_C_self& __x)
     {
       if((_C_value_alloc_type)*this == (_C_value_alloc_type)__x)
@@ -1342,8 +1329,11 @@ public:
         __x=_x;
       } 
     }
+
     static void swap(reference __x, reference __y);
+
     void flip ();
+
     void clear()
     {
       erase(begin(),end());

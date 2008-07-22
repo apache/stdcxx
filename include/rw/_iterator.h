@@ -116,15 +116,14 @@ public:
     explicit reverse_iterator (iterator_type __rhs) : current (__rhs) { }
  
 
-#ifndef _RWSTD_NO_MEMBER_TEMPLATES
-#  ifndef _RWSTD_NO_CLASS_PARTIAL_SPEC 
+#ifndef _RWSTD_NO_CLASS_PARTIAL_SPEC 
 
     // 24.4.1.3.1, p2
     template <class _TypeU>
     reverse_iterator (const reverse_iterator<_TypeU>& __rhs)
         : current (__rhs.base ()) { }
 
-#  else   // if defined (_RWSTD_NO_CLASS_PARTIAL_SPEC)
+#else   // if defined (_RWSTD_NO_CLASS_PARTIAL_SPEC)
 
     // 24.4.1.3.1, p2
     template <class _Iterator2, class _Category2, class _TypeU,
@@ -133,8 +132,7 @@ public:
                       _Reference2, _Pointer2, _Distance2>& __rhs)
         : current (__rhs.base ()) { }
 
-#  endif   // _RWSTD_NO_CLASS_PARTIAL_SPEC 
-#endif   // _RWSTD_NO_MEMBER_TEMPLATES
+#endif   // _RWSTD_NO_CLASS_PARTIAL_SPEC 
 
 
     // 24.4.1.3.2, p1
@@ -310,14 +308,13 @@ public:
         : current (__rhs) { }
 
 
-#ifndef _RWSTD_NO_MEMBER_TEMPLATES
-#  ifndef _RWSTD_NO_CLASS_PARTIAL_SPEC 
+#ifndef _RWSTD_NO_CLASS_PARTIAL_SPEC 
 
       template <class _TypeU>
       __reverse_bi_iterator (const __reverse_bi_iterator<_TypeU>& __rhs)
           : current (__rhs.base ()) { }
 
-#  else   // if defined (_RWSTD_NO_CLASS_PARTIAL_SPEC )
+#else   // if defined (_RWSTD_NO_CLASS_PARTIAL_SPEC )
 
       template <class _Iterator2, class _Category2, class _TypeU,
                 class _Reference2, class _Pointer2, class _Distance2>
@@ -328,8 +325,7 @@ public:
                                                          _Pointer2,
                                                          _Distance2>& __rhs)
           : current (__rhs.base ()) { }
-#  endif
-#endif // _RWSTD_NO_MEMBER_TEMPLATES
+#endif
 
 
     iterator_type base () const {

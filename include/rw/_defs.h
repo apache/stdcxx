@@ -1546,9 +1546,6 @@ _RWSTD_NAMESPACE (std) {
 #    ifndef _RWSTD_NO_SPECIALIZED_FACET_ID
 #      define _RWSTD_NO_SPECIALIZED_FACET_ID
 #    endif   // _RWSTD_NO_SPECIALIZED_FACET_ID
-#  else
-     // FIXME: handle the case when explicit member specialization
-     // is not available (e.g., MSVC 6)
 #  endif   // _RWSTD_NO_EXPLICIT_MEMBER_SPECIALIZATION
 #else   // if !defined (_RWSTD_NO_EXTERN_TEMPLATE)
    // no need to explicitly specialize the members when extern
@@ -1562,22 +1559,10 @@ _RWSTD_NAMESPACE (std) {
 
 // configuration for container class templates and their member
 // function templates
-#ifndef _RWSTD_NO_MEMBER_TEMPLATES
-   // member function template definitions outside the body
-   // of the parent container class template are enabled
 #  define _RWSTD_ASSIGN_RANGE(first, last, tag)     \
           _C_assign_range (first, last, tag)
 #  define _RWSTD_INSERT_RANGE(it, first, last, tag) \
           _C_insert_range (it, first, last, tag)
-#else
-   // when member function template definitions outside the body
-   // of the parent container class template are disabled, they
-   // are emulated using namespace-scope function templates
-#  define _RWSTD_ASSIGN_RANGE(first, last, tag)       \
-          __rw_assign_range (this, first, last, tag)
-#  define _RWSTD_INSERT_RANGE(it, first, last, tag)   \
-          __rw_insert_range (this, it, first, last, tag)
-#endif   // _RWSTD_NO_MEMBER_TEMPLATES
 
 
 #if 2 < __GNUG__

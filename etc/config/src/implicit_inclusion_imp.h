@@ -26,13 +26,8 @@ struct S
 {
     T foo ();
 
-#ifndef _RWSTD_NO_MEMBER_TEMPLATES
-
     template <class U>
     U bar (U);
-
-#endif   // _RWSTD_NO_MEMBER_TEMPLATES
-
 };
 
 // the file containing the definitions of S<T>::foo() and S<T>::bar(),

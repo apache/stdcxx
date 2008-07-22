@@ -58,8 +58,6 @@ _EXPORT
 template <class _TypeT, class _Allocator = allocator<_TypeT> >
 class deque;
 
-#ifdef _RWSTD_NO_MEMBER_TEMPLATES
-
 // declarations of non-member function templates implementing
 // the functionality of deque member function templates
 
@@ -82,8 +80,6 @@ _EXPORT
 template <class _TypeT, class _Allocator, class _DequeIter, class _BidirIter>
 void __rw_insert_range (deque<_TypeT, _Allocator>*, _DequeIter,
                         _BidirIter, _BidirIter, bidirectional_iterator_tag);
-
-#endif   // _RWSTD_NO_MEMBER_TEMPLATES
 
 
 template <class _TypeT, class _DiffT, class _Pointer,
@@ -695,8 +691,6 @@ private:
     // implements insert with repetition
     void _C_insert_n (const iterator&, size_type, const_reference);
 
-#ifndef _RWSTD_NO_MEMBER_TEMPLATES
-
     // implements range insert for BidirectionalIterators
     template <class _BidirIter>
     void _C_insert_range (iterator, _BidirIter, _BidirIter,
@@ -706,12 +700,6 @@ private:
     template <class _InputIter>
     void _C_insert_range (iterator, _InputIter, _InputIter,
                           input_iterator_tag);
-
-#else   // if defined (_RWSTD_NO_MEMBER_TEMPLATES)
-
-public:
-
-#endif   // _RWSTD_NO_MEMBER_TEMPLATES
 
     // implements range assign
     template <class _InputIter>

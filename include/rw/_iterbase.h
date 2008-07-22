@@ -511,8 +511,7 @@ public:
         return _C_iter;
     }
 
-#if    !defined (_RWSTD_NO_MEMBER_TEMPLATES) \
-    && (!defined (__IBMCPP__) || __IBMCPP__ > 502)
+#if !defined (__IBMCPP__) || __IBMCPP__ > 502
 
     // IBM xlC 5.0 fails to find these member template operators,
     // yet it complains about ambiguity if they are defined along
@@ -570,7 +569,7 @@ public:
         return !(_C_iter < __rhs._C_iter);
     }
 
-#endif   // !_RWSTD_NO_MEMBER_TEMPLATES && __IBMCPP__ > 502
+#endif   // __IBMCPP__ > 502
 
     iterator_type         _C_iter;   // wrapped iterator
     const container_type *_C_cont;   // associated container
@@ -600,8 +599,7 @@ operator+ (_RWSTD_CONT_DIFF_TYPE                               __n,
 #undef _RWSTD_CONT_DIFF_TYPE 
 
 
-#if    defined (_RWSTD_NO_MEMBER_TEMPLATES)   \
-    || defined (__IBMCPP__) && __IBMCPP__ <= 502
+#if defined (__IBMCPP__) && __IBMCPP__ <= 502
 
 // IBM xlC 5.0 fails to find the member template operators
 // defined above in the presence of namespaces...
@@ -672,7 +670,7 @@ operator> (const _RW::__rw_debug_iter<_Cont, _Iter1, _MutIter> &__x,
     return __y < __x;
 }
 
-#endif   // _RWSTD_NO_MEMBER_TEMPLATES && __IBMCPP__ <= 502
+#endif   // __IBMCPP__ <= 502
 
 }   // namespace std
 

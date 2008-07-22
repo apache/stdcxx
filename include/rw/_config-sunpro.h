@@ -31,11 +31,6 @@
 
 // _REENTRANT defined by the -mt compiler option
 
-#if __SUNPRO_CC >= 0x530 && __SUNPRO_CC <= 0x540
-   // test fails due to a SunPro 5.3 bug (PR RW #26641/Sun #4526136)
-#  undef _RWSTD_NO_MEMBER_TEMPLATES
-#endif   // SunPro 5.3, 5.4
-
 #if __SUNPRO_CC <= 0x540
    // works around a partial specialization bug (PR #28119)
 #  ifndef _RWSTD_NO_EXT_CONST_ALLOCATOR
