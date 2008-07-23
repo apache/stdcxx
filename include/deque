@@ -58,29 +58,6 @@ _EXPORT
 template <class _TypeT, class _Allocator = allocator<_TypeT> >
 class deque;
 
-// declarations of non-member function templates implementing
-// the functionality of deque member function templates
-
-_EXPORT
-template <class _TypeT, class _Allocator, class _InputIter>
-void __rw_assign_range (deque<_TypeT, _Allocator>*,
-                        _InputIter, _InputIter, input_iterator_tag);
-
-_EXPORT
-template <class _TypeT, class _Allocator, class _FwdIter>
-void __rw_assign_range (deque<_TypeT, _Allocator>*,
-                        _FwdIter, _FwdIter, forward_iterator_tag);
-
-_EXPORT
-template <class _TypeT, class _Allocator, class _DequeIter, class _InputIter>
-void __rw_insert_range (deque<_TypeT, _Allocator>*, _DequeIter,
-                        _InputIter, _InputIter, input_iterator_tag);
-
-_EXPORT
-template <class _TypeT, class _Allocator, class _DequeIter, class _BidirIter>
-void __rw_insert_range (deque<_TypeT, _Allocator>*, _DequeIter,
-                        _BidirIter, _BidirIter, bidirectional_iterator_tag);
-
 
 template <class _TypeT, class _DiffT, class _Pointer,
           class _Reference, class _Allocator>
