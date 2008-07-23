@@ -73,8 +73,7 @@
 #  define _RWSTD_TT_IS_CLASS(T)             __is_class(T)
 #  define _RWSTD_TT_IS_POD(T)               __is_pod(T)
 
-// __is_empty() fails to detect union types
-//#  define _RWSTD_TT_IS_EMPTY(T)             __is_empty(T)
+#  define _RWSTD_TT_IS_EMPTY(T)             __is_empty(T)
 #  define _RWSTD_TT_IS_POLYMORPHIC(T)       __is_polymorphic(T)
 
 // __is_convertible_to() fails for decay and void-void conversions

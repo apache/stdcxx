@@ -44,63 +44,6 @@ _RWSTD_NAMESPACE (__rw) {
   template <> struct Trait<Type volatile> : __rw_true_type { };      \
   template <> struct Trait<Type const volatile> : __rw_true_type { }
 
-
-#if defined (__SUNPRO_CC) && (__SUNPRO_CC <= 0x590)
-
-template <class _TypeT>
-struct __rw_is_const_impl
-{
-    struct _C_no  { };
-    struct _C_yes { _C_no __pad [2]; };
-
-    template <class _TypeU>
-    struct _C_nest { };
-
-    template <class _TypeU>
-    static _C_yes _C_test (_C_nest<const _TypeU>*);
-
-    template <class _TypeU>
-    static _C_no  _C_test (_C_nest<_TypeU>*);
-
-    enum { _C_value =
-        sizeof (_C_test ((_C_nest<_TypeT>*)0)) == sizeof (_C_yes)
-    };
-};
-
-template <class _TypeT>
-struct __rw_is_const
-  : __rw_integral_constant<bool, __rw_is_const_impl<_TypeT>::_C_value>
-{
-};
-
-template <class _TypeT>
-struct __rw_is_volatile_impl
-{
-    struct _C_no  { };
-    struct _C_yes { _C_no __pad [2]; };
-
-    template <class _TypeU>
-    struct _C_nest { };
-
-    template <class _TypeU>
-    static _C_yes _C_test (_C_nest<volatile _TypeU>*);
-
-    template <class _TypeU>
-    static _C_no  _C_test (_C_nest<_TypeU>*);
-
-    enum { _C_value =
-        sizeof (_C_test ((_C_nest<_TypeT>*)0)) == sizeof (_C_yes)
-    };
-};
-
-template <class _TypeT>
-struct __rw_is_volatile
-  : __rw_integral_constant<bool, __rw_is_volatile_impl<_TypeT>::_C_value>
-{
-};
-
-#else
-
 template <class _TypeT>
 struct __rw_is_const : __rw_false_type
 {
@@ -118,6 +61,31 @@ struct __rw_is_volatile : __rw_false_type
 
 template <class _TypeT>
 struct __rw_is_volatile<volatile _TypeT> : __rw_true_type
+{
+};
+
+#if    defined (__SUNPRO_CC) && (__SUNPRO_CC <= 0x590) \
+    || defined (_MSC_VER) && (_MSC_VER <= 1400)
+
+// additional specializations needed for these compilers
+
+template <class _TypeT>
+struct __rw_is_const<const _TypeT []> : __rw_true_type
+{
+};
+
+template <class _TypeT, _RWSTD_SIZE_T _Size>
+struct __rw_is_const<const _TypeT [_Size]> : __rw_true_type
+{
+};
+
+template <class _TypeT>
+struct __rw_is_volatile<volatile _TypeT []> : __rw_true_type
+{
+};
+
+template <class _TypeT, _RWSTD_SIZE_T _Size>
+struct __rw_is_volatile<volatile _TypeT [_Size]> : __rw_true_type
 {
 };
 
@@ -140,7 +108,7 @@ struct __rw_is_pod_impl
 
 #  define _RWSTD_IS_POD(T) _RW::__rw_is_pod_impl<T>::_C_value
 
-#elif defined (__EDG_VERSION__)
+#elif defined (__EDG_VERSION__) || defined (_MSC_VER)
 
 template <class _TypeT>
 struct __rw_is_pod_impl
@@ -181,7 +149,14 @@ struct __rw_is_standard_layout
 
 
 #if defined (_RWSTD_TT_IS_EMPTY)
-#  define _RWSTD_IS_EMPTY(T) _RWSTD_TT_IS_EMPTY(T)
+
+#  if defined (__EDG_VERSION__) || defined (_MSC_VER)
+#    define _RWSTD_IS_EMPTY(T) \
+        (_RWSTD_TT_IS_EMPTY(T) && !_RW::__rw_is_union<T>::value)
+#  else
+#    define _RWSTD_IS_EMPTY(T) _RWSTD_TT_IS_EMPTY(T)
+#  endif
+
 #elif defined (_RWSTD_TT_IS_CLASS) || defined (_RWSTD_TT_IS_UNION)
 
 //
@@ -212,7 +187,7 @@ struct __rw_is_empty_impl<_TypeT, false>
 #  define _RWSTD_IS_EMPTY(T) _RW::__rw_is_empty_impl<T>::_C_value
 
 #else
-   // we have no reliable way to reliably tell if the type is empty,
+   // we have no reliable way to tell if the type is empty,
    // so we assume that it is not.
 #  define _RWSTD_IS_EMPTY(T) 0
 #endif // !_RWSTD_TT_IS_EMPTY
@@ -328,7 +303,7 @@ struct __rw_is_abstract
 
 #if !defined (_RWSTD_TT_HAS_TRIVIAL_CTOR)
 #  define _RWSTD_HAS_TRIVIAL_CTOR(T) _RW::__rw_is_pod<T>::value
-#elif defined (__EDG_VERSION__)
+#elif defined (__EDG_VERSION__) || defined (_MSC_VER)
 
 template <class _TypeT>
 struct __rw_has_trivial_ctor_impl
@@ -359,7 +334,7 @@ struct __rw_has_trivial_ctor
     (  !_RW::__rw_is_array<T>::value         \
      && (   _RW::__rw_is_reference<T>::value \
          || _RW::__rw_is_pod<T>::value))
-#elif defined (__EDG_VERSION__)
+#elif defined (__EDG_VERSION__) || defined (_MSC_VER)
 #  define _RWSTD_HAS_TRIVIAL_COPY(T)      \
      (   _RW::__rw_is_reference<T>::value \
       || _RW::__rw_is_scalar<T>::value    \
@@ -393,6 +368,10 @@ struct __rw_has_trivial_copy
 #elif defined (__GNUG__)
 #  define _RWSTD_HAS_TRIVIAL_ASSIGN(T) \
     (!_RW::__rw_is_array<T>::value && _RWSTD_TT_HAS_TRIVIAL_ASSIGN(T))
+#elif defined (_MSC_VER)
+#  define _RWSTD_HAS_TRIVIAL_ASSIGN(T) \
+        (!_RW::__rw_is_const<T>::value \
+      && (_RW::__rw_is_scalar<T>::value || _RWSTD_TT_HAS_TRIVIAL_ASSIGN(T)))
 #else
 #  define _RWSTD_HAS_TRIVIAL_ASSIGN(T) _RWSTD_TT_HAS_TRIVIAL_ASSIGN(T)
 #endif // _RWSTD_TT_HAS_TRIVIAL_ASSIGN
@@ -412,7 +391,7 @@ struct __rw_has_trivial_assign
 #  define _RWSTD_HAS_TRIVIAL_DTOR(T)         \
     (  _RW::__rw_is_reference<_TypeT>::value \
      || _RWSTD_TT_HAS_TRIVIAL_DTOR (_TypeT))
-#elif defined (__EDG_VERSION__)
+#elif defined (__EDG_VERSION__) || defined (_MSC_VER)
 
 template <class _TypeT>
 struct __rw_has_trivial_dtor_impl
@@ -466,7 +445,7 @@ struct __rw_is_trivial
 
 #if !defined (_RWSTD_TT_HAS_NOTHROW_CTOR)
 #  define _RWSTD_HAS_NOTHROW_CTOR(T) _RW::__rw_has_trivial_ctor<T>::value
-#elif defined (__EDG_VERSION__)
+#elif defined (__EDG_VERSION__) || defined (_MSC_VER)
 
 template <class _TypeT>
 struct __rw_has_nothrow_ctor_impl
@@ -493,7 +472,7 @@ struct __rw_has_nothrow_ctor
 
 #if !defined (_RWSTD_TT_HAS_NOTHROW_COPY)
 #  define _RWSTD_HAS_NOTHROW_COPY(T) _RW::__rw_has_trivial_copy<T>::value
-#elif defined (__EDG_VERSION__)
+#elif defined (__EDG_VERSION__) || defined (_MSC_VER)
 #  define _RWSTD_HAS_NOTHROW_COPY(T) \
     (_RW::__rw_has_trivial_copy<T>::value || _RWSTD_TT_HAS_NOTHROW_COPY(T))
 #elif defined (__GNUG__)
@@ -512,15 +491,23 @@ struct __rw_has_nothrow_copy
 
 
 #if !defined (_RWSTD_TT_HAS_NOTHROW_ASSIGN)
-#  define _RWSTD_HAS_NOTHROW_ASSIGN(T) _RW::__rw_has_trivial_assign<T>::value
+#  define _RWSTD_HAS_NOTHROW_ASSIGN(T) \
+    _RW::__rw_has_trivial_assign<T>::value
 #elif defined (__EDG_VERSION__)
 #  define _RWSTD_HAS_NOTHROW_ASSIGN(T) \
       (!_RW::__rw_is_const<T>::value \
     && !_RW::__rw_is_reference<T>::value \
-    && (_RW::__rw_has_trivial_assign<T>::value || _RWSTD_TT_HAS_NOTHROW_ASSIGN(T)))
+    && (   _RW::__rw_has_trivial_assign<T>::value \
+        || _RWSTD_TT_HAS_NOTHROW_ASSIGN(T)))
 #elif defined (__GNUG__)
 #  define _RWSTD_HAS_NOTHROW_ASSIGN(T) \
-      (!_RW::__rw_is_array<T>::value && _RWSTD_TT_HAS_NOTHROW_ASSIGN(T))
+      (  !_RW::__rw_is_array<T>::value \
+       && _RWSTD_TT_HAS_NOTHROW_ASSIGN(T))
+#elif defined (_MSC_VER)
+#  define _RWSTD_HAS_NOTHROW_ASSIGN(T) \
+      (!_RW::__rw_is_const<T>::value \
+    && (   _RW::__rw_has_trivial_assign<T>::value \
+        || _RWSTD_TT_HAS_NOTHROW_ASSIGN(T)))
 #else
 #  define _RWSTD_HAS_NOTHROW_ASSIGN(T) _RWSTD_TT_HAS_NOTHROW_ASSIGN(T)
 #endif // !_RWSTD_TT_HAS_NOTHROW_ASSIGN

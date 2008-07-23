@@ -67,8 +67,8 @@ struct __rw_is_same<_TypeT, _TypeT> : __rw_true_type
 // is not a class type.
 //
 template <class _Base, class _Derived,
-          bool =   !__rw_is_class<_Base>::value
-                || !__rw_is_class<_Derived>::value>
+          bool =   __rw_is_class<_Base>::value
+                && __rw_is_class<_Derived>::value>
 struct __rw_is_base_of_impl
 {
     enum { _C_value = 0 };
@@ -82,7 +82,7 @@ struct __rw_is_base_of_impl
 // by Rani Sharoni [see http://tinyurl.com/6pdv3k]
 //
 template <class _Base, class _Derived>
-struct __rw_is_base_of_impl<_Base, _Derived, false>
+struct __rw_is_base_of_impl<_Base, _Derived, true>
 {
     struct _C_no  { };
     struct _C_yes { _C_no __pad [2]; };
@@ -101,7 +101,9 @@ struct __rw_is_base_of_impl<_Base, _Derived, false>
     };
 
     enum { _C_value = 
-        sizeof (_C_yes) == sizeof (_C_nest::_C_is (_C_nest (), 0))
+           _RW::__rw_is_same<const volatile _Base,
+                             const volatile _Derived&>::value
+        || sizeof (_C_yes) == sizeof (_C_nest::_C_is (_C_nest (), 0))
     };
 };
 
@@ -110,7 +112,7 @@ struct __rw_is_base_of_impl<_Base, _Derived, false>
 // _Derived are the same class type.
 //
 template <class _TypeT>
-struct __rw_is_base_of_impl<_TypeT, _TypeT, false>
+struct __rw_is_base_of_impl<_TypeT, _TypeT, true>
 {
     enum { _C_value = 1 };
 };
@@ -118,6 +120,11 @@ struct __rw_is_base_of_impl<_TypeT, _TypeT, false>
 #  define _RWSTD_IS_BASE_OF(T,U) \
      _RW::__rw_is_base_of_impl<T,U>::_C_value
 
+#elif defined (_MSC_VER)
+#  define _RWSTD_IS_BASE_OF(T,U)     \
+    (   _RW::__rw_is_class<T>::value \
+     && _RW::__rw_is_class<U>::value \
+     && _RWSTD_TT_IS_BASE_OF(T,U))
 #else
 #  define _RWSTD_IS_BASE_OF(T,U) _RWSTD_TT_IS_BASE_OF(T,U)
 #endif // _RWSTD_TT_IS_BASE_OF
