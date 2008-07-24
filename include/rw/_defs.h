@@ -1156,6 +1156,12 @@ void _RWSTD_EXPORT
 __rw_assert_fail (const char*, const char*, int, const char*)
     _RWSTD_ATTRIBUTE_NORETURN;
 
+
+#ifdef __SUNPRO_CC
+   // help Sun C++ optimizer generate better code
+#  pragma does_not_return (__rw_assert_fail)
+#endif   // __SUNPRO_CC
+
 }   // extern "C++"
 
 }   // namespace __rw
