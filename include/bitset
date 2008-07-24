@@ -58,6 +58,10 @@ __rw_bitset (unsigned long*, _RWSTD_SIZE_T,
              _RWSTD_SIZE_T, _RWSTD_SIZE_T,
              const char*, const char*);
 
+#ifdef __SUNPRO_CC
+#  pragma no_side_effects (__rw_bitset)
+#endif   // Sun C++
+
 #ifndef _RWSTD_NO_WCHAR_T
 
 _RWSTD_SPECIALIZED_FUNCTION
@@ -68,6 +72,9 @@ __rw_bitset (unsigned long*, _RWSTD_SIZE_T,
              _RWSTD_SIZE_T, _RWSTD_SIZE_T,
              const char*, const char*);
 
+#  ifdef __SUNPRO_CC
+#    pragma no_side_effects (__rw_bitset)
+#  endif   // Sun C++
 #endif   // _RWSTD_NO_WCHAR_T
 
 // helper, implements bitset::count()
@@ -80,6 +87,10 @@ __rw_shl (unsigned long*, _RWSTD_SIZE_T, _RWSTD_SIZE_T) _THROWS (());
 
 _RWSTD_EXPORT void
 __rw_shr (unsigned long*, _RWSTD_SIZE_T, _RWSTD_SIZE_T) _THROWS (());
+
+#ifdef __SUNPRO_CC
+#  pragma no_side_effects (__rw_bit_count, __rw_shl, __rw_shr)
+#endif   // Sun C++
 
 }   // namespace __rw
 
