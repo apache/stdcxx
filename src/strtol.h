@@ -39,10 +39,10 @@ __rw_digit_map[];
 // same as strtoul() except that the source sequence must start
 // with a sign (either '+' or '-')
 unsigned long
-__rw_strtoul (const char*, int*, int);
+__rw_strtoul (const char*, int*, int) _THROWS (());
 
 long
-__rw_strtol (const char*, int*, int);
+__rw_strtol (const char*, int*, int) _THROWS (());
 
 
 #ifdef _RWSTD_LONG_LONG
@@ -52,7 +52,7 @@ __rw_strtol (const char*, int*, int);
 #  if (_RWSTD_LLONG_SIZE <= _RWSTD_LONG_SIZE)
 
 inline unsigned _RWSTD_LONG_LONG
-__rw_strtoull (const char *nptr, int *errptr, int base)
+__rw_strtoull (const char *nptr, int *errptr, int base) _THROWS (())
 {
     _RWSTD_ASSERT (sizeof (_RWSTD_LONG_LONG) == sizeof (long));
 
@@ -61,7 +61,7 @@ __rw_strtoull (const char *nptr, int *errptr, int base)
 
 
 inline _RWSTD_LONG_LONG
-__rw_strtoll (const char *nptr, int *errptr, int base)
+__rw_strtoll (const char *nptr, int *errptr, int base) _THROWS (())
 {
     _RWSTD_ASSERT (sizeof (_RWSTD_LONG_LONG) == sizeof (long));
 
@@ -71,10 +71,10 @@ __rw_strtoll (const char *nptr, int *errptr, int base)
 #  else   // if (_RWSTD_LLONG_SIZE > _RWSTD_LONG_SIZE)
 
 unsigned _RWSTD_LONG_LONG
-__rw_strtoull (const char*, int*, int);
+__rw_strtoull (const char*, int*, int) _THROWS (());
 
 _RWSTD_LONG_LONG
-__rw_strtoll (const char*, int*, int);
+__rw_strtoll (const char*, int*, int) _THROWS (());
 
 #  endif   // _RWSTD_LLONG_SIZE <= _RWSTD_LONG_SIZE
 #endif   // _RWSTD_LONG_LONG
