@@ -1133,6 +1133,19 @@
 #endif   // _RWSTD_ATTR_NORETURN
 
 
+#ifdef _RWSTD_ATTRIBUTE_NOTHROW
+   // gcc (and others) __attribute__ ((nothrow))
+#  define _RWSTD_DECLARE_NOTHROW  _RWSTD_ATTRIBUTE_NOTHROW
+   // attributes cannot appear on function definitions
+#  define _RWSTD_DEFINE_NOTHROW   /* empty */
+#else
+   // emulate using empty exception specifications which must
+   // be specified for both declarations and definitions
+#  define _RWSTD_DECLARE_NOTHROW  _THROWS(())
+#  define _RWSTD_DEFINE_NOTHROW   _THROWS(())
+#endif   // _RWSTD_ATTR_NORETURN
+
+
 // compile-time assertion - asserts constant expressions during
 // compilation with no runtime overhead; failed assertions are reported
 // as compilation errors
@@ -1154,7 +1167,8 @@ struct __rw_compile_assert<true> { enum { _C_ok }; };
 // called for failed assertions
 void _RWSTD_EXPORT
 __rw_assert_fail (const char*, const char*, int, const char*)
-    _RWSTD_ATTRIBUTE_NORETURN;
+    _RWSTD_ATTRIBUTE_NORETURN _RWSTD_DECLARE_NOTHROW;
+
 
 
 #ifdef __SUNPRO_CC

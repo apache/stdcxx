@@ -88,6 +88,13 @@
 // (it may still exit by throwing an exception or by calling longjmp)
 #define _RWSTD_ATTRIBUTE_NORETURN   _RWSTD_GNUC_ATTRIBUTE ((noreturn))
 
+#if __GNUG__ > 3 || __GNUG__ == 3 && __GNUC_MINOR__ >= 3
+  // gcc attribute((nothrow)) to indicate that a function doesn't throw
+  // exceptions; unlike the emtpy exception specification the attribute
+  // avoids the cost of checking for exceptions and calling unexpected()
+#  define _RWSTD_ATTRIBUTE_NOTHROW   _RWSTD_GNUC_ATTRIBUTE ((nothrow))
+#endif   // gcc >= 3.3
+
 #ifdef _RWSTD_OS_LINUX
 
 #  ifdef _RWSTD_NO_NEW_HEADER
