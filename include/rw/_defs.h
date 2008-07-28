@@ -1127,6 +1127,56 @@
 #  define _RWSTD_ASSUME(expr)   _RWSTD_ASSERT (expr)
 #endif   // _RWSTD_ASSUME
 
+#define _RWSTD_STR(x)       #x
+#define _RWSTD_STRSTR(x)    _RWSTD_STR(x)
+
+#ifndef _RWSTD_NO_PRETTY_FUNCTION
+#  define _RWSTD_FUNC(ignore)   _RWSTD_FILE_LINE, __PRETTY_FUNCTION__
+#elif !defined (_RWSTD_NO_FUNC)
+#  define _RWSTD_FUNC(ignore)   _RWSTD_FILE_LINE, __func__
+#elif defined (__FUNCSIG__)
+#  define _RWSTD_FUNC(ignore)   _RWSTD_FILE_LINE, __FUNCSIG__
+#else
+#  define _RWSTD_FUNC(name)     _RWSTD_FILE_LINE, name
+#endif
+
+#define _RWSTD_FILE_LINE   __FILE__ ":" _RWSTD_STRSTR (__LINE__)
+
+#if !defined (__DECCXX_VER) || __DECCXX_VER > 60290024
+#  define _RWSTD_REQUIRES(pred, args)   (pred) ? (void)0 : _RW::__rw_throw args
+#else
+   // working around a DEC cxx bug
+#  define _RWSTD_REQUIRES(pred, args)   if (pred) ; else _RW::__rw_throw args
+#endif
+
+
+// function exception specification
+#if    !defined (_RWSTD_NO_EXCEPTIONS) \
+    && !defined (_RWSTD_NO_EXCEPTION_SPECIFICATION)
+   // type_id_list is a possibly empty parenthesized list
+   //of comma-separated type-id's
+#  define _THROWS(type_id_list)   throw type_id_list
+#else   // if _RWSTD_NO_EXCEPTIONS || _RWSTD_NO_EXCEPTION_SPECIFICATION
+#  define _THROWS(ignore)         /* empty */
+#endif   // !_RWSTD_NO_EXCEPTIONS && !_RWSTD_NO_EXCEPTION_SPECIFICATION
+
+
+// function exception specification on extern "C" libc functions
+#ifndef _RWSTD_NO_LIBC_EXCEPTION_SPEC
+#  define _LIBC_THROWS(/* empty */)   throw ()
+#else
+#  define _LIBC_THROWS(/* empty */)   /* empty */
+#endif   // _RWSTD_NO_LIBC_EXCEPTION_SPEC
+
+
+// function exception specification on operator new
+#ifndef _RWSTD_NO_EXCEPTION_SPECIFICATION_ON_NEW
+#  define _NEW_THROWS(args)     _THROWS (args)
+#else
+#  define _NEW_THROWS(ignore)   /* empty */
+#endif   // _RWSTD_NO_EXCEPTION_SPECIFICATION_ON_NEW
+
+
 #ifndef _RWSTD_ATTRIBUTE_NORETURN
    // gcc (and others) __attribute__ ((noreturn))
 #  define _RWSTD_ATTRIBUTE_NORETURN   /* empty */
@@ -1179,56 +1229,6 @@ __rw_assert_fail (const char*, const char*, int, const char*)
 }   // extern "C++"
 
 }   // namespace __rw
-
-
-#define _RWSTD_STR(x)       #x
-#define _RWSTD_STRSTR(x)    _RWSTD_STR(x)
-
-#ifndef _RWSTD_NO_PRETTY_FUNCTION
-#  define _RWSTD_FUNC(ignore)   _RWSTD_FILE_LINE, __PRETTY_FUNCTION__
-#elif !defined (_RWSTD_NO_FUNC)
-#  define _RWSTD_FUNC(ignore)   _RWSTD_FILE_LINE, __func__
-#elif defined (__FUNCSIG__)
-#  define _RWSTD_FUNC(ignore)   _RWSTD_FILE_LINE, __FUNCSIG__
-#else
-#  define _RWSTD_FUNC(name)     _RWSTD_FILE_LINE, name
-#endif
-
-#define _RWSTD_FILE_LINE   __FILE__ ":" _RWSTD_STRSTR (__LINE__)
-
-#if !defined (__DECCXX_VER) || __DECCXX_VER > 60290024
-#  define _RWSTD_REQUIRES(pred, args)   (pred) ? (void)0 : _RW::__rw_throw args
-#else
-   // working around a DEC cxx bug
-#  define _RWSTD_REQUIRES(pred, args)   if (pred) ; else _RW::__rw_throw args
-#endif
-
-
-// function exception specification
-#if    !defined (_RWSTD_NO_EXCEPTIONS) \
-    && !defined (_RWSTD_NO_EXCEPTION_SPECIFICATION)
-   // type_id_list is a possibly empty parenthesized list
-   //of comma-separated type-id's
-#  define _THROWS(type_id_list)   throw type_id_list
-#else   // if _RWSTD_NO_EXCEPTIONS || _RWSTD_NO_EXCEPTION_SPECIFICATION
-#  define _THROWS(ignore)         /* empty */
-#endif   // !_RWSTD_NO_EXCEPTIONS && !_RWSTD_NO_EXCEPTION_SPECIFICATION
-
-
-// function exception specification on extern "C" libc functions
-#ifndef _RWSTD_NO_LIBC_EXCEPTION_SPEC
-#  define _LIBC_THROWS(/* empty */)   throw ()
-#else
-#  define _LIBC_THROWS(/* empty */)   /* empty */
-#endif   // _RWSTD_NO_LIBC_EXCEPTION_SPEC
-
-
-// function exception specification on operator new
-#ifndef _RWSTD_NO_EXCEPTION_SPECIFICATION_ON_NEW
-#  define _NEW_THROWS(args)     _THROWS (args)
-#else
-#  define _NEW_THROWS(ignore)   /* empty */
-#endif   // _RWSTD_NO_EXCEPTION_SPECIFICATION_ON_NEW
 
 
 // for convenience
