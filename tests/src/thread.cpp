@@ -83,6 +83,20 @@ _rw_timeout_handler (int)
 
 
 #if defined (_RWSTD_POSIX_THREADS)
+
+#  if defined (__linux__)
+#    if    defined (__EDG__)                \
+        && !defined (__DECCXX)              \
+        && !defined (__HP_aCC)              \
+        && !defined (__INTEL_COMPILER)      \
+        && !defined (_SGI_COMPILER_VERSION)
+       // disable error #450-D: the type "long long" is nonstandard
+       // when using the vanilla EDG eccp in strict mode (i.e., w/o
+       // long long support)
+#      pragma diag_suppress 450
+#    endif   // vanilla EDG eccp on Linux
+#  endif
+
 #  include <pthread.h>
 
 _TEST_EXPORT int
