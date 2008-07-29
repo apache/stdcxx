@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2006 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -48,6 +48,16 @@ _RWSTD_NAMESPACE (std) {
 
 template <class _CharT, class _InputIter>
 _RW::__rw_facet_id time_get<_CharT, _InputIter>::id;
+
+
+// outlined to avoid generating a vtable in each translation unit
+// that uses the class
+template <class _CharT, class _InputIter>
+/* virtual */ time_get<_CharT, _InputIter>::
+~time_get ()
+{
+    // no-op
+}
 
 
 template <class _CharT, class _InputIter>
@@ -353,6 +363,16 @@ do_get (iter_type __it, iter_type __end, ios_base &__fl,
     __err |= __errtmp;
 
     return __it;
+}
+
+
+// outlined to avoid generating a vtable in each translation unit
+// that uses the class
+template <class _CharT, class _InputIter>
+/* virtual */ time_get_byname<_CharT, _InputIter>::
+~time_get_byname ()
+{
+    // no-op
 }
 
 

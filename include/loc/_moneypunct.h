@@ -213,6 +213,8 @@ public:
         : moneypunct<_CharT, _Intl>(__ref) {
             this->_C_set_name (__name, _C_namebuf, sizeof _C_namebuf);
         }
+
+    virtual ~moneypunct_byname () _RWSTD_ATTRIBUTE_NOTHROW;
 };
 
 

@@ -51,6 +51,16 @@ template <class _CharT, class _OutputIter>
 _RW::__rw_facet_id money_put<_CharT, _OutputIter>::id;
 
 
+// outlined to avoid generating a vtable in each translation unit
+// that uses the class
+template <class _CharT, class _OutputIter>
+/* virtual */ money_put<_CharT, _OutputIter>::
+~money_put () /* nothrow */
+{
+    // no-op
+}
+
+
 template <class _CharT, class _OutputIter>
 /* private */ _TYPENAME money_put<_CharT, _OutputIter>::iter_type
 money_put<_CharT, _OutputIter>::

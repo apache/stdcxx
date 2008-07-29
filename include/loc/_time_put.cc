@@ -60,6 +60,16 @@ template <class _CharT, class _OutputIter>
 _RW::__rw_facet_id time_put<_CharT, _OutputIter>::id;
 
 
+// outlined to avoid generating a vtable in each translation unit
+// that uses the class
+template <class _CharT, class _InputIter>
+/* virtual */ time_put<_CharT, _InputIter>::
+~time_put ()
+{
+    // no-op
+}
+
+
 template <class _CharT, class _OutputIter /* = ostreambuf_iterator<_CharT> */ >
 /* virtual */ _TYPENAME time_put<_CharT, _OutputIter>::iter_type
 time_put<_CharT, _OutputIter>::
@@ -170,6 +180,16 @@ put (iter_type __it, ios_base &__flags, char_type __fill, const tm *__tmb,
     }
 
     return __it;
+}
+
+
+// outlined to avoid generating a vtable in each translation unit
+// that uses the class
+template <class _CharT, class _OutputIter>
+/* virtual */ time_put_byname<_CharT, _OutputIter>::
+~time_put_byname ()
+{
+    // no-op
 }
 
 

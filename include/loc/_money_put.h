@@ -63,6 +63,8 @@ struct money_put: _RW::__rw_facet
     _EXPLICIT money_put (_RWSTD_SIZE_T __ref = 0)
         : _RW::__rw_facet (__ref) { }
 
+    virtual ~money_put () _RWSTD_ATTRIBUTE_NOTHROW;
+
     // 22.2.6.2.1, p1
     iter_type put (iter_type __it, bool __intl, ios_base &__flags,
                    char_type __fill, long double __val) const {

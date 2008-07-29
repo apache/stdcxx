@@ -50,4 +50,15 @@ template <class _CharT, bool _Intl>
     // no-op
 }
 
+
+// outlined to avoid generating a vtable in each translation unit
+// that uses the class
+template <class _CharT, bool _Intl>
+/* virtual */ moneypunct_byname<_CharT, _Intl>::
+~moneypunct_byname () /* nothrow */
+{
+    // no-op
+}
+
+
 }   // namespace std
