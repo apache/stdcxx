@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2006 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -39,5 +39,15 @@ template <class _CharT, bool _Intl>
 const bool moneypunct<_CharT, _Intl>::intl /* = _Intl */;
 
 #endif   // _RWSTD_NO_STATIC_CONST_MEMBER_INIT
+
+
+// outlined to avoid generating a vtable in each translation unit
+// that uses the class
+template <class _CharT, bool _Intl>
+/* virtual */ moneypunct<_CharT, _Intl>::
+~moneypunct () /* nothrow */
+{
+    // no-op
+}
 
 }   // namespace std

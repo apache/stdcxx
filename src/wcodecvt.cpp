@@ -1032,6 +1032,15 @@ codecvt (size_t __ref /* = 0 */)
 }
 
 
+// outlined to avoid generating a vtable in each translation unit
+// that uses the class
+/* virtual */ codecvt<wchar_t, char, _RWSTD_MBSTATE_T>::
+~codecvt ()
+{
+    // no-op
+}
+
+
 /* virtual */ bool
 codecvt<wchar_t, char, _RWSTD_MBSTATE_T>::
 do_always_noconv () const _THROWS (())
@@ -1302,6 +1311,15 @@ codecvt_byname (const char *name, size_t ref)
         _C_flags |= __rw_use_libc;
 
     this->_C_set_name (name, _C_namebuf, sizeof _C_namebuf);
+}
+
+
+// outlined to avoid generating a vtable in each translation unit
+// that uses the class
+/* virtual */ codecvt_byname<wchar_t, char, _RWSTD_MBSTATE_T>::~
+codecvt_byname ()
+{
+    // no-op
 }
 
 

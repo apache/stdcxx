@@ -105,7 +105,10 @@ codecvt (size_t refs /* = 0 */)
 }
 
 
-/* virtual */ codecvt<char, char, _RWSTD_MBSTATE_T>::~codecvt ()
+// outlined to avoid generating a vtable in each translation unit
+// that uses the class
+/* virtual */ codecvt<char, char, _RWSTD_MBSTATE_T>::
+~codecvt ()
 {
     // no-op
 }

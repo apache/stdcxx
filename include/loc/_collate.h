@@ -25,7 +25,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2006 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -65,6 +65,8 @@ public:
 
     _EXPLICIT collate (_RWSTD_SIZE_T __refs = 0)
         : _RW::__rw_facet (__refs) { }
+
+    virtual ~collate () _RWSTD_ATTRIBUTE_NOTHROW;
 
     int
     compare (const char_type* __low1, const char_type* __high1,
@@ -113,6 +115,8 @@ public:
     _EXPLICIT collate (_RWSTD_SIZE_T __refs = 0)
         : _RW::__rw_facet (__refs) { }
 
+    virtual ~collate () _RWSTD_ATTRIBUTE_NOTHROW;
+
     int
     compare (const char_type* __low1, const char_type* __high1,
              const char_type* __low2, const char_type* __high2) const {
@@ -156,8 +160,10 @@ public:
                          allocator<char_type> >
     string_type;
 
-    _EXPLICIT collate (_RWSTD_SIZE_T __refs = 0)
+    _EXPLICIT collate (_RWSTD_SIZE_T __refs = 0) _THROWS (())
         : _RW::__rw_facet (__refs) { }
+
+    virtual ~collate () _RWSTD_ATTRIBUTE_NOTHROW;
 
     int
     compare (const char_type* __low1, const char_type* __high1,
@@ -182,7 +188,7 @@ protected:
     virtual int
     do_compare (const char_type*, const char_type*,
                 const char_type*, const char_type*) const;
-        
+
     virtual string_type
     do_transform (const char_type*, const char_type*) const;
 
@@ -218,6 +224,8 @@ public:
         this->_C_set_name (__name, _C_namebuf, sizeof _C_namebuf);
     }
 
+    virtual ~collate_byname () _RWSTD_ATTRIBUTE_NOTHROW;
+
 protected:
 
     virtual int
@@ -241,6 +249,8 @@ public:
         :  collate<char_type>(__ref){ 
         this->_C_set_name (__name, _C_namebuf, sizeof _C_namebuf);
     }
+
+    virtual ~collate_byname () _RWSTD_ATTRIBUTE_NOTHROW;
 
 protected:
 
