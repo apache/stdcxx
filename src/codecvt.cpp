@@ -268,6 +268,23 @@ do_max_length () const _THROWS (())
 }
 
 
+codecvt_byname<char, char, _RWSTD_MBSTATE_T>::
+codecvt_byname (const char *name, size_t ref)
+    : codecvt <intern_type, extern_type, state_type> (ref)
+{
+    _C_set_name (name, _C_namebuf, sizeof _C_namebuf);
+}
+
+
+// outlined to avoid generating a vtable in each translation unit
+// that uses the class
+/* virtual */ codecvt_byname<char, char, _RWSTD_MBSTATE_T>::
+~codecvt_byname ()
+{
+    // no-op
+}
+
+
 }   // namespace std
 
 #define TARGS_C   <char, char, _RWSTD_MBSTATE_T>

@@ -407,6 +407,21 @@ public:
 };
 
 
+_RWSTD_SPECIALIZED_CLASS
+class _RWSTD_EXPORT codecvt_byname<char, char, _RWSTD_MBSTATE_T>
+    : public codecvt<char, char, _RWSTD_MBSTATE_T>
+{
+    char _C_namebuf [32];
+
+public:
+
+    _EXPLICIT codecvt_byname (const char*, _RWSTD_SIZE_T = 0);
+
+    virtual ~codecvt_byname () _RWSTD_ATTRIBUTE_NOTHROW;
+};
+
+
+
 #ifndef _RWSTD_NO_WCHAR_T
 
 _RWSTD_SPECIALIZED_CLASS
