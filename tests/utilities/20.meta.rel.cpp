@@ -392,7 +392,7 @@ static void test_is_convertible ()
 
     TEST (std::is_convertible, int*, void*, true);
 
-#ifdef _MSC_VER
+#if defined (_MSC_VER) || defined (__IBMCPP__)
     // microsoft language extension allows this conversion, and that
     // extension is enabled by default.
     TEST (std::is_convertible, int (*)(), void*, true);
