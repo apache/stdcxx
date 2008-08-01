@@ -58,29 +58,6 @@ _EXPORT
 template <class _TypeT, class _Allocator = allocator<_TypeT> >
 class vector;
 
-// declarations of non-member function templates implementing
-// the functionality of vector member function templates
-
-_EXPORT
-template <class _TypeT, class _Allocator, class _InputIter>
-void __rw_assign_range (vector<_TypeT, _Allocator>*,
-                        _InputIter, _InputIter, input_iterator_tag);
-
-_EXPORT
-template <class _TypeT, class _Allocator, class _FwdIter>
-void __rw_assign_range (vector<_TypeT, _Allocator>*,
-                        _FwdIter, _FwdIter, forward_iterator_tag);
-
-_EXPORT
-template <class _TypeT, class _Allocator, class _VectorIter, class _InputIter>
-void __rw_insert_range (vector<_TypeT, _Allocator>*, _VectorIter,
-                        _InputIter, _InputIter, input_iterator_tag);
-
-_EXPORT
-template <class _TypeT, class _Allocator, class _VectorIter, class _FwdIter>
-void __rw_insert_range (vector<_TypeT, _Allocator>*, _VectorIter,
-                        _FwdIter, _FwdIter, forward_iterator_tag);
-
 
 _EXPORT
 template <class _TypeT, class _Allocator>

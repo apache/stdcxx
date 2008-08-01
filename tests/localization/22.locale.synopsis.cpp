@@ -441,10 +441,6 @@ struct Facet: std::locale::facet
     }
 
     static std::locale::id id;
-
-    virtual std::locale::id& _C_get_id () const {
-        return id;
-    }
 };
 
 
@@ -566,11 +562,6 @@ test_locale ()
             Facet (std::size_t ref): Base (ref) {/* empty */  }
             ~Facet () {
                 is_dtor_virtual = true;
-            }
-
-            virtual std::locale::id& _C_get_id () const {
-                static std::locale::id id;
-                return id;
             }
 
         };
