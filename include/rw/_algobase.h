@@ -193,8 +193,8 @@ inline void iter_swap (_FwdIter1 __a, _FwdIter2 __b)
     // accommodate _FwdIter::operator*() that returns an rvalue that
     // doesn't bind to a non-const reference e.g., vector<bool>::reference
 
-    _TYPENAME iterator_traits<_FwdIter1>::reference __ref1 (*__a);
-    _TYPENAME iterator_traits<_FwdIter2>::reference __ref2 (*__b);
+    typename iterator_traits<_FwdIter1>::reference __ref1 (*__a);
+    typename iterator_traits<_FwdIter2>::reference __ref2 (*__b);
 
     _RW::__rw_swap (__ref1, __ref2);
 

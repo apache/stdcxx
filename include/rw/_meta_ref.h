@@ -36,24 +36,12 @@
 
 _RWSTD_NAMESPACE (__rw) {
 
-/**
- * TransformationTrait strips any top level reference specifier
- * from _TypeT.
- *
- * The primary template is for non-reference types.
- */
 template <class _TypeT>
 struct __rw_remove_reference
 {
     typedef _TypeT type;
 };
 
-/**
- * TransformationTrait strips any top level reference specifier
- * from _TypeT.
- *
- * This specialization is for lvalue reference types.
- */
 template <class _TypeT>
 struct __rw_remove_reference<_TypeT&>
 {
@@ -62,12 +50,6 @@ struct __rw_remove_reference<_TypeT&>
 
 #ifndef _RWSTD_NO_RVALUE_REFERENCES
 
-/**
- * TransformationTrait strips any top level reference specifier
- * from _TypeT.
- *
- * This specialization is for rval reference types.
- */
 template <class _TypeT>
 struct __rw_remove_reference<_TypeT&&>
 {
@@ -75,6 +57,9 @@ struct __rw_remove_reference<_TypeT&&>
 };
 
 #endif   // _RWSTD_NO_RVALUE_REFERENCES
+
+#define _RWSTD_REMOVE_REFERENCE(T) _RW::__rw_remove_reference<T>::type
+
 
 template <class _TypeT, bool =    !__rw_is_void<_TypeT>::value
                                && !__rw_is_reference<_TypeT>::value,
@@ -98,18 +83,18 @@ struct __rw_add_lvalue_reference_impl<_TypeT, false, true>
 {
     // for rval reference types, _C_type shall become the corresponding
     // lvalue reference type
-    typedef _TYPENAME __rw_remove_reference<_TypeT>::type& _C_type;
+    typedef typename __rw_remove_reference<_TypeT>::type& _C_type;
 };
 
-/**
- * TransformationTrait adds a lvalue reference to the input type _TypeT.
- */
 template <class _TypeT>
 struct __rw_add_lvalue_reference
 {
-    typedef _TYPENAME
+    typedef typename
     __rw_add_lvalue_reference_impl<_TypeT>::_C_type type;
 };
+
+#define _RWSTD_ADD_LVALUE_REFERENCE(T) \
+    _RW::__rw_add_lvalue_reference<T>::type
 
 
 template <class _TypeT, bool =    __rw_is_object<_TypeT>::value
@@ -137,10 +122,12 @@ struct __rw_add_rvalue_reference_impl<_TypeT, true>
 template <class _TypeT>
 struct __rw_add_rvalue_reference
 {
-    typedef _TYPENAME
+    typedef typename
     __rw_add_rvalue_reference_impl<_TypeT>::_C_type type;
 };
 
+#define _RWSTD_ADD_RVALUE_REFERENCE(T) \
+    _RW::__rw_add_rvalue_reference<T>::type
 
 } // namespace __rw
 

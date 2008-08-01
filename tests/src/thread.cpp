@@ -83,6 +83,14 @@ _rw_timeout_handler (int)
 
 
 #if defined (_RWSTD_POSIX_THREADS)
+
+#  ifdef _RWSTD_EDG_ECCP
+     // disable error #450-D: the type "long long" is nonstandard
+     // issued for uses of the type in Linux system headers (e.g.,
+     // pthreadtypes.h)
+#    pragma diag_suppress 450
+#  endif   // vanilla EDG eccp demo
+
 #  include <pthread.h>
 
 _TEST_EXPORT int

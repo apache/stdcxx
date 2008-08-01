@@ -34,74 +34,53 @@
 
 _RWSTD_NAMESPACE (__rw) {
 
-/**
- * TransformationTrait strips one dimension from an array type, leaving
- * other types as-is. The primary template is for non-array types.
- */
 template <class _TypeT>
 struct __rw_remove_extent
 {
     typedef _TypeT type;
 };
 
-/**
- * TransformationTrait strips one dimension from an array type, leaving
- * other types as-is. This specialization is for array types of bounded
- * size.
- */
 template <class _TypeT, _RWSTD_SIZE_T _Size>
 struct __rw_remove_extent<_TypeT [_Size]>
 {
     typedef _TypeT type;
 };
 
-/**
- * TransformationTrait strips one dimension from an array type, leaving
- * other types as-is. This specialization is for array types of unbounded
- * size.
- */
+#if !defined (__IBMCPP__) || (900 < __IBMCPP__)
+
 template <class _TypeT>
 struct __rw_remove_extent<_TypeT []>
 {
     typedef _TypeT type;
 };
 
-//#define _RWSTD_REMOVE_EXTENT(T) _RW::__rw_remove_extent<T>::type
+#endif
 
-/**
- * TransformationTrait strips one dimension from an array type, leaving
- * other types as-is. The primary template is for non-array types. The
- * member typedef type will be the same as _TypeT.
- */
+#define _RWSTD_REMOVE_EXTENT(T) _RW::__rw_remove_extent<T>::type
+
 template <class _TypeT>
 struct __rw_remove_all_extents
 {
     typedef _TypeT type;
 };
 
-/**
- * TransformationTrait strips all dimensions from an array type, leaving
- * other types as-is. This specialization is for array types of bounded
- * size.
- */
 template <class _TypeT, _RWSTD_SIZE_T _Size>
 struct __rw_remove_all_extents<_TypeT [_Size]>
 {
     typedef typename __rw_remove_all_extents<_TypeT>::type type;
 };
 
-/**
- * TransformationTrait strips one dimension from an array type, leaving
- * other types as-is. This specialization is for array types of unbounded
- * size.
- */
+#if !defined (__IBMCPP__) || (900 < __IBMCPP__)
+
 template <class _TypeT>
 struct __rw_remove_all_extents<_TypeT []>
 {
     typedef typename __rw_remove_all_extents<_TypeT>::type type;
 };
 
-//#define _RWSTD_REMOVE_ALL_EXTENTS(T) _RW::__rw_remove_all_extents<T>::type
+#endif
+
+#define _RWSTD_REMOVE_ALL_EXTENTS(T) _RW::__rw_remove_all_extents<T>::type
 
 } // namespace __rw
 

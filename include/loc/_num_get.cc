@@ -64,7 +64,7 @@ _RW::__rw_facet_id num_get<_CharT, _InputIter>::id;
 #ifndef _RWSTD_NO_EXT_NUM_GET
 
 template <class _CharT, class _InputIter>
-_TYPENAME num_get<_CharT, _InputIter>::iter_type
+typename num_get<_CharT, _InputIter>::iter_type
 num_get<_CharT, _InputIter>::
 get (iter_type __begin, iter_type __end, ios_base &__flags, 
      _RWSTD_IOSTATE &__err, short &__val) const
@@ -83,7 +83,7 @@ get (iter_type __begin, iter_type __end, ios_base &__flags,
 
 
 template <class _CharT, class _InputIter>
-_TYPENAME num_get<_CharT, _InputIter>::iter_type
+typename num_get<_CharT, _InputIter>::iter_type
 num_get<_CharT, _InputIter>::
 get (iter_type __begin, iter_type __end, ios_base &__flags, 
      _RWSTD_IOSTATE &__err, int &__val) const
@@ -106,7 +106,7 @@ get (iter_type __begin, iter_type __end, ios_base &__flags,
 #ifndef _RWSTD_NO_NATIVE_BOOL
 
 template <class _CharT, class _InputIter /* = istreambuf_iterator<_CharT> */>
-_TYPENAME num_get<_CharT, _InputIter>::iter_type
+typename num_get<_CharT, _InputIter>::iter_type
 num_get<_CharT, _InputIter>::
 do_get (iter_type __begin, iter_type __end, ios_base &__flags,
         _RWSTD_IOSTATE &__err, bool &__val) const
@@ -172,7 +172,7 @@ do_get (iter_type __begin, iter_type __end, ios_base &__flags,
 
 
 template <class _CharT, class _InputIter /* = istreambuf_iterator<_CharT> */>
-_TYPENAME num_get<_CharT, _InputIter>::iter_type
+typename num_get<_CharT, _InputIter>::iter_type
 num_get<_CharT, _InputIter>::
 _C_get (iter_type __begin, iter_type __end, ios_base &__flags,
         _RWSTD_IOSTATE &__err, int __type, void *__pval) const

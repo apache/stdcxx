@@ -153,12 +153,6 @@ protected:
 
    friend StockXchange::outStream&
    operator<< (StockXchange::outStream&, const StockXchange&);
- 
-private: 
-
-#ifdef _RWSTD_NO_MEMBER_TEMPLATES
-   std::locale::id &_C_get_id () const { return id; }
-#endif
 };
 
 

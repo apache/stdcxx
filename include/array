@@ -213,7 +213,7 @@ swap (array<_TypeT, _Size> &__other)
 
 
 template <class _TypeT, _RWSTD_SIZE_T _Size>
-inline _TYPENAME array<_TypeT, _Size>::reference
+inline typename array<_TypeT, _Size>::reference
 array<_TypeT, _Size>::
 operator[] (size_type __inx)
 {
@@ -231,7 +231,7 @@ operator[] (size_type __inx)
   
 
 template <class _TypeT, _RWSTD_SIZE_T _Size>
-inline _TYPENAME array<_TypeT, _Size>::const_reference
+inline typename array<_TypeT, _Size>::const_reference
 array<_TypeT, _Size>::
 operator[] (size_type __inx) const
 {
@@ -249,7 +249,7 @@ operator[] (size_type __inx) const
   
 
 template <class _TypeT, _RWSTD_SIZE_T _Size>
-inline _TYPENAME array<_TypeT, _Size>::reference
+inline typename array<_TypeT, _Size>::reference
 array<_TypeT, _Size>::
 at (size_type __inx)
 {
@@ -263,7 +263,7 @@ at (size_type __inx)
     
 
 template <class _TypeT, _RWSTD_SIZE_T _Size>
-inline _TYPENAME array<_TypeT, _Size>::const_reference
+inline typename array<_TypeT, _Size>::const_reference
 array<_TypeT, _Size>::
 at (size_type __inx)  const
 {

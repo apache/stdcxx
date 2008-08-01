@@ -70,7 +70,7 @@ template <class _CharT, class _OutputIter /* = ostreambuf_iterator<_CharT> */>
 
 
 template <class _CharT, class _OutputIter /* = ostreambuf_iterator<_CharT> */>
-_TYPENAME num_put<_CharT, _OutputIter>::iter_type
+typename num_put<_CharT, _OutputIter>::iter_type
 num_put<_CharT, _OutputIter>::
 _C_put (iter_type __it, ios_base &__flags, char_type __fill, int __type,
         const void *__pval) const

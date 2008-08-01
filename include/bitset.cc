@@ -127,7 +127,7 @@ __rw_extract_bitset (_STD::basic_istream<_CharT, _Traits> &__strm,
 {
     typedef _STD::basic_istream<_CharT, _Traits> _Istream;
 
-    _TYPENAME _Istream::iostate __err (__strm.goodbit);
+    typename _Istream::iostate __err (__strm.goodbit);
 
 
     _STD::bitset<_Size> __tmp;
@@ -137,14 +137,14 @@ __rw_extract_bitset (_STD::basic_istream<_CharT, _Traits> &__strm,
     _TRY {
 
         // sentry may throw an exception
-        const _TYPENAME _Istream::sentry __ipfx (__strm);
+        const typename _Istream::sentry __ipfx (__strm);
 
         if (__ipfx) {
 
             // 23.3.5.3, p5 - extract at most _Size chars
 
             // get next char without extracting
-            _TYPENAME _Traits::int_type __c = __strm.rdbuf ()->sgetc ();
+            typename _Traits::int_type __c = __strm.rdbuf ()->sgetc ();
 
             for ( ; __bit; --__bit) {
 

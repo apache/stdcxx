@@ -104,3 +104,12 @@
 #  define _RWSTD_ATTRIBUTE_NORETURN __attribute__ ((noreturn))
 #endif   // aCC >= 6
 
+
+#if 60000 <= __HP_aCC
+#  define _RWSTD_TT_ALIGN_OF(T)    __alignof__(T)
+#  define _RWSTD_TT_MAX_ALIGNMENT  128
+#  define _RWSTD_TT_ALIGNED_POD(N) \
+      struct { unsigned char _C_align __attribute__ ((aligned ((N)))); }
+#endif // __HP_aCC >= 6.00
+
+

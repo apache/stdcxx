@@ -62,11 +62,6 @@
 #endif   // _RWSTD_NO_NAMESPACE && !std
 
 
-#if defined (_RWSTD_NO_TYPENAME) && !defined (typename)
-#  define typename /* ignore */
-#endif   // _RWSTD_NO_TYPENAME && !typename
-
-
 #if defined (_RWSTD_NO_EXCEPTIONS)
 #  ifndef try
 #    define try   if (0); else
@@ -172,5 +167,10 @@
    // issued for the commonly used RW_ASSERT(!"not implemented")
 #  pragma warning (disable: 279)
 #endif   // Intel C++ 10.0 and prior
+
+#if    ((4 < __GNUC__) || ((4 == __GNUC__) && (3 < __GNUC_MINOR__))) \
+    || (310 < __EDG_VERSION__)
+#  define _RWSTD_TT_STRICT_CXX_0X_CONFORM
+#endif
 
 #endif   // RW_TESTDEFS_H_INCLUDED

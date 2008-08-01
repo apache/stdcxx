@@ -25,7 +25,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2005 Rogue Wave Software.
+ * Copyright 1994-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -89,7 +89,7 @@ _RWSTD_SPECIALIZE_IS_INT (wchar_t);
 
 #if !defined (__SUNPRO_CC) || __SUNPRO_CC > 0x530
 #  define _RWSTD_DISPATCH(iter)   \
-       (_TYPENAME _RW::__rw_select_int< iter >::_SelectT (1))
+       (typename _RW::__rw_select_int< iter >::_SelectT (1))
 
 #else
    // working around a SunPro 5.3 a prior bug (PR #28739)
@@ -100,14 +100,14 @@ _RWSTD_SPECIALIZE_IS_INT (wchar_t);
 #ifndef _RWSTD_NO_CLASS_PARTIAL_SPEC
 
 template <class _TypeT, class _TypeU>
-struct __rw_is_same
+struct __rw_same_type
 {
     typedef __rw_false_t _C_type;
     enum { _C_val };
 };
 
 template <class _TypeT>
-struct __rw_is_same<_TypeT, _TypeT>
+struct __rw_same_type<_TypeT, _TypeT>
 {
     typedef __rw_true_t _C_type;
     enum { _C_val = 1 };
@@ -128,7 +128,7 @@ struct __rw_bool_t<true>
 };
 
 template <class _TypeT, class _TypeU>
-struct __rw_is_same
+struct __rw_same_type
 {
     struct _C_yes {};
     struct _C_no { _C_yes no_ [2]; };
@@ -141,7 +141,7 @@ struct __rw_is_same
     enum { _C_val = sizeof (test (_C_Type<_TypeT> (),
                                   _C_Type<_TypeU> ())) == sizeof (_C_yes) };
 
-    typedef _TYPENAME __rw_bool_t<_C_val>::_C_type _C_type;
+    typedef typename __rw_bool_t<_C_val>::_C_type _C_type;
 };
 
 #endif   // _RWSTD_NO_CLASS_PARTIAL_SPEC

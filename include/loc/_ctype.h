@@ -102,7 +102,7 @@ public:
 
     typedef _CharT char_type;
 
-    _EXPLICIT ctype (_RWSTD_SIZE_T __ref = 0)
+    explicit ctype (_RWSTD_SIZE_T __ref = 0)
         : _RW::__rw_facet (__ref) { }
 
 
@@ -242,7 +242,7 @@ public:
 
     _RWSTD_STATIC_CONST (_RWSTD_SIZE_T, table_size = 256);
 
-    _EXPLICIT ctype (const mask* = 0, bool = false, _RWSTD_SIZE_T = 0);
+    explicit ctype (const mask* = 0, bool = false, _RWSTD_SIZE_T = 0);
 
     const char_type* is (const char_type*, const char_type*, mask*) const;
 
@@ -390,7 +390,7 @@ class ctype_byname: public ctype<_CharT>
 
 public:
 
-    _EXPLICIT ctype_byname (const char *__name, _RWSTD_SIZE_T __ref = 0)
+    explicit ctype_byname (const char *__name, _RWSTD_SIZE_T __ref = 0)
         : ctype<_CharT>(__ref) {
         this->_C_set_name (__name, _C_namebuf, sizeof _C_namebuf);
     }
@@ -404,7 +404,7 @@ class _RWSTD_EXPORT ctype_byname<char>: public ctype<char>
 
 public:
 
-    _EXPLICIT ctype_byname (const char*, _RWSTD_SIZE_T = 0);
+    explicit ctype_byname (const char*, _RWSTD_SIZE_T = 0);
 };
 
 
@@ -421,7 +421,7 @@ public:
 
     typedef wchar_t char_type;
 
-    _EXPLICIT ctype (_RWSTD_SIZE_T = 0);
+    explicit ctype (_RWSTD_SIZE_T = 0);
 
     // 22.2.1.1.1, p1
     bool is (mask __m, char_type __c) const {
@@ -597,7 +597,7 @@ class _RWSTD_EXPORT ctype_byname<wchar_t>: public ctype<wchar_t>
 {
 public:
 
-    _EXPLICIT ctype_byname (const char*, _RWSTD_SIZE_T = 0);
+    explicit ctype_byname (const char*, _RWSTD_SIZE_T = 0);
 
 protected:
 

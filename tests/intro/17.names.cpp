@@ -554,7 +554,12 @@
 #define Tp                      !ERROR!
 #define traits                  !ERROR!
 #define Traits                  !ERROR!
-#define type                    !ERROR!
+
+#ifdef _RWSTD_NO_EXT_CXX_0X
+// required member of reference_wrapper
+#  define type                    !ERROR!
+#endif
+
 #define Type                    !ERROR!
 #define UCHAR                   !ERROR!
 #define UINT                    !ERROR!

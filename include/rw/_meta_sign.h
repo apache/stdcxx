@@ -38,10 +38,8 @@
 
 _RWSTD_NAMESPACE (__rw) {
 
-/**
- * Provides typedefs mapping non-boolean integral types to signed
- * and unsigned integral types of the same base type.
- */
+// Provides typedefs mapping non-boolean integral types to signed
+// and unsigned integral types of the same base type.
 template <class _TypeT>
 struct __rw_sign_helper
 {
@@ -71,7 +69,7 @@ struct __rw_sign_helper<wchar_t>
 
 #  if (_RWSTD_WCHAR_SIZE == _RWSTD_CHAR_SIZE)
     typedef unsigned char _C_Uint;
-#  elif (_RWSTD_WCHAR_SIZE == _RWSTD_SHORT_SIZE)
+#  elif (_RWSTD_WCHAR_SIZE == _RWSTD_SHRT_SIZE)
     typedef unsigned short _C_Uint;
 #  elif (_RWSTD_WCHAR_SIZE == _RWSTD_INT_SIZE)
     typedef unsigned int _C_Uint;
@@ -85,7 +83,7 @@ struct __rw_sign_helper<wchar_t>
 
 #  if (_RWSTD_WCHAR_SIZE == _RWSTD_CHAR_SIZE)
     typedef signed char _C_Sint;
-#  elif (_RWSTD_WCHAR_SIZE == _RWSTD_SHORT_SIZE)
+#  elif (_RWSTD_WCHAR_SIZE == _RWSTD_SHRT_SIZE)
     typedef signed short _C_Sint;
 #  elif (_RWSTD_WCHAR_SIZE == _RWSTD_INT_SIZE)
     typedef signed int _C_Sint;
@@ -177,10 +175,8 @@ struct __rw_sign_helper<unsigned long long>
 #endif // !_RWSTD_NO_LONG_LONG
 
 
-/**
- * Class template provides typedefs mapping enumeration types to integral
- * types of the same size.
- */
+// Class template provides typedefs mapping enumeration types
+// to integral types of the same size.
 template <_RWSTD_SIZE_T _Size>
 struct __rw_enum_helper
 {
@@ -233,18 +229,6 @@ struct __rw_enum_helper<_RWSTD_LLONG_SIZE>
 #  endif // _RWSTD_LONG_SIZE != _RWSTD_LLONG_SIZE
 #endif // !_RWSTD_NO_LONG_LONG
 
-/**
- * If _TypeT names a (possibly cv-qualified) signed integral type then the
- * member typedef type shall name the type _TypeT. Otherwise, if _TypeT
- * names a (possibly cv-qualified) unsigned integral type, then type shall
- * name the corresponding signed integral type with the same cv-qualifiers
- * as _TypeT. Otherwise, _TypeT shall name the signed integral type with
- * the smallest rank for which sizeof(_TypeT) == sizeof(_C_type), with the
- * same cv-qualifiers as _TypeT.
- *
- * note requires _TypeT shall be a (possibly cv-qualified) integral or
- * enum type, but not a bool type.
- */
 template <class _TypeT>
 struct __rw_make_signed
 {
@@ -276,20 +260,8 @@ public:
     typedef _TypeU type;
 };
 
-//#define _RWSTD_MAKE_SIGNED(T) typename _RW::__rw_make_signed<T>::type
+#define _RWSTD_MAKE_SIGNED(T) _RW::__rw_make_signed<T>::type
 
-/**
- * If _TypeT names a (possibly cv-qualified) unsigned integral type then the
- * member typedef type shall name the type _TypeT. Otherwise, if _TypeT
- * names a (possibly cv-qualified) ununsigned integral type, then type shall
- * name the corresponding unsigned integral type with the same cv-qualifiers
- * as _TypeT. Otherwise, _TypeT shall name the unsigned integral type with
- * the smallest rank for which sizeof(_TypeT) == sizeof(_C_type), with the
- * same cv-qualifiers as _TypeT.
- *
- * note requires _TypeT shall be a (possibly cv-qualified) integral or
- * enum type, but not a bool type.
- */
 template <class _TypeT>
 struct __rw_make_unsigned
 {
@@ -321,7 +293,7 @@ public:
     typedef _TypeU type;
 };
 
-//#define _RWSTD_MAKE_UNSIGNED(T) typename _RW::__rw_make_unsigned<T>::type
+#define _RWSTD_MAKE_UNSIGNED(T) _RW::__rw_make_unsigned<T>::type
 
 } // namespace __rw
 

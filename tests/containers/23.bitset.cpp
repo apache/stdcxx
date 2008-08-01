@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2001-2006 Rogue Wave Software.
+ * Copyright 2001-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -65,13 +65,13 @@ struct test_set
         bits_ [N] = '\0';   // null-terminate
     }
 
-    _EXPLICIT test_set (unsigned long val) {
+    explicit test_set (unsigned long val) {
         for (std::size_t i = 0; i != N; ++i)
             set (i, !!(val & (1UL << i)));
         bits_ [N] = '\0';   // NUL-terminate
     }
 
-    _EXPLICIT test_set (const std::bitset<N> &rhs) {
+    explicit test_set (const std::bitset<N> &rhs) {
         for (std::size_t i = 0; i != N; ++i)
             set (i, rhs.test (i));
         bits_ [N] = '\0';   // NUL-terminate
@@ -187,8 +187,6 @@ struct test_set
 
 /**************************************************************************/
 
-#ifndef _RWSTD_NO_EXPLICIT
-
 // helper to verify that bitset ctor is explicit
 // not defined since it must not be referenced if test is successful
 // static commented out to prevent gcc warning: function declared
@@ -205,8 +203,6 @@ struct has_implicit_ctor
 // calls to the overloaded is_explicit() resolve to the function below
 static void
 is_explicit (const has_implicit_ctor&) { }
-
-#endif   // _RWSTD_NO_EXPLICIT
 
 
 static void
@@ -239,15 +235,14 @@ test_synopsis (std::bitset<0>*)
     MEMFUN (Reference&, flip, ());
 
     // 23.3.5.1 - verify bitset ctors
-#if    !defined (_RWSTD_NO_EXPLICIT) \
-    && (!defined (__SUNPRO_CC) || __SUNPRO_CC > 0x530) \
+#if    (!defined (__SUNPRO_CC) || __SUNPRO_CC > 0x530) \
     && (!defined (__GNUG__) || __GNUG__ >= 3)
     // working around a SunPro 5.2 bug (see PR #25959)
 
     // verify that bitset ctor is declared explicit
     is_explicit (std::string ());
 
-#endif   // _RWSTD_NO_EXPLICIT && SunPro > 5.3
+#endif   // SunPro > 5.3
 
     // verify default arguments
     (void)Bitset (std::string ());
@@ -283,13 +278,12 @@ test_synopsis (std::bitset<0>*)
 
     MEMFUN (unsigned long, to_ulong, () const);
 
-#ifndef _RWSTD_NO_MEMBER_TEMPLATES
-#  if !defined (__HP_aCC) || __HP_aCC >= 60000
+#if !defined (__HP_aCC) || __HP_aCC >= 60000
 
      // working around HP aCC bugs PR #23312 and bug #503
 
-#    define PARAMLIST_3(T)   T, std::char_traits<T>, std::allocator<T>
-#    define PARAMLIST_2(T)   T, std::char_traits<T>
+#  define PARAMLIST_3(T)   T, std::char_traits<T>, std::allocator<T>
+#  define PARAMLIST_2(T)   T, std::char_traits<T>
 
     // exercise the overloaded member template function and ordinary
     // member function to_string()
@@ -298,21 +292,20 @@ test_synopsis (std::bitset<0>*)
     MEMFUN (std::basic_string<PARAMLIST_3 (char) >,
             to_string, (char, char) const);
 
-#    ifndef _RWSTD_NO_WCHAR_T
+#  ifndef _RWSTD_NO_WCHAR_T
 
     MEMFUN (std::basic_string<PARAMLIST_3 (wchar_t) >,
             to_string<PARAMLIST_3 (wchar_t) >, (wchar_t, wchar_t) const);
 
-#    endif   // _RWSTD_NO_WCHAR_T
+#  endif   // _RWSTD_NO_WCHAR_T
 
     MEMFUN (std::basic_string<PARAMLIST_3 (int) >,
             to_string<PARAMLIST_3 (int) >, (int, int) const);
 
-#    undef PARAMLIST_3
-#    undef PARAMLIST_2
+#  undef PARAMLIST_3
+#  undef PARAMLIST_2
 
-#  endif   // !__HP_aCC || __HP_aCC >= 60000
-#endif   // _RWSTD_NO_MEMBER_TEMPLATES
+#endif   // !__HP_aCC || __HP_aCC >= 60000
 
     MEMFUN (std::size_t, size, () const);
     MEMFUN (std::size_t, count, () const);
@@ -353,17 +346,16 @@ test_synopsis (std::bitset<0>*)
     FUN (std::basic_ostream< PARAMLIST (char) >&, std::operator<<,
          (std::basic_ostream< PARAMLIST (char) >&, const Bitset&));
 
-#ifndef _RWSTD_NO_MEMBER_TEMPLATES
-#  ifndef _RWSTD_NO_WCHAR_T
+#ifndef _RWSTD_NO_WCHAR_T
 
     FUN (std::basic_istream< PARAMLIST (wchar_t) >&, std::operator>>,
          (std::basic_istream< PARAMLIST (wchar_t) >&, Bitset&));
     FUN (std::basic_ostream< PARAMLIST (wchar_t) >&, std::operator<<,
          (std::basic_ostream< PARAMLIST (wchar_t) >&, const Bitset&));
 
-#  endif   // _RWSTD_NO_WCHAR_T
+#endif   // _RWSTD_NO_WCHAR_T
 
-#  if !defined (_MSC_VER) || _MSC_VER > 1300
+#if !defined (_MSC_VER) || _MSC_VER > 1300
 
     // MSVC is too dumb to handle bitset inserters and extractors
     // parametrized on multiple template paramenters
@@ -372,8 +364,7 @@ test_synopsis (std::bitset<0>*)
     FUN (std::basic_ostream< PARAMLIST (int) >&, std::operator<<,
          (std::basic_ostream< PARAMLIST (int) >&, const Bitset&));
 
-#  endif   // !defined (_MSC_VER) || _MSC_VER > 1300
-#endif   // _RWSTD_NO_MEMBER_TEMPLATES
+#endif   // !defined (_MSC_VER) || _MSC_VER > 1300
 
 #undef PARAMLIST
 
@@ -724,7 +715,7 @@ void test_elem_access (const std::bitset<N>*)
                        N, _j, test_set<N>(b).bits ());
 
             // exercise std::bitset<N>::reference
-            _TYPENAME std::bitset<N>::reference r = b [_j];
+            typename std::bitset<N>::reference r = b [_j];
 
             // std::bitset<N>::reference::flip()
             r.flip ();
@@ -843,8 +834,6 @@ int compare (const UserChar str[], const char s[], const char bits [2])
     return str->c ? int (s - beg) : -1;
 }
 
-
-#ifndef _RWSTD_NO_MEMBER_TEMPLATES
 
 // call the bitset<N>::to_string() member function template,
 // explicitly specifying all three template arguments,
@@ -972,8 +961,6 @@ bitset_to_string_1 (const std::bitset<N> &bs, int nfargs,
     return bs.template to_string<UserChar>(zero, one);
 }
 
-#endif   // _RWSTD_NO_MEMBER_TEMPLATES
-
 
 // call the bitset<N>::to_string() ordinary member function,
 // explicitly specifying none of the three template arguments,
@@ -1060,8 +1047,6 @@ void test_to_string (std::bitset<N>*, charT*, Traits*, Alloc*,
     assign (one, 'x');
 
     int pos;
-
-#ifndef _RWSTD_NO_MEMBER_TEMPLATES
 
     ////////////////////////////////////////////////////////////////////////
     // exercise the overload of the to_string() member function template
@@ -1216,8 +1201,6 @@ void test_to_string (std::bitset<N>*, charT*, Traits*, Alloc*,
                "mismatch at bit %d", N,
                to_string (ts.bits (), "ox").c_str (),
                TO_STR (str1), pos);
-
-#endif   // _RWSTD_NO_MEMBER_TEMPLATES
 
 
     ////////////////////////////////////////////////////////////////////////

@@ -28,6 +28,7 @@
  **************************************************************************/
 
 #include <rw_driver.h>
+#include <rw/_defs.h>
 
 // compile out all test code if extensions disabled
 #ifndef _RWSTD_NO_EXT_CXX_0X
@@ -107,7 +108,7 @@ void test_integral_constant(const char* name, const char* value)
 
     // verify that the type typedef is correct
     const bool e =
-        test_is_same<_TYPENAME integral_constant_type::type,
+        test_is_same<typename integral_constant_type::type,
                      integral_constant_type>::value;
     rw_assert (e, 0, __LINE__,
                "integral_constant<%s, %s>::type is%{?}n't%{;} "
@@ -125,7 +126,7 @@ void test_required_type (const char* name, const char* value)
 
     // verify the type of the type typedef
     const bool a =
-        test_is_same<_TYPENAME integral_constant_type::value_type, bool>::value;
+        test_is_same<typename integral_constant_type::value_type, bool>::value;
     rw_assert (a, 0, __LINE__,
                "%s::value_type is%{?}n't%{;} same as bool",
                name, !a);
@@ -144,7 +145,7 @@ void test_required_type (const char* name, const char* value)
                "%s is%{?}n't%{;} of type integral_constant<bool, %s>",
                name, !c, value);
 
-    test_integral_constant<_TYPENAME integral_constant_type::value_type,
+    test_integral_constant<typename integral_constant_type::value_type,
                            Value>("bool", value);
 }
 

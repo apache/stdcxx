@@ -77,7 +77,7 @@ public:
     valarray () { }
 
     // 26.3.2.1, p2
-    _EXPLICIT valarray (_RWSTD_SIZE_T __size)
+    explicit valarray (_RWSTD_SIZE_T __size)
         : _C_array (value_type (), __size) { }
 
     // 26.3.2.1, p3
@@ -238,12 +238,12 @@ __rw_unary_function (const _STD::valarray<_TypeT> &__val, _UnaryFunction __fun)
 
 // implements symmetric non-member valarray binary operators
 template<class _TypeT, class _BinaryFunction>
-inline _STD::valarray<_TYPENAME _BinaryFunction::result_type>
+inline _STD::valarray<typename _BinaryFunction::result_type>
 __rw_binary_function (const _STD::valarray<_TypeT> &__lhs, 
                       const _STD::valarray<_TypeT> &__rhs, 
                       _BinaryFunction               __fun)
 {
-    typedef _TYPENAME _BinaryFunction::result_type                result_type;
+    typedef typename _BinaryFunction::result_type                result_type;
     typedef _STD::raw_storage_iterator<result_type*, result_type> _Iter;
 
     // allocate but do not initialize
@@ -261,11 +261,11 @@ __rw_binary_function (const _STD::valarray<_TypeT> &__lhs,
 
 // implements asymmetric non-member valarray binary operators
 template<class _TypeT, class _BinaryFunction>
-inline _STD::valarray<_TYPENAME _BinaryFunction::result_type>
+inline _STD::valarray<typename _BinaryFunction::result_type>
 __rw_binary_function (const _STD::valarray<_TypeT> &__val, 
                       _BinaryFunction               __fun)
 {
-    typedef _TYPENAME _BinaryFunction::result_type                result_type;
+    typedef typename _BinaryFunction::result_type                result_type;
     typedef _STD::raw_storage_iterator<result_type*, result_type> _Iter;
 
     // allocate but do not initialize

@@ -318,25 +318,12 @@ _C_insert_n (const iterator &__it, size_type __n, const_reference __x)
 }
 
 
-#ifndef _RWSTD_NO_MEMBER_TEMPLATES
-
 template<class _TypeT, class _Allocator>
 template<class _InputIter>
 void vector<_TypeT, _Allocator>::
 _C_assign_range (_InputIter __first, _InputIter __last, input_iterator_tag)
 {
     vector* const __self = this;
-
-#else   // if defined (_RWSTD_NO_MEMBER_TEMPLATES)
-
-template<class _TypeT, class _Allocator, class _InputIter>
-void 
-__rw_assign_range (vector<_TypeT, _Allocator> *__self,
-                   _InputIter __first, _InputIter __last, input_iterator_tag)
-{
-    typedef _TYPENAME vector<_TypeT, _Allocator>::iterator iterator;
-
-#endif   // _RWSTD_NO_MEMBER_TEMPLATES
 
     _RWSTD_ASSERT_RANGE (__first, __last);
 
@@ -384,31 +371,12 @@ __rw_assign_range (vector<_TypeT, _Allocator> *__self,
 }
 
 
-#ifndef _RWSTD_NO_MEMBER_TEMPLATES
-
 template <class _TypeT, class _Allocator>
 template <class _FwdIter>
 void vector<_TypeT, _Allocator>::
 _C_assign_range (_FwdIter __first, _FwdIter __last, forward_iterator_tag)
 {
     vector* const __self = this;
-
-#else   // if defined (_RWSTD_NO_MEMBER_TEMPLATES)
-
-template <class _TypeT, class _Allocator, class _FwdIter>
-void
-__rw_assign_range (vector<_TypeT, _Allocator> *__self,
-                   _FwdIter __first, _FwdIter __last, forward_iterator_tag)
-{
-    typedef _TYPENAME vector<_TypeT, _Allocator>::value_type value_type;
-    typedef _TYPENAME vector<_TypeT, _Allocator>::allocator_type
-        allocator_type;
-    typedef _TYPENAME vector<_TypeT, _Allocator>::_C_value_alloc_type
-        _C_value_alloc_type;
-    typedef _TYPENAME vector<_TypeT, _Allocator>::size_type size_type;
-    typedef _TYPENAME vector<_TypeT, _Allocator>::iterator  iterator;
-
-#endif   // _RWSTD_NO_MEMBER_TEMPLATES
 
     _RWSTD_ASSERT_RANGE (__first, __last);
 
@@ -477,8 +445,6 @@ __rw_assign_range (vector<_TypeT, _Allocator> *__self,
 }
 
 
-#ifndef _RWSTD_NO_MEMBER_TEMPLATES
-
 template <class _TypeT, class _Allocator>
 template <class _InputIter>
 void vector<_TypeT, _Allocator>::
@@ -486,21 +452,6 @@ _C_insert_range (iterator __it, _InputIter __first, _InputIter __last,
                  input_iterator_tag)
 {
     vector* const __self = this;
-
-#else   // if defined (_RWSTD_NO_MEMBER_TEMPLATES)
-
-template <class _TypeT, class _Allocator, class _VectorIter, class _InputIter>
-void
-__rw_insert_range (vector<_TypeT, _Allocator> *__self, _VectorIter __it,
-                   _InputIter __first, _InputIter __last, input_iterator_tag)
-{
-    typedef _TYPENAME vector<_TypeT, _Allocator>::value_type value_type;
-    typedef _TYPENAME vector<_TypeT, _Allocator>::allocator_type
-        allocator_type;
-    typedef _TYPENAME vector<_TypeT, _Allocator>::size_type size_type;
-    typedef _TYPENAME vector<_TypeT, _Allocator>::pointer   pointer;
-
-#endif   // _RWSTD_NO_MEMBER_TEMPLATES
 
     _RWSTD_ASSERT_RANGE (__it, end ());
     _RWSTD_ASSERT_RANGE (__first, __last);
@@ -578,8 +529,6 @@ __rw_insert_range (vector<_TypeT, _Allocator> *__self, _VectorIter __it,
 }
 
 
-#ifndef _RWSTD_NO_MEMBER_TEMPLATES
-
 template <class _TypeT, class _Allocator>
 template <class _FwdIter>
 void vector<_TypeT, _Allocator>::
@@ -587,25 +536,6 @@ _C_insert_range (iterator __it, _FwdIter __first, _FwdIter __last,
                  forward_iterator_tag)
 {
     vector* const __self = this;
-
-#else   // if defined (_RWSTD_NO_MEMBER_TEMPLATES)
-
-template <class _TypeT, class _Allocator, class _VectorIter, class _FwdIter>
-void
-__rw_insert_range (vector<_TypeT, _Allocator> *__self,  _VectorIter __it,
-                   _FwdIter __first, _FwdIter __last,
-                   forward_iterator_tag)
-{
-    typedef _TYPENAME vector<_TypeT, _Allocator>::value_type value_type;
-    typedef _TYPENAME vector<_TypeT, _Allocator>::allocator_type
-        allocator_type;
-    typedef _TYPENAME vector<_TypeT, _Allocator>::_C_value_alloc_type
-        _C_value_alloc_type;
-    typedef _TYPENAME vector<_TypeT, _Allocator>::size_type size_type;
-    typedef _TYPENAME vector<_TypeT, _Allocator>::pointer pointer;
-    typedef _TYPENAME vector<_TypeT, _Allocator>::iterator iterator;
-
-#endif   // _RWSTD_NO_MEMBER_TEMPLATES
 
     _RWSTD_ASSERT_RANGE (__it, end ());
     _RWSTD_ASSERT_RANGE (__first, __last);
@@ -732,7 +662,6 @@ __rw_insert_range (vector<_TypeT, _Allocator> *__self,  _VectorIter __it,
 
 #ifndef _RWSTD_NO_BOOL
 
-#ifndef _RWSTD_NO_MEMBER_TEMPLATES
 // The body of this function is duplicated in src/vecbool.cpp and
 // further down in this file as well.
 #if !defined (_RWSTD_NO_CLASS_PARTIAL_SPEC) 
@@ -768,7 +697,6 @@ __rw_insert_range (vector<_TypeT, _Allocator> *__self,  _VectorIter __it,
       _C_begin = iterator(__q, 0);
     }
   }
-#endif // _RWSTD_NO_MEMBER_TEMPLATES
 
 #ifndef _RWSTD_NO_CLASS_PARTIAL_SPEC
 
@@ -849,35 +777,6 @@ _C_insert (iterator __it, bool __x)
     }
   }
 
-
-#ifdef _RWSTD_NO_MEMBER_TEMPLATES
-  template <class _Allocator>
-  void vector<bool,_Allocator >::insert (iterator       __it,
-                                         const_iterator __first,
-                                         const_iterator __last)
-  {
-    if (__first == __last) return;
-    size_type __n = _DISTANCE(__first, __last, size_type);
-    if (capacity() - size() >= __n)
-    {
-      _C_copy_backward(__it, end(), _C_end + __n);
-      _C_copy(__first, __last, __it);
-      _C_end += __n;
-    }
-    else
-    {
-      size_type __len = size() + (max)(size(), __n);
-      unsigned int* __q = _C_bit_alloc(__len);
-      iterator __i = _C_copy(begin(), __it, iterator(__q, 0));
-      __i = _C_copy(__first, __last, __i);
-      _C_end = _C_copy(__it, end(), __i);
-      _C_value_alloc_type (*this).
-          deallocate((pointer)_C_begin._C_p,_C_bufend - _C_begin._C_p);
-      _C_bufend = __q + (__len + _RWSTD_WORD_BIT - 1)/_RWSTD_WORD_BIT;
-      _C_begin = iterator(__q, 0);
-    }
-  }
-#endif // _RWSTD_NO_MEMBER_TEMPLATES
 
   template <class _Allocator>
   void vector<bool,_Allocator >::resize (size_type __new_size, bool __c)

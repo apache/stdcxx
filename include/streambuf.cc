@@ -49,7 +49,7 @@ basic_streambuf (ios_base::openmode __mode /* = ios_base::in | ios_base::out */)
 
 
 template <class _CharT, class _Traits>
-_TYPENAME basic_streambuf<_CharT, _Traits>::int_type
+typename basic_streambuf<_CharT, _Traits>::int_type
 basic_streambuf<_CharT, _Traits>::
 uflow ()
 {

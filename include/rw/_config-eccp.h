@@ -25,7 +25,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2001-2007 Rogue Wave Software, Inc.
+ * Copyright 2001-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -55,10 +55,6 @@
 #  define _RWSTD_NO_UNCAUGHT_EXCEPTION
 #endif   // _RWSTD_REENTRANT
 
-#ifndef _RWSTD_NO_MBSTATE_T
-#  define _RWSTD_NO_MBSTATE_T
-#endif   // _RWSTD_NO_MBSTATE_T
-
 #undef _RWSTD_NO_DEPRECATED_C_HEADERS
 #undef _RWSTD_NO_PURE_C_HEADERS
 
@@ -70,3 +66,38 @@
 #    define _RWSTD_NO_EXCEPTIONS
 #  endif   // _RWSTD_NO_EXCEPTIONS
 #endif   // __EXCEPTIONS
+
+#if (310 <= __EDG_VERSION__)
+#  define _RWSTD_TT_IS_ENUM(T)              __is_enum(T)
+#  define _RWSTD_TT_IS_UNION(T)             __is_union(T)
+#  define _RWSTD_TT_IS_CLASS(T)             __is_class(T)
+#  define _RWSTD_TT_IS_POD(T)               __is_pod(T)
+
+#  define _RWSTD_TT_IS_EMPTY(T)             __is_empty(T)
+#  define _RWSTD_TT_IS_POLYMORPHIC(T)       __is_polymorphic(T)
+
+// __is_convertible_to() fails for decay and void-void conversions
+//#  define _RWSTD_TT_IS_CONVERTIBLE(T,U)     __is_convertible_to(T,U)
+#  define _RWSTD_TT_IS_ABSTRACT(T)          __is_abstract(T)
+
+// __is_base_of() gives false positives for union types
+//#  define _RWSTD_TT_IS_BASE_OF(T,U)         __is_base_of(T,U)
+
+#  define _RWSTD_TT_HAS_TRIVIAL_CTOR(T)     __has_trivial_constructor(T)
+#  define _RWSTD_TT_HAS_TRIVIAL_COPY(T)     __has_trivial_copy(T)
+#  define _RWSTD_TT_HAS_TRIVIAL_ASSIGN(T)   __has_trivial_assign(T)
+#  define _RWSTD_TT_HAS_TRIVIAL_DTOR(T)     __has_trivial_destructor(T)
+
+#  define _RWSTD_TT_HAS_NOTHROW_CTOR(T)     __has_nothrow_constructor(T)
+#  define _RWSTD_TT_HAS_NOTHROW_COPY(T)     __has_nothrow_copy(T)
+#  define _RWSTD_TT_HAS_NOTHROW_ASSIGN(T)   __has_nothrow_assign(T)
+
+#  define _RWSTD_TT_HAS_VIRTUAL_DTOR(T)     __has_virtual_destructor(T)
+
+#  define _RWSTD_TT_ALIGN_OF(T)             __alignof__(T)
+#  define _RWSTD_TT_MAX_ALIGNMENT           16
+
+// need to find a way to align data
+//#  define _RWSTD_TT_ALIGNED_POD(N)          struct { double _C_align; }
+#endif   // __EDG_VERSION__ >= 3.10 
+

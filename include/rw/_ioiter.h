@@ -59,11 +59,11 @@ struct ostreambuf_iterator;
 template <class _CharT, class _Traits>
 struct istreambuf_iterator
     : iterator<input_iterator_tag, _CharT, 
-               _TYPENAME _Traits::off_type, _CharT*, _CharT&>
+               typename _Traits::off_type, _CharT*, _CharT&>
 {
     typedef _CharT                                  char_type;
     typedef _Traits                                 traits_type;
-    typedef _TYPENAME traits_type::int_type         int_type;
+    typedef typename traits_type::int_type         int_type;
     typedef basic_streambuf<char_type, traits_type> streambuf_type;
     typedef basic_istream<char_type, traits_type>   istream_type;
 
@@ -135,7 +135,7 @@ istreambuf_iterator (istream_type &__strm) _THROWS (())
 
 
 template <class _CharT, class _Traits>
-inline _TYPENAME istreambuf_iterator<_CharT, _Traits>::char_type
+inline typename istreambuf_iterator<_CharT, _Traits>::char_type
 istreambuf_iterator<_CharT, _Traits>::
 operator*() const
 {
@@ -161,7 +161,7 @@ operator++()
 
 
 template <class _CharT, class _Traits>
-inline _TYPENAME istreambuf_iterator<_CharT, _Traits>::_C_proxy 
+inline typename istreambuf_iterator<_CharT, _Traits>::_C_proxy 
 istreambuf_iterator<_CharT, _Traits>::
 operator++(int)
 {

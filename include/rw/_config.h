@@ -495,9 +495,4 @@
 #  undef _RWSTD_NO_TEMPLATE_DEFINITIONS
 #endif
 
-#ifndef _RWSTD_EXT_CXX_0X
-   // disable C++0x extensions unless asked to enable them
-#  define _RWSTD_NO_EXT_CXX_0X
-#endif
-
 #endif   // _RWSTD_RW_CONFIG_H_INCLUDED

@@ -62,7 +62,7 @@ _RWSTD_NAMESPACE (std) {
 #  define _RWSTD_ITER_TEMPLATE template <class _Iterator>
 #  define _RWSTD_ITER_ID(i)    i <_Iterator>
 #  define _RWSTD_ITER_DIFF_TYPE(i, ignore)                             \
-          _TYPENAME iterator_traits<_Iterator>::difference_type
+          typename iterator_traits<_Iterator>::difference_type
 #else
 #  define _RWSTD_ITER_TEMPLATE                                         \
           template <class _Iterator, class _Category, class _TypeT,    \
@@ -77,18 +77,18 @@ _RWSTD_NAMESPACE (std) {
 
 template <class _Iterator>
 class reverse_iterator
-    : public iterator<_TYPENAME iterator_traits<_Iterator>::iterator_category, 
-                      _TYPENAME iterator_traits<_Iterator>::value_type, 
-                      _TYPENAME iterator_traits<_Iterator>::difference_type,
-                      _TYPENAME iterator_traits<_Iterator>::pointer, 
-                      _TYPENAME iterator_traits<_Iterator>::reference>
+    : public iterator<typename iterator_traits<_Iterator>::iterator_category, 
+                      typename iterator_traits<_Iterator>::value_type, 
+                      typename iterator_traits<_Iterator>::difference_type,
+                      typename iterator_traits<_Iterator>::pointer, 
+                      typename iterator_traits<_Iterator>::reference>
 {
     typedef iterator_traits<_Iterator>             traits_type;
 public:
-    typedef _TYPENAME traits_type::difference_type difference_type;
-    typedef _TYPENAME traits_type::value_type      value_type;
-    typedef _TYPENAME traits_type::pointer         pointer;
-    typedef _TYPENAME traits_type::reference       reference;
+    typedef typename traits_type::difference_type difference_type;
+    typedef typename traits_type::value_type      value_type;
+    typedef typename traits_type::pointer         pointer;
+    typedef typename traits_type::reference       reference;
 
 #else   // if defined (_RWSTD_NO_CLASS_PARTIAL_SPEC)
 
@@ -113,18 +113,17 @@ public:
     reverse_iterator () { }
 
     // 24.4.1.3.1, p1
-    _EXPLICIT reverse_iterator (iterator_type __rhs) : current (__rhs) { }
+    explicit reverse_iterator (iterator_type __rhs) : current (__rhs) { }
  
 
-#ifndef _RWSTD_NO_MEMBER_TEMPLATES
-#  ifndef _RWSTD_NO_CLASS_PARTIAL_SPEC 
+#ifndef _RWSTD_NO_CLASS_PARTIAL_SPEC 
 
     // 24.4.1.3.1, p2
     template <class _TypeU>
     reverse_iterator (const reverse_iterator<_TypeU>& __rhs)
         : current (__rhs.base ()) { }
 
-#  else   // if defined (_RWSTD_NO_CLASS_PARTIAL_SPEC)
+#else   // if defined (_RWSTD_NO_CLASS_PARTIAL_SPEC)
 
     // 24.4.1.3.1, p2
     template <class _Iterator2, class _Category2, class _TypeU,
@@ -133,8 +132,7 @@ public:
                       _Reference2, _Pointer2, _Distance2>& __rhs)
         : current (__rhs.base ()) { }
 
-#  endif   // _RWSTD_NO_CLASS_PARTIAL_SPEC 
-#endif   // _RWSTD_NO_MEMBER_TEMPLATES
+#endif   // _RWSTD_NO_CLASS_PARTIAL_SPEC 
 
 
     // 24.4.1.3.2, p1
@@ -306,18 +304,17 @@ public:
 
     __reverse_bi_iterator () { }
 
-    _EXPLICIT __reverse_bi_iterator (const iterator_type &__rhs) 
+    explicit __reverse_bi_iterator (const iterator_type &__rhs) 
         : current (__rhs) { }
 
 
-#ifndef _RWSTD_NO_MEMBER_TEMPLATES
-#  ifndef _RWSTD_NO_CLASS_PARTIAL_SPEC 
+#ifndef _RWSTD_NO_CLASS_PARTIAL_SPEC 
 
       template <class _TypeU>
       __reverse_bi_iterator (const __reverse_bi_iterator<_TypeU>& __rhs)
           : current (__rhs.base ()) { }
 
-#  else   // if defined (_RWSTD_NO_CLASS_PARTIAL_SPEC )
+#else   // if defined (_RWSTD_NO_CLASS_PARTIAL_SPEC )
 
       template <class _Iterator2, class _Category2, class _TypeU,
                 class _Reference2, class _Pointer2, class _Distance2>
@@ -328,8 +325,7 @@ public:
                                                          _Pointer2,
                                                          _Distance2>& __rhs)
           : current (__rhs.base ()) { }
-#  endif
-#endif // _RWSTD_NO_MEMBER_TEMPLATES
+#endif
 
 
     iterator_type base () const {
@@ -401,10 +397,10 @@ _RWSTD_NAMESPACE (std) {
    // necessary to allow __iterator_category, __value_type, etc. to work
 #  define _RWSTD_INSERT_ITERATOR_BASE(cont)         \
           iterator<output_iterator_tag,             \
-                   _TYPENAME cont::value_type,      \
-                   _TYPENAME cont::difference_type, \
-                   _TYPENAME cont::pointer,         \
-                   _TYPENAME cont::reference>
+                   typename cont::value_type,      \
+                   typename cont::difference_type, \
+                   typename cont::pointer,         \
+                   typename cont::reference>
 #endif   // _RWSTD_NO_CLASS_PARTIAL_SPEC
 
 
@@ -414,11 +410,11 @@ class back_insert_iterator: public _RWSTD_INSERT_ITERATOR_BASE (_Container)
 public:
     typedef _Container container_type;
 
-    _EXPLICIT back_insert_iterator (container_type& __rhs)
+    explicit back_insert_iterator (container_type& __rhs)
         : container (&__rhs) { }
 
     back_insert_iterator&
-    operator= (_TYPENAME container_type::const_reference __x) {
+    operator= (typename container_type::const_reference __x) {
         return container->push_back (__x), *this;
     }
 
@@ -453,11 +449,11 @@ class front_insert_iterator: public _RWSTD_INSERT_ITERATOR_BASE (_Container)
 public:
     typedef _Container container_type;
 
-    _EXPLICIT front_insert_iterator (container_type& __rhs)
+    explicit front_insert_iterator (container_type& __rhs)
         : container (&__rhs) { }
 
     front_insert_iterator&
-    operator= (_TYPENAME container_type::const_reference __x) { 
+    operator= (typename container_type::const_reference __x) { 
         return container->push_front (__x), *this;
     }
 
@@ -493,11 +489,11 @@ public:
     typedef _Container container_type;
 
     insert_iterator (container_type                    &__x,
-                     _TYPENAME container_type::iterator __it)
+                     typename container_type::iterator __it)
       : iter (__it), container (&__x) { }
 
     insert_iterator&
-    operator= (_TYPENAME container_type::const_reference __x) { 
+    operator= (typename container_type::const_reference __x) { 
         iter = container->insert (iter, __x);
         return ++iter, *this;
     }
@@ -516,7 +512,7 @@ public:
 
 protected:
 
-    _TYPENAME container_type::iterator iter;
+    typename container_type::iterator iter;
     container_type*                    container;
 };
 
@@ -524,7 +520,7 @@ protected:
 template <class _Container, class _Iterator>
 inline insert_iterator<_Container> inserter (_Container& __x, _Iterator __it)
 {
-    typedef _TYPENAME _Container::iterator _Iter;
+    typedef typename _Container::iterator _Iter;
 
     return insert_iterator<_Container> (__x, _Iter (__it));
 }

@@ -167,11 +167,11 @@ public:
 
     // 23.3.5.1, p3
     template <class _CharT, class _Traits, class _Allocator>
-    _EXPLICIT
+    explicit
     bitset (const basic_string<_CharT, _Traits, _Allocator> &__str,
-            _TYPENAME basic_string<_CharT, _Traits,
+            typename basic_string<_CharT, _Traits,
                                    _Allocator>::size_type __pos = 0,
-            _TYPENAME basic_string<_CharT, _Traits,
+            typename basic_string<_CharT, _Traits,
                                    _Allocator>::size_type __n =
                                        _RWSTD_SIZE_MAX,
             _CharT __b0 = '0', _CharT __b1 = '1') {
@@ -187,7 +187,7 @@ public:
 
     // 23.3.5.1, p3
     template <class _CharT, class _Traits, class _Allocator>
-    _EXPLICIT
+    explicit
     bitset (const basic_string<_CharT, _Traits, _Allocator> &__str,
             _RWSTD_SIZE_T __pos = 0, _RWSTD_SIZE_T __n = _RWSTD_SIZE_MAX,
             _CharT __b0 = '0', _CharT __b1 = '1') {
@@ -201,10 +201,9 @@ public:
 
 
 #ifndef _RWSTD_NO_EXT_BITSET_CTOR_STRING
-#  ifndef _RWSTD_NO_MEMBER_TEMPLATE_OVERLOAD
 
     // extension
-    _EXPLICIT
+    explicit
     bitset (const string &__str,
             _RWSTD_SIZE_T __pos = 0, _RWSTD_SIZE_T __n = _RWSTD_SIZE_MAX,
             char __b0 = '0', char __b1 = '1') {
@@ -214,10 +213,10 @@ public:
                                    "size_t, size_t)"));
     }
 
-#    ifndef _RWSTD_NO_WCHAR_T
+#  ifndef _RWSTD_NO_WCHAR_T
 
     // extension
-    _EXPLICIT
+    explicit
     bitset (const wstring &__str,
             _RWSTD_SIZE_T __pos = 0, _RWSTD_SIZE_T __n = _RWSTD_SIZE_MAX,
             wchar_t __b0 = L'0', wchar_t __b1 = L'1') {
@@ -227,15 +226,14 @@ public:
                                    "size_t, size_t)"));
     }
 
-#    endif   // _RWSTD_NO_WCHAR_T
-#  endif   // _RWSTD_NO_MEMBER_TEMPLATE_OVERLOAD
+#  endif   // _RWSTD_NO_WCHAR_T
 #endif   // _RWSTD_NO_EXT_BITSET_CTOR_STRING
 
 
 #ifndef _RWSTD_NO_EXT_BITSET_CTOR_CHAR_ARRAY
 
     // extension
-    _EXPLICIT
+    explicit
     bitset (const char *__str,
             _RWSTD_SIZE_T __pos = 0, _RWSTD_SIZE_T __n = _RWSTD_SIZE_MAX,
             char __b0 = '0', char __b1 = '1') {
@@ -248,7 +246,7 @@ public:
 #  ifndef _RWSTD_NO_WCHAR_T
 
     // extension
-    _EXPLICIT
+    explicit
     bitset (const wchar_t *__str,
             _RWSTD_SIZE_T __pos = 0, _RWSTD_SIZE_T __n = _RWSTD_SIZE_MAX,
             wchar_t __b0 = L'0', wchar_t __b1 = L'1') {
@@ -264,7 +262,7 @@ public:
     // uses char_traits<CharT>::length() to compute the length of the string
     // and char_traits<CharT>::eq() to compare characters with `b0' and `b1'
     template <class _CharT>
-    _EXPLICIT
+    explicit
     bitset (const _CharT *__str,
             _RWSTD_SIZE_T __pos = 0, _RWSTD_SIZE_T __n = _RWSTD_SIZE_MAX,
             _CharT __b0 = '0', _CharT __b1 = '1') {
@@ -374,9 +372,7 @@ public:
     // 23.3.5.2, p31
     unsigned long to_ulong () const;
 
-#if    !defined (_RWSTD_NO_MEMBER_TEMPLATES) \
-    && !defined (_RWSTD_NO_TEMPLATE_ON_RETURN_TYPE) \
-    && !defined (_RWSTD_NO_MEMBER_TEMPLATE_OVERLOAD)
+#if !defined (_RWSTD_NO_TEMPLATE_ON_RETURN_TYPE)
 
     // 23.3.5.2, p33
     template <class _CharT, class _Traits, class _Allocator>
@@ -410,14 +406,14 @@ public:
 
 #  endif   // !_NO_EXT_BITSET_TO_STRING
 
-#else   // if _MEMBER_TEMPLATES || _NO_TEMPLATE_ON_RETURN_TYPE || ...
+#else   // if _NO_TEMPLATE_ON_RETURN_TYPE
 
     // 23.3.5.2, p33
     string to_string (char = '0', char = '1') const;
 
 # define _RWSTD_BITSET_TO_STRING(ign1, ign2)  to_string ()
 
-#endif   // !_NO_MEMBER_TEMPLATES && !_NO_TEMPLATE_ON_RETURN_TYPE && ...
+#endif   // !_NO_TEMPLATE_ON_RETURN_TYPE
 
     // 23.3.5.2, p35
     _RWSTD_SIZE_T count () const _THROWS (()) {
@@ -563,9 +559,7 @@ bitset<_Size>::to_ulong () const
 }
 
 
-#if    !defined (_RWSTD_NO_MEMBER_TEMPLATES) \
-    && !defined (_RWSTD_NO_TEMPLATE_ON_RETURN_TYPE) \
-    && !defined (_RWSTD_NO_MEMBER_TEMPLATE_OVERLOAD)
+#if !defined (_RWSTD_NO_TEMPLATE_ON_RETURN_TYPE)
 
 // 23.3.5.2, p33
 template <_RWSTD_SIZE_T _Size>
@@ -583,7 +577,7 @@ to_string (_CharT __b0 /* = '0' */, _CharT __b1 /* = '1' */) const
     return __s;
 }
 
-#else   // _NO_MEMBER_TEMPLATES || _NO_TEMPLATE_ON_RETURN_TYPE ...
+#else   // _NO_TEMPLATE_ON_RETURN_TYPE
 
 // 23.3.5.2, p33
 template <_RWSTD_SIZE_T _Size>
@@ -600,7 +594,7 @@ to_string (char __b0 /* = '0' */, char __b1 /* = '1' */) const
     return __s;
 }
 
-#endif   // !_NO_MEMBER_TEMPLATES && !_NO_TEMPLATE_ON_RETURN_TYPE ...
+#endif   // !_NO_TEMPLATE_ON_RETURN_TYPE
 
 
 // 23.3.5.3, p1

@@ -24,10 +24,6 @@
 
 #include "config.h"
 
-#ifdef _RWSTD_NO_TYPENAME
-#  define typename
-#endif
-
 
 // T::I is not deducible directly, but can be
 // deduced if the T in const T* can (14.8.2.4, p3)

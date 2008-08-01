@@ -494,20 +494,6 @@
 #endif // _RWSTD_NO_BOOL
 
 
-#ifndef _RWSTD_NO_TYPENAME
-#  define _TYPENAME   typename
-#else
-#  define _TYPENAME   /* empty */
-#endif
-
-
-#ifndef _RWSTD_NO_EXPLICIT
-#  define _EXPLICIT   explicit
-#else
-#  define _EXPLICIT   /* empty */
-#endif
-
-
 #ifndef _RWSTD_NO_EXPORT
 #  define _EXPORT   export
 #else
@@ -896,10 +882,10 @@
 #ifdef _RWSTD_ALLOCATOR
 #  ifndef _RWSTD_NO_DEPENDENT_TEMPLATE
 #    define _RWSTD_REBIND(from, to) \
-            _TYPENAME from::template rebind < to >::other
+            typename from::template rebind < to >::other
 #  else
 #    define _RWSTD_REBIND(from, to) \
-            _TYPENAME from:: rebind < to >::other
+            typename from:: rebind < to >::other
 #  endif   // _RWSTD_NO_DEPENDENT_TEMPLATE
 
 #  define _RWSTD_ALLOC_TYPE(Allocator, ignore)        \
@@ -1044,30 +1030,30 @@
 // _Iterator typedefs
 // (note that you must use a semi-colon at the end of this macro)
 #define _RWSTD_ITERATOR_TYPES(_Iterator)                               \
-     typedef _TYPENAME _Iterator::difference_type difference_type;     \
-     typedef _TYPENAME _Iterator::value_type value_type;               \
-     typedef _TYPENAME _Iterator::pointer pointer;                     \
-     typedef _TYPENAME _Iterator::reference reference;                 \
-     typedef _TYPENAME _Iterator::iterator_category iterator_category
+     typedef typename _Iterator::difference_type difference_type;     \
+     typedef typename _Iterator::value_type value_type;               \
+     typedef typename _Iterator::pointer pointer;                     \
+     typedef typename _Iterator::reference reference;                 \
+     typedef typename _Iterator::iterator_category iterator_category
 
 // helpers making working w/o iterator_traits transparent
 #ifndef _RWSTD_NO_CLASS_PARTIAL_SPEC
 
 #  define _RWSTD_VALUE_TYPE(iterT) \
-       (_TYPENAME _STD::iterator_traits< iterT >::value_type*)0
+       (typename _STD::iterator_traits< iterT >::value_type*)0
 #  define _RWSTD_DIFFERENCE_TYPE(iterT)   \
-       (_TYPENAME _STD::iterator_traits< iterT >::difference_type*)0
+       (typename _STD::iterator_traits< iterT >::difference_type*)0
 
 #  if defined (SNI) || defined (__SUNPRO_CC) && __SUNPRO_CC <= 0x530
      // hacking around the inability of Siemens CDS++ and SunPro 5.3
      // to use the ctor syntax for type-dependent nested type names
 #    define _RWSTD_ITERATOR_CATEGORY(iterT, ignore) \
-         (const _TYPENAME _STD::iterator_traits< iterT >::iterator_category&) \
+         (const typename _STD::iterator_traits< iterT >::iterator_category&) \
          (_STD::forward_iterator_tag ())
 
 #  else
 #    define _RWSTD_ITERATOR_CATEGORY(iterT, ignore) \
-         _TYPENAME _STD::iterator_traits< iterT >::iterator_category ()
+         typename _STD::iterator_traits< iterT >::iterator_category ()
 #  endif
 
 #  define _RWSTD_REVERSE_ITERATOR(iterT, ign1, ign2, ign3) \
@@ -1560,9 +1546,6 @@ _RWSTD_NAMESPACE (std) {
 #    ifndef _RWSTD_NO_SPECIALIZED_FACET_ID
 #      define _RWSTD_NO_SPECIALIZED_FACET_ID
 #    endif   // _RWSTD_NO_SPECIALIZED_FACET_ID
-#  else
-     // FIXME: handle the case when explicit member specialization
-     // is not available (e.g., MSVC 6)
 #  endif   // _RWSTD_NO_EXPLICIT_MEMBER_SPECIALIZATION
 #else   // if !defined (_RWSTD_NO_EXTERN_TEMPLATE)
    // no need to explicitly specialize the members when extern
@@ -1576,33 +1559,21 @@ _RWSTD_NAMESPACE (std) {
 
 // configuration for container class templates and their member
 // function templates
-#ifndef _RWSTD_NO_MEMBER_TEMPLATES
-   // member function template definitions outside the body
-   // of the parent container class template are enabled
 #  define _RWSTD_ASSIGN_RANGE(first, last, tag)     \
           _C_assign_range (first, last, tag)
 #  define _RWSTD_INSERT_RANGE(it, first, last, tag) \
           _C_insert_range (it, first, last, tag)
-#else
-   // when member function template definitions outside the body
-   // of the parent container class template are disabled, they
-   // are emulated using namespace-scope function templates
-#  define _RWSTD_ASSIGN_RANGE(first, last, tag)       \
-          __rw_assign_range (this, first, last, tag)
-#  define _RWSTD_INSERT_RANGE(it, first, last, tag)   \
-          __rw_insert_range (this, it, first, last, tag)
-#endif   // _RWSTD_NO_MEMBER_TEMPLATES
 
 
-#if defined (va_copy) || !defined _RWSTD_NO_VA_COPY
+#if 2 < __GNUG__
+   // use gcc builtin by default
+#  define _RWSTD_VA_COPY(va_dst, va_src) \
+          __builtin_va_copy (va_dst, va_src)
+#elif defined (va_copy) || !defined _RWSTD_NO_VA_COPY
    // either va_copy() is already #defined (because <stdarg.h>
    // is already #included), or it was detected at configuration
 #  define _RWSTD_VA_COPY(va_dst, va_src) \
           va_copy (va_dst, va_src)
-#elif 2 < __GNUG__
-   // no va_copy() macro detected, use gcc builtin
-#  define _RWSTD_VA_COPY(va_dst, va_src) \
-          __builtin_va_copy (va_dst, va_src)
 #elif defined (_RWSTD_NO_VA_LIST_ARRAY)
    // va_list is not an array, use ordinary assignment to copy
 #  define _RWSTD_VA_COPY(va_dst, va_src) \
@@ -1612,5 +1583,16 @@ _RWSTD_NAMESPACE (std) {
 #  define _RWSTD_VA_COPY(va_dst, va_src) \
           memcpy (va_dst, va_src, sizeof (va_list))
 #endif   // _RWSTD_NO_VA_LIST_ARRAY
+
+
+// disable aligned type traits if compiler support is not
+// configured
+#if    !defined (_RWSTD_TT_ALIGN_OF)    \
+    || !defined (_RWSTD_TT_ALIGNED_POD) \
+    || !defined (_RWSTD_TT_MAX_ALIGNMENT)
+#  ifndef _RWSTD_NO_ALIGN_TRAITS
+#    define _RWSTD_NO_ALIGN_TRAITS
+#  endif
+#endif
 
 #endif   // _RWSTD_RW_DEFS_H_INCLUDED
