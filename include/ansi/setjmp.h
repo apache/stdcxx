@@ -48,4 +48,8 @@ using std::longjmp;
 #  include _RWSTD_ANSI_C_SETJMP_H
 #endif   // _RWSTD_NO_DEPRECATED_C_HEADERS
 
+#ifndef setjmp
+#  define setjmp(env) setjmp (env)
+#endif
+
 #endif   // _RWSTD_SETJMP_H_INCLUDED

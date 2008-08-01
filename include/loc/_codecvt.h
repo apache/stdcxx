@@ -120,6 +120,8 @@ public:
 
     explicit codecvt (_RWSTD_SIZE_T __ref = 0): _RW::__rw_facet (__ref) { }
 
+    virtual ~codecvt () _RWSTD_ATTRIBUTE_NOTHROW;
+
     // 22,2,1,5,1, p1
     result out (state_type& __state,
                 const intern_type* __from, const intern_type* __from_end,
@@ -188,7 +190,7 @@ public:
 
     explicit codecvt (_RWSTD_SIZE_T = 0);
 
-    virtual ~codecvt ();
+    virtual ~codecvt () _RWSTD_ATTRIBUTE_NOTHROW;
 
     result out (state_type &__state,
                 const intern_type *__from, const intern_type* __from_end,
@@ -332,6 +334,8 @@ public:
 
     explicit codecvt (_RWSTD_SIZE_T = 0);
 
+    virtual ~codecvt () _RWSTD_ATTRIBUTE_NOTHROW;
+
     result out (state_type& __state,
                 const intern_type *__from, const intern_type *__from_end,
                 const intern_type *&__from_next,
@@ -398,7 +402,24 @@ public:
         : codecvt <_InternT, _ExternT, _StateT> (__ref) {
         this->_C_set_name (__name, _C_namebuf, sizeof _C_namebuf);
     }
+
+    virtual ~codecvt_byname () _RWSTD_ATTRIBUTE_NOTHROW;
 };
+
+
+_RWSTD_SPECIALIZED_CLASS
+class _RWSTD_EXPORT codecvt_byname<char, char, _RWSTD_MBSTATE_T>
+    : public codecvt<char, char, _RWSTD_MBSTATE_T>
+{
+    char _C_namebuf [32];
+
+public:
+
+    explicit codecvt_byname (const char*, _RWSTD_SIZE_T = 0);
+
+    virtual ~codecvt_byname () _RWSTD_ATTRIBUTE_NOTHROW;
+};
+
 
 
 #ifndef _RWSTD_NO_WCHAR_T
@@ -414,6 +435,8 @@ class _RWSTD_EXPORT codecvt_byname<wchar_t, char, _RWSTD_MBSTATE_T>
 public:
 
     explicit codecvt_byname (const char*, _RWSTD_SIZE_T = 0);
+
+    virtual ~codecvt_byname () _RWSTD_ATTRIBUTE_NOTHROW;
 
 protected:
 

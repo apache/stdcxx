@@ -25,7 +25,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2006 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -67,6 +67,8 @@ struct moneypunct: _RW::__rw_facet, public money_base
 
     explicit moneypunct (_RWSTD_SIZE_T __refs = 0)
         : _RW::__rw_facet (__refs) { }
+
+    virtual ~moneypunct () _RWSTD_ATTRIBUTE_NOTHROW;
 
     char_type decimal_point () const {
         return do_decimal_point ();
@@ -211,6 +213,8 @@ public:
         : moneypunct<_CharT, _Intl>(__ref) {
             this->_C_set_name (__name, _C_namebuf, sizeof _C_namebuf);
         }
+
+    virtual ~moneypunct_byname () _RWSTD_ATTRIBUTE_NOTHROW;
 };
 
 

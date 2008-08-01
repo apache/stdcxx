@@ -75,6 +75,8 @@ public:
     explicit time_get (_RWSTD_SIZE_T __ref = 0)
         : _RW::__rw_facet (__ref) { }
 
+    virtual ~time_get () _RWSTD_ATTRIBUTE_NOTHROW;
+
     dateorder date_order() const { 
         return do_date_order(); 
     }
@@ -207,6 +209,8 @@ public:
         : time_get<_CharT, _InputIter>(__ref) {
         this->_C_set_name (__name, _C_namebuf, sizeof _C_namebuf);
     }
+
+    virtual ~time_get_byname () _RWSTD_ATTRIBUTE_NOTHROW;
 };
 
 }   // namespace std
