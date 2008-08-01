@@ -397,7 +397,9 @@ void test_random_access_iterators (T, RandomAccessIterator)
 
     typedef RandomAccessIterator I;
 
-    RandomNumberGenerator<typename I::difference_type> rndgen;
+    typedef typename std::iterator_traits<I>::difference_type DiffT;
+
+    RandomNumberGenerator<DiffT> rndgen;
 
     std::random_shuffle (I (), I ());
     std::random_shuffle (I (), I (), rndgen);

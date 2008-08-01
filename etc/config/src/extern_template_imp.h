@@ -47,18 +47,6 @@ struct S
         return bar ();
     }
 
-#if defined (NO_MEMBER_TEMPLATES)
-
-    int inline_member_template (int) const {
-        return 0;
-    }
-
-    int member_template (int) const {
-        return 0;
-    }
-
-#else   // if !defined (NO_MEMBER_TEMPLATES)
-
     template <class U>
     U inline_member_template (U) const {
         return U ();
@@ -66,9 +54,6 @@ struct S
 
     template <class U>
     U member_template (U) const;
-
-#endif   // NO_MEMBER_TEMPLATES
-
 };
 
 template <class T>
@@ -87,16 +72,12 @@ T S<T>::foo () const
 #endif   // INSTANTIATE
 }
 
-#if !defined (NO_MEMBER_TEMPLATES)
-
 template <class T>
 template <class U>
 U S<T>::member_template (U) const
 {
     return U ();
 }
-
-#endif   // NO_MEMBER_TEMPLATES
 
 
 #if defined (INSTANTIATE)

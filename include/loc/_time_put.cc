@@ -61,7 +61,7 @@ _RW::__rw_facet_id time_put<_CharT, _OutputIter>::id;
 
 
 template <class _CharT, class _OutputIter /* = ostreambuf_iterator<_CharT> */ >
-/* virtual */ _TYPENAME time_put<_CharT, _OutputIter>::iter_type
+/* virtual */ typename time_put<_CharT, _OutputIter>::iter_type
 time_put<_CharT, _OutputIter>::
 do_put (iter_type __it, ios_base &__flags, char_type __fill,
         const tm *__tmb, char __fmt, char __modifier /* = 0 */) const
@@ -98,7 +98,7 @@ do_put (iter_type __it, ios_base &__flags, char_type __fill,
 
 
 template <class _CharT, class _OutputIter /* = ostreambuf_iterator<_CharT> */ >
-_TYPENAME time_put<_CharT, _OutputIter>::iter_type
+typename time_put<_CharT, _OutputIter>::iter_type
 time_put<_CharT, _OutputIter>::
 put (iter_type __it, ios_base &__flags, char_type __fill, const tm *__tmb,
      const char_type *__pat, const char_type *__end) const

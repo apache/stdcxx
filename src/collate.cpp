@@ -254,7 +254,7 @@ __rw_process_offsets (_RW::__rw_collate_t  *impl,
                     // non-ignore value will collate first
 
                     if (*weightp == 0) {
-                        typedef _TYPENAME _STR_T::value_type CharT;
+                        typedef typename _STR_T::value_type CharT;
 
                         const CharT ign =
                             _STD::numeric_limits<CharT>::max ();
@@ -276,7 +276,7 @@ __rw_process_offsets (_RW::__rw_collate_t  *impl,
                     weightp = weightp + 1 + pass * impl->longest_weight;
                     // non-ignore value will collate first
                     if (*weightp == 0) {
-                        typedef _TYPENAME _STR_T::value_type CharT;
+                        typedef typename _STR_T::value_type CharT;
 
                         const CharT ign =
                             _STD::numeric_limits<CharT>::max ();
@@ -292,7 +292,7 @@ __rw_process_offsets (_RW::__rw_collate_t  *impl,
             }
 
             // append a 1 to designate the end of the pass
-            typedef _TYPENAME _STR_T::value_type CharT;
+            typedef typename _STR_T::value_type CharT;
             out += CharT (1);
 
             cur_start = cur_end;

@@ -112,7 +112,7 @@ basic_ostream<_CharT, _Traits>::seekp (off_type __off, ios_base::seekdir __dir)
 
 
 template<class _CharT, class _Traits>
-_TYPENAME basic_ostream<_CharT, _Traits>::pos_type
+typename basic_ostream<_CharT, _Traits>::pos_type
 basic_ostream<_CharT, _Traits>::tellp ()
 {
     _RWSTD_ASSERT (0 != this->rdbuf ());

@@ -157,7 +157,7 @@ void test_auto_ptr (T*, const char *tname)
 
     // exercise 20.4.5, p2 - auto_ptr<> interface
 
-    typedef _TYPENAME std::auto_ptr<T>::element_type element_type;
+    typedef typename std::auto_ptr<T>::element_type element_type;
 
     // verify that element_type is the same as T
     element_type *elem = (T*)0;
@@ -192,13 +192,12 @@ void test_auto_ptr (T*, const char *tname)
     FUN (T*, T, release, () _PTR_THROWS (()));
     FUN (void, T, reset, (T*) _PTR_THROWS (()));
 
-#ifndef _RWSTD_NO_MEMBER_TEMPLATES
 
-#  if !defined(__GNUG__) || __GNUG__ > 3 || __GNUG__ == 3 && __GNUC_MINOR__ > 2
+#if !defined(__GNUG__) || __GNUG__ > 3 || __GNUG__ == 3 && __GNUC_MINOR__ > 2
 
      // g++ 2.95.2 and HP aCC can't take the address of a template member
 
-#    if !defined (__HP_aCC) || _RWSTD_HP_aCC_MAJOR > 5
+#  if !defined (__HP_aCC) || _RWSTD_HP_aCC_MAJOR > 5
 
     // SunPro incorrectly warns here (see PR #27276)
     FUN (std::auto_ptr<Base>&, Base,
@@ -206,24 +205,22 @@ void test_auto_ptr (T*, const char *tname)
 
        // SunPro 5.4 can't decide between a ctor template
        // and a conversion operator (see PR #24476)
-#      if !defined (__SUNPRO_CC) || __SUNPRO_CC > 0x540
+#    if !defined (__SUNPRO_CC) || __SUNPRO_CC > 0x540
 
-#        if !defined (_RWSTD_MSVC) || _RWSTD_MSVC > 1310
+#      if !defined (_RWSTD_MSVC) || _RWSTD_MSVC > 1310
     FUN (std::auto_ptr_ref<Base>, Derived,
          operator std::auto_ptr_ref<Base>, () _PTR_THROWS (()));
 
     FUN (std::auto_ptr<Base>, Derived,
          operator std::auto_ptr<Base>, () _PTR_THROWS (()));
 
-#        endif   // MSVC > 7.1
+#      endif   // MSVC > 7.1
 
-#      endif   // SunPro > 5.4
+#    endif   // SunPro > 5.4
 
-#    endif   // HP aCC > 5
+#  endif   // HP aCC > 5
 
-#  endif   // gcc > 3.2
-
-#endif   // _RWSTD_NO_MEMBER_TEMPLATES
+#endif   // gcc > 3.2
 
     rw_info (0, 0, 0, "[lib.auto.ptr.cons]");
 
@@ -291,22 +288,18 @@ test_auto_ptr_void ()
     ap1 = ap1;
     ap1.operator= (ap1);
 
-#ifndef _RWSTD_NO_MEMBER_TEMPLATES
-
-#  if !defined (__HP_aCC) || 6 <=  _RWSTD_HP_aCC_MAJOR
+#if !defined (__HP_aCC) || 6 <=  _RWSTD_HP_aCC_MAJOR
 
     // working around an HP aCC 3 and 5 bug (STDCXX-655)
 
     ap1.operator=<void>(ap1);
 
-#  endif   // !HP aCC or HP aCC 6 and better
+#endif   // !HP aCC or HP aCC 6 and better
 
     std::auto_ptr<int> ap4;
     ap1 = ap4;
     ap1.operator= (ap4);
     ap1.operator=<int>(ap4);
-
-#endif // _RWSTD_NO_MEMBER_TEMPLATES
 
     // operator*() cannot be instantiated
 
@@ -319,9 +312,7 @@ test_auto_ptr_void ()
     ap1.reset ();
     ap1.reset (pv);
 
-#ifndef _RWSTD_NO_MEMBER_TEMPLATES
-
-#  if !defined (__HP_aCC) || 6 <=  _RWSTD_HP_aCC_MAJOR
+#if !defined (__HP_aCC) || 6 <=  _RWSTD_HP_aCC_MAJOR
 
     // working around an HP aCC 3 and 5 bug (STDCXX-656)
 
@@ -331,14 +322,10 @@ test_auto_ptr_void ()
     _RWSTD_UNUSED (ar);
     _RWSTD_UNUSED (ap5);
 
-#  endif   // !HP aCC or HP aCC 6 and better
-#endif // _RWSTD_NO_MEMBER_TEMPLATES
-
+#endif   // !HP aCC or HP aCC 6 and better
 }
 
 /**************************************************************************/
-
-#ifndef _RWSTD_NO_MEMBER_TEMPLATES
 
 // exercise 20.4.5.4
 static std::auto_ptr<Derived>
@@ -422,7 +409,6 @@ test_auto_ptr_conversions ()
     }
 }
 
-#endif   // _RWSTD_NO_MEMBER_TEMPLATES
 
 /**************************************************************************/
 
@@ -444,8 +430,6 @@ run_test (int, char**)
     test_auto_ptr ((double*)0, "double");
     test_auto_ptr ((void**)0, "void*");
 
-#ifndef _RWSTD_NO_MEMBER_TEMPLATES
-
     int count = Base::cnt_;
 
     // exercise 20.4.5.4
@@ -457,8 +441,6 @@ run_test (int, char**)
     // verify that no objects leaked
     rw_assert (count == Base::cnt_, 0, __LINE__,
                "autoptr leaked %d objects", Base::cnt_ - count);
-
-#endif   // _RWSTD_NO_MEMBER_TEMPLATES
 
     if (!rw_enabled ("void"))
         rw_note (0, 0, 0, "auto_ptr<void> test disabled");

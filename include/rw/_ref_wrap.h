@@ -1,10 +1,12 @@
 // -*- C++ -*-
 /***************************************************************************
  *
+ * _ref_wrap.h - reference wrappers for <functional> header
+ *
  * This is an internal header file used to implement the C++ Standard
  * Library. It should never be #included directly by a program.
  *
- * $Id$
+ * $Id: _ref_wrap.h 673534 2008-07-02 22:49:15Z elemings $
  *
  ***************************************************************************
  *
@@ -24,8 +26,8 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2008 Rogue Wave Software.
- * 
+ * Copyright 2008 Rogue Wave Software, Inc.
+ *
  **************************************************************************/
 
 #ifndef _RWSTD_RW_REF_WRAP_INCLUDED
@@ -33,31 +35,76 @@
 
 #  include <rw/_defs.h>
 
-#  if !defined _RWSTD_NO_EXT_CXX_0X
+
+_RWSTD_NAMESPACE (std) {
 
 
-_RWSTD_NAMESPACE (__rw) {
+// 20.5.5, class template reference_wrapper:
 
-
-/**
- * @class std::reference_wrapper
- *
- * Encapsulates a reference as an object.  This class template allows
- * references to be manipulated and behave as an ordinary object.
- *
- * @tparam Type A non-reference type.
- */
-
-template <class _Type>
-class __rw_ref_wrap
+template <class _TypeT>
+class reference_wrapper
 {
+    _TypeT* _C_ptr;
 
+public:
+
+    typedef _TypeT  type;
+
+    reference_wrapper (type& __x)
+        : _C_ptr (&__x) { /* empty */ }
+
+    reference_wrapper (const reference_wrapper& __x)
+        : _C_ptr (__x._C_ptr) { /* empty */ }
+
+    reference_wrapper& operator= (const reference_wrapper& __x) {
+        _RWSTD_ASSERT (0 != __x._C_ptr);
+        _C_ptr = __x._C_ptr;
+        return *this;
+    }
+
+    operator type& () const {
+        _RWSTD_ASSERT (0 != _C_ptr);
+        return *_C_ptr;
+    }
+
+    type& get() const {
+        _RWSTD_ASSERT (0 != _C_ptr);
+        return *_C_ptr;
+    }
 };
 
 
-}   // namespace __rw
+template <class _TypeT>
+inline reference_wrapper<_TypeT>
+ref (_TypeT& __x)
+{
+    return reference_wrapper<_TypeT> (__x);
+}
+
+template <class _TypeT>
+inline reference_wrapper<_TypeT>
+ref (reference_wrapper<_TypeT>& __x)
+{
+    return reference_wrapper<_TypeT> (__x);
+}
 
 
-#  endif   // !defined _RWSTD_NO_EXT_CXX_0X
+template <class _TypeT>
+inline reference_wrapper<const _TypeT>
+cref (const _TypeT& __x)
+{
+    return reference_wrapper<const _TypeT> (__x);
+}
+
+template <class _TypeT>
+inline reference_wrapper<const _TypeT>
+cref (reference_wrapper<const _TypeT>& __x)
+{
+    return reference_wrapper<const _TypeT> (__x);
+}
+
+
+}   // namespace std
+
 
 #endif   // _RWSTD_RW_REF_WRAP_INCLUDED

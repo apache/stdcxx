@@ -58,7 +58,7 @@ struct num_get: _RW::__rw_facet
 
     static _RW::__rw_facet_id id;
 
-    _EXPLICIT num_get (_RWSTD_SIZE_T __refs = 0)
+    explicit num_get (_RWSTD_SIZE_T __refs = 0)
         : _RW::__rw_facet (__refs) { }
 
 #ifndef _RWSTD_NO_NATIVE_BOOL

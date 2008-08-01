@@ -96,8 +96,6 @@ class auto_ptr;
 template <class _TypeT>
 class auto_ptr_ref 
 {
-#ifndef _RWSTD_NO_MEMBER_TEMPLATES
-
     template <class _TypeU>
     friend class auto_ptr;
 
@@ -106,16 +104,6 @@ class auto_ptr_ref
     template <class _TypeU>
     auto_ptr_ref (auto_ptr<_TypeU>& __rhs, const _TypeU* = 0) _THROWS (())
         : _C_ptr (_RWSTD_REINTERPRET_CAST (auto_ptr<_TypeT>&, __rhs)) { }
-
-#else   // if defined (_RWSTD_NO_MEMBER_TEMPLATES)
-
-public:
-
-    // useless, auto_ptr_ref necessary only for auto_ptr conversions
-    auto_ptr_ref (auto_ptr<_TypeT>& __rhs, const _TypeT* = 0) _THROWS (())
-        : _C_ptr (__rhs) { }
-
-#endif   // _RWSTD_NO_MEMBER_TEMPLATES
 
     // reference to the owning auto_ptr object
     auto_ptr<_TypeT>& _C_ptr;
@@ -129,7 +117,7 @@ public:
     typedef _TypeT element_type;
 
     // 20.4.5.1, p1
-    _EXPLICIT auto_ptr (element_type* __p = 0) _THROWS (())
+    explicit auto_ptr (element_type* __p = 0) _THROWS (())
      : _C_ptr (__p) { }
 
     // 20.4.5.1, p2
@@ -146,8 +134,6 @@ public:
     ~auto_ptr () _THROWS (()) {
         delete _C_ptr;
     }
-
-#ifndef _RWSTD_NO_MEMBER_TEMPLATES
 
     // 20.4.5.1, p4
     template <class _TypeU>
@@ -174,17 +160,8 @@ public:
         return auto_ptr<_TypeU>(release ());
     }
 
-#else   // if defined (_RWSTD_NO_MEMBER_TEMPLATES)
-
-    // 20.4.5.3, p3 (limited to T == U)
-    operator auto_ptr_ref<_TypeT>() _THROWS (()) {
-        return auto_ptr_ref<_TypeT>(*this, _C_ptr);
-    }
-
-#endif   // _RWSTD_NO_MEMBER_TEMPLATES
-
     // 20.4.5.2, p1
-    _TYPENAME _RW::__rw_nonvoid_ref<element_type>::_C_ref
+    typename _RW::__rw_nonvoid_ref<element_type>::_C_ref
     operator* () const _THROWS (()) {
         _RWSTD_ASSERT (0 != get ());
         return *get (); 

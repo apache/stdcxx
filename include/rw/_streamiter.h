@@ -79,7 +79,7 @@ public:
     typedef basic_istream<char_type, traits_type> istream_type;
 
     // for convenience
-    typedef _TYPENAME _C_base::value_type         value_type;
+    typedef typename _C_base::value_type         value_type;
 
     // 24.5.1.1, p1
     istream_iterator (): _C_strm (0) { }

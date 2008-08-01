@@ -124,36 +124,6 @@ insert (iterator pos, size_type __n, const bool& __x)
 }
 
 
-#  ifdef _RWSTD_NO_MEMBER_TEMPLATES
-
-// The body of this function is duplicated in include/vector.cc
-void vector<bool, allocator<bool> >::
-insert (iterator pos, const_iterator __first, const_iterator __last)
-{
-    if (__first == __last)
-        return;
-
-    size_type __n = _DISTANCE (__first, __last, size_type);
-    if (capacity() - size() >= __n) {
-        _C_copy_backward(pos, end(), _C_end + __n);
-        _C_copy(__first, __last, pos);
-        _C_end += __n;
-    }
-    else {
-        size_type __len = size() + max(size(), __n);
-        unsigned int* __q = _C_bit_alloc(__len);
-        iterator __i = _C_copy(begin(), pos, iterator(__q, 0));
-        __i = _C_copy(__first, __last, __i);
-        _C_end = _C_copy(pos, end(), __i);
-        _C_value_alloc_type (*this).
-            deallocate(_C_begin._C_p,_C_bufend-_C_begin._C_p);
-        _C_bufend = __q + (__len + _RWSTD_WORD_BIT - 1)/_RWSTD_WORD_BIT;
-        _C_begin = iterator(__q, 0);
-    }
-}
-
-#  endif   // _RWSTD_NO_MEMBER_TEMPLATES
-
 void vector<bool, allocator<bool> >::
 resize (size_type __new_size, bool __c)
 {

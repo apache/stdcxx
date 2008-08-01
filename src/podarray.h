@@ -89,7 +89,7 @@ public:
         *_C_pbuf = _TypeT ();
     }
 
-    _EXPLICIT __rw_pod_array (const _TypeT *__a)
+    explicit __rw_pod_array (const _TypeT *__a)
         : _C_len (_C_length (__a))
         // , _C_pbuf (_C_len < _Size ? _C_buffer : new _TypeT [_C_len + 1])
         {

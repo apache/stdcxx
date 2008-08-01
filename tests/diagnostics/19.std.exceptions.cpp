@@ -157,8 +157,6 @@ static int test_exception_defs ()
 
     _RWSTD_UNUSED (e);
 
-#ifndef _RWSTD_NO_EXPLICIT
-
     // verify that each exceptions converting ctor is explicit
     // use a pointer since std::string need not be a complete class
     const char s[40] = "";
@@ -168,8 +166,6 @@ static int test_exception_defs ()
     // verify that each exceptions converting ctor from const char*
     // (if one exists) is also explicit
     is_explicit (s);
-
-#endif   // _RWSTD_NO_EXPLICIT
 
     return result;
 }

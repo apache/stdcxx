@@ -177,12 +177,12 @@ _FwdIter adjacent_find (_FwdIter, _FwdIter, _BinaryPredicate);
 // 25.1.6 - Count [lib.alg.count]
 
 template <class _InputIter, class _TypeT>
-inline _TYPENAME iterator_traits<_InputIter>::difference_type
+inline typename iterator_traits<_InputIter>::difference_type
 count (_InputIter __first, _InputIter __last, const _TypeT &__val)
 {
     _RWSTD_ASSERT_RANGE (__first, __last);
 
-    _TYPENAME iterator_traits<_InputIter>::difference_type __n = 0;
+    typename iterator_traits<_InputIter>::difference_type __n = 0;
     for ( ; !(__first == __last); ++__first)
         if (*__first == __val)
             ++__n;
@@ -191,12 +191,12 @@ count (_InputIter __first, _InputIter __last, const _TypeT &__val)
 
 
 template <class _InputIter, class _Predicate>
-inline _TYPENAME iterator_traits<_InputIter>::difference_type
+inline typename iterator_traits<_InputIter>::difference_type
 count_if (_InputIter __first, _InputIter __last, _Predicate __pred)
 {
     _RWSTD_ASSERT_RANGE (__first, __last);
 
-    _TYPENAME iterator_traits<_InputIter>::difference_type __n = 0;
+    typename iterator_traits<_InputIter>::difference_type __n = 0;
     for ( ; !(__first == __last); ++__first)
         if (!(__pred (*__first) == false))
             ++__n;

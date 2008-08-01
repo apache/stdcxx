@@ -2,7 +2,7 @@
  *
  * 20.tuple.cnstr.cpp - tests exercising tuple constructors and operators
  *
- * $Id$
+ * $Id: 20.tuple.cnstr.cpp 677985 2008-07-18 18:05:55Z elemings $
  *
  ***************************************************************************
  *
@@ -22,39 +22,153 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2008 Rogue Wave Software.
- * 
+ * Copyright 2008 Rogue Wave Software, Inc.
+ *
  **************************************************************************/
 
+#include <rw_driver.h>
+
+// compile out all test code if extensions disabled
+#if    !defined (_RWSTD_NO_EXT_CXX_0X) \
+    && !defined(_RWSTD_NO_RVALUE_REFERENCES)
+
+#include <climits>              // for CHAR_MAX
+#include <cstdlib>              // for rand
+#include <cstring>              // for strcmp
 #include <tuple>
+#include <type_traits>          // for decay
+
+#include <rw_valcmp.h>          // for rw_fltcmp
+#include <rw_allocator.h>       // for UserAlloc
 
 #include "20.tuple.h"
 
 /**************************************************************************/
 
-#include <rw_driver.h>
+// general test function and underlying abstractions
+
+template <class T, class U = T>
+bool equal (const T& x, const U& y)
+{
+    return x == y;
+}
+
+template <>
+bool equal (const float& x, const float& y)
+{
+    return 0 == rw_fltcmp (x, y);
+}
+
+template <>
+bool equal (const char* const& x, const char* const& y)
+{
+    return 0 == std::strcmp (x, y);
+}
+
+
+template <class T, class U>
+void assert (int line, unsigned index, const char* tuple_name,
+             const T& t, const U& u)
+{
+    const char* fmtT = FMT_SPEC (T);
+    const char* fmtU = FMT_SPEC (U);
+    rw_assert (equal (t, u), __FILE__, line,
+               "get<%d, %s> (); got %{@}, expected %{@}",
+               index, tuple_name, fmtT, t, fmtU, u);
+}
+
+void assert (int line, unsigned index, const char* tuple_name,
+             const UserDefined& t, const UserDefined& u)
+{
+    rw_assert (equal (t, u), __FILE__, line,
+               "get<%d, %s> (); got %p [%d], expected %p [%d]",
+               index, tuple_name, &t, t.value (), &u, u.value ());
+
+    UserDefined::size_type a, e;
+
+#undef CHECK
+#define CHECK(N)          \
+    a = UserDefined::actual.N; e = UserDefined::expect.N; \
+    rw_assert (a == e, __FILE__, line, \
+               "UserDefined::" #N "; got %u, expected %u", a, e)
+
+    CHECK (dflt_ctor);
+    CHECK (copy_ctor);
+    CHECK (tmpl_ctor);
+    CHECK (move_ctor);
+    CHECK (copy_asgn);
+    CHECK (tmpl_asgn);
+    CHECK (move_asgn);
+}
+
+template <class T, class U>
+void assert (int line, unsigned index, const char* tuple_name,
+             const std::tuple<T>& t, const std::tuple<U>& u)
+{
+    const char* fmtT = FMT_SPEC (T);
+    const char* fmtU = FMT_SPEC (U);
+    rw_assert (equal (t, u), __FILE__, line,
+               "get<%d, %s> (); got %{@}, expected %{@}",
+               index, tuple_name,
+               fmtT, std::get<0> (t), fmtU, std::get<0> (u));
+}
+
+
+template <unsigned Index, class Tuple, class... Elements>
+/*static*/ void
+test_impl (int line, const Tuple& tuple, const Elements&... values);
+
+// terminating specialization
+template <unsigned Index, class Tuple>
+/*static*/ void
+test_impl (int, const Tuple&) {}
+
+// generic definition
+template <unsigned Index, class Tuple, class Element, class... Elements>
+/*static*/ void
+test_impl (int line, const Tuple& tuple,
+           const Element& value, const Elements&... values)
+{
+    // assume std::get() has been fully tested and works correctly
+    assert (line, Index, TYPE_NAME (Tuple),
+            std::get<Index> (tuple), value);
+
+    test_impl<Index+1> (line, tuple, values...);
+}
+
+template <class Tuple, class... Elements>
+/*static*/ void
+test (int line, const Tuple& tuple, const Elements&... values)
+{
+    test_impl<0> (line, tuple, values...);
+}
+
+/**************************************************************************/
 
 static void
 test_default_ctor ()
 {
     rw_info (0, __FILE__, __LINE__, "default constructor");
 
-    EmptyTuple et; _RWSTD_UNUSED (et);
-    IntTuple it; _RWSTD_UNUSED (it);
-    ConstIntTuple ct; _RWSTD_UNUSED (ct);
-    PairTuple pt; _RWSTD_UNUSED (pt);
-    NestedTuple nt; _RWSTD_UNUSED (nt);
-    BigTuple bt; _RWSTD_UNUSED (bt);
+    std::tuple<> et; _RWSTD_UNUSED (et);
+    // TODO: enable this test after implementing empty space optimization
+    //rw_assert (sizeof (et) == 0, __FILE__, __LINE__,
+                 //"sizeof (std::tuple<>); got %u, expected 0",
+                 //sizeof (et));
 
-    UserClass::reset_totals ();
-    UserTuple ut; _RWSTD_UNUSED (ut);
+    std::tuple<int> it; _RWSTD_UNUSED (it);
+    std::tuple<const int> ct; _RWSTD_UNUSED (ct);
+    // ill-formed for tuples with element types containing references
+    std::tuple<long, const char*> pt; _RWSTD_UNUSED (pt);
+    std::tuple<std::tuple<int> > nt; _RWSTD_UNUSED (nt);
+    std::tuple<bool, char, int, double, void*, UserDefined> bt;
+    _RWSTD_UNUSED (bt);
 
-    rw_assert (1 == UserClass::n_total_def_ctor_, __FILE__, __LINE__,
-               "tuple<UserClass>::tuple() called %d default ctors, "
-               "expected 1", UserClass::n_total_def_ctor_);
-    rw_assert (0 == UserClass::n_total_copy_ctor_, __FILE__, __LINE__,
-               "tuple<UserClass>::tuple() called %d copy ctors, "
-               "expected 0", UserClass::n_total_copy_ctor_);
+    UserDefined::reset ();
+    std::tuple<UserDefined> ut; _RWSTD_UNUSED (ut);
+    rw_assert (1 == UserDefined::actual.dflt_ctor, __FILE__, __LINE__,
+               "std::tuple<UserDefined> ut; called %d default ctors, "
+               "expected 1", UserDefined::actual.dflt_ctor);
 }
 
 /**************************************************************************/
@@ -64,29 +178,40 @@ test_value_copy_ctor ()
 {
     rw_info (0, __FILE__, __LINE__, "value copy constructor");
 
-    const int i = 1;
-    const IntTuple it (i);
-    ConstIntTuple ct (i); _RWSTD_UNUSED (ct);
-    NestedTuple nt (it);
+    const int i = std::rand ();
+    std::tuple<int> it1 (i);
+    test (__LINE__, it1, i);
 
-    const long l = 1;
-    const char* s = "string";
-    PairTuple pt (l, s);
+    const std::tuple<int> it2 (i);
+    test (__LINE__, it2, i);
 
-    UserClass::reset_totals ();
-    const UserClass uc;
-    UserTuple ut (uc); _RWSTD_UNUSED (ut);
+    std::tuple<const int> ct (i);
+    test (__LINE__, ct, i);
 
-    rw_assert (1 == UserClass::n_total_def_ctor_, __FILE__, __LINE__,
-               "tuple<UserClass>::tuple() called %d default ctors, "
-               "expected 1", UserClass::n_total_def_ctor_);
-    rw_assert (1 == UserClass::n_total_copy_ctor_, __FILE__, __LINE__,
-               "tuple<UserClass>::tuple() called %d copy ctors, "
-               "expected 1", UserClass::n_total_copy_ctor_);
+    int j = std::rand ();
+    const std::tuple<int&> rt (j);
+    test (__LINE__, rt, j);
+
+    std::tuple<std::tuple<int> > nt (it2);
+    //std::get<0> (it2) = std::rand (); // diliberately cause assertion
+    test (__LINE__, nt, it2);
+
+    const long l = std::rand ();
+    std::tuple<long, const char*> pt (l, "string");
+    test (__LINE__, pt, l, (const char*) "string");
+
+    const UserDefined ud (i);
+    UserDefined::reset ();
+    std::tuple<UserDefined> ut (ud);
+    UserDefined::expect.copy_ctor = 1;
+    test (__LINE__, ut, ud);
 
     const bool b = true; const char c = 'a';
-    const double d = 1.2; void* const p = 0;
-    BigTuple bt (b, c, i, d, p, uc); _RWSTD_UNUSED (bt);
+    const double d = 3.14159; void* const p = (void*) &i;
+    std::tuple<bool, char, int, double, void*, UserDefined>
+        bt (b, c, i, d, p, ud);
+    ++UserDefined::expect.copy_ctor;
+    test (__LINE__, bt, b, c, i, d, p, ud);
 }
 
 /**************************************************************************/
@@ -96,23 +221,48 @@ test_value_move_ctor ()
 {
     rw_info (0, __FILE__, __LINE__, "value move constructor");
 
-    IntTuple it (1); //_RWSTD_UNUSED (it);
-    ConstIntTuple ct (1); _RWSTD_UNUSED (ct);
-    PairTuple pt (1L, "string"); _RWSTD_UNUSED (pt);
-    //NestedTuple nt (it); _RWSTD_UNUSED (nt);
+#define INTEGER_CONSTANT        256
 
-    BigTuple bt (true, 'a', 1, 1.0, (void*)0, UserClass ());
-    _RWSTD_UNUSED (bt);
+    std::tuple<int> it1 (INTEGER_CONSTANT);
+    test (__LINE__, it1, INTEGER_CONSTANT);
+    const int c = std::rand ();
+    int i = c;   // move semantics can alter source value
+    std::tuple<int> it2 (i);   // temporary source value
+    test (__LINE__, it2, c);
 
-    UserClass::reset_totals ();
-    UserTuple ut (UserClass ()); _RWSTD_UNUSED (ut);
+    const std::tuple<int> it3 (INTEGER_CONSTANT);
+    test (__LINE__, it3, INTEGER_CONSTANT);
+    i = c;
+    const std::tuple<int> it4 (i);
+    test (__LINE__, it4, c);
 
-    rw_assert (0 == UserClass::n_total_def_ctor_, __FILE__, __LINE__,
-               "tuple<UserClass>::tuple() called %d default ctors, "
-               "expected 0", UserClass::n_total_def_ctor_);
-    rw_assert (0 == UserClass::n_total_copy_ctor_, __FILE__, __LINE__,
-               "tuple<UserClass>::tuple() called %d copy ctors, "
-               "expected 0", UserClass::n_total_copy_ctor_);
+    std::tuple<const int> ct1 (INTEGER_CONSTANT);
+    test (__LINE__, ct1, INTEGER_CONSTANT);
+    i = c;
+    std::tuple<const int> ct2 (i);
+    test (__LINE__, ct2, c);
+
+    // ill-formed for tuples with element types containing references
+
+    std::tuple<std::tuple<int> > nt (it1);
+    test (__LINE__, nt, it1);
+
+    std::tuple<long, const char*> pt (123456789L, "string");
+    test (__LINE__, pt, 123456789L, (const char*) "string");
+
+    const UserDefined src (c);
+    UserDefined tmp (src);
+    UserDefined::reset ();
+    std::tuple<UserDefined> ut (tmp);
+    UserDefined::expect.move_ctor = 1;
+    test (__LINE__, ut, src);
+
+    tmp = src;  ++UserDefined::expect.copy_asgn;
+    std::tuple<bool, char, int, double, void*, UserDefined>
+        bt (true, 'a', INTEGER_CONSTANT, 3.14159, (void*) 0, tmp);
+    ++UserDefined::expect.move_ctor;
+    test (__LINE__, bt,
+          true, 'a', INTEGER_CONSTANT, 3.14159, (void*) 0, src);
 }
 
 /**************************************************************************/
@@ -123,34 +273,44 @@ test_homo_copy_ctor ()
     rw_info (0, __FILE__, __LINE__,
              "copy constructor (homogenous tuples)");
 
-    EmptyTuple et1, et2 (et1);
+    std::tuple<> et1, et2 (et1);
     _RWSTD_UNUSED (et2);
 
-    const IntTuple it1;
-    IntTuple it2 (it1); _RWSTD_UNUSED (it2);
+    const int ci = std::rand ();
+    const std::tuple<int> it1 (ci);
+    std::tuple<int> it2 (it1);
+    test (__LINE__, it2, ci);
 
-    const ConstIntTuple ct1;
-    ConstIntTuple ct2 (ct1); _RWSTD_UNUSED (ct2);
+    const std::tuple<const int>& ct1 = it1; // same as copy ctor
+    std::tuple<const int> ct2 (ct1);
+    test (__LINE__, ct2, ci);
 
-    PairTuple pt1;
-    PairTuple pt2 (pt1); _RWSTD_UNUSED (pt2);
+    int i = ci;
+    const std::tuple<int&> rt1 (i);
+    std::tuple<int&> rt2 (rt1);
+    test (__LINE__, rt2, ci);
 
-    const NestedTuple nt1;
-    NestedTuple nt2 (nt1); _RWSTD_UNUSED (nt2);
+    const std::tuple<std::tuple<int> > nt1 (it1);
+    std::tuple<std::tuple<int> > nt2 (nt1);
+    test (__LINE__, nt2, it1);
 
-    UserClass::reset_totals ();
-    const UserTuple ut1; UserTuple ut2 (ut1);
-    _RWSTD_UNUSED (ut1);
+    const std::tuple<long, const char*> pt1 (1234567890L, "string");
+    std::tuple<long, const char*> pt2 (pt1);
+    test (__LINE__, pt2, 1234567890L, (const char*) "string");
 
-    rw_assert (1 == UserClass::n_total_def_ctor_, __FILE__, __LINE__,
-               "tuple<UserClass>::tuple() called %d default ctors, "
-               "expected 1", UserClass::n_total_def_ctor_);
-    rw_assert (1 == UserClass::n_total_copy_ctor_, __FILE__, __LINE__,
-               "tuple<UserClass>::tuple() called %d copy ctors, "
-               "expected 1", UserClass::n_total_copy_ctor_);
+    UserDefined ud (ci);
+    const std::tuple<UserDefined> ut1 (ud);
+    UserDefined::reset ();
+    std::tuple<UserDefined> ut2 (ut1);
+    ++UserDefined::expect.copy_ctor;
+    test (__LINE__, ut2, ud);
 
-    const BigTuple bt1; BigTuple bt2 (bt1);
-    _RWSTD_UNUSED (bt1); _RWSTD_UNUSED (bt2);
+    const std::tuple<bool, char, int, double, void*, UserDefined>
+        bt1 (true, 'a', ci, 3.14159, (void* const) &i, ud);
+    ++UserDefined::expect.move_ctor; // moved ud to bt1
+    std::tuple<bool, char, int, double, void*, UserDefined> bt2 (bt1);
+    ++UserDefined::expect.copy_ctor; // copied to bt2
+    test (__LINE__, bt2, true, 'a', ci, 3.14159, (void* const) &i, ud);
 }
 
 /**************************************************************************/
@@ -161,21 +321,40 @@ test_homo_move_ctor ()
     rw_info (0, __FILE__, __LINE__,
              "move constructor (homogenous tuples)");
 
-    EmptyTuple et (EmptyTuple ()); _RWSTD_UNUSED (et);
-    IntTuple it (IntTuple ()); _RWSTD_UNUSED (it);
-    ConstIntTuple ct (ConstIntTuple ()); _RWSTD_UNUSED (ct);
-    PairTuple pt (PairTuple ()); _RWSTD_UNUSED (pt);
-    NestedTuple nt (NestedTuple ()); _RWSTD_UNUSED (nt);
-    BigTuple bt (BigTuple ());
+    std::tuple<> et (std::tuple<> ()); _RWSTD_UNUSED (et);
 
-    UserClass::reset_totals ();
-    UserTuple ut (UserTuple ());
-    rw_assert (0 == UserClass::n_total_def_ctor_, __FILE__, __LINE__,
-               "tuple<UserClass>::tuple() called %d default ctors, "
-               "expected 0", UserClass::n_total_def_ctor_);
-    rw_assert (0 == UserClass::n_total_copy_ctor_, __FILE__, __LINE__,
-               "tuple<UserClass>::tuple() called %d copy ctors, "
-               "expected 0", UserClass::n_total_copy_ctor_);
+    const int ci = std::rand ();
+
+    std::tuple<int> it1 (ci);
+    std::tuple<int> it2 (std::move (it1));
+    test (__LINE__, it2, ci);
+
+    std::tuple<const int> ct1 (ci);
+    std::tuple<const int> ct2 = std::move (ct1);
+    test (__LINE__, ct2, ci);
+
+    std::tuple<std::tuple<int> > nt1 (it1);
+    std::tuple<std::tuple<int> > nt2 = std::move (nt1);
+    test (__LINE__, nt2, it1);
+
+    std::tuple<long, const char*> pt1 (1234567890L, "string");
+    std::tuple<long, const char*> pt2 (std::move (pt1));
+    test (__LINE__, pt2, 1234567890L, (const char*) "string");
+
+    const UserDefined ud (ci);
+    std::tuple<UserDefined> ut1 (ud);
+    UserDefined::reset ();
+    std::tuple<UserDefined> ut2 (std::move (ut1));
+    ++UserDefined::expect.move_ctor;
+    test (__LINE__, ut2, ud);
+
+    std::tuple<bool, char, int, double, void*, UserDefined>
+        bt1 (true, 'a', ci, 3.14159, (void*) &ci, ud);
+    ++UserDefined::expect.copy_ctor;
+    std::tuple<bool, char, int, double, void*, UserDefined>
+        bt2 (std::move (bt1));
+    ++UserDefined::expect.move_ctor;
+    test (__LINE__, bt2, true, 'a', ci, 3.14159, (void*) &ci, ud);
 }
 
 /**************************************************************************/
@@ -186,24 +365,49 @@ test_homo_copy_assign ()
     rw_info (0, __FILE__, __LINE__,
              "copy assignment operator (homogenous tuples)");
 
-    EmptyTuple et1, et2; et2 = et1;
-    IntTuple it1, it2; it2 = it1;
-    //ConstIntTuple ct1, ct2; ct2 = ct1;  // Can't assign to const element.
-    PairTuple pt1, pt2; pt2 = pt1;
-    NestedTuple nt1, nt2; nt2 = nt1;
-    BigTuple bt1, bt2; bt2 = bt1;
+    const std::tuple<> et1 = std::tuple<> ();
+    std::tuple<> et2;
+    et2 = et1;
+    _RWSTD_UNUSED (et2);
 
-    UserClass::reset_totals ();
-    UserTuple ut1, ut2; ut1 = ut2;
-    rw_assert (2 == UserClass::n_total_def_ctor_, __FILE__, __LINE__,
-               "tuple<UserClass>::tuple() called %d default ctors, "
-               "expected 2", UserClass::n_total_def_ctor_);
-    rw_assert (0 == UserClass::n_total_copy_ctor_, __FILE__, __LINE__,
-               "tuple<UserClass>::tuple() called %d copy ctors, "
-               "expected 0", UserClass::n_total_copy_ctor_);
-    rw_assert (1 == UserClass::n_total_op_assign_, __FILE__, __LINE__,
-               "tuple<UserClass>::tuple() called %d assign ops, "
-               "expected 1", UserClass::n_total_op_assign_);
+    int i = std::rand ();
+    const std::tuple<int> it1 (i);
+    std::tuple<int> it2;
+    it2 = it1;
+    test (__LINE__, it2, i);
+
+    // copy assignment ill-formed for constant element types
+
+    const std::tuple<int&> rt1 (i);
+    int j = -1; // outside range of rand()
+    std::tuple<int&> rt2 (j); // note, different reference
+    rt2 = rt1;
+    test (__LINE__, rt2, i);
+
+    std::tuple<std::tuple<int> > nt1 (it1);
+    std::tuple<std::tuple<int> > nt2;
+    nt2 = nt1;
+    test (__LINE__, nt2, it1);
+
+    const std::tuple<long, const char*> pt1 (long (i), "string");
+    std::tuple<long, const char*> pt2;
+    pt2 = pt1;
+    test (__LINE__, pt2, long (i), (const char*) "string");
+
+    const UserDefined ud (i);
+    const std::tuple<UserDefined> ut1 (ud);
+    std::tuple<UserDefined> ut2;
+    UserDefined::reset ();
+    ut2 = ut1;  ++UserDefined::expect.copy_asgn;
+    test (__LINE__, ut2, ud);
+
+    const std::tuple<bool, char, int, double, void*, UserDefined>
+        bt1 (true, 'a', i, 3.14159, (void* const) &i, ud);
+    ++UserDefined::expect.copy_ctor;
+    std::tuple<bool, char, int, double, void*, UserDefined> bt2;
+    ++UserDefined::expect.dflt_ctor;
+    bt2 = bt1;  ++UserDefined::expect.copy_asgn;
+    test (__LINE__, bt2, true, 'a', i, 3.14159, (void* const) &i, ud);
 }
 
 /**************************************************************************/
@@ -214,27 +418,58 @@ test_homo_move_assign ()
     rw_info (0, __FILE__, __LINE__,
              "move assignment operator (homogenous tuples)");
 
-    EmptyTuple et1, et2; et2 = et1;
-    IntTuple it1, it2; it2 = it1;
-    //ConstIntTuple ct1, ct2; ct2 = ct1;  // Can't assign to const element.
-    PairTuple pt1, pt2; pt2 = pt1;
-    NestedTuple nt1, nt2; nt2 = nt1;
-    BigTuple bt1, bt2; bt2 = bt1;
+    std::tuple<> et1, et2;
+    et2 = std::move (et1);
+    _RWSTD_UNUSED (et2);
 
-    UserClass::reset_totals ();
-    UserTuple ut1, ut2; ut1 = ut2;
-    rw_assert (2 == UserClass::n_total_def_ctor_, __FILE__, __LINE__,
-               "tuple<UserClass>::tuple() called %d default ctors, "
-               "expected 2", UserClass::n_total_def_ctor_);
-    rw_assert (0 == UserClass::n_total_copy_ctor_, __FILE__, __LINE__,
-               "tuple<UserClass>::tuple() called %d copy ctors, "
-               "expected 0", UserClass::n_total_copy_ctor_);
-    rw_assert (1 == UserClass::n_total_op_assign_, __FILE__, __LINE__,
-               "tuple<UserClass>::tuple() called %d assign ops, "
-               "expected 1", UserClass::n_total_op_assign_);
+    int i = std::rand ();
+
+    std::tuple<int> it1 (i);
+    std::tuple<int> it2;
+    it2 = std::move (it1);
+    test (__LINE__, it2, i);
+
+    // move assignment ill-formed for constant element types
+
+    std::tuple<std::tuple<int> > nt1 (it2);
+    std::tuple<std::tuple<int> > nt2;
+    nt2 = std::move (nt1);
+    test (__LINE__, nt2, it2);
+
+    std::tuple<long, const char*> pt1 (1234567890L, "string");
+    std::tuple<long, const char*> pt2;
+    pt2 = std::move (pt1);
+    test (__LINE__, pt2, 1234567890L, (const char*) "string");
+
+    const UserDefined ud (i);
+    std::tuple<UserDefined> ut1 (ud);
+    std::tuple<UserDefined> ut2;
+    UserDefined::reset ();
+    ut2 = std::move (ut1);  ++UserDefined::expect.move_asgn;
+    test (__LINE__, ut2, ud);
+
+    std::tuple<bool, char, int, double, void*, UserDefined>
+        bt1 (true, 'a', i, 3.14159, (void* const) &i, ud);
+    std::tuple<bool, char, int, double, void*, UserDefined> bt2;
+    UserDefined::reset ();
+    bt2 = std::move (bt1);  ++UserDefined::expect.move_asgn;
+    test (__LINE__, bt2, true, 'a', i, 3.14159, (void* const) &i, ud);
 }
 
 /**************************************************************************/
+
+// heterogenous tests do not apply to empty tuples so no tests required
+
+#include <string>
+
+// need a string class with implicit conversion to type `const char*'
+struct String: public std::string
+{
+    String (): std::string () {}
+    String (const char* s): std::string (s) {}
+    operator const char* () const { return this->data (); }
+};
+
 
 static void
 test_hetero_copy_ctor ()
@@ -242,17 +477,23 @@ test_hetero_copy_ctor ()
     rw_info (0, __FILE__, __LINE__,
              "copy constructor (heterogenous tuples)");
 
-    const int i1 = 0; const char c = 'a'; const double d = 1.2;
-    void* const p = 0; UserClass uc;
-    BigTuple bt1 (i1, c, i1, d, p, uc); _RWSTD_UNUSED (bt1);
+    int i = std::rand () % CHAR_MAX;
 
-    const bool b = true; const int i2 = 'a';
-    BigTuple bt2 (b, i2, i1, d, p, uc); _RWSTD_UNUSED (bt2);
+    const std::tuple<char> cit (static_cast<char> (i));
+    std::tuple<int> it (cit);
+    test (__LINE__, it, i);
 
-    const float f = 1.2;
-    BigTuple bt3 (b, c, i1, f, p, uc); _RWSTD_UNUSED (bt3);
+    std::tuple<unsigned, String> cpt (12345U, "string");
+    std::tuple<long, const char*> pt (cpt);
+    test (__LINE__, pt, 12345U, (const char*) "string");
 
-    //UserTuple
+    char s [] = "string"; const UserDefined ud (i);
+    const std::tuple<int, int, short, float, char*, UserDefined>
+        cbt (int (true), int ('a'), short (i), 3.14159f, s, ud);
+    UserDefined::reset ();
+    std::tuple<bool, char, int, double, void*, UserDefined> bt (cbt);
+    ++UserDefined::expect.copy_ctor;
+    test (__LINE__, bt, true, 'a', i, 3.14159f, s, ud);
 }
 
 /**************************************************************************/
@@ -263,14 +504,24 @@ test_hetero_move_ctor ()
     rw_info (0, __FILE__, __LINE__,
              "move constructor (heterogenous tuples)");
 
-    //EmptyTuple
-    //IntTuple
-    //ConstIntTuple;
-    //PairTuple
-    //NestedTuple
+    int i = std::rand () % CHAR_MAX;
 
-    //UserTuple
-    // BigTuple
+    std::tuple<char> cit (static_cast<char> (i));
+    std::tuple<int> it (std::move (cit));
+    test (__LINE__, it, i);
+
+    std::tuple<unsigned, String> cpt (12345U, "string");
+    std::tuple<long, const char*> pt (std::move (cpt));
+    test (__LINE__, pt, 12345U, (const char*) "string");
+
+    char s [] = "string"; const UserDefined ud (i);
+    std::tuple<int, int, short, float, char*, UserDefined>
+        cbt (int (true), int ('a'), short (i), 3.14159f, s, ud);
+    UserDefined::reset ();
+    std::tuple<bool, char, int, double, void*, UserDefined>
+        bt (std::move (cbt));
+    ++UserDefined::expect.move_ctor;
+    test (__LINE__, bt, true, 'a', i, 3.14159f, s, ud);
 }
 
 /**************************************************************************/
@@ -281,14 +532,25 @@ test_hetero_copy_assign ()
     rw_info (0, __FILE__, __LINE__,
              "copy assignment operator (heterogenous tuples)");
 
-    //EmptyTuple
-    //IntTuple
-    //ConstIntTuple;
-    //PairTuple
-    //NestedTuple
+    int i = std::rand () % CHAR_MAX;
 
-    //UserTuple
-    // BigTuple
+    std::tuple<char> cit (static_cast<char> (i));
+    std::tuple<int> it;
+    it = cit;
+    test (__LINE__, it, i);
+
+    std::tuple<unsigned, String> cpt (12345U, "string");
+    std::tuple<long, const char*> pt;
+    pt = cpt;
+    test (__LINE__, pt, 12345U, (const char*) "string");
+
+    char s [] = "string"; const UserDefined ud (i);
+    std::tuple<int, int, short, float, char*, UserDefined>
+        cbt (int (true), int ('a'), short (i), 3.14159f, s, ud);
+    std::tuple<bool, char, int, double, void*, UserDefined> bt;
+    UserDefined::reset ();
+    bt = cbt;  ++UserDefined::expect.copy_asgn;
+    test (__LINE__, bt, true, 'a', i, 3.14159f, s, ud);
 }
 
 /**************************************************************************/
@@ -299,19 +561,29 @@ test_hetero_move_assign ()
     rw_info (0, __FILE__, __LINE__,
              "move assignment operator (heterogenous tuples)");
 
-    //EmptyTuple
-    //IntTuple
-    //ConstIntTuple;
-    //PairTuple
-    //NestedTuple
+    int i = std::rand () % CHAR_MAX;
 
-    //UserTuple
-    // BigTuple
+    std::tuple<char> cit (i);
+    std::tuple<int> it;
+    it = std::move (cit);
+    test (__LINE__, it, i);
+
+    std::tuple<unsigned, String> cpt (12345U, "string");
+    std::tuple<long, const char*> pt;
+    pt = std::move (cpt);
+    test (__LINE__, pt, 12345U, (const char*) "string");
+
+    char s [] = "string"; const UserDefined ud (i);
+    std::tuple<int, int, short, float, char*, UserDefined>
+        cbt (int (true), int ('a'), short (i), 3.14159f, s, ud);
+    std::tuple<bool, char, int, double, void*, UserDefined> bt;
+    ++UserDefined::expect.move_ctor;
+    UserDefined::reset ();
+    bt = std::move (cbt);  ++UserDefined::expect.move_asgn;
+    test (__LINE__, bt, true, 'a', i, 3.14159f, s, ud);
 }
 
 /**************************************************************************/
-
-#include <rw_allocator.h>           // for UserAlloc
 
 static void
 test_alloc_ctors ()
@@ -324,7 +596,7 @@ test_alloc_ctors ()
 /**************************************************************************/
 
 static int
-run_test (int /*unused*/, char* /*unused*/ [])
+run_test (int /*argc*/, char* /*argv*/ [])
 {
     test_default_ctor ();
 
@@ -345,6 +617,29 @@ run_test (int /*unused*/, char* /*unused*/ [])
 
     return 0;
 }
+
+#else // _RWSTD_NO_EXT_CXX_0X || _RWSTD_NO_RVALUE_REFERENCES
+
+static int
+run_test (int, char*[])
+{
+#if defined (_RWSTD_NO_EXT_CXX_OX)
+
+    rw_warn (0, 0, __LINE__,
+             "test disabled because _RWSTD_NO_EXT_CXX_0X is defined");
+
+#elif defined (_RWSTD_NO_RVALUE_REFERENCES)
+
+    rw_warn (0, 0, __LINE__,
+             "test disabled because _RWSTD_NO_RVALUE_REFERENCES is "
+             "defined");
+
+#endif
+
+    return 0;
+}
+
+#endif // _RWSTD_NO_EXT_CXX_0X || _RWSTD_NO_RVALUE_REFERENCES
 
 /*extern*/ int
 main (int argc, char* argv [])

@@ -81,7 +81,7 @@ public:
     typedef basic_string<char_type, char_traits<char_type>,
                          allocator<char_type> > string_type;
 
-    _EXPLICIT messages (_RWSTD_SIZE_T __refs = 0)
+    explicit messages (_RWSTD_SIZE_T __refs = 0)
         : _RW::__rw_facet (__refs) { }
 
 
@@ -132,7 +132,7 @@ class messages_byname: public messages<_CharT>
 
 public:
 
-    _EXPLICIT messages_byname (const char *__name, _RWSTD_SIZE_T __refs = 0)
+    explicit messages_byname (const char *__name, _RWSTD_SIZE_T __refs = 0)
         : messages<_CharT>(__refs) {
         this->_C_set_name (__name, _C_namebuf, sizeof _C_namebuf);
     }

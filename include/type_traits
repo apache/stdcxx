@@ -50,171 +50,11 @@
 
 _RWSTD_NAMESPACE (std) {
 
-/**
- * @defgroup meta_help Helper classes [meta.help]
- */
-
-/**
- * @defgroup meta_unary Unary Type Traits [meta.unary]
- *
- * A UnaryTypeTrait describes a property of a type. It shall be a
- * class template that takes one template type argument and, optionally,
- * additional arguments that help define the property being described.
- * It shall be DefaultConstructible, CopyConstructible, and publicly
- * derived, directly or indirectly, from a specialization of the template
- * integral_constant, with the arguments to the template integral_constant
- * determined by the requirements for the particular property being
- * described.
- *
- * This sub-clause contains templates that may be used to query the
- * properties of a type at compile time.
- * 
- * Each of these templates shall be a UnaryTypeTrait, publicly derived
- * directly or indirectly from true_type if the corresponding condition
- * is true, otherwise from false_type.
- */
-
-/**
- * @defgroup meta_unary_cat Primary Type Categories [meta.unary.cat]
- * @ingroup meta_unary
- *
- * These type categories correspond to the descriptions given in section
- * [basic.types] of the C++ standard.
- *
- * For any given type T, the result of applying one of these templates
- * to T and to cv-qualified T shall yield the same result.
- *
- * @note For any given type T, exactly one of the primary type
- * categories has a \c value member that evaluates to true.
- */
-
-/**
- * @defgroup meta_unary_comp Composite Type Categories [meta.unary.comp]
- * @ingroup meta_unary
- *
- * These templates provide convenient compositions of the primary type
- * categories.
- *
- * For any given type T, the result of applying one of these templates
- * to T, and to cv-qualified T shall yield the same result.
- */
-
-/**
- * @defgroup meta_unary_prop Type Properties [meta.unary.prop]
- * @ingroup meta_unary
- *
- * These templates provide access to some of the more important properties
- * of types.
- *
- * It is unspecified whether the library defines any full or partial
- * specialisations of any of these templates. A program may specialise
- * any of these templates on a user-defined type, provided the semantics
- * of the specialisation match those given for the template in its
- * description.
- *
- * For all of the class templates X declared in this clause, instantiating
- * that template with a template-argument that is a class template
- * specialization may result in the implicit instantiation of the template
- * argument if and only if the semantics of X require that the argument
- * must be a complete type.
- */
-
-/**
- * @defgroup meta_rel Relationships between types [meta.rel]
- *
- * This sub-clause contains templates that may be used to query
- * relationships between types at compile time.
- * 
- * Each of these templates shall be a BinaryTypeTrait, publicly
- * derived directly or indirectly from true_type if the
- * corresponding condition is true, otherwise from false_type.
- */
-
-/**
- * @defgroup meta_trans Transformations between types [meta.trans]
- *
- * A TransformationTrait modifies a property of a type. It shall
- * be a class template that takes one template type argument and,
- * optionally, additional arguments that help define the modification.
- * It shall define a nested type named type, which shall be a synonym
- * for the modified type.
- *
- * This sub-clause contains templates that may be used to transform
- * one type to another following some predefined rule.
- *
- * Each of the templates in this subclause shall be a
- * TransformationTrait.
- */
- 
-/**
- * @defgroup meta_trans_cv Const-volatile modifications [meta.trans.cv]
- * @ingroup meta_trans
- *
- * This sub-clause contains templates used to add and remove const
- * and volatile qualifiers from types.
- */
-
-/**
- * @defgroup meta_trans_ref Reference modification [meta.trans.ref]
- * @ingroup meta_trans
- *
- * This sub-clause contains templates used to add and remove reference
- * semantics from types.
- */
-
-/**
- * @defgroup meta_trans_sign Sign modifications [meta.trans.sign]
- * @ingroup meta_trans
- *
- * This sub-clause contains templates used to transform from signed
- * to unsigned representation or vice-versa.
- */
-
-/**
- * @defgroup meta_trans_arr Array modifications [meta.trans.arr]
- * @ingroup meta_trans
- *
- * This sub-clause contains templates used to manage array types.
- */
-
-/**
- * @defgroup meta_trans_pointer Pointer modifications [meta.trans.ptr]
- * @ingroup meta_trans
- *
- * This sub-clause contains templates used to manage pointer types.
- */
-
-/**
- * @defgroup meta_trans_other Other transformations [meta.trans.other]
- * @ingroup meta_trans
- */
-
-/**
- * @ingroup meta_help
- *
- * The class template integral_constant and its associated typedefs
- * true_type and false_type are used as base classes to define the
- * interface for various type traits.
- *
- * @tparam _TypeT The type of the integral constant value.
- * @tparam _Value The value of the integral constant.
- */
 template <class _TypeT, _TypeT _Value>
 struct integral_constant
 {
-    /**
-     * Describes the type of this integral_constant.
-     */
     typedef integral_constant<_TypeT,_Value> type;
-
-    /**
-     * Describes the type of the value defined by this integral_constant.
-     */
     typedef _TypeT value_type;
-
-    /**
-     * The actual integral constant value.
-     */
     static const _TypeT value = _Value;
 };
 
@@ -225,1027 +65,388 @@ const _TypeT integral_constant<_TypeT, _Value>::value;
 
 #endif    // _RWSTD_NO_STATIC_CONST_MEMBER_DEFINITION
 
-/**
- * @ingroup meta_help
- *
- * Convenience typedef that are intended to be used as a base class
- * for boolean type traits that are true.
- */
 typedef integral_constant<bool, true>  true_type;
-
-/**
- * @ingroup meta_help
- *
- * Convenience typedef that are intended to be used as a base class
- * for boolean type traits that are false.
- */
 typedef integral_constant<bool, false> false_type;
 
-/**
- * @ingroup meta_unary_cat
- *
- * \e UnaryTypeTrait to determine if _TypeT is void or a cv-qualified 
- * void.
- *
- * @tparam _TypeT The type to evaluate.
- */
 template <class _TypeT>
 struct is_void 
     : integral_constant<bool, _RW::__rw_is_void<_TypeT>::value>
 {
 };
 
-/**
- * @ingroup meta_unary_cat
- *
- * \e UnaryTypeTrait to determine if _TypeT is an integral type.
- * Types \c bool, \c char, \c wchar_t, and the signed and unsigned
- * integer types are collectively called integral types. The signed
- * and unsigned integer types include signed and unsigned versions
- * of \c char, \c short, \c int, \c long and \c long \c long.
- *
- * @tparam _TypeT The type to evaluate.
- */
 template <class _TypeT>
 struct is_integral
     : integral_constant<bool, _RW::__rw_is_integral<_TypeT>::value>
 {
 };
 
-/**
- * @ingroup meta_unary_cat
- *
- * * \e UnaryTypeTrait to determine if _TypeT is a floating point type.
- *
- * Types \c float, \c double, \c long \c double, and cv-qualified versions
- * of those types make up the set of floating point types.
- *
- * @tparam _TypeT The type to evaluate.
- */
 template <class _TypeT>
 struct is_floating_point
     : integral_constant<bool, _RW::__rw_is_floating_point<_TypeT>::value>
 {
 };
 
-/**
- * @ingroup meta_unary_cat
- *
- * \e UnaryTypeTrait to determine if _TypeT is an array type. Array types
- * include both arrays of bounded and unbounded length.
- *
- * @tparam _TypeT The type to evaluate.
- */
 template <class _TypeT>
 struct is_array
     : integral_constant<bool, _RW::__rw_is_array<_TypeT>::value>
 {
 };
 
-/**
- * @ingroup meta_unary_cat
- *
- * \e UnaryTypeTrait to determine if _TypeT is a pointer type.
- * Includes function pointers, but not pointers to non-static member
- * functions.
- *
- * @tparam _TypeT The type to evaluate.
- */
 template <class _TypeT>
 struct is_pointer
     : integral_constant<bool, _RW::__rw_is_pointer<_TypeT>::value>
 {
 };
 
-/**
- * @ingroup meta_unary_cat
- *
- * \e UnaryTypeTrait to determine if _TypeT is an lvalue reference type.
- *
- * @tparam _TypeT The type to evaluate.
- */
 template <class _TypeT>
 struct is_lvalue_reference
     : integral_constant<bool, _RW::__rw_is_lvalue_reference<_TypeT>::value>
 {
 };
 
-/**
- * @ingroup meta_unary_cat
- *
- * \e UnaryTypeTrait to determine if _TypeT is an rvalue reference type.
- *
- * @tparam _TypeT The type to evaluate.
- */
 template <class _TypeT>
 struct is_rvalue_reference
     : integral_constant<bool, _RW::__rw_is_rvalue_reference<_TypeT>::value>
 {
 };
 
-/**
- * @ingroup meta_unary_cat
- *
- * \e UnaryTypeTrait to determine if _TypeT is a reference type.
- *
- * @note References to functions are still references, not functions.
- *
- * @tparam _TypeT The type to evaluate.
- */
 template <class _TypeT>
 struct is_reference
     : integral_constant<bool, _RW::__rw_is_reference<_TypeT>::value>
 {
 };
 
-/**
- * @ingroup meta_unary_cat
- *
- * \e UnaryTypeTrait to determine if _TypeT is a pointer to non-static
- * member.
- *
- * @tparam _TypeT The type to evaluate.
- */
 template <class _TypeT>
 struct is_member_object_pointer
     : integral_constant<bool, _RW::__rw_is_member_object_pointer<_TypeT>::value>
 {
 };
 
-/**
- * @ingroup meta_unary_cat
- *
- * \e UnaryTypeTrait to determine if _TypeT is a pointer to non-static
- * member function.
- *
- * @tparam _TypeT The type to evaluate.
- */
 template <class _TypeT>
 struct is_member_function_pointer
     : integral_constant<bool, _RW::__rw_is_member_function_pointer<_TypeT>::value>
 {
 };
 
-/**
- * @ingroup meta_unary_cat
- *
- * \e UnaryTypeTrait to determine if _TypeT is an enumeration type.
- *
- * @note This may not be accurate if the necessary compiler support
- * is not available.
- *
- * @tparam _TypeT The type to evaluate.
- */
 template <class _TypeT>
 struct is_enum
     : integral_constant<bool, _RW::__rw_is_enum<_TypeT>::value>
 {
 };
 
-/**
- * @ingroup meta_unary_cat
- *
- * \e UnaryTypeTrait to determine if _TypeT is a union type
- *
- * @note This may not be accurate if the necessary compiler support
- * is not available.
- */
 template <class _TypeT>
 struct is_union
     : integral_constant<bool, _RW::__rw_is_union<_TypeT>::value >
 {
 };
 
-/**
- * @ingroup meta_unary_cat
- *
- * \e UnaryTypeTrait to determine if _TypeT is a class type but not
- * a union type.
- *
- * @note This may not be accurate if the necessary compiler support
- * is not available.
- * @note a C++ struct is of class type.
- *
- * @tparam _TypeT The type to evaluate.
- */
 template <class _TypeT>
 struct is_class
    : integral_constant<bool, _RW::__rw_is_class<_TypeT>::value>
 {
 };
 
-/**
- * @ingroup meta_unary_cat
- *
- * \e UnaryTypeTrait to determine if _TypeT is a function type.
- *
- * @note This may not be accurate if the necessary compiler support
- * is not available.
- *
- * @tparam _TypeT The type to evaluate.
- */
 template <class _TypeT>
 struct is_function
     : integral_constant<bool, _RW::__rw_is_function<_TypeT>::value>
 {
 };
 
-/**
- * @ingroup meta_unary_comp
- *
- * \e UnaryTypeTrait to determine if _TypeT is an arithmetic type.
- * Arithmetic types include both integral and floating point types.
- *
- * @tparam _TypeT The type to evaluate.
- */
 template <class _TypeT>
 struct is_arithmetic
     : integral_constant<bool, _RW::__rw_is_arithmetic<_TypeT>::value>
 {
 };
 
-/**
- * @ingroup meta_unary_comp
- *
- * \e UnaryTypeTrait to determine if _TypeT is a fundamental type.
- * Fundamental types are all the types provided natively. These types
- * include all arithmetic types and all void types.
- *
- * @tparam _TypeT The type to evaluate.
- */
 template <class _TypeT>
 struct is_fundamental
     : integral_constant<bool, _RW::__rw_is_fundamental<_TypeT>::value>
 {
 };
 
-/**
- * @ingroup meta_unary_comp
- *
- * \e UnaryTypeTrait to determine if _TypeT is an object type.
- * An object type is a (possibly cv-qualified) type that is not
- * a function type, not a reference type, and not a void type.
- *
- * @tparam _TypeT The type to evaluate.
- */
 template <class _TypeT>
 struct is_object
     : integral_constant<bool, _RW::__rw_is_object<_TypeT>::value>
 {
 };
 
-/**
- * @ingroup meta_unary_comp
- *
- * \e UnaryTypeTrait to determine if _TypeT is a scalar type.
- * Arithmetic types, enumeration types, pointer types, pointer
- * to member types, and cv-qualified versions of these types are
- * collectively called scalar types.
- *
- * @tparam _TypeT The type to evaluate.
- */
 template <class _TypeT>
 struct is_scalar
     : integral_constant<bool, _RW::__rw_is_scalar<_TypeT>::value>
 {
 };
 
-/**
- * @ingroup meta_unary_comp
- *
- * \e UnaryTypeTrait to determine if _TypeT is a compound type.
- * Compound types are arrays, functions, pointers, references,
- * classes, unions, enumerations and pointers to non-static class
- * members.
- *
- * @tparam _TypeT The type to evaluate.
- */
 template <class _TypeT>
 struct is_compound
     : integral_constant<bool, _RW::__rw_is_compound<_TypeT>::value>
 {
 };
 
-/**
- * @ingroup meta_unary_comp
- *
- * \e UnaryTypeTrait to determine if _TypeT is a pointer to a member
- * object or pointer to member function type.
- *
- * @tparam _TypeT The type to evaluate.
- */
 template <class _TypeT>
 struct is_member_pointer
     : integral_constant<bool, _RW::__rw_is_member_pointer<_TypeT>::value>
 {
 };
 
-/**
- * @ingroup meta_unary_prop
- *
- * \e UnaryTypeTrait to determine if _TypeT is const-qualified.
- *
- * @tparam _TypeT The type to evaluate.
- */
 template <class _TypeT>
 struct is_const
     : integral_constant<bool, _RW::__rw_is_const<_TypeT>::value>
 {
 };
 
-/**
- * @ingroup meta_unary_prop
- *
- * \e UnaryTypeTrait to determine if _TypeT is volatile-qualified.
- *
- * @tparam _TypeT The type to evaluate.
- */
 template <class _TypeT>
 struct is_volatile
     : integral_constant<bool, _RW::__rw_is_volatile<_TypeT>::value>
 {
 };
 
-/**
- * @ingroup meta_unary_prop
- *
- * \e UnaryTypeTrait to determine if _TypeT is a trivial type. Scalar
- * types, trivial class types, arrays of such types and cv-qualified
- * versions of these types are collectively called trival types. Trivial
- * class types have a trivial default constructor, a trivial destructor
- * a trivial copy constructor and a trivial copy assignment operator.
- *
- * @note This may not be accurate if the necessary compiler support
- * is not available.
- *
- * @tparam _TypeT The type to evaluate. Shall be a complete type,
- * an array of unknown bound, or possibly cv-qualified void.
- */
 template <class _TypeT>
 struct is_trivial
     : integral_constant<bool, _RW::__rw_is_trivial<_TypeT>::value>
 {
 };
 
-/**
- * @ingroup meta_unary_prop
- *
- * \e UnaryTypeTrait to determine if _TypeT is a type with standard
- * layout. Scalar types, standard-layout class types, arrays of such
- * types and cv-qualified versions of these types are collectively
- * called standard layout types. Standard layout class types have no
- * non-static data members of non-standard-layout class or reference.
- * They have no virtual functions and no virtual base classes, use the
- * same access control for all non-static data members, have no base
- * classes of non-standard-layout type, no non-static data members in
- * the most-derived class and at most one base class with non-static
- * data members or has no base classes with non-static data members.
- * Finally, a standard-layout class has no base classes of the same
- * type as the first non-static data member.
- *
- * @note This may not be accurate if the necessary compiler support
- * is not available.
- *
- * @tparam _TypeT The type to evaluate. Shall be a complete type,
- * an array of unknown bound, or possibly cv-qualified void.
- */
 template <class _TypeT>
 struct is_standard_layout
     : integral_constant<bool, _RW::__rw_is_standard_layout<_TypeT>::value>
 {
 };
 
-/**
- * @ingroup meta_unary_prop
- *
- * \e UnaryTypeTrait to determine if _TypeT is a plain-old-data type.
- * Scalar types, pod classes, arrays of such types and cv-qualified
- * versions of these types are collectively called pod types. The pod
- * class types meet the requirements of both trivial and standard layout
- * types and have no non-static data members of non-pod type.
- *
- * @note This may not be accurate if the necessary compiler support
- * is not available.
- *
- * @tparam _TypeT The type to evaluate. Shall be a complete type,
- * an array of unknown bound, or possibly cv-qualified void.
- */
 template <class _TypeT>
 struct is_pod
     : integral_constant<bool, _RW::__rw_is_pod<_TypeT>::value>
 {
 };
 
-/**
- * @ingroup meta_unary_prop
- *
- * \e UnaryTypeTrait to determine if _TypeT is an empty class.
- *
- * @note This may not be accurate if the necessary compiler support
- * is not available.
- *
- * @tparam _TypeT The type to evaluate. Shall be a complete type,
- * an array of unknown bound, or possibly cv-qualified void.
- */
 template <class _TypeT>
 struct is_empty
     : integral_constant<bool, _RW::__rw_is_empty<_TypeT>::value>
 {
 };
 
-/**
- * @ingroup meta_unary_prop
- *
- * \e UnaryTypeTrait to determine if _TypeT is a polymorphic class.
- *
- * @note This may not be accurate if the necessary compiler support
- * is not available.
- *
- * @tparam _TypeT The type to evaluate. Shall be a complete type,
- * an array of unknown bound, or possibly cv-qualified void.
- */
 template <class _TypeT>
 struct is_polymorphic
     : integral_constant<bool, _RW::__rw_is_polymorphic<_TypeT>::value>
 {
 };
 
-/**
- * @ingroup meta_unary_prop
- *
- * \e UnaryTypeTrait to determine if _TypeT is an abstract class.
- *
- * @note This may not be accurate if the necessary compiler support
- * is not available.
- *
- * @tparam _TypeT The type to evaluate. Shall be a complete type,
- * an array of unknown bound, or possibly cv-qualified void.
- */
 template <class _TypeT>
 struct is_abstract
     : integral_constant<bool, _RW::__rw_is_abstract<_TypeT>::value>
 {
 };
 
-/**
- * @ingroup meta_unary_prop
- *
- * \e UnaryTypeTrait to determine if _TypeT is a trivial type or a
- * class type with a trivial default constructor, or an array of
- * such a class type.
- *
- * @note This may not be accurate for class types if the necessary
- * compiler support is not available.
- *
- * @tparam _TypeT The type to evaluate. Shall be a complete type,
- * an array of unknown bound, or possibly cv-qualified void.
- */
 template <class _TypeT>
 struct has_trivial_default_constructor
     : integral_constant<bool, _RW::__rw_has_trivial_ctor<_TypeT>::value>
 {
 };
 
-/**
- * @ingroup meta_unary_prop
- *
- * \e UnaryTypeTrait to determine if _TypeT is a trivial type, a
- * reference type, or a class type with a trivial copy constructor.
- *
- * @note This may not be accurate for class types if the necessary
- * compiler support is not available.
- *
- * @tparam _TypeT The type to evaluate. Shall be a complete type,
- * an array of unknown bound, or possibly cv-qualified void.
- */
 template <class _TypeT>
 struct has_trivial_copy_constructor
     : integral_constant<bool, _RW::__rw_has_trivial_copy<_TypeT>::value>
 {
 };
 
-/**
- * @ingroup meta_unary_prop
- *
- * \e UnaryTypeTrait to determine if _TypeT is neither const nor a
- * reference type and is a trivial type or a class type with a trivial
- * assignment operator.
- *
- * @note This may not be accurate for class types if the necessary
- * compiler support is not available.
- *
- * @tparam _TypeT The type to evaluate. Shall be a complete type,
- * an array of unknown bound, or possibly cv-qualified void.
- */
 template <class _TypeT>
 struct has_trivial_assign
     : integral_constant<bool, _RW::__rw_has_trivial_assign<_TypeT>::value>
 {
 };
 
-/**
- * @ingroup meta_unary_prop
- *
- * \e UnaryTypeTrait to determine if _TypeT is a trivial type, a reference
- * type, or a class type with a trivial destructor, or an array of such a
- * class type.
- *
- * @note This may not be accurate for class types if the necessary
- * compiler support is not available.
- *
- * @tparam _TypeT The type to evaluate. Shall be a complete type,
- * an array of unknown bound, or possibly cv-qualified void.
- */
 template <class _TypeT>
 struct has_trivial_destructor
     : integral_constant<bool, _RW::__rw_has_trivial_dtor<_TypeT>::value>
 {
 };
 
-/**
- * @ingroup meta_unary_prop
- *
- * \e UnaryTypeTrait to determine if the default constructor for _TypeT
- * has an empty exception specification or can otherwise be deduced to
- * never throw an exception.
- *
- * @note This may not be accurate for class types if the necessary
- * compiler support is not available.
- *
- * @tparam _TypeT The type to evaluate. Shall be a complete type,
- * an array of unknown bound, or possibly cv-qualified void.
- */
 template <class _TypeT>
 struct has_nothrow_default_constructor
     : integral_constant<bool, _RW::__rw_has_nothrow_ctor<_TypeT>::value>
 {
 };
 
-/**
- * @ingroup meta_unary_prop
- *
- * \e UnaryTypeTrait to determine if the copy constructor for _TypeT has
- * an empty exception specification or can otherwise be deduced to never
- * throw an exception.
- *
- * @note This may not be accurate for class types if the necessary
- * compiler support is not available.
- *
- * @tparam _TypeT The type to evaluate. Shall be a complete type,
- * an array of unknown bound, or possibly cv-qualified void.
- */
 template <class _TypeT>
 struct has_nothrow_copy_constructor
     : integral_constant<bool, _RW::__rw_has_nothrow_copy<_TypeT>::value>
 {
 };
 
-/**
- * @ingroup meta_unary_prop
- *
- * \e UnaryTypeTrait to determine if the assignment operator has an empty
- * exception specification or can otherwise be deduced never to throw an
- * exception.
- *
- * @note This may not be accurate for class types if the necessary
- * compiler support is not available.
- *
- * @tparam _TypeT The type to evaluate. Shall be a complete type,
- * an array of unknown bound, or possibly cv-qualified void.
- */
 template <class _TypeT>
 struct has_nothrow_assign
     : integral_constant<bool, _RW::__rw_has_nothrow_assign<_TypeT>::value>
 {
 };
 
-/**
- * @ingroup meta_unary_prop
- *
- * \e UnaryTypeTrait to determine if _TypeT has a virtual destructor.
- *
- * @note This may not be accurate for class types if the necessary
- * compiler support is not available.
- *
- * @tparam _TypeT The type to evaluate. Shall be a complete type,
- * an array of unknown bound, or possibly cv-qualified void.
- */
 template <class _TypeT>
 struct has_virtual_destructor
     : integral_constant<bool, _RW::__rw_has_virtual_dtor<_TypeT>::value>
 {
 };
 
-/**
- * @ingroup meta_unary_prop
- *
- * \e UnaryTypeTrait to determine if _TypeT is a signed arithmetic
- * type.
- *
- * @tparam _TypeT The type to evaluate.
- */
 template <class _TypeT>
 struct is_signed
     : integral_constant<bool, _RW::__rw_is_signed<_TypeT>::value>
 {
 };
 
-/**
- * @ingroup meta_unary_prop
- *
- * \e UnaryTypeTrait to determine if _TypeT is an unsigned arithmetic
- * type.
- *
- * @tparam _TypeT The type to evaluate.
- */
 template <class _TypeT>
 struct is_unsigned
     : integral_constant<bool, _RW::__rw_is_unsigned<_TypeT>::value>
 {
 };
 
-/**
- * @ingroup meta_unary_prop
- *
- * \e UnaryTypeTrait to determine the alignment of objects of type
- * _TypeT.
- *
- * @note This may not be accurate if the necessary compiler support
- * is not available.
- *
- * @tparam _TypeT The type to evaluate.
- */
+#ifndef _RWSTD_NO_ALIGN_TRAITS
+
 template <class _TypeT>
 struct alignment_of
     : integral_constant<_RWSTD_SIZE_T, _RW::__rw_alignment_of<_TypeT>::value>
 {
 };
 
-/**
- * @ingroup meta_unary_prop
- *
- * \e UnaryTypeTrait to determine the rank of objects of type _TypeT.
- * If _TypeT names an array type, the rank is an integer value that
- * represents the number of dimensions of _TypeT, otherwise the value
- * is 0.
- *
- * @tparam _TypeT The type to evaluate.
- */
+#endif // _RWSTD_NO_ALIGN_TRAITS
+
 template <class _TypeT>
 struct rank
     : integral_constant<_RWSTD_SIZE_T, _RW::__rw_rank<_TypeT>::value>
 {
 };
 
-/**
- * @ingroup meta_unary_prop
- *
- * \e UnaryTypeTrait to determine if the extent of one dimension of
- * objects of type _TypeT. If _TypeT is an array type with rank greater
- * than _Bound, the value will be the size of the given dimension of
- * that array, otherwise the value is 0.
- *
- * @tparam _TypeT The type to evaluate.
- * @tparam _Bound The dimension of the array to get the extent of.
- */
 template <class _TypeT, unsigned _Bound = 0>
 struct extent
     : integral_constant<_RWSTD_SIZE_T, _RW::__rw_extent<_TypeT, _Bound>::value>
 {
 };
 
-/**
- * @ingroup meta_rel
- *
- * \e UnaryTypeTrait to determine if _TypeT and _TypeU are exactly the
- * same type.
- *
- * @tparam _TypeT The first type to compare.
- * @tparam _TypeT The second type to compare.
- */
 template <class _TypeT, class _TypeU>
 struct is_same
     : integral_constant<bool, _RW::__rw_is_same<_TypeT, _TypeU>::value>
 {
 };
 
-/**
- * @ingroup meta_rel
- *
- * \e BinaryyTypeTrait to determine if _TypeT is a base class of _TypeU
- * or _TypeT and _TypeU name the same non-union class type without regard
- * to cv-qualifiers.
- *
- * @note Base classes that are private, protected or ambiguous are,
- * nonetheless, base classes.
- *
- * @note This may not be accurate for class types if the necessary
- * compiler support is not available.
- *
- * @tparam _TypeT The base type.
- * @tparam _TypeU The derived type.
- */
 template <class _TypeT, class _TypeU>
 struct is_base_of
     : integral_constant<bool, _RW::__rw_is_base_of<_TypeT, _TypeU>::value>
 {
 };
 
-/**
- * @ingroup meta_rel
- *
- * \e BinaryTypeTrait to determine if lvalue of type _TypeT is implicitly
- * convertible to _TypeU ([conv]).
- *
- * @note This may not be accurate for class types if the necessary
- * compiler support is not available.
- *
- * @tparam _TypeT The type to test conversion from.
- * @tparam _TypeT The type to test conversion to.
- */
 template <class _TypeT, class _TypeU>
 struct is_convertible
     : integral_constant<bool, _RW::__rw_is_convertible<_TypeT, _TypeU>::value>
 {
 };
 
-/**
- * @ingroup meta_trans_cv
- *
- * \e TransformationTrait to remove any top-level const-qualifier.
- * The member typedef \c type shall be the same as _TypeT except that
- * any top level const-qualifier has been removed.
- *
- * @tparam _TypeT The type to transform.
- */
 template <class _TypeT>
 struct remove_const
 {
-    typedef _TYPENAME _RW::__rw_remove_const<_TypeT>::type type;
+    typedef typename _RW::__rw_remove_const<_TypeT>::type type;
 };
 
-/**
- * @ingroup meta_trans_cv
- *
- * \e TransformationTrait to remove any top-level volatile-qualifier.
- * The member typedef \c type shall be the same as _TypeT except that
- * any top level volatile-qualifier has been removed.
- *
- * @tparam _TypeT The type to transform.
- */
 template <class _TypeT>
 struct remove_volatile
 {
-    typedef _TYPENAME _RW::__rw_remove_volatile<_TypeT>::type type;
+    typedef typename _RW::__rw_remove_volatile<_TypeT>::type type;
 };
 
-/**
- * @ingroup meta_trans_cv
- *
- * \e TransformationTrait to remove any top-level cv-qualifiers. The
- * member typedef \c type shall be the same as _TypeT except that any
- * top level cv-qualifier has been removed.
- *
- * @tparam _TypeT The type to transform.
- */
 template <class _TypeT>
 struct remove_cv
 {
-    typedef _TYPENAME _RW::__rw_remove_cv<_TypeT>::type type;
+    typedef typename _RW::__rw_remove_cv<_TypeT>::type type;
 };
 
-/**
- * @ingroup meta_trans_cv
- *
- * \e TransformationTrait to add a top-level const-qualifier. If
- * _TypeT is a reference, function, or other type level const-
- * qualified type then \c type shall be the same as _TypeT,
- * otherwise _TypeT const.
- *
- * @tparam _TypeT The type to transform.
- */
 template <class _TypeT>
 struct add_const
 {
-    typedef _TYPENAME _RW::__rw_add_const<_TypeT>::type type;
+    typedef typename _RW::__rw_add_const<_TypeT>::type type;
 };
 
-/**
- * @ingroup meta_trans_cv
- *
- * \e TransformationTrait to add a top-level volatile-qualifier.
- * If _TypeT is a reference, function, or other type level volatile-
- * qualified type then \c type shall be the same as _TypeT,
- * otherwise _TypeT volatile.
- *
- * @tparam _TypeT The type to transform.
- */
 template <class _TypeT>
 struct add_volatile
 {
-    typedef _TYPENAME _RW::__rw_add_volatile<_TypeT>::type type;
+    typedef typename _RW::__rw_add_volatile<_TypeT>::type type;
 };
 
-/**
- * @ingroup meta_trans_cv
- *
- * \e TransformationTrait to add a top-level const and volatile-qualifier.
- *
- * @tparam _TypeT The type to transform.
- */
 template <class _TypeT>
 struct add_cv
 {
-    typedef _TYPENAME _RW::__rw_add_cv<_TypeT>::type type;
+    typedef typename _RW::__rw_add_cv<_TypeT>::type type;
 };
 
-/**
- * @ingroup meta_trans_ref
- *
- * \e TransformationTrait to remove a reference from _TypeT.
- *
- * The member typedef \c type shall be the same as _TypeT, except
- * any reference qualifier has been removed.
- *
- * @tparam _TypeT The type to transform.
- */
 template <class _TypeT>
 struct remove_reference
 {
-    typedef _TYPENAME _RW::__rw_remove_reference<_TypeT>::type type;
+    typedef typename _RW::__rw_remove_reference<_TypeT>::type type;
 };
 
-/**
- * @ingroup meta_trans_ref
- * 
- * \e TransformationTrait to add a reference to _TypeT.
- *
- * @tparam _TypeT The type to transform.
- */
 template <class _TypeT>
 struct add_lvalue_reference
 {
-    typedef _TYPENAME _RW::__rw_add_lvalue_reference<_TypeT>::type type;
+    typedef typename _RW::__rw_add_lvalue_reference<_TypeT>::type type;
 };
 
-/**
- * @ingroup meta_trans_ref
- *
- * \e TransformationTrait to add an rvalue-reference to _TypeT.
- *
- * @tparam _TypeT The type to transform.
- */
 template <class _TypeT>
 struct add_rvalue_reference
 {
-    typedef _TYPENAME _RW::__rw_add_rvalue_reference<_TypeT>::type type;
+    typedef typename _RW::__rw_add_rvalue_reference<_TypeT>::type type;
 };
 
-/**
- * @ingroup meta_trans_sign
- *
- * \e TransformationTrait to get a signed type from an enum or non-
- * boolean integral type.
- *
- * @tparam _TypeT The type to transform.
- */
 template <class _TypeT>
 struct make_signed
 {
-    typedef _TYPENAME _RW::__rw_make_signed<_TypeT>::type type;
+    typedef typename _RW::__rw_make_signed<_TypeT>::type type;
 };
 
-/**
- * @ingroup meta_trans_sign
- *
- * \e TransformationTrait to get an unsigned type from an enum or non-
- * boolean integral type.
- *
- * @tparam _TypeT The type to transform.
- */
 template <class _TypeT>
 struct make_unsigned
 {
-    typedef _TYPENAME _RW::__rw_make_unsigned<_TypeT>::type type;
+    typedef typename _RW::__rw_make_unsigned<_TypeT>::type type;
 };
 
-/**
- * @ingroup meta_trans_arr
- *
- * \e TransformationTrait to remove a dimension from the type _TypeT.
- * If _TypeT is 'array of _TypeU', the member typedef \c type shall
- * be _TypeU, otherwise _TypeT.
- *
- * @tparam _TypeT The type to transform.
- */
 template <class _TypeT>
 struct remove_extent
 {
-    typedef _TYPENAME _RW::__rw_remove_extent<_TypeT>::type type;
+    typedef typename _RW::__rw_remove_extent<_TypeT>::type type;
 };
 
-/**
- * @ingroup meta_trans_arr
- *
- * \e TransformationTrait to remove all dimensions from the type
- * _TypeT. If _TypeT is 'multi-dimensional array of _TypeU', the
- * member typedef \c type shall be _TypeU otherwise _TypeT.
- *
- * @tparam _TypeT The type to transform.
- */
 template <class _TypeT>
 struct remove_all_extents
 {
-    typedef _TYPENAME _RW::__rw_remove_all_extents<_TypeT>::type type;
+    typedef typename _RW::__rw_remove_all_extents<_TypeT>::type type;
 };
 
-/**
- * @ingroup meta_trans_pointer
- *
- * \e TransformationTrait to remove a pointer from the type _TypeT.
- * The member typedef \c type shall be the same as _TypeT, except
- * any top level indirection has been removed.
- *
- * @note pointers to members are left unchanged.
- *
- * @tparam _TypeT The type to transform.
- */
 template <class _TypeT>
 struct remove_pointer
 {
-    typedef _TYPENAME _RW::__rw_remove_pointer<_TypeT>::type type;
+    typedef typename _RW::__rw_remove_pointer<_TypeT>::type type;
 };
 
-/**
- * @ingroup meta_trans_pointer
- *
- * \e TransformationTrait to add a pointer to the type _TypeT.
- *
- * @tparam _TypeT The type to transform.
- */
 template <class _TypeT>
 struct add_pointer
 {
-    typedef _TYPENAME _RW::__rw_add_pointer<_TypeT>::type type;
+    typedef typename _RW::__rw_add_pointer<_TypeT>::type type;
 };
 
-/**
- * @ingroup meta_trans_other
- *
- * Special trait the defines a nested pod type that is suitable for
- * use as uninitialized storage for any object whose size is at most
- * _Len and alignment is a divisor of align.
- *
- * @tparam _Len The minimum size of the aligned storage. Shall not be 0.
- * @tparam _Align The alignment of the aligned storage. Shall be equal
- * to alignment_of<T> for some type T or not provided. The implementation
- * requires that the alignment value be a non-zero power of two that is
- * less than the maximum supported extended alignment.
- */
+#ifndef _RWSTD_NO_ALIGN_TRAITS
+
 template <_RWSTD_SIZE_T _Len,
           _RWSTD_SIZE_T _Align = _RW::__rw_default_alignment<_Len>::value>
 struct aligned_storage
 {
-    typedef _TYPENAME _RW::__rw_aligned_storage<_Len, _Align>::type type;
+    typedef typename _RW::__rw_aligned_storage<_Len, _Align>::type type;
 };
 
-#ifndef _RWSTD_NO_VARIADIC_TEMPLATES
+#  ifndef _RWSTD_NO_VARIADIC_TEMPLATES
 
-/**
- * @ingroup meta_trans_other
- *
- * Special trait the defines a nested pod type that is suitable for
- * use as uninitialized storage for any object whose type is listed
- * in _Types and whose size is at most _Len.
- *
- * @tparam _Len The minimum size of the aligned storage.
- * @tparam _Types List of types which might be stored.
- */
 template <_RWSTD_SIZE_T _Len, class _TypeT, class... _Types>
 struct aligned_union
     : _RW::__rw_aligned_union<_Len, _TypeT, _Types...>
 {
+    static const _RWSTD_SIZE_T alignment_value =
+      _RW::__rw_aligned_union<_Len, _TypeT, _Types...>::_C_align_value;
 };
 
-#else
+#  else  // !_RWSTD_NO_VARIADIC_TEMPLATES
 
-/**
- * @ingroup meta_trans_other
- *
- * Special trait the defines a nested pod type that is suitable for
- * use as uninitialized storage for any object whose type is listed
- * in _Types and whose size is at most _Len.
- *
- * @tparam _Len The minimum size of the aligned storage.
- * @tparam _Type1 Type which might be stored.
- * @tparam _Type2 Type which might be stored.
- * @tparam _Type3 Type which might be stored.
- * @tparam _Type4 Type which might be stored.
- * @tparam _Type5 Type which might be stored.
- * @tparam _Type6 Type which might be stored.
- * @tparam _Type7 Type which might be stored.
- * @tparam _Type8 Type which might be stored.
- */
 template <_RWSTD_SIZE_T _Len,
           class _Type1                  , class _Type2 = _RW::__rw_empty,
           class _Type3 = _RW::__rw_empty, class _Type4 = _RW::__rw_empty,
@@ -1256,39 +457,22 @@ struct aligned_union
                               _Type1, _Type2, _Type3, _Type4,
                               _Type5, _Type6, _Type7, _Type8>
 {
+    static const _RWSTD_SIZE_T alignment_value =
+      _RW::__rw_aligned_union<_Len, _Type1, _Type2,
+                                    _Type3, _Type4,
+                                    _Type5, _Type6,
+                                    _Type7, _Type8>::_C_align_value;
 };
 
-#endif
+#  endif // !_RWSTD_NO_VARIADIC_TEMPLATES
+#endif // !_RWSTD_NO_ALIGN_TRAITS
 
-/**
- * @ingroup meta_trans_other
- *
- * \e TransformationTrait to do array-to-pointer and function-to-pointer
- * type conversions.
- *
- * Let \c U be \c remove_reference<T>::type. If \c is_array<U>::value is
- * true, the member typedef type shall equal remove_extent<U>::type*. If
- * \c is_function<U>::value is true, the member typedef shall equal
- * \c add_pointer<U>::type. Otherwise the member typedef type equals \c U.
- *
- * @tparam _TypeT The type to transform.
- */
 template <class _TypeT>
 struct decay
 {
-    typedef _TYPENAME _RW::__rw_decay<_TypeT>::type type;
+    typedef typename _RW::__rw_decay<_TypeT>::type type;
 };
-    
-/**
- * @ingroup meta_trans_other
- *
- * If _Enable is true, the member typedef \c type shall equal _TypeT;
- * otherwise, there shall be no member typedef \c type.
- *
- * @tparam _Enable Flag used to select the primary template or the
- * specialization.
- * @tparam _TypeT The type of the member typedef if _Enable is true.
- */
+
 template <bool _Enable, class _TypeT = void>
 struct enable_if
 {
@@ -1299,22 +483,11 @@ template <class _TypeT>
 struct enable_if<false, _TypeT>
 {
 };
-    
-/**
- * @ingroup meta_trans_other
- *
- * If _Select is true, the member typedef \c type shall equal _TypeT
- * otherwise \c type shall equal _TypeU.
- *
- * @tparam _Select Flag used to select the primary template or the
- * specialization.
- * @tparam _TypeT The type of the member typedef if _Select is true.
- * @tparam _TypeU The type of the member typedef if _Select is false.
- */
+
 template <bool _Select, class _TypeT, class _TypeU>
 struct conditional
 {
-    typedef _TYPENAME
+    typedef typename
     _RW::__rw_conditional<_Select, _TypeT, _TypeU>::type type;
 };
 

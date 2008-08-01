@@ -1054,12 +1054,6 @@
      #defined when  explicit instantiation of member  templates is not
       supported.
 
-  o  _RWSTD_NO_MEMBER_TEMPLATES [abi, auto]
-
-     #defined  when member  templates are  not supported.  The library
-     tries to  provide alternative solutions  wherever possible.  Some
-     loss of functionality is inevitable. 
-
   o  _RWSTD_REENTRANT [abi, auto, lib]
 
      #defined  for multi-thread  safe  build types  12[sd] and  15[sd]
@@ -1178,10 +1172,6 @@
      When #defined, overloads of  operators new and delete declared in
      the  public library  header  <new> do  not  include the  required
      exception specifications.
-
-  o  _RWSTD_NO_TYPENAME [auto]
-
-     #defined when they keyword typename isn't fully supported.
 
   o  _RWSTD_NO_COLLAPSE_STATIC_LOCALS [auto]
 

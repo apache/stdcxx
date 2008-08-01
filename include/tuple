@@ -1,9 +1,9 @@
 // -*- C++ -*-
 /***************************************************************************
  *
- * tuple - fixed-size collection of values with variable, heterogenous types
+ * tuple - fixed-size collections with variable, heterogenous types
  *
- * $Id$
+ * $Id: tuple 677458 2008-07-16 22:49:27Z elemings $
  *
  ***************************************************************************
  *
@@ -23,8 +23,8 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2008 Rogue Wave Software.
- * 
+ * Copyright 2008 Rogue Wave Software, Inc.
+ *
  **************************************************************************/
 
 #ifndef _RWSTD_TUPLE_INCLUDED
@@ -36,81 +36,269 @@
 #    error _RWSTD_NO_EXT_CXX_0X defined and C++0x header included
 #  endif   // defined _RWSTD_NO_EXT_CXX_0X
 
-#  include <type_traits>
-
-#  include <rw/_ref_wrap.h>
+#  include <rw/_forward.h>          // for _RWSTD_FORWARD, _RWSTD_MOVE
+#  include <rw/_meta_cv.h>          // for _RWSTD_ADD_CONST
+#  include <rw/_meta_help.h>        // for __rw_integral_constant
+#  include <rw/_meta_ref.h>         // for _RWSTD_ADD_LVALUE_REFERENCE
+#  include <rw/_pair.h>             // for std::pair
 
 #  include <rw/_tuple.h>
-#  include <rw/_tuple_traits.h>
 
-
-_RWSTD_NAMESPACE (__rw) {
-
-struct __rw_ignore { /* empty */ };
-
-template <class _Type>
-struct __rw_deduce_reference
-{
-    typedef _Type type;
-};
-
-template <class _Type>
-struct __rw_deduce_reference< __rw_ref_wrap<_Type> >
-{
-    typedef _Type& type;
-};
-
-template <class _Type>
-struct __rw_deduce_reference< const __rw_ref_wrap<_Type> >
-{
-    typedef _Type& type;
-};
-
-/**
- * @internal
- * Transform a tuple element type into a suitable make_tuple() return
- * type.
- * @tparam _Type A tuple element type.
- */
-template <class _Type>
-class __rw_make_tuple
-{
-    typedef _TYPENAME _RWSTD_DECAY(_Type) _Decay;
-    typedef _TYPENAME __rw_deduce_reference<_Decay>::type type;
-};
-
-}   // namespace __rw
+#  if !defined _RWSTD_NO_VARIADIC_TEMPLATES
 
 
 _RWSTD_NAMESPACE (std) {
+
+
+// 20.3.1, class template tuple:
+
+template <class... _TypesT>
+class tuple;
+
+_RWSTD_SPECIALIZED_CLASS
+class tuple<>
+{
+    // empty
+};
+
+template <class... _TypesT>
+class tuple
+    : public _RW::__rw_tuple<_TypesT...>
+{
+    typedef _RW::__rw_tuple<_TypesT...> _Base;
+
+#    undef _BaseU
+#    define _BaseU  _RW::__rw_tuple<_TypesU...>
+
+public:
+
+    tuple ()
+        : _Base () { /* empty */ }
+
+    // employ _RWSTD_STATIC_CAST to ensure compiler binds to correct
+    // base class ctors and operators
+
+    tuple (const tuple& __tuple)
+        : _Base (_RWSTD_STATIC_CAST (const _Base&, __tuple)) { /* empty */ }
+
+    tuple& operator= (const tuple& __tuple) {
+        _Base::operator= (_RWSTD_STATIC_CAST (const _Base&, __tuple));
+        return *this;
+    }
+
+    explicit
+    tuple (const _TypesT&... __values)
+        : _Base (__values...) { /* empty */ }
+
+    template <class... _TypesU>
+    tuple (const tuple<_TypesU...>& __tuple)
+        : _Base (_RWSTD_STATIC_CAST (const _BaseU&, __tuple)) { /* empty */ }
+
+    template <class... _TypesU>
+    tuple& operator= (const tuple<_TypesU...>& __tuple) {
+        _Base::operator= (_RWSTD_STATIC_CAST (const _BaseU&, __tuple));
+        return *this;
+    }
+
+#    if !defined _RWSTD_NO_RVALUE_REFERENCES
+
+    tuple (tuple&& __tuple)
+        : _Base (_RWSTD_FORWARD (_Base, __tuple)) { /* empty */ }
+
+    tuple& operator= (tuple&& __tuple) {
+        _Base::operator= (_RWSTD_FORWARD (_Base, __tuple));
+        return *this;
+    }
+
+    template <class... _TypesU>
+    explicit tuple (_TypesU&&... __values)
+        : _Base (_RWSTD_FORWARD (_TypesU, __values)...) { /* empty */ }
+
+    template <class... _TypesU>
+    tuple (tuple<_TypesU...>&& __tuple)
+        : _Base (_RWSTD_FORWARD (_BaseU, __tuple)) { /* empty */ }
+
+    template <class... _TypesU>
+    tuple& operator= (tuple<_TypesU...>&& __tuple) {
+        _Base::operator= (_RWSTD_FORWARD (_BaseU, __tuple));
+        return *this;
+    }
+
+    // allocator-extended constructors:
+
+    template <class _Alloc, class... _TypesU>
+    tuple (allocator_arg_t, const _Alloc& __alloc,
+           const _TypesU&&... __values);
+
+    template <class _Alloc>
+    tuple (allocator_arg_t, const _Alloc& __alloc,
+           tuple&& __tuple);
+
+    template <class _Alloc, class... _TypesU>
+    tuple (allocator_arg_t, const _Alloc& __alloc,
+           tuple<_TypesU...>&& __tuple);
+
+#    endif   // !defined _RWSTD_NO_RVALUE_REFERENCES
+
+#    undef _BaseU
+
+    template <class _Alloc>
+    tuple (allocator_arg_t, const _Alloc& __alloc);
+
+    template <class _Alloc>
+    tuple (allocator_arg_t, const _Alloc& __alloc,
+           const _TypesT&... __values);
+
+    template <class _Alloc>
+    tuple (allocator_arg_t, const _Alloc& __alloc,
+           const tuple& __tuple);
+
+    template <class _Alloc, class... _TypesU>
+    tuple (allocator_arg_t, const _Alloc& __alloc,
+           const tuple<_TypesU...>& __tuple);
+
+};
+
+
+template <class _TypeT1, class _TypeT2>
+class tuple<_TypeT1, _TypeT2>
+    : public _RW::__rw_tuple<_TypeT1, _TypeT2>
+{
+    typedef _RW::__rw_tuple<_TypeT1, _TypeT2>   _Base;
+
+#    undef _BaseU
+#    define _BaseU  _RW::__rw_tuple<_TypeU1, _TypeU2>
+
+public:
+
+    // 20.3.1.2, construction:
+
+    tuple ()
+        : _Base () { /* empty */ }
+
+    tuple (const tuple& __tuple)
+        : _Base (_RWSTD_STATIC_CAST (const _Base&, __tuple)) { /* empty */ }
+
+    tuple& operator= (const tuple& __tuple) {
+        _Base::operator= (_RWSTD_STATIC_CAST (const _Base&, __tuple));
+        return *this;
+    }
+
+    tuple (const _TypeT1& __x, const _TypeT2& __y)
+        : _Base (__x, __y) { /* empty */ }
+
+    template <class _TypeU1, class _TypeU2>
+    tuple (const tuple<_TypeU1, _TypeU2>& __tuple)
+        : _Base (_RWSTD_STATIC_CAST (const _BaseU&, __tuple)) { /* empty */ }
+
+    template <class _TypeU1, class _TypeU2>
+    tuple& operator= (const tuple<_TypeU1, _TypeU2>& __tuple) {
+        _Base::operator= (_RWSTD_STATIC_CAST (const _BaseU&, __tuple));
+        return *this;
+    }
+
+    template <class _TypeU1, class _TypeU2>
+    tuple (const pair<_TypeU1, _TypeU2>& __pair)
+        : _Base (__pair.first, __pair.second) { /* empty */ }
+
+    template <class _TypeU1, class _TypeU2>
+    tuple& operator= (const pair<_TypeU1, _TypeU2>& __pair) {
+        _Base::operator= (__pair.first, __pair.second);
+        return *this;
+    }
+
+#    if !defined _RWSTD_NO_RVALUE_REFERENCES
+
+    template <class _TypeU1, class _TypeU2>
+    tuple (_TypeU1&& __x, _TypeU2&& __y)
+        : _Base (_RWSTD_MOVE (__x), _RWSTD_MOVE (__y)) { /* empty */ }
+
+    tuple (tuple&& __tuple)
+        : _Base (_RWSTD_FORWARD (_Base, __tuple)) { /* empty */ }
+
+    tuple& operator= (tuple&& __tuple) {
+        _Base::operator= (_RWSTD_FORWARD (_Base, __tuple));
+        return *this;
+    }
+
+    template <class _TypeU1, class _TypeU2>
+    tuple (tuple<_TypeU1, _TypeU2>&& __tuple)
+        : _Base (_RWSTD_FORWARD (_BaseU, __tuple))
+    { /* empty */ }
+
+    template <class _TypeU1, class _TypeU2>
+    tuple& operator= (tuple<_TypeU1, _TypeU2>&& __tuple) {
+        _Base::operator= (_RWSTD_FORWARD (_BaseU, __tuple));
+        return *this;
+    }
+
+    template <class _TypeU1, class _TypeU2>
+    tuple (pair<_TypeU1, _TypeU2>&& __pair)
+        : _Base (_RWSTD_MOVE (__pair.first),
+                 _RWSTD_MOVE ( __pair.second)) { /* empty */ }
+
+    template <class _TypeU1, class _TypeU2>
+    tuple& operator= (pair<_TypeU1, _TypeU2>&& __pair) {
+        _Base::operator= (__pair.first, __pair.second);
+        return *this;
+    }
+
+    // allocator-extended constructors:
+
+    template <class _Alloc, class _TypeU1, class _TypeU2>
+    tuple (allocator_arg_t, const _Alloc& __alloc,
+           pair<_TypeU1, _TypeU2>&& __pair);
+
+#    endif   // !defined _RWSTD_NO_RVALUE_REFERENCES
+
+#    undef _BaseU
+
+    template <class _Alloc, class _TypeU1, class _TypeU2>
+    tuple (allocator_arg_t, const _Alloc& __alloc,
+           const pair<_TypeU1, _TypeU2>& __pair);
+
+};
+
+
+// 20.3.1.1, tuple traits:
+
+template <class _Type, class _Alloc>
+struct uses_allocator;
+
+template <class... _TypesT, class _Alloc>
+struct uses_allocator<tuple<_TypesT...>, _Alloc>
+    : _RW::__rw_true_type
+{
+    // empty
+};
+
+
+template <class _Type>
+struct constructible_with_allocator_prefix;
+
+template <class... _TypesT>
+struct constructible_with_allocator_prefix<tuple<_TypesT...> >
+    : _RW::__rw_true_type
+{
+    // empty
+};
 
 
 // 20.3.3, tuple creation functions:
 
 const _RW::__rw_ignore ignore = _RW::__rw_ignore ();
 
-#  if !defined _RWSTD_NO_VARIADIC_TEMPLATES
 
 #    if !defined _RWSTD_NO_RVALUE_REFERENCES
 
-/**
- * @function make_tuple
- *
- * Create a new tuple from a list of element values.  This function
- * constructs a new tuple from the corresponding element values by
- * utilizing move semantics.
- *
- * @tparam _Types The list of elements types in the tuple.
- * @param __values A corresponding list of element values.
- * @return A tuple object containing the given element values.
- */
-template <class... _Types>
-tuple<_TYPENAME _RW::__rw_make_tuple<_Types>::type...>
-make_tuple (_Types&&... __values)
+template <class... _TypesT>
+inline tuple<typename _RW::__rw_make_tuple<_TypesT>::_C_type...>
+make_tuple (_TypesT&&... __values)
 {
-    typedef tuple<_TYPENAME _RW::__rw_make_tuple<_Types>::type...> _Tuple;
-    return _Tuple (std::forward<_Types> (__values)...);
+    typedef tuple<typename _RW::__rw_make_tuple<_TypesT>::_C_type...> _Tuple;
+    return _Tuple (_RWSTD_FORWARD (_TypesT, __values)...);
 }
+
 
 template <class... _TypesT, class... _TypesU>
 tuple<_TypesT..., _TypesU...>
@@ -129,86 +317,60 @@ tuple_cat (tuple<_TypesT...>&& __x,
 
 #    endif   // !defined _RWSTD_NO_RVALUE_REFERENCES
 
-template <class... _Types>
-tuple<_Types&...> tie (_Types&...);
-
 template <class... _TypesT, class... _TypesU>
 tuple<_TypesT..., _TypesU...>
 tuple_cat (const tuple<_TypesT...>& __x,
            const tuple<_TypesU...>& __y);
 
 
+template <class... _TypesT>
+inline tuple<_TypesT&...>
+tie (_TypesT&... __values)
+{
+    return tuple<_TypesT&...> (__values...);
+}
+
+
 // 20.3.1.4, tuple helper classes:
 
-/**
- * @class tuple_size
- *
- * Determine number of element types in tuple.  This compile-time
- * integral constant wrapper determines the number of element types in
- * a tuple.  The class template is ill-formed for any non-tuple typle.
- *
- * @tparam Types List of element types in tuple.
- */
-
-template <class Types>
+template <class _TypesT>
 class tuple_size;
 
-template <class... _Types>
-class tuple_size< tuple<_Types...> >
+template <class... _TypesT>
+class tuple_size< tuple<_TypesT...> >
     : public _RW::__rw_integral_constant< _RWSTD_SIZE_T,
-                                          sizeof... (_Types) >
+                                          sizeof... (_TypesT) >
 {
     // empty
 };
 
 
-/**
- * @class tuple_element
- *
- * Determine the Nth element type of a tuple.  Instances of this class
- * class template provide a type member that identifies the Nth element
- * type of a tuple \c T where 0 <= N <
- * <code>tuple_size&lt;T&gt;::value</code>.  If N is not in this range
- * or for any other arbitrary type, the program is ill-formed.
- *
- * @tparam Index An integer constant indicating the Nth element type.
- * @tparam Types List of element types in the tuple.
- */
-
-template <int Index, class... Types>
+template <_RWSTD_SIZE_T _Index, class... _TypesT>
 struct tuple_element;
 
 template <class _Head, class... _Tail>
 struct tuple_element<0, tuple<_Head, _Tail...> >
 {
-    /** The Nth element type of the tuple. */
     typedef _Head type;
 
+//internal:
 
-    typedef tuple<_Head, _Tail...>          _Tuple;
+    typedef _RW::__rw_tuple<_Head, _Tail...>    _Tuple;
 
-#  define _RWSTD_ADD_CONST(T) \
-          _TYPENAME _RW::__rw_add_const<T>::type
-#  define _RWSTD_ADD_LVAL_REF(T) \
-          _TYPENAME _RW::__rw_add_lvalue_reference<T>::type
-
-    typedef _RWSTD_ADD_CONST (_Head)        _Const;
-    typedef _RWSTD_ADD_LVAL_REF (_Head)     _Ref;
-    typedef _RWSTD_ADD_LVAL_REF (_Const)    _ConstRef;
-
-#  undef _RWSTD_ADD_CONST
-#  undef _RWSTD_ADD_LVAL_REF
+    typedef typename _RWSTD_ADD_LVALUE_REFERENCE (_Head)       _Ref;
+    typedef typename _RWSTD_ADD_CONST (_Head)                  _ConstHead;
+    typedef typename _RWSTD_ADD_LVALUE_REFERENCE (_ConstHead)  _ConstRef;
 
     static _Ref
-    __get (_Tuple& __tuple) { return __tuple.__get (); }
+    _C_get (_Tuple& __tuple) { return __tuple._C_head (); }
 
     static _ConstRef
-    __get (const _Tuple& __tuple) { return __tuple.__get (); }
+    _C_get (const _Tuple& __tuple) { return __tuple._C_head (); }
 };
 
-template <int _Index, class _Head, class... _Tail>
+template <_RWSTD_SIZE_T _Index, class _Head, class... _Tail>
 struct tuple_element<_Index, tuple<_Head, _Tail...> >
-    : tuple_element<_Index - 1, tuple<_Tail...> >
+    : public tuple_element<_Index - 1, tuple<_Tail...> >
 {
     // empty
 };
@@ -216,99 +378,95 @@ struct tuple_element<_Index, tuple<_Head, _Tail...> >
 
 // 20.3.1.5, element access:
 
-/**
- * @function get
- *
- * Access Nth element value of a tuple.  This function returns a
- * cv-qualified value reference to the Nth element in a tuple \c T
- * where 0 <= N < <code>tuple_size&lt;T&gt;::value</code>.  If N is
- * not in this range, the program is ill-formed.
- *
- * @tparam Index An integer constant indicating the Nth element type.
- * @tparam Types List of element types in the tuple.
- * @param tuple A tuple value.
- * @return CV-qualified reference to the Nth element value of tuple.
- */
-
-template <int _Index, class _Head, class... _Tail>
-_TYPENAME tuple_element<_Index, tuple<_Head, _Tail...> >::_Ref
+template <_RWSTD_SIZE_T _Index, class _Head, class... _Tail>
+inline typename tuple_element<_Index, tuple<_Head, _Tail...> >::_Ref
 get (tuple<_Head, _Tail...>& __tuple)
 {
     typedef tuple_element<_Index, tuple<_Head, _Tail...> > _Tuple;
-    return _Tuple::__get (__tuple);
+    return _Tuple::_C_get (__tuple);
 }
 
-template <int _Index, class _Head, class... _Tail>
-_TYPENAME tuple_element<_Index, tuple<_Head, _Tail...> >::_ConstRef
+template <_RWSTD_SIZE_T _Index, class _Head, class... _Tail>
+inline typename tuple_element<_Index, tuple<_Head, _Tail...> >::_ConstRef
 get (const tuple<_Head, _Tail...>& __tuple)
 {
     typedef tuple_element<_Index, tuple<_Head, _Tail...> > _Tuple;
-    return _Tuple::__get (__tuple);
+    return _Tuple::_C_get (__tuple);
 }
 
 
 // 20.3.1.6, relational operators:
 
 template <class... _TypesT, class... _TypesU>
-bool operator== (const tuple<_TypesT...>& __x,
-                 const tuple<_TypesU...>& __y);
+inline bool
+operator== (const tuple<_TypesT...>& __x,
+            const tuple<_TypesU...>& __y)
+{
+    return _RWSTD_STATIC_CAST (const _RW::__rw_tuple<_TypesT...>&, __x)
+           == _RWSTD_STATIC_CAST (const _RW::__rw_tuple<_TypesU...>&, __y);
+}
+
+_RWSTD_SPECIALIZED_FUNCTION
+inline bool
+operator== (const tuple<>& /*__x*/,
+            const tuple<>& /*__y*/)
+{
+    return true;
+}
 
 template <class... _TypesT, class... _TypesU>
-bool operator< (const tuple<_TypesT...>& __x,
-                const tuple<_TypesU...>& __y);
+inline bool
+operator< (const tuple<_TypesT...>& __x,
+           const tuple<_TypesU...>& __y)
+{
+    return _RWSTD_STATIC_CAST (const _RW::__rw_tuple<_TypesT...>&, __x)
+           < _RWSTD_STATIC_CAST (const _RW::__rw_tuple<_TypesU...>&, __y);
+}
 
-/**
- * @param __x Tuple value on LHS of operator.
- * @param __y Tuple value on RHS of operator.
- * @return !(__x == __y)
- */
+_RWSTD_SPECIALIZED_FUNCTION
+inline bool
+operator< (const tuple<>& /*__x*/,
+           const tuple<>& /*__y*/)
+{
+    return false;
+}
+
 template <class... _TypesT, class... _TypesU>
-bool operator!= (const tuple<_TypesT...>& __x,
-                 const tuple<_TypesU...>& __y)
+inline bool
+operator!= (const tuple<_TypesT...>& __x,
+            const tuple<_TypesU...>& __y)
 {
     return !(__x == __y);
 }
 
-/**
- * @param __x Tuple value on LHS of operator.
- * @param __y Tuple value on RHS of operator.
- * @return __y < __x
- */
 template <class... _TypesT, class... _TypesU>
-bool operator> (const tuple<_TypesT...>& __x,
-                const tuple<_TypesU...>& __y)
+inline bool
+operator> (const tuple<_TypesT...>& __x,
+           const tuple<_TypesU...>& __y)
 {
     return __y < __x;
 }
 
-
-/**
- * @param __x Tuple value on LHS of operator.
- * @param __y Tuple value on RHS of operator.
- * @return !(__y < __x)
- */
 template <class... _TypesT, class... _TypesU>
-bool operator<= (const tuple<_TypesT...>& __x,
-                 const tuple<_TypesU...>& __y)
+inline bool
+operator<= (const tuple<_TypesT...>& __x,
+            const tuple<_TypesU...>& __y)
 {
     return !(__y < __x);
 }
 
-/**
- * @param __x Tuple value on LHS of operator.
- * @param __y Tuple value on RHS of operator.
- * @return !(__x < __y)
- */
 template <class... _TypesT, class... _TypesU>
-bool operator>= (const tuple<_TypesT...>& __x,
-                 const tuple<_TypesU...>& __y)
+inline bool
+operator>= (const tuple<_TypesT...>& __x,
+            const tuple<_TypesU...>& __y)
 {
     return !(__x < __y);
 }
 
 
-#  endif   // !defined _RWSTD_NO_VARIADIC_TEMPLATES
-
 }   // namespace std
+
+
+#  endif   // !defined _RWSTD_NO_VARIADIC_TEMPLATES
 
 #endif   // _RWSTD_TUPLE_INCLUDED

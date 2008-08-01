@@ -71,7 +71,7 @@ public:
     typedef _OutputIterator iterator_type;
 
     // 20.4.2, p2
-    _EXPLICIT raw_storage_iterator (iterator_type __x): _C_iter (__x) { }
+    explicit raw_storage_iterator (iterator_type __x): _C_iter (__x) { }
 
     // 20.4.2, p3
     raw_storage_iterator& operator* () {

@@ -56,7 +56,7 @@ _RWSTD_NAMESPACE (__rw) {
 
 
 #ifndef _RWSTD_NO_NONDEDUCED_CONTEXT
-#  define _RWSTD_CONTAINER_SIZE_TYPE _TYPENAME _Container::size_type
+#  define _RWSTD_CONTAINER_SIZE_TYPE typename _Container::size_type
 #else
 #  define _RWSTD_CONTAINER_SIZE_TYPE _RWSTD_SIZE_T
 #endif   // _RWSTD_NO_NONDEDUCED_CONTEXT

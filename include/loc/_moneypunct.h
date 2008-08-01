@@ -65,7 +65,7 @@ struct moneypunct: _RW::__rw_facet, public money_base
     basic_string<char_type, char_traits<char_type>, allocator<char_type> >
     string_type;
 
-    _EXPLICIT moneypunct (_RWSTD_SIZE_T __refs = 0)
+    explicit moneypunct (_RWSTD_SIZE_T __refs = 0)
         : _RW::__rw_facet (__refs) { }
 
     char_type decimal_point () const {
@@ -207,7 +207,7 @@ class moneypunct_byname: public moneypunct<_CharT, _Intl>
 
 public:
 
-    _EXPLICIT moneypunct_byname (const char *__name, _RWSTD_SIZE_T __ref = 0)
+    explicit moneypunct_byname (const char *__name, _RWSTD_SIZE_T __ref = 0)
         : moneypunct<_CharT, _Intl>(__ref) {
             this->_C_set_name (__name, _C_namebuf, sizeof _C_namebuf);
         }

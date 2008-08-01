@@ -76,10 +76,10 @@ class __rw_list_iter
 
 public:
 
-    typedef _TYPENAME _C_iter_base::value_type      value_type;
-    typedef _TYPENAME _C_iter_base::difference_type difference_type;
-    typedef _TYPENAME _C_iter_base::pointer         pointer;
-    typedef _TYPENAME _C_iter_base::reference       reference;
+    typedef typename _C_iter_base::value_type      value_type;
+    typedef typename _C_iter_base::difference_type difference_type;
+    typedef typename _C_iter_base::pointer         pointer;
+    typedef typename _C_iter_base::reference       reference;
 
     // const_pointer and const_reference must be explicity typedef'ed to
     // const value_type* and const value_type& since we don't know if
@@ -182,12 +182,12 @@ public:
 
     typedef _TypeT                                    value_type;
     typedef _Allocator                                allocator_type;
-    typedef _TYPENAME allocator_type::reference       reference;
-    typedef _TYPENAME allocator_type::const_reference const_reference;
-    typedef _TYPENAME allocator_type::size_type       size_type;
-    typedef _TYPENAME allocator_type::difference_type difference_type;
-    typedef _TYPENAME allocator_type::pointer         pointer;
-    typedef _TYPENAME allocator_type::const_pointer   const_pointer;
+    typedef typename allocator_type::reference       reference;
+    typedef typename allocator_type::const_reference const_reference;
+    typedef typename allocator_type::size_type       size_type;
+    typedef typename allocator_type::difference_type difference_type;
+    typedef typename allocator_type::pointer         pointer;
+    typedef typename allocator_type::const_pointer   const_pointer;
     typedef __rw_list_node<value_type>                _C_list_node;
     typedef _C_list_node*                             _C_link_type;
 
@@ -262,15 +262,15 @@ protected:
     // Node buffer data structure
     struct _C_nodebuf {
         typedef _RWSTD_REBIND (allocator_type, _C_nodebuf) _C_alloc_type;
-        typedef _TYPENAME _C_alloc_type::pointer           _C_pointer;
+        typedef typename _C_alloc_type::pointer           _C_pointer;
 
         _C_pointer   _C_next_buf;
         size_type    _C_bufsize;
         _C_link_type _C_buffer;
     };
 
-    typedef _TYPENAME _C_nodebuf::_C_alloc_type _C_buf_alloc_type;
-    typedef _TYPENAME _C_nodebuf::_C_pointer    _C_buf_pointer;
+    typedef typename _C_nodebuf::_C_alloc_type _C_buf_alloc_type;
+    typedef typename _C_nodebuf::_C_pointer    _C_buf_pointer;
 
     void _C_add_buffer (bool);
     void _C_free_buffers ();
@@ -378,14 +378,14 @@ protected:
 
 public:
 
-    _EXPLICIT
+    explicit
     list (const allocator_type& __alloc = allocator_type ())
         : allocator_type (__alloc), _RWSTD_NODE_BUFFER_INIT(0,0)
           _C_next_avail (0), _C_last (0), _C_node (0), _C_length (0) {
         _C_init (true);
     }
     
-    _EXPLICIT
+    explicit
     list (size_type             __n, 
           const_reference       __x     = value_type (),
           const allocator_type &__alloc = allocator_type ())
@@ -603,19 +603,10 @@ protected:
     // uses transfer_node to merge in list by transfering nodes to list
     void _C_adjacent_merge (iterator, iterator, iterator);
 
-#ifndef _RWSTD_NO_MEMBER_TEMPLATES
-
     // uses transfer_node to merge in list by transfering nodes to list
     template<class _Compare>
     void _C_adjacent_merge (iterator, iterator, iterator, _Compare);
 
-#else   // if defined (_RWSTD_NO_MEMBER_TEMPLATES)
-
-    void _C_adjacent_merge (iterator, iterator, iterator,
-                           bool (*)(const_reference, const_reference));
-
-#endif   // _RWSTD_NO_MEMBER_TEMPLATES
-      
     void _C_insert (iterator __it, size_type __n, const_reference __x) {
         _RWSTD_ASSERT_RANGE (begin (), __it);
 
@@ -655,8 +646,6 @@ public:
 
     void sort ();
 
-#ifndef _RWSTD_NO_MEMBER_TEMPLATES
-
     template<class _Predicate>
     void remove_if (_Predicate);
 
@@ -668,18 +657,6 @@ public:
 
     template<class _Compare>
     void sort (_Compare);
-
-#else   // if defined (_RWSTD_NO_MEMBER_TEMPLATES)
-
-    void remove_if (bool (*)(const_reference));
-
-    void unique (bool (*)(const_reference, const_reference));
-
-    void merge (list &__x, bool (*)(const_reference, const_reference));
-
-    void sort (bool (*)(const_reference, const_reference));
-
-#endif // _RWSTD_NO_MEMBER_TEMPLATES
 
 };
 
@@ -753,7 +730,7 @@ inline void swap (list<_TypeT, _Allocator>& __x,
 
 
 template <class _TypeT, class _Allocator>
-inline _TYPENAME list<_TypeT, _Allocator>::iterator 
+inline typename list<_TypeT, _Allocator>::iterator 
 list<_TypeT, _Allocator>::insert (iterator __it, const_reference __x)
 {
     _RWSTD_ASSERT_RANGE (begin (), __it);
@@ -787,7 +764,7 @@ list<_TypeT, _Allocator>::insert (iterator __it, const_reference __x)
 
 
 template <class _TypeT, class _Allocator>
-inline _TYPENAME list<_TypeT, _Allocator>::iterator 
+inline typename list<_TypeT, _Allocator>::iterator 
 list<_TypeT, _Allocator>::erase (iterator __it)
 {
     _RWSTD_ASSERT_RANGE (begin (), __it);

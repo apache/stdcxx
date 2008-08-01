@@ -24,11 +24,6 @@
 
 #include "config.h"
 
-#ifdef _RWSTD_NO_TYPENAME
-
-#  define typename
-
-#endif
 
 template <class T>
 struct A

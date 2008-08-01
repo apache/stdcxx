@@ -56,7 +56,7 @@ struct num_put: _RW::__rw_facet
     typedef _CharT      char_type;
     typedef _OutputIter iter_type;
 
-    _EXPLICIT num_put (_RWSTD_SIZE_T __refs = 0)
+    explicit num_put (_RWSTD_SIZE_T __refs = 0)
         : _RW::__rw_facet (__refs) { }
 
     virtual ~num_put ();

@@ -60,7 +60,7 @@ struct money_put: _RW::__rw_facet
     basic_string<char_type, char_traits<char_type>, allocator<char_type> >
     string_type;
 
-    _EXPLICIT money_put (_RWSTD_SIZE_T __ref = 0)
+    explicit money_put (_RWSTD_SIZE_T __ref = 0)
         : _RW::__rw_facet (__ref) { }
 
     // 22.2.6.2.1, p1

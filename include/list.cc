@@ -55,7 +55,7 @@ list<_TypeT, _Allocator>::
 
 
 template <class _TypeT, class _Allocator>
-_TYPENAME list<_TypeT, _Allocator>::iterator 
+typename list<_TypeT, _Allocator>::iterator 
 list<_TypeT, _Allocator>::erase (iterator __first, iterator __last)
 {
     _RWSTD_ASSERT_RANGE (begin (), __first);
@@ -457,22 +457,11 @@ _C_adjacent_merge (iterator __first1, iterator __last1, iterator __last2)
 }
 
 
-#ifndef _RWSTD_NO_MEMBER_TEMPLATES
-
 template <class _TypeT, class _Allocator>
 template<class _Compare>
 void list<_TypeT, _Allocator>::
 _C_adjacent_merge (iterator __first1, iterator __last1, iterator __last2,
                    _Compare __cmp)
-
-#else   // if defined (_RWSTD_NO_MEMBER_TEMPLATES)
-
-template <class _TypeT, class _Allocator>
-void list<_TypeT, _Allocator>::
-_C_adjacent_merge (iterator __first1, iterator __last1, iterator __last2,
-                   bool (*__cmp)(const_reference, const_reference))
-
-#endif   // _RWSTD_NO_MEMBER_TEMPLATES
 {
     difference_type __n = _DISTANCE (__first1, __last1, difference_type);
 
@@ -490,19 +479,9 @@ _C_adjacent_merge (iterator __first1, iterator __last1, iterator __last2,
 }
 
 
-#ifndef _RWSTD_NO_MEMBER_TEMPLATES
-
 template<class _TypeT, class _Allocator>
 template<class _Predicate>
 void list<_TypeT, _Allocator>::remove_if (_Predicate __pred)
-
-#else   // if defined (_RWSTD_NO_MEMBER_TEMPLATES)
-
-template<class _TypeT, class _Allocator>
-void list<_TypeT, _Allocator>::remove_if (bool (*__pred)(const_reference))
-
-#endif   // _RWSTD_NO_MEMBER_TEMPLATES
-
 {
     iterator __first = begin ();
     iterator __last = end ();
@@ -516,19 +495,10 @@ void list<_TypeT, _Allocator>::remove_if (bool (*__pred)(const_reference))
     }
 }
 
-#ifndef _RWSTD_NO_MEMBER_TEMPLATES
 
 template<class _TypeT, class _Allocator>
 template<class _BinaryPredicate>
 void list<_TypeT, _Allocator>::unique (_BinaryPredicate __pred)
-
-#else   // if defined (_RWSTD_NO_MEMBER_TEMPLATES)
-
-template<class _TypeT, class _Allocator>
-void list<_TypeT, _Allocator>::
-unique (bool (*__pred)(const_reference, const_reference))
-
-#endif   // _RWSTD_NO_MEMBER_TEMPLATES
 {
     iterator __first = begin ();
     iterator __last = end ();
@@ -547,21 +517,10 @@ unique (bool (*__pred)(const_reference, const_reference))
 }
 
 
-#ifndef _RWSTD_NO_MEMBER_TEMPLATES
-
 template<class _TypeT, class _Allocator>
 template<class _Compare>
 void list<_TypeT, _Allocator>::
 merge (list<_TypeT, _Allocator>& __x, _Compare __cmp)
-
-#else   // if defined (_RWSTD_NO_MEMBER_TEMPLATES)
-
-template<class _TypeT, class _Allocator>
-void list<_TypeT, _Allocator>::
-merge (list<_TypeT, _Allocator>& __x,
-       bool (*__cmp)(const_reference, const_reference))
-
-#endif   // _RWSTD_NO_MEMBER_TEMPLATES
 {
     if (&__x == this)
         return;
@@ -585,19 +544,9 @@ merge (list<_TypeT, _Allocator>& __x,
 }
 
 
-#ifndef _RWSTD_NO_MEMBER_TEMPLATES
-
 template <class _TypeT, class _Allocator>
 template<class _Compare>
 void list<_TypeT, _Allocator>::sort (_Compare __cmp)
-
-#else   // if defined (_RWSTD_NO_MEMBER_TEMPLATES)
-
-template <class _TypeT, class _Allocator>
-void list<_TypeT, _Allocator>::
-sort (bool (*__cmp)(const_reference, const_reference))
-
-#endif   // _RWSTD_NO_MEMBER_TEMPLATES
 {
     for (size_type __n = 1; __n < size (); __n *= 2) {
 

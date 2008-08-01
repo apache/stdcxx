@@ -401,13 +401,9 @@ test_negators ()
 {
     rw_info (0, 0, __LINE__, "[lib.negators]");
 
-#ifndef _RWSTD_NO_EXPLICIT
-
     // verify that std::unary_negate<>() and std::binary_negate<>()
     // ctors are declared explicit
     is_explicit (std::logical_not<int>());
-
-#endif   // _RWSTD_NO_EXPLICIT
 
 // use std::negate<> as an argument in negator ctors
 #undef CTOR_ARG_LIST
@@ -549,13 +545,9 @@ test_function_pointer_adaptors ()
 {
     rw_info (0, 0, __LINE__, "[lib.function.pointer.adaptors]");
 
-#ifndef _RWSTD_NO_EXPLICIT
-
     // verify that the pointer to function adapters' ctors are explicit
     is_explicit ((int (*)(int))0);
     is_explicit ((int (*)(int, int))0);
-
-#endif   // _RWSTD_NO_EXPLICIT
 
 // initialize pointer_to_unary_function with the address of square
 #undef CTOR_ARG_LIST
@@ -641,15 +633,11 @@ test_member_pointer_adaptors ()
 {
     rw_info (0, 0, __LINE__, "[lib.member.pointer.adaptors]");
 
-#ifndef _RWSTD_NO_EXPLICIT
-
     // verify that the pointer to member adapters' ctors are explicit
     is_explicit ((int (Integer::*)())0);
     is_explicit ((int (Integer::*)(short))0);
     is_explicit ((int (Integer::*)() const)0);
     is_explicit ((int (Integer::*)(short) const)0);
-
-#endif   // _RWSTD_NO_EXPLICIT
 
 #undef CTOR_ARG_LIST
 #define CTOR_ARG_LIST (&Integer::square)

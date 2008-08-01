@@ -236,7 +236,7 @@ struct __rw_is_enum
 #else
 
     // prevent references from causing an error
-    typedef _TYPENAME __rw_is_reference<_TypeT>::_C_type _C_type;
+    typedef typename __rw_is_reference<_TypeT>::_C_type _C_type;
 
     // working around an HP aCC bug (see PR #25347)
     // NOTE: this fails for classes due to another bug (PR #25384)
@@ -267,12 +267,12 @@ struct __rw_is_enum<void>
 template <class _TypeT>
 struct __rw_type_traits
 {
-    typedef _TYPENAME __rw_is_const<_TypeT>::_C_type     _C_non_const_type;
-    typedef _TYPENAME __rw_is_volatile<_TypeT>::_C_type  _C_non_volatile_type;
-    typedef _TYPENAME __rw_is_pointer<_TypeT>::_C_type   _C_non_pointer_type;
-    typedef _TYPENAME __rw_is_reference<_TypeT>::_C_type _C_non_reference_type;
+    typedef typename __rw_is_const<_TypeT>::_C_type     _C_non_const_type;
+    typedef typename __rw_is_volatile<_TypeT>::_C_type  _C_non_volatile_type;
+    typedef typename __rw_is_pointer<_TypeT>::_C_type   _C_non_pointer_type;
+    typedef typename __rw_is_reference<_TypeT>::_C_type _C_non_reference_type;
 
-    typedef _TYPENAME __rw_is_cv_qualified<_TypeT>::_C_type
+    typedef typename __rw_is_cv_qualified<_TypeT>::_C_type
     _C_non_cv_qualified_type;
 
     enum {

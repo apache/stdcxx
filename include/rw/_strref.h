@@ -105,7 +105,7 @@ struct __string_ref
 {
     typedef _CharT                                            char_type;
     typedef _Allocator                                        allocator_type;
-    typedef _TYPENAME allocator_type::size_type               size_type;
+    typedef typename allocator_type::size_type               size_type;
     typedef _STD::basic_string<_CharT, _Traits, _Allocator>   string_type;
 
 #if     defined (_RWSTD_REENTRANT)              \

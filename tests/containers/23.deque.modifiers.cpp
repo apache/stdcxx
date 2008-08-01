@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -1248,8 +1248,7 @@ void test_erase ()
 
 /**************************************************************************/
 
-#ifndef _RWSTD_NO_EXPLICIT
-#  if !defined (_MSC_VER) || _MSC_VER > 1200
+#if !defined (_MSC_VER) || _MSC_VER > 1200
 
 struct DR_438
 {
@@ -1264,13 +1263,10 @@ struct DR_438
 
 bool DR_438::cast_used;
 
-#  else   // if MSVC <= 6.0
-       // avoid an MSVC 6.0 ICE on this code
-#    define NO_DR_438_TEST "this version of MSVC is too broken"
-#  endif   // !MSVC || MSVC > 6.0
-#else
-#  define NO_DR_438_TEST "_RWSTD_NO_EXPLICIT #defined"
-#endif   // _RWSTD_NO_EXPLICIT
+#else   // if MSVC <= 6.0
+     // avoid an MSVC 6.0 ICE on this code
+#  define NO_DR_438_TEST "this version of MSVC is too broken"
+#endif   // !MSVC || MSVC > 6.0
 
 
 void test_dr_438 ()

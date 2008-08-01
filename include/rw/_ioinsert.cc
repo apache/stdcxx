@@ -39,7 +39,7 @@ _STD::basic_ostream<_CharT, _Traits>&
 __rw_insert (_STD::basic_ostream<_CharT, _Traits> &__strm,
              _NativeType                           __val)
 {
-    const _TYPENAME _STD::basic_ostream<_CharT, _Traits>::sentry
+    const typename _STD::basic_ostream<_CharT, _Traits>::sentry
         __opfx (__strm);
 
     _TRY {
@@ -75,7 +75,7 @@ __rw_sputn (_STD::basic_ostream<_CharT, _Traits> &__strm,
     _RWSTD_ASSERT (!__len || __len > 0 && 0 != __s);
 
     if (1 == __len) {
-        typedef _TYPENAME _Traits::int_type _IntT;
+        typedef typename _Traits::int_type _IntT;
 
         const _IntT __ic = __strm.rdbuf ()->sputc (*__s);
 
@@ -100,7 +100,7 @@ __rw_sputn (_STD::basic_ostream<_CharT, _Traits> &__strm,
 
     for (_RWSTD_STREAMSIZE __i = 0; __i < __len; ++__i) {
 
-        typedef _TYPENAME _Traits::int_type _IntT;
+        typedef typename _Traits::int_type _IntT;
 
         const _IntT __ic = __strm.rdbuf ()->sputc (__ctp.widen (__s [__i]));
 
@@ -133,7 +133,7 @@ __rw_insert (_STD::basic_ostream<_CharT, _Traits> &__strm,
 
     _TRY {
   
-        const _TYPENAME _STD::basic_ostream<_CharT, _Traits>::sentry
+        const typename _STD::basic_ostream<_CharT, _Traits>::sentry
             __opfx (__strm);
 
         if (__opfx) {
@@ -142,8 +142,8 @@ __rw_insert (_STD::basic_ostream<_CharT, _Traits> &__strm,
             // according to the rules described in 22.2.2.2.2, p19
             const _RWSTD_STREAMSIZE __pad = __width - __len;
 
-            typedef _TYPENAME
-                __rw_is_same<_CharT, _StringT>::_C_type _Same;
+            typedef typename
+                __rw_same_type<_CharT, _StringT>::_C_type _Same;
 
             if (__pad > 0) {
                 const int __padbits =

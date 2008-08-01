@@ -136,7 +136,7 @@ _RWSTD_NAMESPACE (std) {
 template <class _Functor, class _TypeT>
 struct __rw_smanip
 {
-    _EXPLICIT
+    explicit
     __rw_smanip (_TypeT __arg)
         : _C_fun (), _C_arg (__arg) { /* empty */ }
 

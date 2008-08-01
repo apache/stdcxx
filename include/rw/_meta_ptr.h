@@ -35,32 +35,20 @@
 
 _RWSTD_NAMESPACE (__rw) {
 
-/**
- * TransformationTrait strips a single level of pointer indirection from
- * _TypeT. The primary template is for non-pointer types.
- */
 template <class _TypeT>
 struct __rw_remove_pointer
 {
     typedef _TypeT type;
 };
 
-/**
- * TransformationTrait adds a single level of pointer indirection to
- * _TypeT. This specialization is for pointer types.
- */
 template <class _TypeT>
 struct __rw_remove_pointer<_TypeT*>
 {
     typedef _TypeT type;
 };
 
-//#define _RWSTD_REMOVE_POINTER(T) typename _RW::__rw_remove_pointer<T>::type
+#define _RWSTD_REMOVE_POINTER(T) _RW::__rw_remove_pointer<T>::type
 
-/**
- * TransformationTrait adds a single level of pointer indirection to
- * _TypeT.
- */
 template <class _TypeT>
 struct __rw_add_pointer
 {
@@ -68,7 +56,7 @@ struct __rw_add_pointer
     __rw_remove_reference<_TypeT>::type* type;
 };
 
-//#define _RWSTD_ADD_POINTER(T) typename _RW::__rw_add_pointer<T>::type
+#define _RWSTD_ADD_POINTER(T) _RW::__rw_add_pointer<T>::type
 
 } // namespace __rw
 

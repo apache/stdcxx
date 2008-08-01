@@ -37,7 +37,7 @@ _RW::__rw_facet_id ctype<_CharT>::id;
 
 
 template <class _CharT> 
-/* virtual */ const _TYPENAME ctype<_CharT>::char_type*
+/* virtual */ const typename ctype<_CharT>::char_type*
 ctype<_CharT>::
 do_is (const char_type *__lo, const char_type *__hi, mask *__m) const
 {
@@ -52,7 +52,7 @@ do_is (const char_type *__lo, const char_type *__hi, mask *__m) const
 
 
 template <class _CharT> 
-/* virtual */ const _TYPENAME ctype<_CharT>::char_type*
+/* virtual */ const typename ctype<_CharT>::char_type*
 ctype<_CharT>::
 do_scan_is (mask __m, const char_type *__lo, const char_type *__hi) const
 {
@@ -68,7 +68,7 @@ do_scan_is (mask __m, const char_type *__lo, const char_type *__hi) const
 
 
 template <class _CharT> 
-/* virtual */ const _TYPENAME ctype<_CharT>::char_type*
+/* virtual */ const typename ctype<_CharT>::char_type*
 ctype<_CharT>::
 do_scan_not (mask __m, const char_type *__lo, const char_type *__hi) const
 {
@@ -84,7 +84,7 @@ do_scan_not (mask __m, const char_type *__lo, const char_type *__hi) const
 
 
 template <class _CharT> 
-/* virtual */ const _TYPENAME ctype<_CharT>::char_type*
+/* virtual */ const typename ctype<_CharT>::char_type*
 ctype<_CharT>::
 do_toupper (char_type *__lo, const char_type *__hi) const
 {
@@ -99,7 +99,7 @@ do_toupper (char_type *__lo, const char_type *__hi) const
 
 
 template <class _CharT> 
-/* virtual */ const _TYPENAME ctype<_CharT>::char_type*
+/* virtual */ const typename ctype<_CharT>::char_type*
 ctype<_CharT>::
 do_tolower (char_type *__lo, const char_type *__hi) const
 {
@@ -128,7 +128,7 @@ do_widen (const char *__lo, const char *__hi, char_type *__dest) const
 
 
 template <class _CharT> 
-/* virtual */ const _TYPENAME ctype<_CharT>::char_type*
+/* virtual */ const typename ctype<_CharT>::char_type*
 ctype<_CharT>::
 do_narrow (const char_type *__lo, const char_type *__hi,
            char __dfault, char *__dest) const

@@ -301,8 +301,8 @@ public:
     typedef const value_type*                         const_pointer;
     typedef value_type&                               reference;
     typedef const value_type&                         const_reference;
-    typedef _TYPENAME allocator_type::size_type       size_type;
-    typedef _TYPENAME allocator_type::difference_type difference_type;
+    typedef typename allocator_type::size_type       size_type;
+    typedef typename allocator_type::difference_type difference_type;
 
 protected:
     allocator_type _C_alloc;

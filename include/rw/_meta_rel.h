@@ -32,87 +32,140 @@
 
 #include <rw/_defs.h>
 
-#include <rw/_meta_arr.h>
-#include <rw/_meta_ptr.h>
-#include <rw/_meta_ref.h>
-#include <rw/_meta_cat.h>
-#include <rw/_meta_cv.h>
+#ifndef _RWSTD_TT_IS_CONVERTIBLE
+#  include <rw/_meta_arr.h>
+#  include <rw/_meta_ptr.h>
+#  include <rw/_meta_ref.h>
+#  include <rw/_meta_cat.h>
+#  include <rw/_meta_cv.h>
+#endif // _RWSTD_TT_IS_CONVERTIBLE
+
+#ifndef _RWSTD_TT_IS_BASE_OF
+#  include <rw/_meta_cv.h>
+#  include <rw/_meta_ptr.h>
+#endif //_RWSTD_TT_IS_BASE_OF
 
 _RWSTD_NAMESPACE (__rw) {
 
-/**
- * UnaryTypeTrait indicates that the given types _TypeT and _TypeU are
- * the same type, including cv-qualifiers.
- *
- * The primary template is for the case that _TypeT and _TypeU are indeed
- * different types.
- */
 template <class _TypeT, class _TypeU>
 struct __rw_is_same : __rw_false_type
 {
 };
 
-/**
- * UnaryTypeTrait indicates that the given types _TypeT and _TypeU are
- * the same type, including cv-qualifiers.
- *
- * This specialization is for the case that _TypeT and _TypeU are exactly
- * the same types.
- */
 template <class _TypeT>
 struct __rw_is_same<_TypeT, _TypeT> : __rw_true_type
 {
 };
 
-#define _RWSTD_IS_SAME(T,U)                                           \
-    __rw_is_same<T,U>::value
+#define _RWSTD_IS_SAME(T,U) _RW::__rw_is_same<T,U>::value
 
-/**
- * BinaryTypeTrait indicates that _TypeT is a base class of _TypeU
- * or _TypeT and _TypeU are not unions and name the same class type,
- * without regard to cv-qualifiers.
- *
- * If _TypeT and _TypeU are class types and are different types, without
- * regard to cv-qualifiers, then _TypeT shall be a complete type.
- */
-template <class _TypeT, class _TypeU>
-struct __rw_is_base_of
-    : __rw_integral_constant<bool, _RWSTD_TT_IS_BASE_OF(_TypeT,_TypeU)>
+
+#ifndef _RWSTD_TT_IS_BASE_OF
+
+//
+// Primary template  handles case that either of _Base or _Derived
+// is not a class type.
+//
+template <class _Base, class _Derived,
+          bool =   __rw_is_class<_Base>::value
+                && __rw_is_class<_Derived>::value>
+struct __rw_is_base_of_impl
 {
-    //_RWSTD_ASSERT (    _RWSTD_IS_CLASS (_TypeT)
-    //               &&  _RWSTD_IS_CLASS (_TypeU)
-    //               && !_RWSTD_IS_SAME(_TypeT, _TypeU)
+    enum { _C_value = 0 };
+};
+
+//
+// This specialization is for the case that _Base and
+// _Derived are class types, but not the same type.
+//
+// This little gem was taken from a comp.lang.c++.moderated post
+// by Rani Sharoni [see http://tinyurl.com/6pdv3k]
+//
+template <class _Base, class _Derived>
+struct __rw_is_base_of_impl<_Base, _Derived, true>
+{
+    struct _C_no  { };
+    struct _C_yes { _C_no __pad [2]; };
+
+    struct _C_nest
+    {
+        operator const volatile _Base&    () const;
+        operator const volatile _Derived& ();
+
+        // the template is used so that the compiler will prefer the
+        // non-template _C_is, in case that the conversion would be
+        // ambiguous (as it is in the case where the types are unrelated).
+        template <class _TypeT>
+        static _C_yes _C_is (const volatile _Derived&, _TypeT);
+        static _C_no _C_is  (const volatile _Base&   , int);
+    };
+
+    enum { _C_value = 
+           _RW::__rw_is_same<const volatile _Base,
+                             const volatile _Derived&>::value
+        || sizeof (_C_yes) == sizeof (_C_nest::_C_is (_C_nest (), 0))
+    };
+};
+
+//
+// This specialization is for the case that _Base and
+// _Derived are the same class type.
+//
+template <class _TypeT>
+struct __rw_is_base_of_impl<_TypeT, _TypeT, true>
+{
+    enum { _C_value = 1 };
+};
+
+#  define _RWSTD_IS_BASE_OF(T,U) \
+     _RW::__rw_is_base_of_impl<T,U>::_C_value
+
+#elif defined (_MSC_VER)
+#  define _RWSTD_IS_BASE_OF(T,U)     \
+    (   _RW::__rw_is_class<T>::value \
+     && _RW::__rw_is_class<U>::value \
+     && _RWSTD_TT_IS_BASE_OF(T,U))
+#else
+#  define _RWSTD_IS_BASE_OF(T,U) _RWSTD_TT_IS_BASE_OF(T,U)
+#endif // _RWSTD_TT_IS_BASE_OF
+
+template <class _Base, class _Derived>
+struct __rw_is_base_of
+    : __rw_integral_constant<bool, _RWSTD_IS_BASE_OF(_Base,_Derived)>
+{
+    //_RWSTD_ASSERT (    _RWSTD_IS_CLASS (_Base)
+    //               &&  _RWSTD_IS_CLASS (_Derived)
+    //               && !_RWSTD_IS_SAME(_Base, _Derived)
     //               ||
 };
 
-#define _RWSTD_IS_BASE_OF(T,U)                                        \
-    __rw_is_base_of<T,U>::value
 
+#if !defined (_RWSTD_TT_IS_CONVERTIBLE)
 
-/**
- * Primitive type trait tells us if we can create a _TypeU from a _TypeT.
- */
-template <class _TypeT, class _TypeU>
+template <class _From, class _To>
 struct __rw_is_convertible_impl
 {
     struct _C_no  { };
     struct _C_yes { _C_no __pad [2]; };
 
-    static _C_yes _C_is (int, _TypeU);
-    static _C_no  _C_is (int, ...);
+    struct _Dummy
+    {
+        template <class _Anything>
+        _Dummy (_Anything);
+    };
 
-    static _TypeT _C_make ();
+    template <class _TypeT>
+    static _C_no _C_is (_Dummy, _TypeT);
+    static _C_yes _C_is (_To, int);
 
-    enum { _C_value = sizeof (_C_yes) == sizeof (_C_is (0, _C_make ())) };
+    static _From _C_make ();
+
+    enum { _C_value = sizeof (_C_yes) == sizeof (_C_is (_C_make (), 0)) };
 };
 
-
-
-
-
-
-template <class _TypeT, class _TypeU, bool = __rw_is_array<_TypeT>::value,
-                                      bool = __rw_is_function<_TypeT>::value>
+template <class _TypeT, class _TypeU,
+          bool = __rw_is_array<_TypeT>::value,
+          bool = __rw_is_function<_TypeT>::value>
 struct __rw_is_convertible_3
 {
     // _TypeT is neither an array nor a function type, so just do a
@@ -121,28 +174,31 @@ struct __rw_is_convertible_3
 };
 
 template <class _TypeT, class _TypeU>
-struct __rw_is_convertible_3<_TypeT,_TypeU,true,false>
+struct __rw_is_convertible_3<_TypeT, _TypeU, true, false>
 {
     // _TypeT is an array type, see if we can convert it to a _TypeU*
-    typedef _TYPENAME __rw_remove_extent<_TypeT>::type _TypeV;
-    typedef _TYPENAME __rw_add_pointer<_TypeV>::type _TypeT_Ptr;
+    typedef typename __rw_remove_extent<_TypeT>::type _TypeV;
+    typedef typename __rw_add_pointer<_TypeV>::type _TypeT_Ptr;
 
-    enum { _C_value = __rw_is_convertible_impl<_TypeT_Ptr, _TypeU>::_C_value };
+    enum { _C_value =
+        __rw_is_convertible_impl<_TypeT_Ptr, _TypeU>::_C_value };
 };
 
 template <class _TypeT, class _TypeU>
-struct __rw_is_convertible_3<_TypeT,_TypeU,false,true>
+struct __rw_is_convertible_3<_TypeT, _TypeU, false, true>
 {
     // _TypeT is an function type, try to convert to reference or pointer
-    typedef _TYPENAME __rw_add_lvalue_reference<_TypeT>::type _TypeT_Ref;
-    typedef _TYPENAME __rw_add_pointer<_TypeT>::type _TypeT_Ptr;
+    typedef typename __rw_add_lvalue_reference<_TypeT>::type _TypeT_Ref;
+    typedef typename __rw_add_pointer<_TypeT>::type _TypeT_Ptr;
 
-    enum { _C_value =    __rw_is_convertible_impl<_TypeT_Ref, _TypeU>::_C_value
-                      || __rw_is_convertible_impl<_TypeT_Ptr, _TypeU>::_C_value };
+    enum { _C_value =
+           __rw_is_convertible_impl<_TypeT_Ref, _TypeU>::_C_value
+        || __rw_is_convertible_impl<_TypeT_Ptr, _TypeU>::_C_value };
 };
         
-template <class _TypeT, class _TypeU, bool =   __rw_is_array<_TypeU>::value
-                                             ||__rw_is_function<_TypeU>::value>
+template <class _TypeT, class _TypeU,
+          bool =    __rw_is_array<_TypeU>::value
+                 || __rw_is_function<_TypeU>::value>
 struct __rw_is_convertible_2
 {
     // _TypeU is neither an array nor a function type
@@ -179,29 +235,34 @@ struct __rw_is_convertible_1<_TypeT, _TypeU, true, true>
     enum { _C_value = 1 };
 };
 
-/**
- * BinaryTypeTrait indicates that _TypeT is convertible to _TypeU
- * using only implicit conversions.
- *
- * _TypeT shall be a complete type, an array of unknown bound, or void
- * (possibly cv-qualified).
- */
+#  define _RWSTD_IS_CONVERTIBLE(T,U) \
+     _RW::__rw_is_convertible_1<T,U>::_C_value
+
+#elif defined (_MSC_VER)
+
+template <class _TypeT, class _TypeU>
+struct __rw_is_convertible_1
+{
+    enum { _C_value =
+         __rw_is_void<_TypeT>::value && __rw_is_void<_TypeU>::value
+      || _RWSTD_TT_IS_CONVERTIBLE(_TypeT, _TypeU) };
+};
+
+#  define _RWSTD_IS_CONVERTIBLE(T,U) \
+     _RW::__rw_is_convertible_1<T,U>::_C_value
+
+#else
+#  define _RWSTD_IS_CONVERTIBLE(T,U) _RWSTD_TT_IS_CONVERTIBLE(T,U)
+#endif // _RWSTD_TT_IS_CONVERTIBLE
+
 template <class _TypeT, class _TypeU>
 struct __rw_is_convertible
-#ifdef _RWSTD_TT_IS_CONVERTIBLE
-    : __rw_integral_constant<bool, _RWSTD_TT_IS_CONVERTIBLE(_TypeT,_TypeU)>
-#else
-    : __rw_integral_constant<bool,
-                             __rw_is_convertible_1<_TypeT, _TypeU>::_C_value>
-#endif
+    : __rw_integral_constant<bool, _RWSTD_IS_CONVERTIBLE(_TypeT,_TypeU)>
 {
     //_RWSTD_COMPILE_ASSERT (   _RWSTD_IS_COMPLETE (_TypeT)
     //                       || _RWSTD_IS_ARRAY (_TypeT)
     //                       || _RWSTD_IS_VOID (_TypeT));
 };
-
-#define _RWSTD_IS_CONVERTIBLE(T,U)                                    \
-    __rw_is_convertible<T,U>::value
 
 } // namespace __rw
 

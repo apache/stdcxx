@@ -99,9 +99,9 @@ class basic_filebuf: public basic_streambuf<_CharT, _Traits>
 public:
     typedef _CharT                          char_type;
     typedef _Traits                         traits_type;
-    typedef _TYPENAME traits_type::int_type int_type;
-    typedef _TYPENAME traits_type::pos_type pos_type;
-    typedef _TYPENAME traits_type::off_type off_type;
+    typedef typename traits_type::int_type int_type;
+    typedef typename traits_type::pos_type pos_type;
+    typedef typename traits_type::off_type off_type;
 
     // 27.8.1.2, p1
     basic_filebuf ()
@@ -128,7 +128,7 @@ private:
     // ctor extensions - associate this with an open file and
     // optionally set buffer size and caller-allocated buffer
     // NOTE: passed in buffer will NOT be deallocated
-    _EXPLICIT
+    explicit
     basic_filebuf (int __fd, char_type* __buf   = 0,
                    _RWSTD_STREAMSIZE __bufsz = _RWSTD_DEFAULT_BUFSIZE)
         : _Streambuf (ios_base::openmode (_RW::__rw_fdmode (__fd))),
@@ -145,7 +145,7 @@ public:
 
 #  ifdef stdin
 
-    _EXPLICIT
+    explicit
     basic_filebuf (FILE *__fptr, char_type* __buf = 0,
                    _RWSTD_STREAMSIZE __bufsz = _RWSTD_DEFAULT_BUFSIZE)
         : _Streambuf (),
@@ -292,7 +292,7 @@ inline basic_filebuf<_CharT, _Traits>::~basic_filebuf ()
 
 
 template<class _CharT, class _Traits>
-inline _TYPENAME basic_filebuf<_CharT, _Traits>::off_type
+inline typename basic_filebuf<_CharT, _Traits>::off_type
 basic_filebuf<_CharT, _Traits>::
 _C_crlf_extern_count (const char* __start, const char* __finish) const
 {
@@ -324,7 +324,7 @@ _C_crlf_extern_count (const char* __start, const char* __finish) const
 
 
 template<class _CharT, class _Traits>
-inline _TYPENAME basic_filebuf<_CharT, _Traits>::off_type
+inline typename basic_filebuf<_CharT, _Traits>::off_type
 basic_filebuf<_CharT, _Traits>::
 _C_crlf_intern_count (const char_type* __start,
                       const char_type* __finish) const
@@ -364,9 +364,9 @@ public:
 
     typedef _CharT                          char_type;
     typedef _Traits                         traits_type;
-    typedef _TYPENAME traits_type::int_type int_type;
-    typedef _TYPENAME traits_type::pos_type pos_type;
-    typedef _TYPENAME traits_type::off_type off_type;
+    typedef typename traits_type::int_type int_type;
+    typedef typename traits_type::pos_type pos_type;
+    typedef typename traits_type::off_type off_type;
 
     // NOTE: the ctors below pass the address of an unitialized
     //       member variable, _C_filebuf, to a base class ctor
@@ -376,7 +376,7 @@ public:
     basic_ifstream ()
         : basic_istream<char_type, traits_type> (rdbuf ()) { }
 
-    _EXPLICIT
+    explicit
     basic_ifstream (const char        *__name,
                     ios_base::openmode __mode = ios_base::in,
                     long               __prot = 0666)
@@ -387,7 +387,7 @@ public:
 #ifndef  _RWSTD_NO_EXT_FILEBUF
 
     // extensions - associate this with an open file and set buffer
-    _EXPLICIT
+    explicit
     basic_ifstream (int __fd, char_type *__buf = 0,
                     _RWSTD_STREAMSIZE __n = _RWSTD_DEFAULT_BUFSIZE)
         : basic_istream<char_type, traits_type> (rdbuf ()) {
@@ -396,7 +396,7 @@ public:
 
 #  ifdef stdin
 
-    _EXPLICIT
+    explicit
     basic_ifstream (FILE *__fptr, char_type *__buf = 0,
                     _RWSTD_STREAMSIZE __n = _RWSTD_DEFAULT_BUFSIZE)
         : basic_istream<char_type, traits_type> (rdbuf ()) {
@@ -465,9 +465,9 @@ public:
 
     typedef _CharT                          char_type;
     typedef _Traits                         traits_type;
-    typedef _TYPENAME traits_type::int_type int_type;
-    typedef _TYPENAME traits_type::pos_type pos_type;
-    typedef _TYPENAME traits_type::off_type off_type;
+    typedef typename traits_type::int_type int_type;
+    typedef typename traits_type::pos_type pos_type;
+    typedef typename traits_type::off_type off_type;
 
     // NOTE: the ctors below pass the address of an unitialized
     //       member variable, _C_filebuf, to a base class ctor
@@ -477,7 +477,7 @@ public:
     basic_ofstream ()
         : basic_ostream<char_type, traits_type> (rdbuf ()) { }
 
-    _EXPLICIT basic_ofstream (const char         *__name,
+    explicit basic_ofstream (const char         *__name,
                               ios_base::openmode  __mode = ios_base::out,
                               long                __prot = 0666)
         : basic_ostream<char_type, traits_type> (rdbuf ()) {
@@ -487,7 +487,7 @@ public:
 #ifndef _RWSTD_NO_EXT_FILEBUF
 
     // extensions - associate this with an open file and set buffer
-    _EXPLICIT
+    explicit
     basic_ofstream (int __fd, char_type *__buf = 0,
                     _RWSTD_STREAMSIZE __n = _RWSTD_DEFAULT_BUFSIZE)
         : basic_ostream<char_type, traits_type> (rdbuf ()) {
@@ -496,7 +496,7 @@ public:
     
 #  ifdef stdin
 
-    _EXPLICIT
+    explicit
     basic_ofstream (FILE *__fptr, char_type *__buf = 0,
                     _RWSTD_STREAMSIZE __n = _RWSTD_DEFAULT_BUFSIZE)
         : basic_ostream<char_type, traits_type> (rdbuf ()) {
@@ -565,9 +565,9 @@ public:
 
     typedef _CharT                          char_type;
     typedef _Traits                         traits_type;
-    typedef _TYPENAME traits_type::int_type int_type;
-    typedef _TYPENAME traits_type::pos_type pos_type;
-    typedef _TYPENAME traits_type::off_type off_type;
+    typedef typename traits_type::int_type int_type;
+    typedef typename traits_type::pos_type pos_type;
+    typedef typename traits_type::off_type off_type;
 
     // NOTE: the ctors below pass the address of an unitialized
     //       member variable, _C_filebuf, to a base class ctor
@@ -577,7 +577,7 @@ public:
     basic_fstream ()
         : basic_iostream<char_type, traits_type>(rdbuf ()) { }
 
-    _EXPLICIT
+    explicit
     basic_fstream (const char         *__name,
                    ios_base::openmode  __mode = _RW::__rw_in_out,
                    long                __prot = 0666)
@@ -588,7 +588,7 @@ public:
 #ifndef _RWSTD_NO_EXT_FILEBUF
 
     // extensions - associate this with an open file and set buffer
-    _EXPLICIT
+    explicit
     basic_fstream (int __fd, char_type *__buf = 0,
                    _RWSTD_STREAMSIZE __n = _RWSTD_DEFAULT_BUFSIZE)
         : basic_iostream<char_type, traits_type>(rdbuf ()) {
@@ -597,7 +597,7 @@ public:
 
 #  ifdef stdin
 
-    _EXPLICIT
+    explicit
     basic_fstream (FILE *__fptr, char_type *__buf = 0,
                    _RWSTD_STREAMSIZE __n = _RWSTD_DEFAULT_BUFSIZE)
         : basic_iostream<char_type, traits_type>(rdbuf ()) {

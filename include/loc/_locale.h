@@ -175,82 +175,27 @@ struct _RWSTD_CLASS_EXPORT locale
     _RWSTD_MEMBER_EXPORT locale (const locale&) _THROWS (());
 
     // 22.1.1.2, p6
-    _RWSTD_MEMBER_EXPORT _EXPLICIT locale (const char*);
+    _RWSTD_MEMBER_EXPORT explicit locale (const char*);
 
     // 22.1.1.2, p9
     _RWSTD_MEMBER_EXPORT locale (const locale&, const char*, category);
-
-#ifndef _RWSTD_NO_MEMBER_TEMPLATES
 
     // 22.1.1.2, p12
     template <class _Facet>
     locale (const locale&, _Facet*);
 
-#  ifndef _RWSTD_NO_TEMPLATE_ON_RETURN_TYPE
+#ifndef _RWSTD_NO_TEMPLATE_ON_RETURN_TYPE
 
     // 22.1.1.3, p1
     template <class _Facet>
     locale combine (const locale&) const;
 
-#  endif   // _RWSTD_NO_TEMPLATE_ON_RETURN_TYPE
+#endif   // _RWSTD_NO_TEMPLATE_ON_RETURN_TYPE
 
     // 22.1.1.4, p3
     template <class _CharT, class _Traits, class _Allocator>
     bool operator() (const basic_string<_CharT, _Traits, _Allocator>&,
                      const basic_string<_CharT, _Traits, _Allocator>&) const;
-
-#else   // if defined (_RWSTD_NO_MEMBER_TEMPLATES)
-
-    template <class _Facet>
-    locale (const locale &__rhs, _Facet *__facet)
-        : _C_body (0) {
-        // initialize facet's member id to point to Facet::id
-        if (__facet && !__facet->_C_pid) {
-        // unusual cast (to size_t** rather than size_t*&)
-        // done to work around an HP aCC 3.3x bug
-            *_RWSTD_CONST_CAST (_RWSTD_SIZE_T**, &__facet->_C_pid) =
-                &_Facet::id._C_id;
-        }
-
-        // uninitialized Facet::id will be initialized by has_facet<>()
-
-        // prevent passing `facet' the ctor if it is installed
-        // in `rhs' to potentially avoid creating a whole new body
-        if (   has_facet<_Facet>(__rhs)
-            && &use_facet<_Facet>(__rhs) == __facet)
-            __facet = 0;
-
-        *this = locale (*__rhs._C_body, __facet);
-    }
-
-#  ifndef _RWSTD_NO_TEMPLATE_ON_RETURN_TYPE
-
-    template <class _Facet>
-    locale combine (const locale &__rhs) const {
-        // unitialized Facet::id will be initialized by has_facet<>()
-
-        _RWSTD_REQUIRES (has_facet<_Facet>(__rhs),
-                         (_RWSTD_ERROR_FACET_NOT_FOUND,
-                         _RWSTD_FUNC ("locale::combine (const locale&)"),
-                         _Facet::id._C_id, __rhs.name ().c_str ()));
-
-        return locale (__rhs, &use_facet<_Facet>(__rhs));
-    }
-
-#  endif   // _RWSTD_NO_TEMPLATE_ON_RETURN_TYPE
-
-    template <class _CharT, class _Traits, class _Allocator>
-    bool
-    operator() (const basic_string<_CharT, _Traits, _Allocator> &__x,
-                const basic_string<_CharT, _Traits, _Allocator> &__y) const {
-        // qualify collate to distinguish it from locale::collate
-        return use_facet<_STD::collate<_CharT> >(*this)
-            .compare (__x.data (), __x.data () + __x.length (),
-                      __y.data (), __y.data () + __y.length ()) < 0;
-    }
-
-#endif   // _RWSTD_NO_MEMBER_TEMPLATES
-
 
     // 22.1.1.2, p14
     _RWSTD_MEMBER_EXPORT locale (const locale&, const locale&, category);
@@ -280,7 +225,7 @@ struct _RWSTD_CLASS_EXPORT locale
 
 private:
 
-    _RWSTD_MEMBER_EXPORT _EXPLICIT locale (_RW::__rw_locale &__rhs) 
+    _RWSTD_MEMBER_EXPORT explicit locale (_RW::__rw_locale &__rhs) 
         _THROWS (())
         : _C_body (&__rhs) { }
 
@@ -506,8 +451,6 @@ _RWSTD_OVERLOAD_GET_FACET (_STD::messages<wchar_t>);
 _RWSTD_NAMESPACE (std) {
 
 
-#ifndef _RWSTD_NO_MEMBER_TEMPLATES
-
 template <class _Facet>
 inline locale::locale (const locale &__rhs, _Facet *__facet)
     : _C_body (0)
@@ -531,7 +474,7 @@ inline locale::locale (const locale &__rhs, _Facet *__facet)
 }
 
 
-#  ifndef _RWSTD_NO_TEMPLATE_ON_RETURN_TYPE
+#ifndef _RWSTD_NO_TEMPLATE_ON_RETURN_TYPE
 
 template <class _Facet>
 inline locale locale::combine (const locale &__rhs) const
@@ -546,7 +489,7 @@ inline locale locale::combine (const locale &__rhs) const
     return locale (*this, &use_facet<_Facet>(__rhs));
 }
 
-#  endif   // _RWSTD_NO_TEMPLATE_ON_RETURN_TYPE
+#endif   // _RWSTD_NO_TEMPLATE_ON_RETURN_TYPE
 
 
 template <class _CharT, class _Traits, class _Allocator>
@@ -559,9 +502,6 @@ locale::operator() (const basic_string<_CharT, _Traits, _Allocator> &__x,
         .compare (__x.data (), __x.data () + __x.length (),
                   __y.data (), __y.data () + __y.length ()) < 0;
 }
-
-
-#endif   // _RWSTD_NO_MEMBER_TEMPLATES
 
 
 }   // namespace std

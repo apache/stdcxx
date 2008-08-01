@@ -30,6 +30,7 @@
 #include <type_traits>
 
 #include <rw_driver.h>
+#include <rw/_defs.h>
 
 // compile out all test code if extensions disabled
 #ifndef _RWSTD_NO_EXT_CXX_0X
@@ -66,27 +67,27 @@ struct constructible_from_B
 };
 
 template <class T>
-struct derived_ : T
+struct derived_t : T
 {
 };
 
 template <class T>
-struct derived_private_ : private T
+struct derived_private_t : private T
 {
 };
 
 template <class T>
-struct derived_protected_ : protected T
+struct derived_protected_t : protected T
 {
 };
 
 template <class T>
-struct derived_with_conversion_ : T
+struct derived_with_conversion_t : T
 {
-    derived_with_conversion_ (const T&);
+    derived_with_conversion_t (const T&);
 };
 
-class incomplete_;
+class incomplete_t;
 
 union union_C {
     int i_; float f_;
@@ -107,8 +108,9 @@ void test_trait (int line, bool value, bool expect,
 }
 
 #define TEST(Trait,TypeT,TypeU,Expect)                              \
-    test_trait (__LINE__, Trait<TypeT,TypeU>::value, Expect,        \
-                #Trait, #TypeT, #TypeU)
+    { const bool value = Trait< TypeT, TypeU >::value;              \
+      test_trait (__LINE__, value, Expect, #Trait, #TypeT, #TypeU); \
+    } typedef void __dummy
 
 static void test_is_same ()
 {
@@ -122,14 +124,16 @@ static void test_is_same ()
     
     TEST (std::is_same, enum_A, enum_A, true);
     TEST (std::is_same, enum_B, enum_B, true);
-    
+   
     TEST (std::is_same, struct_A, struct_A, true);
-    TEST (std::is_same, derived_<struct_A>,
-                         derived_<struct_A>, true);
+
+    typedef derived_t<struct_A> derived_A;
+    TEST (std::is_same, derived_A, derived_A, true);
 
     TEST (std::is_same, class_B, class_B, true);
-    TEST (std::is_same, derived_<class_B>,
-                         derived_<class_B>, true);
+
+    typedef derived_t<class_B> derived_B;
+    TEST (std::is_same, derived_B, derived_B, true);
 
     // other combinations should fail
     TEST (std::is_same, signed char, char, false);
@@ -156,12 +160,17 @@ static void test_is_same ()
     TEST (std::is_same, enum_A, unsigned int, false);
     TEST (std::is_same, enum_A, unsigned long, false);
 
-    TEST (std::is_same, struct_A, derived_<struct_A>, false);
-    TEST (std::is_same, class_B, derived_<class_B>, false);
+    TEST (std::is_same, struct_A, derived_t<struct_A>, false);
+    TEST (std::is_same, class_B, derived_t<class_B>, false);
 
     TEST (std::is_same, int[], int*, false);
     TEST (std::is_same, int*, int[], false);
 }
+
+#define TEST(Trait,TypeT,TypeU,Expect)                              \
+    { const bool value = Trait< TypeT, TypeU >::value;              \
+      test_trait (__LINE__, value, Expect, #Trait, #TypeT, #TypeU); \
+    } typedef void __dummy
 
 static void test_is_base_of ()
 {
@@ -177,24 +186,43 @@ static void test_is_base_of ()
     TEST (std::is_base_of, enum_B, enum_B, false);
     
     TEST (std::is_base_of, struct_A, struct_A, true);
-    TEST (std::is_base_of, derived_<struct_A>,
-                            derived_<struct_A>, true);
+    TEST (std::is_base_of, derived_t<struct_A>,
+                           derived_t<struct_A>, true);
 
     TEST (std::is_base_of, class_B, class_B, true);
-    TEST (std::is_base_of, derived_<class_B>,
-                            derived_<class_B>, true);
+    TEST (std::is_base_of, derived_t<class_B>,
+                           derived_t<class_B>, true);
 
+#if    defined (_RWSTD_TT_IS_BASE_OF) \
+    || defined (_RWSTD_TT_IS_CLASS)   \
+    || defined (_RWSTD_TT_IS_UNION)
+    // without one of the above, we can't reliably implement
+    // this trait for union type
     TEST (std::is_base_of, union_C, union_C, false);
+#else
+    rw_warn (0, 0, __LINE__,
+             "portions of test_is_base_of() have been disabled due "
+             "to lack of compiler support.");
+#endif
 
     // public inheritance
-    TEST (std::is_base_of, struct_A, derived_<struct_A>, true);
-    TEST (std::is_base_of, class_B, derived_<class_B>, true);
+    TEST (std::is_base_of, struct_A, derived_t<struct_A>, true);
+    TEST (std::is_base_of, class_B, derived_t<class_B>, true);
 
+#if defined (__SUNPRO_CC) && (__SUNPRO_CC <= 0x590)
+
+    // for some reason the trick used to detect private and protected
+    // inheritance doesn't work on sunpro-5.9
+    rw_warn (0, 0, __LINE__,
+             "unable to detect private or protected base classes.");
+
+#else
     // protected inheritance
-    TEST (std::is_base_of, derived_protected_<struct_A> , struct_A , true);
+    TEST (std::is_base_of, struct_A, derived_protected_t<struct_A>, true);
 
     // private inheritance
-    TEST (std::is_base_of, derived_private_<struct_A> , struct_A , true);
+    TEST (std::is_base_of, struct_A, derived_private_t<struct_A>, true);
+#endif
 
     // other combinations should fail
     TEST (std::is_base_of, signed char, char, false);
@@ -223,17 +251,23 @@ static void test_is_base_of ()
 
     TEST (std::is_base_of, int[], int*, false);
     TEST (std::is_base_of, int*, int[], false);
+
+    TEST (std::is_base_of, struct_A, class_B, false);
+    TEST (std::is_base_of, class_B, struct_A, false);
+
+    TEST (std::is_base_of, derived_t<struct_A>, struct_A, false);
+    TEST (std::is_base_of, derived_t<class_B>, class_B, false);
 }
 
 static void test_is_convertible ()
 {
-    TEST (std::is_convertible, derived_<struct_A> , struct_A , true); // slice
-    TEST (std::is_convertible, derived_<struct_A>*, struct_A*, true);
-    TEST (std::is_convertible, derived_<struct_A>&, struct_A&, true);
+    TEST (std::is_convertible, derived_t<struct_A> , struct_A , true); // slice
+    TEST (std::is_convertible, derived_t<struct_A>*, struct_A*, true);
+    TEST (std::is_convertible, derived_t<struct_A>&, struct_A&, true);
 
-    TEST (std::is_convertible, derived_<class_B> , class_B , true); // slice
-    TEST (std::is_convertible, derived_<class_B>*, class_B*, true);
-    TEST (std::is_convertible, derived_<class_B>&, class_B&, true);
+    TEST (std::is_convertible, derived_t<class_B> , class_B , true); // slice
+    TEST (std::is_convertible, derived_t<class_B>*, class_B*, true);
+    TEST (std::is_convertible, derived_t<class_B>&, class_B&, true);
 
     TEST (std::is_convertible, convertible_to_A, struct_A, true);
     TEST (std::is_convertible, struct_A, convertible_to_A, false);
@@ -312,7 +346,7 @@ static void test_is_convertible ()
 
     //// from an abstract type is allowed
     //TEST (std::is_convertible, abstract_, int, false);
-    //TEST (std::is_convertible, derived_<abstract_>, abstract_, false);
+    //TEST (std::is_convertible, derived_t<abstract_>, abstract_, false);
 
     TEST (std::is_convertible, long*, void*, true);
     TEST (std::is_convertible, void*, long*, false);
@@ -334,7 +368,25 @@ static void test_is_convertible ()
     TEST (std::is_convertible, int*, void*, true);
     TEST (std::is_convertible, int (*)(), void*, false);
 
-    //TEST (std::is_convertible, int (*)(derived_<struct_A>::*), int (*)(struct_A::*), true);
+    TEST (std::is_convertible,
+          int (*)(derived_t<struct_A>*),
+          int (*)(struct_A*), false);
+
+    TEST (std::is_convertible,
+          int (*)(struct_A*),
+          int (*)(derived_t<struct_A>*), false);
+
+    // pointer to derived member convertible to
+    // pointer to base member
+    TEST (std::is_convertible,
+          int derived_t<struct_A>::*,
+          int struct_A::*, false);
+
+    // pointer to base member convertible to
+    // pointer to derived member
+    TEST (std::is_convertible,
+          int struct_A::*,
+          int derived_t<struct_A>::*, true);
 
     TEST (std::is_convertible, int, double, true);
     TEST (std::is_convertible, const int, double, true);

@@ -44,7 +44,7 @@ __rw_extract (_STD::basic_istream<_CharT, _Traits> &__strm,
     _STD::ios_base::iostate __err = _STD::ios_base::goodbit;
 
     // eat leading whitespace, catching exceptions from sentry
-    const _TYPENAME _STD::basic_istream<_CharT, _Traits>::sentry
+    const typename _STD::basic_istream<_CharT, _Traits>::sentry
         __ipfx (__strm /* , noskipws = false */);
 
     if (__ipfx) {
@@ -150,7 +150,7 @@ _C_ipfx (bool __noskipws, ios_base::iostate __errbits)
 
 
 template<class _CharT, class _Traits>
-_TYPENAME basic_istream<_CharT, _Traits>::int_type
+typename basic_istream<_CharT, _Traits>::int_type
 basic_istream<_CharT, _Traits>::
 _C_unsafe_get (streamsize *__cnt   /* = 0     */,               
                int_type    __delim /* = eof() */,
@@ -447,7 +447,7 @@ readsome (char_type *__s, streamsize __n)
 
 
 template<class _CharT, class _Traits>
-_TYPENAME basic_istream<_CharT, _Traits>::pos_type
+typename basic_istream<_CharT, _Traits>::pos_type
 basic_istream<_CharT, _Traits>::
 tellg ()
 {

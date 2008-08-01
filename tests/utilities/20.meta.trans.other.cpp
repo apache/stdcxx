@@ -28,13 +28,17 @@
  **************************************************************************/
 
 #include <rw_driver.h>
-#include <rw_printf.h> // for rwsprintfa()
-#include <stdlib.h>    // for free()
+#include <rw/_defs.h>
 
 // compile out all test code if extensions disabled
 #ifndef _RWSTD_NO_EXT_CXX_0X
 
 #include <type_traits>
+
+#include <rw_printf.h> // for rwsprintfa()
+
+#include <stdlib.h>    // for free()
+#include <stddef.h>    // for size_t
 
 /**************************************************************************/
 
@@ -53,7 +57,7 @@ struct is_char<char>
 // this function should available _only_ if T is char
 template <class T>
 int
-enabled_if_char (_TYPENAME std::enable_if<is_char<T>::val>::type* = 0)
+enabled_if_char (typename std::enable_if<is_char<T>::val>::type* = 0)
 {
     return 1;
 }
@@ -61,7 +65,7 @@ enabled_if_char (_TYPENAME std::enable_if<is_char<T>::val>::type* = 0)
 // this function should be available if T is _not_ char
 template <class T>
 int
-enabled_if_char (_TYPENAME std::enable_if<!is_char<T>::val>::type* = 0)
+enabled_if_char (typename std::enable_if<!is_char<T>::val>::type* = 0)
 {
     return 0;
 }
@@ -150,11 +154,20 @@ void test_aligned_storage(int line,
 
 static void test_aligned_storage ()
 {
+#ifdef _RWSTD_NO_ALIGN_TRAITS
+
+    rw_warn (0, 0, __LINE__,
+             "test_aligned_storage disabled because "
+             "_RWSTD_NO_ALIGN_TRAITS is defined");
+
+#else
+
 #define TEST(Size,Align)                                           \
     {                                                              \
       typedef std::aligned_storage<Size, Align>::type storage_t;   \
       test_aligned_storage(__LINE__,                               \
-          Size, sizeof (storage_t), Align, __alignof (storage_t)); \
+          Size, sizeof (storage_t), Align,                         \
+          std::alignment_of<storage_t>::value);                    \
     } typedef void __dummy
 
     TEST (1, 1);
@@ -177,18 +190,19 @@ static void test_aligned_storage ()
     {                                                              \
       typedef std::aligned_storage<Size>::type storage_t;          \
       test_aligned_storage(__LINE__,                               \
-          Size, sizeof (storage_t), 0, __alignof (storage_t));     \
+          Size, sizeof (storage_t), 0,                             \
+          std::alignment_of<storage_t>::value);                    \
     } typedef void __dummy
 
     // test default alignment
     TEST (1);
-    TEST (1);
-    TEST (1);
-    TEST (1);
+    TEST (2);
+    TEST (4);
+    TEST (8);
 
-    TEST (9);
-    TEST (9);
-    TEST (9);
+    TEST (3);
+    TEST (5);
+    TEST (7);
     TEST (9);
 
     TEST (55);
@@ -197,9 +211,13 @@ static void test_aligned_storage ()
     TEST (19);
 
 #undef  TEST
+
+#endif // _RWSTD_NO_ALIGN_TRAITS
 }
 
 /**************************************************************************/
+
+#ifndef _RWSTD_NO_ALIGN_TRAITS
 
 struct null_t { };
 
@@ -293,8 +311,19 @@ struct aligned_union_tester
 
 struct struct_t { };
 
+#endif // !_RWSTD_NO_ALIGN_TRAITS
+
+
 static void test_aligned_union ()
 {
+#ifdef _RWSTD_NO_ALIGN_TRAITS
+
+    rw_warn (0, 0, __LINE__,
+             "test_aligned_union disabled because "
+             "_RWSTD_NO_ALIGN_TRAITS is defined");
+
+#else
+
 #define TEST(Len,T1) \
     aligned_union_tester<Len,T1>::test(__LINE__,#T1)
 
@@ -336,6 +365,8 @@ static void test_aligned_union ()
     TEST (17, void (struct_t::*)(), long, int, void*, char);
 
 #undef  TEST
+
+#endif // _RWSTD_NO_ALIGN_TRAITS
 }
 
 /**************************************************************************/
@@ -472,5 +503,4 @@ int main (int argc, char *argv[])
                     run_test,
                     0);
 }
-
 

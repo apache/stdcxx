@@ -87,8 +87,8 @@ struct __rw_rb_tree_node
     typedef _RWSTD_REBIND (allocator_type, __rw_rb_tree_node) _C_node_alloc_t;
     typedef _RWSTD_REBIND (allocator_type, _Key)              _C_key_alloc_t;
 
-    typedef _TYPENAME _C_node_alloc_t::pointer             _C_link_t;
-    typedef _TYPENAME _C_key_alloc_t::const_reference      _C_const_key_ref;
+    typedef typename _C_node_alloc_t::pointer             _C_link_t;
+    typedef typename _C_key_alloc_t::const_reference      _C_const_key_ref;
 
     _C_color_t _C_color; 
     _C_link_t  _C_parent;
@@ -128,14 +128,14 @@ class __rw_tree_iter
                            _TypeT, _DiffT, _Pointer, _Reference> _C_iter_base;
 public:
 
-    typedef _TYPENAME _C_iter_base::value_type        value_type;
-    typedef _TYPENAME _C_iter_base::difference_type   difference_type;
-    typedef _TYPENAME _C_iter_base::pointer           pointer;
-    typedef _TYPENAME _C_iter_base::reference         reference;
-    typedef _TYPENAME _C_iter_base::iterator_category iterator_category;
+    typedef typename _C_iter_base::value_type        value_type;
+    typedef typename _C_iter_base::difference_type   difference_type;
+    typedef typename _C_iter_base::pointer           pointer;
+    typedef typename _C_iter_base::reference         reference;
+    typedef typename _C_iter_base::iterator_category iterator_category;
     typedef _Node                                     _C_node_t;
-    typedef _TYPENAME _C_node_t::allocator_type       allocator_type;
-    typedef _TYPENAME _C_node_t::_C_link_t            _C_link_t;
+    typedef typename _C_node_t::allocator_type       allocator_type;
+    typedef typename _C_node_t::_C_link_t            _C_link_t;
 
     typedef const value_type*                         const_pointer; 
     typedef const value_type&                         const_reference; 
@@ -263,7 +263,7 @@ private:
     typedef _RWSTD_ALLOC_TYPE (_Alloc,_Val)            _C_val_alloc_t;
     typedef _RWSTD_REBIND (_Alloc, _Key)               _C_key_alloc_t;
     typedef _RWSTD_REBIND (_Alloc, _C_node_t)          _C_node_alloc_t;
-    typedef _TYPENAME _C_node_alloc_t::pointer         _C_link_t;
+    typedef typename _C_node_alloc_t::pointer         _C_link_t;
 
 public:
     
@@ -272,12 +272,12 @@ public:
     typedef _Comp                                      key_compare;
     typedef _Alloc                                     allocator_type;
       
-    typedef _TYPENAME _C_val_alloc_t::pointer          pointer;
-    typedef _TYPENAME _C_val_alloc_t::const_pointer    const_pointer;
-    typedef _TYPENAME allocator_type::size_type        size_type;
-    typedef _TYPENAME allocator_type::difference_type  difference_type;
-    typedef _TYPENAME _C_val_alloc_t::reference        reference;
-    typedef _TYPENAME _C_val_alloc_t::const_reference  const_reference;
+    typedef typename _C_val_alloc_t::pointer          pointer;
+    typedef typename _C_val_alloc_t::const_pointer    const_pointer;
+    typedef typename allocator_type::size_type        size_type;
+    typedef typename allocator_type::difference_type  difference_type;
+    typedef typename _C_val_alloc_t::reference        reference;
+    typedef typename _C_val_alloc_t::const_reference  const_reference;
     
 private:
 
@@ -333,15 +333,15 @@ private:
 
     struct _C_node_buf {
         typedef _RWSTD_REBIND (allocator_type, _C_node_buf) _C_buf_alloc_t;
-        typedef _TYPENAME _C_buf_alloc_t::pointer           _C_buf_ptr_t;
+        typedef typename _C_buf_alloc_t::pointer           _C_buf_ptr_t;
         
         _C_buf_ptr_t _C_next_buffer;
         size_type    size;
         _C_link_t    _C_buffer;
     };
 
-    typedef _TYPENAME _C_node_buf::_C_buf_alloc_t _C_buf_alloc_t;
-    typedef _TYPENAME _C_node_buf::_C_buf_ptr_t   _C_buf_ptr_t;
+    typedef typename _C_node_buf::_C_buf_alloc_t _C_buf_alloc_t;
+    typedef typename _C_node_buf::_C_buf_ptr_t   _C_buf_ptr_t;
 
     _C_buf_ptr_t _C_buf_list;
     _C_link_t    _C_free_list;
@@ -819,7 +819,7 @@ erase (const _Key* __first, const _Key* __last)
 
 
 template <class _Key, class _Val, class _KeyOf, class _Comp, class _Alloc>
-inline _TYPENAME __rb_tree<_Key, _Val, _KeyOf, _Comp, _Alloc>::size_type 
+inline typename __rb_tree<_Key, _Val, _KeyOf, _Comp, _Alloc>::size_type 
 __rb_tree<_Key, _Val, _KeyOf, _Comp, _Alloc>::
 count (const _Key& __k) const
 {
@@ -830,7 +830,7 @@ count (const _Key& __k) const
 
 
 #define _RWSTD_RB_TREE_ITER \
-        _TYPENAME __rb_tree<_Key, _Val, _KeyOf, _Comp, _Alloc>::iterator
+        typename __rb_tree<_Key, _Val, _KeyOf, _Comp, _Alloc>::iterator
                                                
 template <class _Key, class _Val, class _KeyOf, class _Comp, class _Alloc>
 inline _STD::pair<_RWSTD_RB_TREE_ITER , _RWSTD_RB_TREE_ITER >

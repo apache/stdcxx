@@ -77,9 +77,9 @@ public:
 
     typedef _CharT                          char_type;
     typedef _Traits                         traits_type;
-    typedef _TYPENAME traits_type::int_type int_type;
-    typedef _TYPENAME traits_type::pos_type pos_type;
-    typedef _TYPENAME traits_type::int_type off_type;
+    typedef typename traits_type::int_type int_type;
+    typedef typename traits_type::pos_type pos_type;
+    typedef typename traits_type::int_type off_type;
 
 protected:
 
@@ -90,7 +90,7 @@ public:
 
     // 27.4.4.1, p1 - NOTE: `sb' may point to a yet uninitialized
     //  object; it is unsafe to reference any of its members
-    _EXPLICIT basic_ios (streambuf_type *__sb) {
+    explicit basic_ios (streambuf_type *__sb) {
         init (__sb);
     }
 
@@ -248,7 +248,7 @@ private:
 
 
 template<class _CharT, class _Traits>
-inline _TYPENAME basic_ios<_CharT, _Traits>::char_type
+inline typename basic_ios<_CharT, _Traits>::char_type
 basic_ios<_CharT, _Traits>::fill () const
 {
     // delayed initialization used to allow objects of stream types other
@@ -263,7 +263,7 @@ basic_ios<_CharT, _Traits>::fill () const
 
 
 template<class _CharT, class _Traits>
-inline _TYPENAME basic_ios<_CharT, _Traits>::char_type
+inline typename basic_ios<_CharT, _Traits>::char_type
 basic_ios<_CharT, _Traits>::fill (char_type __ch)
 {
     // convert to int type before swapping

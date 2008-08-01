@@ -52,7 +52,7 @@ _RW::__rw_facet_id money_put<_CharT, _OutputIter>::id;
 
 
 template <class _CharT, class _OutputIter>
-/* private */ _TYPENAME money_put<_CharT, _OutputIter>::iter_type
+/* private */ typename money_put<_CharT, _OutputIter>::iter_type
 money_put<_CharT, _OutputIter>::
 _C_put (iter_type __it, int __opts, ios_base &__flags, char_type __fill,
         const char_type *__s, _RWSTD_SIZE_T __n, int __fd,
@@ -284,7 +284,7 @@ _C_put (iter_type __it, int __opts, ios_base &__flags, char_type __fill,
 
 
 template <class _CharT, class _OutputIter>
-/* virtual */ _TYPENAME money_put<_CharT, _OutputIter>::iter_type
+/* virtual */ typename money_put<_CharT, _OutputIter>::iter_type
 money_put<_CharT, _OutputIter>::
 do_put (iter_type __i, bool __intl, ios_base &__flags, char_type __fill,
         long double __val) const
@@ -334,7 +334,7 @@ do_put (iter_type __i, bool __intl, ios_base &__flags, char_type __fill,
 
 
 template <class _CharT, class _OutputIter>
-/* virtual */ _TYPENAME money_put<_CharT, _OutputIter>::iter_type
+/* virtual */ typename money_put<_CharT, _OutputIter>::iter_type
 money_put<_CharT, _OutputIter>::
 do_put (iter_type __i, bool __intl, ios_base &__flags, char_type __fill,
         const string_type &__str) const
@@ -365,7 +365,7 @@ do_put (iter_type __i, bool __intl, ios_base &__flags, char_type __fill,
     _RWSTD_SIZE_T  __strdigs = 0;          // number of digits in `str'
 
     typedef string::traits_type                   _Traits;
-    typedef _TYPENAME string_type::const_iterator _StringIter;
+    typedef typename string_type::const_iterator _StringIter;
 
     char        __buf [304];            // buffer for groups
     static char __nul    = '\0';        // `groups' must be non-0

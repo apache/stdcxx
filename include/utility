@@ -46,6 +46,11 @@
 
 #include <rw/_pair.h>
 #include <rw/_relops.h>
+
+#ifndef _RWSTD_NO_EXT_CXX_0X
+#  include <rw/_ref_wrap.h>
+#endif
+
 #include <rw/_defs.h>
 
 
