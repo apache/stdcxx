@@ -525,10 +525,8 @@ _C_assign_range (_InputIter __first, _InputIter __last, input_iterator_tag)
 {
     typedef deque _Deque;
 
-    deque* const __self = this;
-
     _RWSTD_ASSERT_RANGE (__first, __last);
-    _RWSTD_ASSERT (__self->_C_is_valid ());
+    _RWSTD_ASSERT (this->_C_is_valid ());
 
 #ifndef _RWSTD_NO_EXT_DEQUE_ASSIGN_IN_PLACE
 
@@ -541,21 +539,21 @@ _C_assign_range (_InputIter __first, _InputIter __last, input_iterator_tag)
     //    assignment operator and iterator operations do not throw
     // -- basic otherwise
 
-    const iterator __end = __self->end ();
+    const iterator __end = this->end ();
 
     // avoid using the name __i or __it below so as not to trigger
     // a (bogus) gcc 2.95.2 -Wshadow warning: declaration of `__i'
     // shadows previous local
-    for (iterator __ix = __self->begin (); !(__ix == __end);
+    for (iterator __ix = this->begin (); !(__ix == __end);
          ++__ix, ++__first) {
         if (__first == __last) {
-            __self->erase (__ix, __end);
+            this->erase (__ix, __end);
             return;
         }
         *__ix = *__first;
     }
 
-    __self->insert (__end, __first, __last);
+    this->insert (__end, __first, __last);
 
 #else   // if defined (_RWSTD_NO_EXT_DEQUE_ASSIGN_IN_PLACE)
 
@@ -564,8 +562,8 @@ _C_assign_range (_InputIter __first, _InputIter __last, input_iterator_tag)
     // complexity: linear in distance(first, last)
     // exception safety: basic
 
-    __self->clear ();
-    __self->insert (__self->begin (), __first, __last);
+    this->clear ();
+    this->insert (this->begin (), __first, __last);
 
 #endif   // _RWSTD_NO_EXT_DEQUE_ASSIGN_IN_PLACE
 
@@ -581,9 +579,7 @@ _C_insert_range (iterator __it,
 {
     typedef deque _Deque;
 
-    _Deque* const __self = this;
-
-    _RWSTD_ASSERT_RANGE (__it, __self->end ());
+    _RWSTD_ASSERT_RANGE (__it, this->end ());
     _RWSTD_ASSERT_RANGE (__first, __last);
 
 #ifndef _RWSTD_NO_EXT_DEQUE_INSERT_IN_PLACE
@@ -592,21 +588,21 @@ _C_insert_range (iterator __it,
     // from the input sequence in the case of an exception
 
     for ( ; !(__first == __last); ++__it, ++__first)
-        __it = __self->insert (__it, *__first); 
+        __it = this->insert (__it, *__first); 
 
 #else   // if defined (_RWSTD_NO_EXT_DEQUE_INSERT_IN_PLACE)
 
     // 23.2.1.3, p2: if an exception is thrown other than by the copy
     // constructor or assignment operator of T there are no effects.
 
-    _Deque __tmp (__self->begin (), __it, __self->get_allocator ());
+    _Deque __tmp (this->begin (), __it, this->get_allocator ());
 
     for (; !(__first == __last); ++__first)
         __tmp.push_back (*__first);
 
-    __tmp.insert (__tmp.end (), __it, __self->end ());
+    __tmp.insert (__tmp.end (), __it, this->end ());
 
-    __self->swap (__tmp);
+    this->swap (__tmp);
     
 #endif   // _RWSTD_NO_EXT_DEQUE_INSERT_IN_PLACE
 
@@ -622,8 +618,6 @@ _C_insert_range (iterator __it,
 // {
 //     typedef deque _Deque;
 
-//     _Deque* const __self = this;
-
 //     // implemented in terms of the Input Iterator overload
 //     _RWSTD_INSERT_RANGE (__it, __first, __last, input_iterator_tag ());
 // }
@@ -638,17 +632,15 @@ _C_insert_range (iterator __it,
 {
     typedef deque _Deque;
 
-    _Deque* const __self = this;
-
-    _RWSTD_ASSERT_RANGE (__self->begin (), __it);
+    _RWSTD_ASSERT_RANGE (this->begin (), __it);
     _RWSTD_ASSERT_RANGE (__first, __last);
-    _RWSTD_ASSERT (__self->_C_is_valid ());
+    _RWSTD_ASSERT (this->_C_is_valid ());
 
     // compute the distance of `it' from the beginning of the container,
     // the distance of `it' to the end of the container, and the number
     // of elements to be inserted
-    const size_type __sz0 = __self->size ();
-    const size_type __inx = _DISTANCE (__self->begin (), __it, size_type);
+    const size_type __sz0 = this->size ();
+    const size_type __inx = _DISTANCE (this->begin (), __it, size_type);
     const size_type __rem = __sz0 - __inx;
     const size_type __n = _DISTANCE (__first, __last, size_type);
 
@@ -671,12 +663,12 @@ _C_insert_range (iterator __it,
             const _BidirIter __mid (__from);
 
             while (!(__from == __first))
-                __self->push_front (*--__from);
+                this->push_front (*--__from);
 
             for (size_type __i = __inx; __i; --__i)
-                __self->push_front (*(__self->begin () + (__n - 1)));
+                this->push_front (*(this->begin () + (__n - 1)));
 
-            _STD::copy (__mid, __last, __self->begin () + __n);
+            _STD::copy (__mid, __last, this->begin () + __n);
         }
         else {
 
@@ -685,12 +677,12 @@ _C_insert_range (iterator __it,
             // of elements in the range  [begin, it)
 
             for (size_type __i = __n; __i; --__i)
-                __self->push_front (*(__self->begin () + (__n - 1)));
+                this->push_front (*(this->begin () + (__n - 1)));
 
-            const iterator __to = __self->begin () + __n;
+            const iterator __to = this->begin () + __n;
             
             _STD::copy (__to + __n, __to + __inx, __to);
-            _STD::copy (__first, __last, __self->begin () + __inx);
+            _STD::copy (__first, __last, this->begin () + __inx);
         }
     }
     else {
@@ -705,20 +697,20 @@ _C_insert_range (iterator __it,
             const _BidirIter __to (__from);
 
             for ( ; !(__from == __last); ++__from)
-                __self->push_back (*__from);
+                this->push_back (*__from);
 
             for (size_type __i = 0; __i != __rem; ++__i)
-                __self->push_back (*(__self->begin () + (__inx + __i)));
+                this->push_back (*(this->begin () + (__inx + __i)));
 
-            _STD::copy (__first, __to, __self->begin () + __inx);
+            _STD::copy (__first, __to, this->begin () + __inx);
         }
         else {
             for (size_type __i = 0; __i != __n; ++__i)
-                __self->push_back (*(__self->begin () + (__sz0 - __n + __i)));
+                this->push_back (*(this->begin () + (__sz0 - __n + __i)));
 
-            const iterator __to       = __self->begin () + __sz0;
-            const iterator __from     = __self->begin () + __inx;
-            const iterator __from_end = __self->begin () + (__sz0 - __n);
+            const iterator __to       = this->begin () + __sz0;
+            const iterator __from     = this->begin () + __inx;
+            const iterator __from_end = this->begin () + (__sz0 - __n);
 
             _STD::copy_backward (__from, __from_end, __to);
             _STD::copy (__first, __last, __from);
