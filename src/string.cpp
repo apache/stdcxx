@@ -27,12 +27,14 @@
 #define _RWSTD_LIB_SRC
 #include <rw/_defs.h>     
 
+#include <stddef.h>   // for size_t
+
 
 _RWSTD_NAMESPACE (__rw) {
 
 
 _RWSTD_EXPORT void*
-__rw_memcpy (void *dst, const void *src, _RWSTD_SIZE_T nbytes)
+__rw_memcpy (void *dst, const void *src, size_t nbytes)
 {
     _RWSTD_ASSERT (0 == nbytes || dst && src);
 
@@ -46,7 +48,7 @@ __rw_memcpy (void *dst, const void *src, _RWSTD_SIZE_T nbytes)
 
 
 _RWSTD_EXPORT void*
-__rw_memmove (void *dst, const void *src, _RWSTD_SIZE_T nbytes)
+__rw_memmove (void *dst, const void *src, size_t nbytes)
 {
     _RWSTD_ASSERT (0 == nbytes || dst && src);
 
@@ -67,7 +69,7 @@ __rw_memmove (void *dst, const void *src, _RWSTD_SIZE_T nbytes)
 
 
 _RWSTD_EXPORT const void*
-__rw_memchr (const void *src, int c, _RWSTD_SIZE_T nbytes)
+__rw_memchr (const void *src, int c, size_t nbytes)
 {
     _RWSTD_ASSERT (0 == nbytes || src);
 
@@ -85,7 +87,7 @@ __rw_memchr (const void *src, int c, _RWSTD_SIZE_T nbytes)
 
 
 _RWSTD_EXPORT void*
-__rw_memset (void *dst, int c, _RWSTD_SIZE_T nbytes)
+__rw_memset (void *dst, int c, size_t nbytes)
 {
     _RWSTD_ASSERT (0 == nbytes || dst);
 
@@ -97,7 +99,7 @@ __rw_memset (void *dst, int c, _RWSTD_SIZE_T nbytes)
 
 
 _RWSTD_EXPORT int
-__rw_memcmp (const void *s1, const void *s2, _RWSTD_SIZE_T nbytes)
+__rw_memcmp (const void *s1, const void *s2, size_t nbytes)
 {
     _RWSTD_ASSERT (0 == nbytes || s1 && s2);
 
@@ -114,21 +116,21 @@ __rw_memcmp (const void *s1, const void *s2, _RWSTD_SIZE_T nbytes)
 }
 
 
-_RWSTD_EXPORT _RWSTD_SIZE_T
+_RWSTD_EXPORT size_t
 __rw_strlen (const char *str)
 {
     const char* const begin = str;
 
     for (; *str; ++str);
 
-    return _RWSTD_STATIC_CAST (_RWSTD_SIZE_T, str - begin);
+    return _RWSTD_STATIC_CAST (size_t, str - begin);
 }
 
 
 #ifndef _RWSTD_NO_WCHAR_T
 
 _RWSTD_EXPORT wchar_t*
-__rw_wmemcpy (wchar_t *dst, const wchar_t *src, _RWSTD_SIZE_T nwchars)
+__rw_wmemcpy (wchar_t *dst, const wchar_t *src, size_t nwchars)
 {
     _RWSTD_ASSERT (0 == nwchars || dst && src);
 
@@ -140,7 +142,7 @@ __rw_wmemcpy (wchar_t *dst, const wchar_t *src, _RWSTD_SIZE_T nwchars)
 
 
 _RWSTD_EXPORT wchar_t*
-__rw_wmemmove (wchar_t *dst, const wchar_t *src, _RWSTD_SIZE_T nwchars)
+__rw_wmemmove (wchar_t *dst, const wchar_t *src, size_t nwchars)
 {
     _RWSTD_ASSERT (0 == nwchars || dst && src);
 
@@ -158,7 +160,7 @@ __rw_wmemmove (wchar_t *dst, const wchar_t *src, _RWSTD_SIZE_T nwchars)
 
 
 _RWSTD_EXPORT const wchar_t*
-__rw_wmemchr (const wchar_t *src, wchar_t wc, _RWSTD_SIZE_T nwchars)
+__rw_wmemchr (const wchar_t *src, wchar_t wc, size_t nwchars)
 {
     _RWSTD_ASSERT (0 == nwchars || src);
 
@@ -172,7 +174,7 @@ __rw_wmemchr (const wchar_t *src, wchar_t wc, _RWSTD_SIZE_T nwchars)
 
 
 _RWSTD_EXPORT wchar_t*
-__rw_wmemset (wchar_t *dst, wchar_t wc, _RWSTD_SIZE_T nwchars)
+__rw_wmemset (wchar_t *dst, wchar_t wc, size_t nwchars)
 {
     _RWSTD_ASSERT (0 == nwchars || dst);
 
@@ -184,7 +186,7 @@ __rw_wmemset (wchar_t *dst, wchar_t wc, _RWSTD_SIZE_T nwchars)
 
 
 _RWSTD_EXPORT int
-__rw_wmemcmp (const wchar_t *s1, const wchar_t *s2, _RWSTD_SIZE_T nwchars)
+__rw_wmemcmp (const wchar_t *s1, const wchar_t *s2, size_t nwchars)
 {
     _RWSTD_ASSERT (0 == nwchars || s1 && s2);
 
@@ -196,7 +198,7 @@ __rw_wmemcmp (const wchar_t *s1, const wchar_t *s2, _RWSTD_SIZE_T nwchars)
 }
 
 
-_RWSTD_EXPORT _RWSTD_SIZE_T
+_RWSTD_EXPORT size_t
 __rw_wcslen (const wchar_t *wstr)
 {
     _RWSTD_ASSERT (0 != wstr);
@@ -205,7 +207,7 @@ __rw_wcslen (const wchar_t *wstr)
 
     for (; *wstr; ++wstr);
 
-    return _RWSTD_STATIC_CAST (_RWSTD_SIZE_T, wstr - begin);
+    return _RWSTD_STATIC_CAST (size_t, wstr - begin);
 }
 
 #endif   // _RWSTD_NO_WCHAR_T
