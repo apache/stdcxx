@@ -38,8 +38,9 @@
 #endif   // _RWSTD_NO_DEPRECATED_C_HEADERS
 
 #include <errno.h>    // for ERANGE, errno
+#include <stddef.h>   // for ptrdiff_t
 #include <stdio.h>    // for P_tmpdir, std{err,in,out}, tmpnam()
-#include <stdlib.h>   // for mkstemp(), strtoul()
+#include <stdlib.h>   // for mkstemp(), strtoul(), size_t
 #include <ctype.h>    // for isalpha(), isspace(), toupper()
 
 
@@ -198,7 +199,7 @@ static inline int
 __rw_io_mode (int openmode)
 {
     // mask out irrelevant bits
-    const _RWSTD_SIZE_T inx = openmode & __rw_openmode_mask;
+    const size_t inx = openmode & __rw_openmode_mask;
 
     if (sizeof __rw_io_modes / sizeof *__rw_io_modes <= inx)
         return -1;
@@ -224,7 +225,7 @@ static inline const char*
 __rw_stdio_mode (int openmode)
 {
     // mask out irrelevant bits
-    const _RWSTD_SIZE_T inx = openmode & __rw_openmode_mask;
+    const size_t inx = openmode & __rw_openmode_mask;
 
     if (sizeof __rw_stdio_modes / sizeof *__rw_stdio_modes <= inx)
         return "";   // error -- bad mode
@@ -478,7 +479,7 @@ __rw_fmode (void *file, int flags)
 #endif
 
 _RWSTD_EXPORT long
-__rw_fseek (void *file, int flags, _RWSTD_PTRDIFF_T offset, int origin)
+__rw_fseek (void *file, int flags, ptrdiff_t offset, int origin)
 {
     if (flags & _RWSTD_IOS_STDIO) {
         FILE* const fp = _RWSTD_STATIC_CAST (FILE*, file);
@@ -496,8 +497,8 @@ __rw_fseek (void *file, int flags, _RWSTD_PTRDIFF_T offset, int origin)
 }
 
 
-_RWSTD_EXPORT _RWSTD_SIZE_T
-__rw_fread (void *file, int flags, void *buf, _RWSTD_SIZE_T size)
+_RWSTD_EXPORT size_t
+__rw_fread (void *file, int flags, void *buf, size_t size)
 {
     if (flags & _RWSTD_IOS_STDIO) {
         FILE* const fp = _RWSTD_STATIC_CAST (FILE*, file);
@@ -511,13 +512,13 @@ __rw_fread (void *file, int flags, void *buf, _RWSTD_SIZE_T size)
 }
 
 
-_RWSTD_EXPORT _RWSTD_PTRDIFF_T
-__rw_fwrite (void *file, int flags, const void *buf, _RWSTD_SIZE_T size)
+_RWSTD_EXPORT ptrdiff_t
+__rw_fwrite (void *file, int flags, const void *buf, size_t size)
 {
     if (flags & _RWSTD_IOS_STDIO) {
         FILE* const fp = _RWSTD_STATIC_CAST (FILE*, file);
 
-        return _RWSTD_STATIC_CAST (_RWSTD_PTRDIFF_T, fwrite (buf, 1, size, fp));
+        return _RWSTD_STATIC_CAST (ptrdiff_t, fwrite (buf, 1, size, fp));
     }
 
     const int fd = int (_RWSTD_STATIC_CAST (char*, file) - 1 - (char*)0);
