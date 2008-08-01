@@ -787,7 +787,7 @@ __rw_wcsnxfrm (const wchar_t *src, _RWSTD_SIZE_T nchars)
 
 
 template <class _CharT>
-long __rw_hash (const _CharT *lo, const _CharT *hi)
+long __rw_hash (const _CharT *lo, const _CharT *hi) _THROWS (())
 {
     // Peter Weinberger's generic hashing algorithm, adapted by Andrew
     // Binstock from a version by Allen Holub (see Andrew Binstock,
@@ -843,6 +843,15 @@ _RWSTD_NAMESPACE (std) {
 _RW::__rw_facet_id collate<char>::id;
 
 
+// outlined to avoid generating a vtable in each translation unit
+// that uses the class
+/* virtual */ collate<char>::
+~collate () /* nothrow */
+{
+    // no-op
+}
+
+
 int collate<char>::
 do_compare (const char_type *__lo1, const char_type *__hi1,
             const char_type *__lo2, const char_type *__hi2) const
@@ -885,6 +894,15 @@ do_hash (const char_type *__lo, const char_type *__hi) const
     const long res = _RW::__rw_hash (__lo, __hi);
 
     return res;
+}
+
+
+// outlined to avoid generating a vtable in each translation unit
+// that uses the class
+/* virtual */ collate_byname<char>::
+~collate_byname () /* nothrow */
+{
+    // no-op
 }
 
 
@@ -996,6 +1014,15 @@ do_transform (const char* low, const char* high) const
 _RW::__rw_facet_id collate<wchar_t>::id;
 
 
+// outlined to avoid generating a vtable in each translation unit
+// that uses the class
+/* virtual */ collate<wchar_t>::
+~collate () /* nothrow */
+{
+    // no-op
+}
+
+
 int collate<wchar_t>::
 do_compare (const char_type *__lo1, const char_type *__hi1,
             const char_type *__lo2, const char_type *__hi2) const
@@ -1059,6 +1086,15 @@ do_hash (const char_type *__lo, const char_type *__hi) const
     const long res = _RW::__rw_hash (__lo, __hi);
 
     return res;
+}
+
+
+// outlined to avoid generating a vtable in each translation unit
+// that uses the class
+/* virtual */ collate_byname<wchar_t>::
+~collate_byname () /* nothrow */
+{
+    // no-op
 }
 
 

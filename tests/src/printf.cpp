@@ -1490,7 +1490,7 @@ _rw_fmtfloating (const FmtSpec &spec, Buffer &buf, const void *pval)
 
     RW_ASSERT (size_t (len) < sizeof buffer);
 
-#ifdef _MSC_VER
+#if defined (_MSC_VER) || defined (__MINGW32__)
 
     if (5 < len) {
         // remove redundant zeros from the exponent (if present)
@@ -1502,7 +1502,7 @@ _rw_fmtfloating (const FmtSpec &spec, Buffer &buf, const void *pval)
         }
     }
 
-#endif   // _MSC_VER
+#endif   // _MSC_VER || __MINGW32__
 
 
     if (-1 < len && 0 == _rw_bufcat (buf, buffer, size_t (len)))

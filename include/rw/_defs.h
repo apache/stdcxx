@@ -1113,40 +1113,6 @@
 #  define _RWSTD_ASSUME(expr)   _RWSTD_ASSERT (expr)
 #endif   // _RWSTD_ASSUME
 
-#ifndef _RWSTD_ATTRIBUTE_NORETURN
-   // gcc (and others) __attribute__ ((noreturn))
-#  define _RWSTD_ATTRIBUTE_NORETURN   /* empty */
-#endif   // _RWSTD_ATTR_NORETURN
-
-
-// compile-time assertion - asserts constant expressions during
-// compilation with no runtime overhead; failed assertions are reported
-// as compilation errors
-
-_RWSTD_NAMESPACE (__rw) { 
-
-// file may be #included from within an extern "C" block
-extern "C++" {
-
-template <bool __b>
-struct __rw_compile_assert;
-
-_RWSTD_SPECIALIZED_CLASS
-struct __rw_compile_assert<true> { enum { _C_ok }; };
-
-#define _RWSTD_COMPILE_ASSERT(const_expr) \
-        ((void)_RW::__rw_compile_assert<(const_expr)>::_C_ok)
-
-// called for failed assertions
-void _RWSTD_EXPORT
-__rw_assert_fail (const char*, const char*, int, const char*)
-    _RWSTD_ATTRIBUTE_NORETURN;
-
-}   // extern "C++"
-
-}   // namespace __rw
-
-
 #define _RWSTD_STR(x)       #x
 #define _RWSTD_STRSTR(x)    _RWSTD_STR(x)
 
@@ -1195,6 +1161,62 @@ __rw_assert_fail (const char*, const char*, int, const char*)
 #else
 #  define _NEW_THROWS(ignore)   /* empty */
 #endif   // _RWSTD_NO_EXCEPTION_SPECIFICATION_ON_NEW
+
+
+#ifndef _RWSTD_ATTRIBUTE_NORETURN
+   // gcc (and others) __attribute__ ((noreturn))
+#  define _RWSTD_ATTRIBUTE_NORETURN   /* empty */
+#endif   // _RWSTD_ATTR_NORETURN
+
+
+#ifdef _RWSTD_ATTRIBUTE_NOTHROW
+   // gcc (and others) __attribute__ ((nothrow))
+#  define _RWSTD_DECLARE_NOTHROW  _RWSTD_ATTRIBUTE_NOTHROW
+   // attributes cannot appear on function definitions
+#  define _RWSTD_DEFINE_NOTHROW   /* empty */
+#else
+   // make the macro usable even when it doesn't do anything
+#  define _RWSTD_ATTRIBUTE_NOTHROW /* empty */
+   // emulate using empty exception specifications which must
+   // be specified for both declarations and definitions
+#  define _RWSTD_DECLARE_NOTHROW  _THROWS(())
+#  define _RWSTD_DEFINE_NOTHROW   _THROWS(())
+#endif   // _RWSTD_ATTR_NORETURN
+
+
+// compile-time assertion - asserts constant expressions during
+// compilation with no runtime overhead; failed assertions are reported
+// as compilation errors
+
+_RWSTD_NAMESPACE (__rw) { 
+
+// file may be #included from within an extern "C" block
+extern "C++" {
+
+template <bool __b>
+struct __rw_compile_assert;
+
+_RWSTD_SPECIALIZED_CLASS
+struct __rw_compile_assert<true> { enum { _C_ok }; };
+
+#define _RWSTD_COMPILE_ASSERT(const_expr) \
+        ((void)_RW::__rw_compile_assert<(const_expr)>::_C_ok)
+
+// called for failed assertions
+void _RWSTD_EXPORT
+__rw_assert_fail (const char*, const char*, int, const char*)
+    _RWSTD_DECLARE_NOTHROW _RWSTD_ATTRIBUTE_NORETURN;
+
+
+
+#ifdef __SUNPRO_CC
+   // help Sun C++ optimizer generate better code
+#  pragma does_not_return (__rw_assert_fail)
+#endif   // __SUNPRO_CC
+
+}   // extern "C++"
+
+}   // namespace __rw
 
 
 // for convenience

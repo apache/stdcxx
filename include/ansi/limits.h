@@ -107,7 +107,12 @@
 #  endif
 
 #  ifdef __GNUC__
-     // use the gcc extension to #include the compiler's limits.h
+     // use the gcc extension to #include the compiler's <limits.h>
+#    include_next <limits.h>
+
+     // include the same file again to get it to #include the system
+     // <limits.h> (presumably residing /usr/include/)
+#    define _GCC_NEXT_LIMITS_H
 #    include_next <limits.h>
 #  else
 #    include _RWSTD_ANSI_C_LIMITS_H

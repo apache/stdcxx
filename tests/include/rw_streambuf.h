@@ -461,9 +461,13 @@ test (MemFun which) const
 {
     MyStreambuf* const self = _RWSTD_CONST_CAST (MyStreambuf*, this);
 
-    int inx = memfun_inx (which);
-    if (-1 == inx)
+    const int inx = memfun_inx (which);
+    if (inx < 0)
         return true;
+
+    // assert precondition to silence HP aCC 6/cadvise warning
+    // #20206-D: Out of bound access 
+    RW_ASSERT ((_RWSTD_SIZE_T)inx < sizeof ncalls_ / sizeof *ncalls_);
 
     // increment the counter tracking the number of calls made
     // to each member function; do so regardless of whether

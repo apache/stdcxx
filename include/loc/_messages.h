@@ -84,6 +84,7 @@ public:
     explicit messages (_RWSTD_SIZE_T __refs = 0)
         : _RW::__rw_facet (__refs) { }
 
+    virtual ~messages () _RWSTD_ATTRIBUTE_NOTHROW;
 
     catalog open (const string& __fun, const locale& __loc) const {
         return do_open (__fun, __loc);
@@ -136,6 +137,8 @@ public:
         : messages<_CharT>(__refs) {
         this->_C_set_name (__name, _C_namebuf, sizeof _C_namebuf);
     }
+
+    virtual ~messages_byname () _RWSTD_ATTRIBUTE_NOTHROW;
 };
 
 }   // namespace std

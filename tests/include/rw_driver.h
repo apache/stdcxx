@@ -98,7 +98,8 @@ rw_test (int           argc,
  * @param line  When positive, denotes the line number of the location
  *        relevant to the diagnostic. Negative values are ignored.
  * @param fmtspec  A printf format specifier (with extensions) used
- *        to format the text of the diagnostic.
+ *        to format the text of the diagnostic.  See rwtest-fmtspec page
+ *        for details.
  * @param ... Optional list of values to format.
  *
  * @return  Returns the value of expr passed to it.

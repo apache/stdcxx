@@ -36,6 +36,16 @@ template <class _CharT>
 _RW::__rw_facet_id messages<_CharT>::id;
 
 
+// outlined to avoid generating a vtable in each translation unit
+// that uses the class
+template <class _CharT>
+/* virtual */ messages<_CharT>::
+~messages ()
+{
+    // no-op
+}
+
+
 template <class _CharT>
 messages_base::catalog
 messages<_CharT>::
@@ -138,6 +148,16 @@ messages<_CharT>::do_get (messages_base::catalog __cat,
         }
     }
     return __dfault;
+}
+
+
+// outlined to avoid generating a vtable in each translation unit
+// that uses the class
+template <class _CharT>
+/* virtual */ messages_byname<_CharT>::
+~messages_byname ()
+{
+    // no-op
 }
 
 

@@ -151,7 +151,7 @@ int main (int argc, char *argv[])
     cmd += rc_name;
     cmd += " -o ";
     cmd += res_name;
-    cmd += " && gcc -shared -o ";
+    cmd += " && gcc -shared -mno-cygwin -o ";
     cmd += dll_name;
     cmd += ' ';
     cmd += res_name;

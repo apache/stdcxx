@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2006 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -192,7 +192,7 @@ __rw_base_bits [] = {
 
 
 unsigned long
-__rw_strtoul (const char *nptr, int *errptr, int base)
+__rw_strtoul (const char *nptr, int *errptr, int base) _THROWS (())
 {
     _RWSTD_ASSERT (0 != nptr);
     _RWSTD_ASSERT (0 != errptr);
@@ -395,7 +395,7 @@ overflow:
 
 
 long
-__rw_strtol (const char *nptr, int *errptr, int base)
+__rw_strtol (const char *nptr, int *errptr, int base) _THROWS (())
 {
     _RWSTD_ASSERT (0 != nptr);
     _RWSTD_ASSERT (0 != errptr);
@@ -626,7 +626,7 @@ typedef unsigned _RWSTD_LONG_LONG ULLong;
 #  if (_RWSTD_LONG_SIZE < _RWSTD_LLONG_SIZE)
 
 ULLong
-__rw_strtoull (const char *nptr, int *errptr, int base)
+__rw_strtoull (const char *nptr, int *errptr, int base) _THROWS (())
 {
     _RWSTD_ASSERT (0 != nptr);
     _RWSTD_ASSERT (0 != errptr);
@@ -813,7 +813,7 @@ overflow:
 
 
 LLong
-__rw_strtoll (const char *nptr, int *errptr, int base)
+__rw_strtoll (const char *nptr, int *errptr, int base) _THROWS (())
 {
     _RWSTD_ASSERT (0 != nptr);
     _RWSTD_ASSERT (0 != errptr);

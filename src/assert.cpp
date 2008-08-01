@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2006 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -37,7 +37,7 @@
 
 #ifdef __HP_aCC
 
-extern "C" void U_STACK_TRACE ();
+extern "C" void U_STACK_TRACE () _RWSTD_DECLARE_NOTHROW;
 
 #  define STACK_TRACE   U_STACK_TRACE
 
@@ -47,8 +47,14 @@ extern "C" void U_STACK_TRACE ();
 
 _RWSTD_NAMESPACE (__rw) {
 
+// declare with attribute((nothrow)) since the function calls
+// others that may not be declared nothrow
 static void
-__rw_stack_trace (int fd)
+__rw_stack_trace (int fd) _RWSTD_DECLARE_NOTHROW;
+
+
+static void
+__rw_stack_trace (int fd) _RWSTD_DEFINE_NOTHROW
 {
     // limit stacktrace to the depth of 256 calls
     void* array [256];
@@ -70,7 +76,7 @@ __rw_stack_trace (int fd)
 // having to #define enabling macros (i.e., __EXTENSIONS__) and deal
 // with the breakage when using a strict compiler such as EDG eccp
 // with the long long extension (used in some system headers) disabled
-extern "C" int printstack (int);
+extern "C" int printstack (int) _RWSTD_DECLARE_NOTHROW;
 
 #    define STACK_TRACE()   printstack (2)
 #endif
@@ -86,6 +92,7 @@ _RWSTD_NAMESPACE (__rw) {
 _RWSTD_EXPORT void
 __rw_assert_fail (const char *expr,
                   const char *file, int line, const char *func)
+     _RWSTD_DEFINE_NOTHROW
 {
     // func may be 0 if the compiler doesn't support the ANSI C predefined
     // identifier `__func__' (see 6.4.2.2 of ISO/IEC 9899:1999) or an

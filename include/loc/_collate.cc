@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2006 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -34,6 +34,16 @@ _RWSTD_NAMESPACE (std) {
 
 template <class _CharT>
 _RW::__rw_facet_id collate<_CharT>::id;
+
+
+// outlined to avoid generating a vtable in each translation unit
+// that uses the class
+template <class _CharT>
+/* virtual */ collate<_CharT>::
+~collate () /* nothrow */
+{
+    // no-op
+}
 
 #endif   // _RWSTD_NO_EXT_COLLATE_PRIMARY
 

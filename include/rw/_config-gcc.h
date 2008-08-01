@@ -88,6 +88,13 @@
 // (it may still exit by throwing an exception or by calling longjmp)
 #define _RWSTD_ATTRIBUTE_NORETURN   _RWSTD_GNUC_ATTRIBUTE ((noreturn))
 
+#if __GNUG__ > 3 || __GNUG__ == 3 && __GNUC_MINOR__ >= 3
+  // gcc attribute((nothrow)) to indicate that a function doesn't throw
+  // exceptions; unlike the emtpy exception specification the attribute
+  // avoids the cost of checking for exceptions and calling unexpected()
+#  define _RWSTD_ATTRIBUTE_NOTHROW   _RWSTD_GNUC_ATTRIBUTE ((nothrow))
+#endif   // gcc >= 3.3
+
 #ifdef _RWSTD_OS_LINUX
 
 #  ifdef _RWSTD_NO_NEW_HEADER
@@ -123,6 +130,7 @@
 
 #undef _RWSTD_NO_DEPRECATED_LIBC_IN_STD
 
+/*** CygWin ***************************************************************/
 #ifdef __CYGWIN__
      // use our own C++ libc headers
 #  undef _RWSTD_NO_NEW_HEADER
@@ -134,7 +142,7 @@
 #  endif
 
 #  ifdef _RWSHARED
-     // disabe exporting timeplate instantations in shared builds
+     // disable exporting tmeplate instantiations in shared builds
      // see STDCXX-507
 #    define _RWSTD_NO_EXTERN_TEMPLATE
 
@@ -145,6 +153,22 @@
 #  endif
 #endif   // __CYGWIN__
 
+/*** MinGW ****************************************************************/
+#ifdef __MINGW32__
+#  ifdef _RWSHARED
+     // disable exporting temeplate instantiations in shared builds
+     // see STDCXX-507
+#    define _RWSTD_NO_EXTERN_TEMPLATE
+#  endif
+
+   // operator new and delete is not reliably replaceable across
+   // shared library boundaries, which includes the shared library
+   // version of the language support library
+   // on MinGW the language support library is always shared
+#  define _RWSTD_NO_REPLACEABLE_NEW_DELETE
+#endif   // __MINGW32__
+
+/*** Tru64 UNIX ***********************************************************/
 #ifdef _RWSTD_OS_OSF1
       // sizeof (long double) == sizeof (double), 'L' causes SIGSEGV
 #   define _RWSTD_LDBL_PRINTF_PREFIX   ""
@@ -152,6 +176,7 @@
 
 #endif   // _RWSTD_OS_OSF1
 
+/*** Solaris **************************************************************/
 #ifdef _RWSTD_OS_SUNOS
 
      // _SOLARIS_THREADS #defined when the -threads option is used on SunOS

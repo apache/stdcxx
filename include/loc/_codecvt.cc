@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2006 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -35,7 +35,26 @@ _RWSTD_NAMESPACE (std) {
 template <class _InternT, class _ExternT, class _StateT>
 _RW::__rw_facet_id codecvt<_InternT, _ExternT, _StateT>::id;
 
+
+// outlined to avoid generating a vtable in each translation unit
+// that uses the class
+template <class _InternT, class _ExternT, class _StateT>
+/* virtual */ codecvt<_InternT, _ExternT, _StateT>::
+~codecvt () /* nothrow */
+{
+    // no-op
+}
+
 #endif   // _RWSTD_NO_EXT_CODECVT_PRIMARY
 
+
+// outlined to avoid generating a vtable in each translation unit
+// that uses the class
+template <class _InternT, class _ExternT, class _StateT>
+/* virtual */ codecvt_byname<_InternT, _ExternT, _StateT>::
+~codecvt_byname () /* nothrow */
+{
+    // no-op
+}
 
 }   // namespace std

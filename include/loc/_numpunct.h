@@ -238,6 +238,8 @@ public:
         : numpunct<_CharT>(__refs) {
         this->_C_set_name (__name, _C_namebuf, sizeof _C_namebuf);
     }
+
+    virtual ~numpunct_byname () _RWSTD_ATTRIBUTE_NOTHROW;
 };
 
 }   // namespace std

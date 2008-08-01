@@ -84,7 +84,7 @@ void __rw_insert_range (vector<_TypeT, _Allocator>*, _VectorIter,
 
 _EXPORT
 template <class _TypeT, class _Allocator>
-class vector: private _Allocator
+class vector
 {
 public:
 
@@ -96,7 +96,6 @@ public:
     typedef typename allocator_type::const_reference  const_reference;
     typedef typename allocator_type::pointer          pointer;
     typedef typename allocator_type::const_pointer    const_pointer;
-    typedef _RWSTD_ALLOC_TYPE (allocator_type, value_type) _C_value_alloc_type;
 
 public:
 
@@ -153,33 +152,32 @@ public:
 
     explicit
     vector (const allocator_type &__alloc = allocator_type ())
-        : allocator_type (__alloc), _C_begin (), _C_end (), _C_bufend () { }
+        : _C_alloc (__alloc) { }
 
     explicit
     vector (size_type __n, const_reference __x = value_type (),
             const allocator_type &__alloc = allocator_type ())
-        : allocator_type (__alloc), _C_begin (), _C_end (), _C_bufend () {
+        : _C_alloc (__alloc) {
         assign (__n, __x);
     }
 
     template <class _InputIter>
     vector (_InputIter __first, _InputIter __last,
             const allocator_type &__alloc = allocator_type ())
-        : allocator_type (__alloc), _C_begin (), _C_end (), _C_bufend () {
+        : _C_alloc (__alloc) {
         assign (__first, __last);
     }
 
     vector (const vector &__rhs)
-        : allocator_type (__rhs.get_allocator ()),
-          _C_begin (), _C_end (), _C_bufend () {
+        : _C_alloc (__rhs.get_allocator ()) {
         assign (__rhs.begin (), __rhs.end ());
     }
     
     
     ~vector () { 
-        _C_destroy (begin ()); 
-        _RWSTD_VALUE_ALLOC (_C_value_alloc_type, *this,
-                            deallocate (_C_begin, _C_bufend - _C_begin));
+        _C_destroy (begin ());
+        _C_alloc.deallocate (_C_alloc._C_begin,
+                             _C_alloc._C_bufend - _C_alloc._C_begin);
     }
     
     vector& operator= (const vector&);
@@ -195,23 +193,23 @@ public:
     }
 
     allocator_type get_allocator () const {
-        return *this;
+        return _C_alloc;
     }
     
     iterator begin () {
-        return _C_make_iter (_C_begin);
+        return _C_make_iter (_C_alloc._C_begin);
     }
 
     const_iterator begin () const {
-        return _C_make_iter (_C_begin);
+        return _C_make_iter (_C_alloc._C_begin);
     }
 
     iterator end () {
-        return _C_make_iter (_C_end);
+        return _C_make_iter (_C_alloc._C_end);
     }
 
     const_iterator end () const {
-        return _C_make_iter (_C_end);
+        return _C_make_iter (_C_alloc._C_end);
     }
     
     reverse_iterator rbegin () { 
@@ -231,21 +229,21 @@ public:
     }
 
     size_type size () const {
-        return size_type (_C_end - _C_begin);
+        return size_type (_C_alloc._C_end - _C_alloc._C_begin);
     }
 
     size_type max_size () const {
-        return _RWSTD_VALUE_ALLOC (_C_value_alloc_type, *this, max_size ());
+        return _C_alloc.max_size ();
     }
     
     void resize (size_type, value_type = value_type ());
 
     size_type capacity () const {
-        return _C_bufend - _C_begin;
+        return _C_alloc._C_bufend - _C_alloc._C_begin;
     }
     
     bool empty () const {
-        return _C_begin == _C_end;
+        return _C_alloc._C_begin == _C_alloc._C_end;
     }
     
     void reserve (size_type);
@@ -282,8 +280,8 @@ public:
     
     void pop_back () {
         _RWSTD_ASSERT (!empty ());
-        _RWSTD_VALUE_ALLOC (_C_value_alloc_type, *this, destroy (_C_end - 1));
-        --_C_end;
+        _C_alloc.destroy (_C_alloc._C_end - 1);
+        --_C_alloc._C_end;
     }
 
     iterator insert (iterator, const_reference);
@@ -381,11 +379,9 @@ private:
 
     // constructs a copy at the end and grows the size of container
     void _C_push_back (const_reference __x) {
-        _RWSTD_ASSERT (_C_end != _C_bufend);
-
-        _RWSTD_VALUE_ALLOC (_C_value_alloc_type, *this,
-                            construct (_C_end, __x));
-        ++_C_end;
+        _RWSTD_ASSERT (_C_alloc._C_end != _C_alloc._C_bufend);
+        _C_alloc.construct (_C_alloc._C_end, __x);
+        ++_C_alloc._C_end;
     }
 
     // destroys elements from the iterator to the end of the vector
@@ -395,9 +391,16 @@ private:
     // implements swap for objects with unequal allocator
     void _C_unsafe_swap (vector&);
 
-    pointer _C_begin;
-    pointer _C_end;
-    pointer _C_bufend;
+    struct _C_VectorAlloc: allocator_type {
+
+        _C_VectorAlloc (const allocator_type &__alloc)
+            : allocator_type (__alloc), _C_begin (), _C_end (), _C_bufend ()
+            { /* empty */}
+
+        pointer _C_begin;
+        pointer _C_end;
+        pointer _C_bufend;
+    } _C_alloc;
 };
 
 
@@ -495,12 +498,10 @@ inline void
 vector<_TypeT, _Allocator>::
 push_back (const_reference __x)
 {
-    if (_C_end == _C_bufend) {
+    if (_C_alloc._C_end == _C_alloc._C_bufend)
         _C_insert_1 (end (), __x);
-    }
-    else {
+    else
         _C_push_back (__x);
-    }
 }
 
 
@@ -535,8 +536,8 @@ erase (iterator __it)
     if (__next != end ()) 
         _STD::copy (__next, end (), __it);
 
-    _RWSTD_VALUE_ALLOC (_C_value_alloc_type, *this, destroy (_C_end - 1));
-    --_C_end;
+    _C_alloc.destroy (_C_alloc._C_end - 1);
+    --_C_alloc._C_end;
 
     return __it;
 }
@@ -572,15 +573,15 @@ vector<_TypeT, _Allocator>::
 swap (vector &__other)
 {
     if (get_allocator () == __other.get_allocator ()) {
-        pointer __tmp    = _C_begin;
-        _C_begin         = __other._C_begin;
-        __other._C_begin = __tmp;
-        __tmp            = _C_end;
-        _C_end           = __other._C_end;
-        __other._C_end   = __tmp;
-        __tmp            = _C_bufend;
-        _C_bufend        = __other._C_bufend;
-        __other._C_bufend = __tmp;
+        pointer __tmp             = _C_alloc._C_begin;
+        _C_alloc._C_begin         = __other._C_alloc._C_begin;
+        __other._C_alloc._C_begin = __tmp;
+        __tmp                     = _C_alloc._C_end;
+        _C_alloc._C_end           = __other._C_alloc._C_end;
+        __other._C_alloc._C_end   = __tmp;
+        __tmp                     = _C_alloc._C_bufend;
+        _C_alloc._C_bufend        = __other._C_alloc._C_bufend;
+        __other._C_alloc._C_bufend = __tmp;
     }
     else {
         // not exception-safe

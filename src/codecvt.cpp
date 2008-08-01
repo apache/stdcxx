@@ -105,7 +105,10 @@ codecvt (size_t refs /* = 0 */)
 }
 
 
-/* virtual */ codecvt<char, char, _RWSTD_MBSTATE_T>::~codecvt ()
+// outlined to avoid generating a vtable in each translation unit
+// that uses the class
+/* virtual */ codecvt<char, char, _RWSTD_MBSTATE_T>::
+~codecvt ()
 {
     // no-op
 }
@@ -262,6 +265,23 @@ codecvt<char, char, _RWSTD_MBSTATE_T>::
 do_max_length () const _THROWS (())
 {
     return 1;   // 22.2.1.5.2, p11
+}
+
+
+codecvt_byname<char, char, _RWSTD_MBSTATE_T>::
+codecvt_byname (const char *name, size_t ref)
+    : codecvt <intern_type, extern_type, state_type> (ref)
+{
+    _C_set_name (name, _C_namebuf, sizeof _C_namebuf);
+}
+
+
+// outlined to avoid generating a vtable in each translation unit
+// that uses the class
+/* virtual */ codecvt_byname<char, char, _RWSTD_MBSTATE_T>::
+~codecvt_byname ()
+{
+    // no-op
 }
 
 

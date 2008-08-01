@@ -190,10 +190,15 @@ void exception_loop (int              line /* line number in caller*/,
 
         _TRY {
 
+            // convert an int to size_type to avoid conversion
+            // warnings when passing it to member functions
+            // that expect an unsigned argument
+            const Deque::size_type nelems (n);
+
             switch (mfun) {
             case Assign_n:
                 _RWSTD_ASSERT (x);
-                deq.assign (n, *x);
+                deq.assign (nelems, *x);
                 break;
             case AssignRange:
                 deq.assign (first, last);
@@ -214,7 +219,7 @@ void exception_loop (int              line /* line number in caller*/,
                 break;
             case Insert_n:
                 _RWSTD_ASSERT (x);
-                deq.insert (it, n, *x);
+                deq.insert (it, nelems, *x);
                 break;
             case InsertRange:
                 deq.insert (it, first, last);
@@ -447,7 +452,10 @@ void test_insert (int line, int exceptions,
     std::free (funcall);
 
     delete[] xins;
-    delete[] xseq;
+
+    // cast away constness to work around an HP aCC 6.16 bug
+    // see http://issues.apache.org/jira/browse/STDCXX-802
+    delete[] _RWSTD_CONST_CAST (UserClass*, xseq);
 }
 
 /**************************************************************************/
@@ -975,7 +983,10 @@ void test_assign (int line, int exceptions,
     std::free (funcall);
 
     delete[] xasn;
-    delete[] xseq;
+
+    // cast away constness to work around an HP aCC 6.16 bug
+    // see http://issues.apache.org/jira/browse/STDCXX-802
+    delete[] _RWSTD_CONST_CAST (UserClass*, xseq);
 }
 
 
@@ -1177,7 +1188,9 @@ void test_erase (int line,
 
     std::free (funcall);
 
-    delete[] xseq;
+    // cast away constness to work around an HP aCC 6.16 bug
+    // see http://issues.apache.org/jira/browse/STDCXX-802
+    delete[] _RWSTD_CONST_CAST (UserClass*, xseq);
 }
 
 void test_erase ()
