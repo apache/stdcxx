@@ -150,6 +150,15 @@ static void test_is_same ()
     TEST (std::is_same, signed long, unsigned long, false);
     TEST (std::is_same, unsigned long, signed long, false);
 
+    TEST (std::is_same, long, const long, false);
+    TEST (std::is_same, const long, long, false);
+
+    TEST (std::is_same, long, volatile long, false);
+    TEST (std::is_same, volatile long, long, false);
+
+    TEST (std::is_same, long, const volatile long, false);
+    TEST (std::is_same, const volatile long, long, false);
+
     TEST (std::is_same, enum_A, char, false);
     TEST (std::is_same, enum_A, short, false);
     TEST (std::is_same, enum_A, int, false);
@@ -223,6 +232,21 @@ static void test_is_base_of ()
     // private inheritance
     TEST (std::is_base_of, struct_A, derived_private_t<struct_A>, true);
 #endif
+
+    // cv-qualified
+    TEST (std::is_base_of, const struct_A, struct_A, true);
+    TEST (std::is_base_of, struct_A, const struct_A, true);
+    TEST (std::is_base_of, volatile struct_A, struct_A, true);
+    TEST (std::is_base_of, struct_A, volatile struct_A, true);
+    TEST (std::is_base_of, const volatile struct_A, struct_A, true);
+    TEST (std::is_base_of, struct_A, const volatile struct_A, true);
+
+    TEST (std::is_base_of, const struct_A, derived_t<struct_A>, true);
+    TEST (std::is_base_of, struct_A, const derived_t<struct_A>, true);
+    TEST (std::is_base_of, volatile struct_A, derived_t<struct_A>, true);
+    TEST (std::is_base_of, struct_A, volatile derived_t<struct_A>, true);
+    TEST (std::is_base_of, const volatile struct_A, derived_t<struct_A>, true);
+    TEST (std::is_base_of, struct_A, const volatile derived_t<struct_A>, true);
 
     // other combinations should fail
     TEST (std::is_base_of, signed char, char, false);
@@ -366,7 +390,14 @@ static void test_is_convertible ()
     TEST (std::is_convertible, int (), int (&)(char), false);
 
     TEST (std::is_convertible, int*, void*, true);
+
+#if defined (_MSC_VER) || defined (__IBMCPP__)
+    // microsoft language extension allows this conversion, and that
+    // extension is enabled by default.
+    TEST (std::is_convertible, int (*)(), void*, true);
+#else
     TEST (std::is_convertible, int (*)(), void*, false);
+#endif
 
     TEST (std::is_convertible,
           int (*)(derived_t<struct_A>*),
