@@ -803,7 +803,9 @@ induce_exception (RuntimeExceptionId reid, const char *name)
             // try to allocate a huge amount of memory to induce bad_alloc
             const std::size_t huge_amount = _RWSTD_SIZE_MAX - 4096;
 
-            ::operator new (huge_amount);
+            void * const p = ::operator new (huge_amount);
+
+            ::operator delete (p);
 
 #  ifndef _RWSTD_NO_SETRLIMIT
 #    if !defined (__HP_aCC)
