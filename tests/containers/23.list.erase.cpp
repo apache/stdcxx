@@ -383,13 +383,19 @@ void test_erase (T*, Allocator*,
                      "line %d. %{$FUNCALL} != end()", __LINE__);
              }
              else {
+
+                 // assert precondition to silence a bogus HP cadvise
+                 // warning #20200-D: Potential null pointer dereference
+                 const ListIter::pointer pres_iter = &*res_iter;
+                 RW_ASSERT (pres_iter != 0);
+
                  bool success =
-                     tdata.res_ [tcase.off].data_.val_ == res_iter->data_.val_;
+                     tdata.res_ [tcase.off].data_.val_ == pres_iter->data_.val_;
 
                  rw_assert (success, 0, tcase.line,
                      "line %d. %{$FUNCALL} == %{#c}, got %{#c}",
                      __LINE__, char (tdata.res_ [tcase.off].data_.val_),
-                     char (res_iter->data_.val_));
+                     char (pres_iter->data_.val_));
              }
         }
 
