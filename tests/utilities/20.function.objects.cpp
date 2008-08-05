@@ -501,12 +501,16 @@ test_binders ()
 
 #undef CTOR_ARG_LIST
 
+#if defined __GNUG__ && __GNUG__ < 3 && __GNU_MINOR__ < 96
     // broken out of the macro definition to work around
     // a bug in g++ 2.95.2 parser
     std::minus<int> obj_minus;
 
-// use std::negate<> as an argument in negator ctors
-#define CTOR_ARG_LIST (obj_minus, 1)
+   // use std::negate<> as an argument in negator ctors
+#  define CTOR_ARG_LIST (obj_minus, 1)
+#else
+#  define CTOR_ARG_LIST (std::minus<int>(), 1)
+#endif
 
     // 20.3.6.1, p1 and p2
     TEST_UNARY_OP (binder1st<std::minus<int> >, 1 -, 0);
