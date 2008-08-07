@@ -822,11 +822,11 @@ long __rw_hash (const _CharT *lo, const _CharT *hi) _THROWS (())
 // templates even of they are completely defined in .cpp files
 // (e.g., Compaq C++)
 
-template long __rw_hash (const char*, const char*);
+template long __rw_hash (const char*, const char*) _THROWS(());
 
 #    ifndef _RWSTD_NO_WCHAR_T
 
-template long __rw_hash (const wchar_t*, const wchar_t*);
+template long __rw_hash (const wchar_t*, const wchar_t*) _THROWS(());
 
 #    endif   // _RWSTD_NO_WCHAR_T
 
