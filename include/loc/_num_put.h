@@ -59,7 +59,7 @@ struct num_put: _RW::__rw_facet
     _EXPLICIT num_put (_RWSTD_SIZE_T __refs = 0)
         : _RW::__rw_facet (__refs) { }
 
-    virtual ~num_put ();
+    virtual ~num_put () _RWSTD_ATTRIBUTE_NOTHROW;
 
 #ifndef _RWSTD_NO_BOOL
 
