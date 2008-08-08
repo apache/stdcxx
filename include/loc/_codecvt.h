@@ -188,7 +188,7 @@ public:
     typedef char             intern_type;
     typedef _RWSTD_MBSTATE_T state_type;
 
-    _EXPLICIT codecvt (_RWSTD_SIZE_T = 0);
+    _EXPLICIT codecvt (_RWSTD_SIZE_T = 0) _THROWS (());
 
     virtual ~codecvt () _RWSTD_ATTRIBUTE_NOTHROW;
 
@@ -332,7 +332,7 @@ protected:
 
 public:
 
-    _EXPLICIT codecvt (_RWSTD_SIZE_T = 0);
+    _EXPLICIT codecvt (_RWSTD_SIZE_T = 0) _THROWS (());
 
     virtual ~codecvt () _RWSTD_ATTRIBUTE_NOTHROW;
 

@@ -657,7 +657,8 @@ _RWSTD_NAMESPACE (std) {
 _RW::__rw_facet_id ctype<char>::id;
 
 
-ctype<char>::ctype (const mask *tab, bool del, _RWSTD_SIZE_T refs)
+ctype<char>::
+ctype (const mask *tab, bool del, _RWSTD_SIZE_T refs) _THROWS (())
     : _RW::__rw_facet (refs),
     _C_mask_tab (tab),
     _C_delete_it (del)
@@ -677,7 +678,7 @@ ctype<char>::ctype (const mask *tab, bool del, _RWSTD_SIZE_T refs)
 }
 
 
-ctype<char>::~ctype ()
+ctype<char>::~ctype () // nothrow
 {
     if (_C_delete_it) {
         delete[] _RWSTD_CONST_CAST (mask*, _C_mask_tab);

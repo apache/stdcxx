@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2001-2005 Rogue Wave Software.
+ * Copyright 2001-2005 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -421,7 +421,7 @@ _RWSTD_NAMESPACE (std) {
 _RW::__rw_facet_id ctype<wchar_t>::id;
 
 
-ctype<wchar_t>::ctype (_RWSTD_SIZE_T ref)
+ctype<wchar_t>::ctype (_RWSTD_SIZE_T ref) _THROWS (())
     : _RW::__rw_facet (ref)
 {
 #ifndef _RWSTD_NO_EQUAL_CTYPE_MASK

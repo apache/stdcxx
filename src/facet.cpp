@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2001-2006 Rogue Wave Software.
+ * Copyright 2001-2006 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -53,11 +53,11 @@ _RWSTD_NAMESPACE (__rw) {
 
 // computes LC_XXX category from a numeric facet id, returns the
 // LC_XXX category for standard facets, LC_ALL for all others
-int __rw_get_cat (int);
+int __rw_get_cat (int) _THROWS (());
 
 // retrieves the literal name for a given category value
 static inline 
-const char* __rw_get_cat_name (int category)
+const char* __rw_get_cat_name (int category) _THROWS (())
 {
     // FIXME: merge this struct and lookup with __rw_cats in rw_locale.cpp
     // maps LC_XXX category values to their names
@@ -104,14 +104,14 @@ int __rw_facet::_C_opts = 0
 
 
 
-__rw_facet::__rw_facet (_RWSTD_SIZE_T __ref /* = 0 */)
+__rw_facet::__rw_facet (_RWSTD_SIZE_T __ref /* = 0 */) _THROWS (())
     : _C_name (0), _C_buf (0), _C_impdata (0), _C_impsize (0),
     _C_type (_C_unknown), _C_ref (__ref), _C_pid (0 /* invalid */)
 {
 }
 
 
-__rw_facet::~__rw_facet ()
+__rw_facet::~__rw_facet () // nothrow
 {
     _RWSTD_ASSERT (!_C_name && !_C_buf || _C_name && _C_buf);
 
@@ -297,7 +297,7 @@ const void* __rw_facet::_C_get_data ()
 extern "C" {
 
 // compares two facets, returns 0 if equal, -1 if less, +1 otherwise
-static int cmpfacets (const void *pv1, const void *pv2)
+static int cmpfacets (const void *pv1, const void *pv2) _THROWS (())
 {
     _RWSTD_ASSERT (0 != pv1);
     _RWSTD_ASSERT (0 != pv2);
@@ -325,7 +325,7 @@ struct __rw_facet_info
 };
 
 // compares a key to a facet, returns 0 if equal, -1 if less, +1 otherwise
-static int cmpfacet (const void *pv1, const void *pv2)
+static int cmpfacet (const void *pv1, const void *pv2) _THROWS (())
 {
     _RWSTD_ASSERT (0 != pv1);
     _RWSTD_ASSERT (0 != pv2);
@@ -582,7 +582,7 @@ const void* __rw_get_facet_data (int cat, _RWSTD_SIZE_T &impsize,
 }
 
 // Its counterpart - does the database unmapping
-void __rw_release_facet_data (const void* pv, _RWSTD_SIZE_T sz)
+void __rw_release_facet_data (const void* pv, _RWSTD_SIZE_T sz) _THROWS (())
 {
     __rw_munmap (pv, sz);
 }
@@ -596,7 +596,7 @@ void __rw_release_facet_data (const void* pv, _RWSTD_SIZE_T sz)
 static _RWSTD_SIZE_T __rw_id_gen = __rw_facet::_C_last_type + 1;
 
 
-_RWSTD_SIZE_T __rw_facet_id::_C_init () const
+_RWSTD_SIZE_T __rw_facet_id::_C_init () const _THROWS (())
 {
     // return immediately if already initialized
     if (_C_id)

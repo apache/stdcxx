@@ -492,7 +492,7 @@ __rw_expand_name (__rw_chararray &namebuf, const char *name)
 
 
 size_t __rw_locale::
-_C_get_facet_inx (size_t id) const
+_C_get_facet_inx (size_t id) const _THROWS (())
 {
     // verify that facet's id is initialized
     _RWSTD_ASSERT (id);
@@ -607,7 +607,7 @@ __rw_locale (const char *name)
 
 // convert a LC_XXX constant to a locale::category value
 /* static */ int __rw_locale::
-_C_LC2category (int cat)
+_C_LC2category (int cat) _THROWS (())
 {
     switch (cat) {
     case _RWSTD_LC_ALL:      cat = __rw_cat_all; break;
@@ -630,7 +630,7 @@ _C_LC2category (int cat)
 
 // convert a LC_XXX constant to an internal bitset of facets
 /* static */ int __rw_locale::
-_C_LC2facet_bits (int cat)
+_C_LC2facet_bits (int cat) _THROWS (())
 {
     int bits;
 
@@ -671,7 +671,7 @@ _C_LC2facet_bits (int cat)
 
 
 __rw_locale::
-~__rw_locale ()
+~__rw_locale () _THROWS (())
 {
     // verify that object isn't being destroyed prematurely
     _RWSTD_ASSERT (0 == _C_ref);
@@ -741,7 +741,7 @@ extern "C" {
 
 // compares two locales, returns 0 if equal, -1 if less, +1 otherwise
 static int
-cmplocales (const void *pv1, const void *pv2)
+cmplocales (const void *pv1, const void *pv2) _THROWS (())
 {
     _RWSTD_ASSERT (0 != pv1);
     _RWSTD_ASSERT (0 != pv2);
@@ -760,7 +760,7 @@ cmplocales (const void *pv1, const void *pv2)
 
 // compares a key to a locale, returns 0 if equal, -1 if less, +1 otherwise
 static int
-cmplocale (const void *pv1, const void *pv2)
+cmplocale (const void *pv1, const void *pv2) _THROWS (())
 {
     _RWSTD_ASSERT (0 != pv1);
     _RWSTD_ASSERT (0 != pv2);
@@ -1053,7 +1053,7 @@ _C_manage (__rw_locale *plocale, const char *locname)
 // if (cat == locale::none) holds, returns true iff the entire
 // locale body is being managed
 bool __rw_locale::
-_C_is_managed (int cat) const
+_C_is_managed (int cat) const _THROWS (())
 {
     // `cat' must be a valid category
     _RWSTD_ASSERT (_C_check_category (_C_LC2category (cat)));

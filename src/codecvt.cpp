@@ -98,7 +98,7 @@ _RW::__rw_facet_id codecvt<char, char, _RWSTD_MBSTATE_T>::id;
 
 
 codecvt<char, char, _RWSTD_MBSTATE_T>::
-codecvt (size_t refs /* = 0 */)
+codecvt (size_t refs /* = 0 */) _THROWS (())
     : _RW::__rw_facet (refs), _C_always_noconv (-1)
 {
     // empty
@@ -108,7 +108,7 @@ codecvt (size_t refs /* = 0 */)
 // outlined to avoid generating a vtable in each translation unit
 // that uses the class
 /* virtual */ codecvt<char, char, _RWSTD_MBSTATE_T>::
-~codecvt ()
+~codecvt ()   // nothrow
 {
     // no-op
 }
@@ -279,7 +279,7 @@ codecvt_byname (const char *name, size_t ref)
 // outlined to avoid generating a vtable in each translation unit
 // that uses the class
 /* virtual */ codecvt_byname<char, char, _RWSTD_MBSTATE_T>::
-~codecvt_byname ()
+~codecvt_byname ()   // nothrow
 {
     // no-op
 }

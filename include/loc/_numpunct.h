@@ -63,7 +63,7 @@ struct numpunct: _RW::__rw_facet
     _EXPLICIT numpunct (_RWSTD_SIZE_T __ref = 0)
         : _RW::__rw_facet (__ref), _C_flags (0) { }
 
-    virtual ~numpunct ();
+    virtual ~numpunct () _RWSTD_ATTRIBUTE_NOTHROW;
 
     // 22.2.3.1.1, p1
     char_type decimal_point () const;
