@@ -49,7 +49,7 @@
 
 _RWSTD_NAMESPACE (__rw) { 
 
-_RWSTD_EXPORT int __rw_fflush (void*, int);
+_RWSTD_EXPORT int __rw_fflush (void*, int) _RWSTD_ATTRIBUTE_NOTHROW;
 
 }   // namespace __rw
 
