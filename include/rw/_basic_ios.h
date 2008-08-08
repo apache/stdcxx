@@ -340,6 +340,12 @@ basic_ios<_CharT, _Traits>::_C_bufmutex () const
 #endif   // _RWSTD_DEFINE_TEMPLATE_FIRST (_BASIC_IOS)
 
 
+#ifdef _RWSTD_MSVC
+#  pragma warning (push)
+#  pragma warning (disable: 4231)
+#endif   // _RWSTD_MSVC
+
+
 _RWSTD_NAMESPACE (std) { 
 
 #if _RWSTD_INSTANTIATE (_BASIC_IOS, _CHAR)
@@ -357,6 +363,11 @@ _RWSTD_INSTANTIATE_2 (class _RWSTD_TI_EXPORT
 #endif   // _RWSTD_INSTANTIATE (_BASIC_IOS, _WCHAR_T)
 
 }   // namespace std
+
+
+#ifdef _RWSTD_MSVC
+#  pragma warning (pop)
+#endif   // _RWSTD_MSVC
 
 
 #if _RWSTD_DEFINE_TEMPLATE_LAST (_BASIC_IOS)
