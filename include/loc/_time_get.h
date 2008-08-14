@@ -221,6 +221,12 @@ public:
 #endif   // _RWSTD_DEFINE_TEMPLATE_FIRST (_TIME_GET)
 
 
+#ifdef _RWSTD_MSVC
+#  pragma warning (push)
+#  pragma warning (disable: 4231)
+#endif   // _RWSTD_MSVC
+
+
 _RWSTD_NAMESPACE (std) { 
 
 #if _RWSTD_INSTANTIATE (_TIME_GET, _CHAR)
@@ -236,6 +242,11 @@ _RWSTD_INSTANTIATE_1 (class _RWSTD_TI_EXPORT time_get<wchar_t>);
 #endif   // _RWSTD_INSTANTIATE (_TIME_GET, _WCHAR_T)
 
 }   // namespace std
+
+
+#ifdef _RWSTD_MSVC
+#  pragma warning (pop)
+#endif   // _RWSTD_MSVC
 
 
 #if _RWSTD_DEFINE_TEMPLATE_LAST (_TIME_GET)

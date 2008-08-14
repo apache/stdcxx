@@ -555,6 +555,12 @@ inline wostream& flush (wostream& __strm)
 // - warning C4660: template-class specialization is already instantiated
 // - many linker errors for (inline or otherwise) members of basic_ostream
 
+#  ifdef _RWSTD_MSVC
+#    pragma warning (push)
+#    pragma warning (disable: 4231)
+#  endif   // _RWSTD_MSVC
+
+
 #  if _RWSTD_INSTANTIATE (_BASIC_OSTREAM, _CHAR)
 
 _RWSTD_INSTANTIATE_2 (class _RWSTD_TI_EXPORT
@@ -568,6 +574,12 @@ _RWSTD_INSTANTIATE_2 (class _RWSTD_TI_EXPORT
                       basic_ostream<wchar_t, char_traits<wchar_t> >);
 
 #  endif   // _RWSTD_INSTANTIATE (_BASIC_OSTREAM, _WCHAR_T)
+
+
+#  ifdef _RWSTD_MSVC
+#    pragma warning (pop)
+#  endif   // _RWSTD_MSVC
+
 #endif   // !_MSC_VER || _MSC_VER >= 1310
 
 }   // namespace std

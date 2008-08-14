@@ -118,6 +118,12 @@ _RW::__rw_facet_id money_put<wchar_t, ostreambuf_iterator<wchar_t> >::id;
 #endif   // _RWSTD_DEFINE_TEMPLATE_FIRST (_MONEY_PUT)
 
 
+#ifdef _RWSTD_MSVC
+#  pragma warning (push)
+#  pragma warning (disable: 4231)
+#endif   // _RWSTD_MSVC
+
+
 _RWSTD_NAMESPACE (std) { 
 
 #if _RWSTD_INSTANTIATE (_MONEY_PUT, _CHAR)
@@ -133,6 +139,11 @@ _RWSTD_INSTANTIATE_1 (struct _RWSTD_TI_EXPORT money_put<wchar_t>);
 #endif   // _RWSTD_INSTANTIATE (_MONEY_PUT, _WCHAR_T)
 
 }   // namespace std
+
+
+#ifdef _RWSTD_MSVC
+#  pragma warning (pop)
+#endif   // _RWSTD_MSVC
 
 
 #if _RWSTD_DEFINE_TEMPLATE_LAST (_MONEY_PUT)
