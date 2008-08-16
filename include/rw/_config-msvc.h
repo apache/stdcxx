@@ -25,7 +25,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2006 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -86,3 +86,7 @@
 
 // disable "'function': was declared deprecated"
 #pragma warning (disable: 4996)
+
+// MSVC __declspec(noreturn) indicates that a function doesn't return
+// see: http://msdn.microsoft.com/en-us/library/aa235362(VS.60).aspx
+#define _RWSTD_NORETURN __declspec (noreturn)

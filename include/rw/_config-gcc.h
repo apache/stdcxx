@@ -84,9 +84,9 @@
 
 #define _RWSTD_GNUC_ATTRIBUTE(attr)   __attribute__ (attr)
 
-// gcc attribute((noreturn)) to indicate that a function doesn't return
+// gcc attribute((noreturn)) indicates that a function doesn't return
 // (it may still exit by throwing an exception or by calling longjmp)
-#define _RWSTD_ATTRIBUTE_NORETURN   _RWSTD_GNUC_ATTRIBUTE ((noreturn))
+#define _RWSTD_NORETURN __attribute__ ((noreturn))
 
 #if __GNUG__ > 3 || __GNUG__ == 3 && __GNUC_MINOR__ >= 3
   // gcc attribute((nothrow)) to indicate that a function doesn't throw

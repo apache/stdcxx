@@ -99,8 +99,7 @@
 #endif   // __HPACC_NOEH
 
 #if 6 <= _RWSTD_HP_aCC_MAJOR
-   // aCC 6 attribute((noreturn)) to indicate that a function
+   // aCC 6 attribute((noreturn)) indicates that a function
    // doesn't return (it may exit by throwing an exception)
-#  define _RWSTD_ATTRIBUTE_NORETURN __attribute__ ((noreturn))
+#  define _RWSTD_NORETURN __attribute__ ((noreturn))
 #endif   // aCC >= 6
-
