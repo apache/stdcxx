@@ -174,7 +174,7 @@ public:
     // declared as nothrow since the behavior of programs that
     // instantiate library templates on types whose dtors throw
     // is undefined 
-    void destroy (pointer __p) _RWSTD_ATTRIBUTE_NOTHROW (()) {
+    void destroy (pointer __p) _RWSTD_ATTRIBUTE_NOTHROW {
         _RWSTD_ASSERT (0 != __p);
         __p->~_TypeT ();
     }
