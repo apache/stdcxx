@@ -76,7 +76,7 @@ __rw_allocate (_RWSTD_SIZE_T nbytes, int /* = 0 */)
 
 
 _RWSTD_EXPORT void
-__rw_deallocate (void *p, _RWSTD_SIZE_T, int /* = 0 */)
+__rw_deallocate (void *p, _RWSTD_SIZE_T, int /* = 0 */) _THROWS (())
 {
     ::operator delete (p);
 }

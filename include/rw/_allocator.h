@@ -39,7 +39,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2006 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -54,8 +54,11 @@
 _RWSTD_NAMESPACE (__rw) {
 
 // [de]allocate storage (in bytes)
-_RWSTD_EXPORT void* __rw_allocate (_RWSTD_SIZE_T, int = 0);
-_RWSTD_EXPORT void  __rw_deallocate (void*, _RWSTD_SIZE_T, int = 0);
+_RWSTD_EXPORT void*
+__rw_allocate (_RWSTD_SIZE_T, int = 0);
+
+_RWSTD_EXPORT void
+__rw_deallocate (void*, _RWSTD_SIZE_T, int = 0) _THROWS (());
 
 }   // namespace __rw
 
@@ -149,9 +152,9 @@ public:
     }
 
 #ifdef _RWSTD_ALLOCATOR        
-    void deallocate (pointer __p, size_type __n)
+    void deallocate (pointer __p, size_type __n) _THROWS (())
 #else
-    void deallocate (void* __p, size_type __n)
+    void deallocate (void* __p, size_type __n) _THROWS (())
 #endif   // _RWSTD_ALLOCATOR
     {
         _RW::__rw_deallocate (__p, __n);
@@ -168,7 +171,10 @@ public:
         _RW::__rw_construct (__p, __val);
     }
     
-    void destroy (pointer __p) {
+    // declared as nothrow since the behavior of programs that
+    // instantiate library templates on types whose dtors throw
+    // is undefined 
+    void destroy (pointer __p) _RWSTD_ATTRIBUTE_NOTHROW (()) {
         _RWSTD_ASSERT (0 != __p);
         __p->~_TypeT ();
     }
@@ -239,11 +245,11 @@ public:
     }
 
 #ifdef _RWSTD_ALLOCATOR        
-    void deallocate (const_pointer __p, size_type __nelems) {
+    void deallocate (const_pointer __p, size_type __nelems) _THROWS (()) {
         _RW::__rw_deallocate (_RWSTD_CONST_CAST (_TypeT*, __p), __nelems);
     }
 #else
-    void deallocate (const void* __p, size_type __nbytes) {
+    void deallocate (const void* __p, size_type __nbytes) _THROWS (()) {
         _RW::__rw_deallocate (_RWSTD_CONST_CAST (void*, __p), __nbytes);
     }
 #endif   // _RWSTD_ALLOCATOR
@@ -258,8 +264,11 @@ public:
     void construct (const_pointer __p, const_reference __val) {
         _RW::__rw_construct (_RWSTD_CONST_CAST (_TypeT*, __p), __val);
     }
-    
-    void destroy (const_pointer __p) {
+
+    // declared as nothrow since the behavior of programs that
+    // instantiate library templates on types whose dtors throw
+    // is undefined 
+    void destroy (const_pointer __p) _RWSTD_ATTRIBUTE_NOTHROW {
         _RWSTD_ASSERT (0 != __p);
         __p->~_TypeT ();
     }
