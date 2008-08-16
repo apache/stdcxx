@@ -30,25 +30,46 @@
 #
 # version    release/patch
 # --------   -------------
-# 6.0.0.0    VisualAge 6
-# 6.0.0.14   VisualAge 6, Septemmber 2005 PTF
-# 6.0.0.17   VisualAge 6, November 2006 PTF
-# 7.0        VisualAge 7
-# 7.0.0.1    VisualAge 7 November 2004 PTF
-# 7.0.0.2    VisualAge 7 May 2005 PTF
-# 7.0.0.3    VisualAge 7 Aug 2005 PTF
-# 7.0.0.4    ???
-# 7.0.0.5    VisualAge 7 January 2006 PTF
-# 7.0.0.6    VisualAge 7 April 2006 PTF
-# 7.0.0.7    VisualAge 7 August 2006 PTF
-# 7.0.0.8    VisualAge 7 October 2006 PTF
-# 7.0.0.9    VisualAge 7 Feb 2007 PTF
-# 8.0.0.0    XLC/C++ 8
-# 8.0.0.1    XLC/C++ 8 March 2006 PTF
-# 8.0.0.10   XLC/C++ 8 June 2006 PTF
-# 8.0.0.11   XLC/C++ 8 August 2006 PTF
-# 8.0.0.12   XLC/C++ 8 December 2006 PTF
+
+# 10.0.0.0   XLC/C++ 10
+
+# 9.0.0.6    XLC/C++ 9 August 2008 PTF
+# 9.0.0.5    XLC/C++ 9 July 2008 PTF
+# 9.0.0.4    XLC/C++ 9 April 2008 PTF
+# 9.0.0.3    XLC/C++ 9 January 2008 PTF
+# 9.0.0.2    XLC/C++ 9 October 2007 PTF
+# 9.0.0.1    N/A
+# 9.0.0.0    XLC/C++ 9
+
+# 8.0.0.19   XLC/C++ 8 May 2008 PTF
+# 8.0.0.18   XLC/C++ 8 February 2008 PTF
+# 8.0.0.17   XLC/C++ 8 November 2007 PTF
+# 8.0.0.16   XLC/C++ 8 August 2007 PTF
+# 8.0.0.15   XLC/C++ 8 July 2007 PTF
+# 8.0.0.14   XLC/C++ 8 May 2007 PTF
 # 8.0.0.13   XLC/C++ 8 February 2007 PTF
+# 8.0.0.12   XLC/C++ 8 December 2006 PTF
+# 8.0.0.11   XLC/C++ 8 August 2006 PTF
+# 8.0.0.10   XLC/C++ 8 June 2006 PTF
+# 8.0.0.x    N/A for 3 <= x <= 9
+# 8.0.0.2    XLC/C++ 8 May 2006 PTF
+# 8.0.0.1    XLC/C++ 8 March 2006 PTF
+# 8.0.0.0    XLC/C++ 8
+
+# 7.0.0.9    VisualAge 7 Feb 2007 PTF
+# 7.0.0.8    VisualAge 7 October 2006 PTF
+# 7.0.0.7    VisualAge 7 August 2006 PTF
+# 7.0.0.6    VisualAge 7 April 2006 PTF
+# 7.0.0.5    VisualAge 7 January 2006 PTF
+# 7.0.0.4    VisualAge 7 November 2005 PTF
+# 7.0.0.3    VisualAge 7 August05 PTF
+# 7.0.0.2    VisualAge 7 May 2005 PTF
+# 7.0.0.1    VisualAge 7 November 2004 PTF
+# 7.0.0.0    VisualAge 7
+
+# 6.0.0.17   VisualAge 6, November 2006 PTF
+# 6.0.0.14   VisualAge 6, September 2005 PTF
+# 6.0.0.0    VisualAge 6
 
 if [ $# -gt 0 ]; then
     CXX=$1
