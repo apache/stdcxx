@@ -45,13 +45,13 @@ typedef sortedMap::value_type sorted_entry_type;
 
 void printEntry (const entry_type & entry) {
     
-    std::cout << entry.first << ":" << entry.second << std::endl;
+    std::cout << entry.first << ":" << entry.second << '\n';
 }
 
 
 void printSortedEntry (const sorted_entry_type & entry) {
     
-    std::cout << entry.first << ":" << entry.second << std::endl;
+    std::cout << entry.first << ":" << entry.second << '\n';
 }
 
 
@@ -99,7 +99,7 @@ private:
 
 void telephoneDirectory::displayPrefix (int pfx) {
     
-    std::cout << "Listing for prefix " << pfx << std::endl;
+    std::cout << "Listing for prefix " << pfx << '\n';
 
     friendMap::iterator
         where = std::find_if (database.begin (), database.end (),
@@ -109,26 +109,26 @@ void telephoneDirectory::displayPrefix (int pfx) {
         where = std::find_if (++where, database.end (), checkPrefix (pfx));
     }
 
-    std::cout << "end of prefix listing" << std::endl;
+    std::cout << "end of prefix listing" << '\n';
 }
 
 
 void telephoneDirectory::displayByPrefix () {
     
-    std::cout << "Display by prefix" << std::endl;
+    std::cout << "Display by prefix" << '\n';
 
     sortedMap sortedData;
     for (friendMap::iterator i = database.begin (); i != database.end (); i++)
         sortedData.insert (sortedMap::value_type ((*i).second, (*i).first));
     std::for_each (sortedData.begin (), sortedData.end (), printSortedEntry);
 
-    std::cout << "end display by prefix" << std::endl;
+    std::cout << "end display by prefix" << '\n';
 }
 
 
 int main () {
     
-    std::cout << "Telephone Directory sample program" << std::endl;
+    std::cout << "Telephone Directory sample program" << '\n';
 
     telephoneDirectory friends;
     friends.addEntry ("Samantha", 6342343);
@@ -139,7 +139,7 @@ int main () {
     friends.displayPrefix (634);
     friends.displayByPrefix ();
     
-    std::cout << "End of telephone directory sample program" << std::endl;
+    std::cout << "End of telephone directory sample program" << '\n';
 
     return 0;
 }

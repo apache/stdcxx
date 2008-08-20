@@ -68,7 +68,7 @@ int main ()
     }
 
     std::cout << "average wait: "
-              << (totalWait / numberOfCustomers) << std::endl;
+              << (totalWait / numberOfCustomers) << '\n';
 
     return 0;
 }

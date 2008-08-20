@@ -63,7 +63,7 @@ int main ()
     std::cout << odd (1) << '\n'
               << odd (4) << '\n'
               << std::not1 (odd)(1) << '\n'
-              << std::not1 (odd)(4) << std::endl;
+              << std::not1 (odd)(4) << '\n';
 
     return 0;
 }

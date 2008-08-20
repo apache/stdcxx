@@ -87,7 +87,7 @@ int main ()
     for (Set::value_type j = 1; j < 9; ++j)
         sd2.insert (j + 5);
 
-    std::cout << sd2 << std::endl;
+    std::cout << sd2 << '\n';
 
     // Try a couple of set algorithms.
     std::set_union (sd.begin (),sd.end (),sd2.begin (), sd2.end (),

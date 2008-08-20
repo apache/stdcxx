@@ -60,7 +60,7 @@ int main ()
     std::cout << "\n\nSwaping the first and last elements gives: \n     ";
     std::copy (v.begin (), v.end (), Iter (std::cout, " "));
 
-    std::cout << std::endl;
+    std::cout << '\n';
 
     return 0;
 }

@@ -66,7 +66,7 @@ int main ()
     // Output result of partition.
     std::cout << "\nStable partitioned values: \t";
     std::copy (d1.begin (), d1.end (), Iter (std::cout, " "));
-    std::cout << std::endl;
+    std::cout << '\n';
 
     return 0;
 }

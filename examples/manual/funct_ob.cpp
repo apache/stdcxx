@@ -80,10 +80,10 @@ int main ()
                           char, 
                           std::char_traits<char> > outv (std::cout, " ");
 
-    std::cout << std::endl;
+    std::cout << '\n';
     std::cout << "\nHave the factorials: \n     ";
     std::copy (v.begin (), v.end (), outv);
-    std::cout << std::endl;
+    std::cout << '\n';
 
     return 0;
 }

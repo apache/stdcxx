@@ -56,11 +56,11 @@ int main ()
     // Output results.
     std::cout << "\nThe equal range for 3 is: "
               << "(" << *p1.first << " , " 
-              << *p1.second << ")" << std::endl;
+              << *p1.second << ")" << '\n';
 
     std::cout << "\nThe equal range for 2 is: "
               << "(" << *p2.first << " , " 
-              << *p2.second << ")" << std::endl; 
+              << *p2.second << ")" << '\n'; 
 
     return 0;
 }

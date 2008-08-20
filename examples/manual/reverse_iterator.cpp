@@ -51,7 +51,7 @@ int main ()
          j != Vector::const_reverse_iterator (v.begin ()); ++j)
         std::cout << *j << " ";
 
-    std::cout << std::endl;
+    std::cout << '\n';
 
     return 0;
 }

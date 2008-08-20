@@ -54,7 +54,7 @@ int main ()
     // Print out the rotated elements.
     std::cout << "\n\nElements after rotate: \n     ";
     std::copy (v.begin (), v.end (), Iter (std::cout, " "));
-    std::cout << std::endl;
+    std::cout << '\n';
 
     return 0;
 }

@@ -67,7 +67,7 @@ void transform_example () {
     std::cout << "Original list: ";
     std::copy (aList.begin (), aList.end (), ostrm_iter_type (std::cout, " "));
 
-    std::cout << std::endl;
+    std::cout << '\n';
 
     // Transform elements by squaring, copy into std::vector.
     std::vector<int, std::allocator<int> > aVec (6);
@@ -76,14 +76,14 @@ void transform_example () {
     std::cout << "After squaring: ";
     std::copy (aVec.begin (), aVec.end (), ostrm_iter_type (std::cout, " "));
 
-    std::cout << std::endl;
+    std::cout << '\n';
 
     // Transform std::vector again, in place, yielding 4th powers.
     std::transform (aVec.begin (), aVec.end (), aVec.begin (), square);
     std::cout << "After squaring again: ";
     std::copy (aVec.begin (), aVec.end (),ostrm_iter_type (std::cout, " "));
 
-    std::cout << std::endl;
+    std::cout << '\n';
 
     // Transform in parallel, yielding cubes.
     std::vector<int, std::allocator<int> > cubes (6);
@@ -93,7 +93,7 @@ void transform_example () {
     std::cout << "After division: ";
     std::copy (cubes.begin (), cubes.end (), ostrm_iter_type (std::cout, " "));
 
-    std::cout << std::endl;
+    std::cout << '\n';
 }
 
 
@@ -105,19 +105,19 @@ void partial_sum_example () {
     std::generate (aVec.begin (), aVec.end (), iotaGen (1));
 
     // Output partial sums.
-    std::cout << "Partial sums examples" << std::endl;
+    std::cout << "Partial sums examples" << '\n';
     std::cout << "Partial sums : ";
     std::partial_sum (aVec.begin (), aVec.end (),
                  ostrm_iter_type (std::cout, " "));
 
-    std::cout << std::endl;
+    std::cout << '\n';
 
     // Output partial products.
     std::cout << "Partial products: ";
     std::partial_sum (aVec.begin (), aVec.end (),
                  ostrm_iter_type (std::cout, " "), std::multiplies<int> () );
 
-    std::cout << std::endl;
+    std::cout << '\n';
 }
 
 
@@ -129,11 +129,11 @@ void adjacent_difference_example () {
     std::generate (aVec.begin (), aVec.end (), iotaGen (1));
 
     // Output partial sums.
-    std::cout << "Adjacent Differences examples" << std::endl;
+    std::cout << "Adjacent Differences examples" << '\n';
     std::cout << "Adjacent Differences : ";
     std::adjacent_difference
         (aVec.begin (), aVec.end (), ostrm_iter_type (std::cout, " "));
-    std::cout << std::endl;
+    std::cout << '\n';
 
     // Output partial products.
     std::cout << "Adjacent sums: ";
@@ -141,20 +141,20 @@ void adjacent_difference_example () {
                               ostrm_iter_type (std::cout, " "),
                               std::plus<int> ());
 
-    std::cout << std::endl;
+    std::cout << '\n';
 }
 
 
 int main () {
 
     std::cout << "STL generic algorithms -- that transform sequences"
-              << std::endl;
+              << '\n';
 
     transform_example ();
     partial_sum_example ();
     adjacent_difference_example ();
 
-    std::cout << "End generic transform algorithms example" << std::endl;
+    std::cout << "End generic transform algorithms example" << '\n';
 
     return 0;
 }

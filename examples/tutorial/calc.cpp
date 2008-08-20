@@ -75,7 +75,7 @@ int main ()
 {
     std::cout << "Calculator example program, from Chapter 8\n"
               << "Enter a legal RPN expression, end with p q (print and quit)"
-              << std::endl;
+              << '\n';
 
     Calculator calc;
 
@@ -94,10 +94,10 @@ int main ()
             calc.doOperator (c);
             break;
         case 'p':
-            std::cout << calc.currentMemory () << std::endl;
+            std::cout << calc.currentMemory () << '\n';
             break;
         case 'q':
-            std::cout << "End calculator program" << std::endl;
+            std::cout << "End calculator program" << '\n';
             return 0;   // quit program
         }
     }

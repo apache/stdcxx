@@ -92,21 +92,21 @@ int main ()
 
     // get_date from the stream and output tm contents.
     tg.get_date (begin, end, ins, state, &timeb);
-    std::cout << "Date: Apr 7 1969\n" << timeb << std::endl;
+    std::cout << "Date: Apr 7 1969\n" << timeb << '\n';
 
     // Insert weekday string into stream.
     ins.str ("Monday");
 
     // get_weekday from the stream and output tm contents.
     tg.get_weekday (begin, end, ins, state, &timeb);
-    std::cout << "Weekday: Monday\n" << timeb << std::endl;
+    std::cout << "Weekday: Monday\n" << timeb << '\n';
   
     // Insert time string into stream.
     ins.str ("06:47:32");
 
     // get_time from the stream and output tm contents.
     tg.get_time (begin, end, ins, state, &timeb);
-    std::cout << "Time: 06:47:32\n" << timeb << std::endl;
+    std::cout << "Time: 06:47:32\n" << timeb << '\n';
 
     return 0;
 }

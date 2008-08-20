@@ -51,7 +51,7 @@ int main ( )
         out.exceptions (std::ios::failbit | std::ios::badbit);
 
         // write string into out
-        out << L"Il avait l'air heureux." << std::endl;
+        out << L"Il avait l'air heureux." << '\n';
 
         // seek to the beginning of the stream
         in.seekg (0);
@@ -61,12 +61,12 @@ int main ( )
         // output each space-separated word on a separate line
         while (in.get (c)) {
             if ((std::isspace)(c, in.getloc ())) 
-                std::wcout << std::endl;
+                std::wcout << '\n';
             else
                 std::wcout.put(c);
         }
 
-        std::wcout << std::endl;
+        std::wcout << '\n';
 
         // clear stream state, failbit | eofbit set by last call to get ()
         in.clear ();
@@ -86,10 +86,10 @@ int main ( )
         // output each word on a separate line in a field of width 10
         while (in >> buf) {
             std::wcout.width (10);
-            std::wcout << buf << std::endl;
+            std::wcout << buf << '\n';
         }
     
-        std::wcout << std::endl;
+        std::wcout << '\n';
 
         // clear flags, last in >> buf set fail bit
         // because of a newline at end of string
@@ -103,19 +103,19 @@ int main ( )
         const long l = 10;
         
         // output l in hex with a field with of 10 
-        out << std::hex << std::setw (10) << l << std::endl;
+        out << std::hex << std::setw (10) << l << '\n';
 
         // output l in oct with a field with of 10
-        out << std::oct << std::setw (10) << l << std::endl;
+        out << std::oct << std::setw (10) << l << '\n';
 
         // output l in dec with a field with of 10
-        out << std::dec << std::setw (10) << l << std::endl;
+        out << std::dec << std::setw (10) << l << '\n';
 
         // move back to the beginning of the stream
         in.seekg (0);
 
         // output the entire stream
-        std::wcout << in.rdbuf () << std::endl;
+        std::wcout << in.rdbuf () << '\n';
 
         // clear the flags 
         in.clear (); 
@@ -131,11 +131,11 @@ int main ( )
         in >> a >> b >> d;
 
         // output 3 times 10
-        std::wcout << a << std::endl << b << std::endl << d << std::endl;
+        std::wcout << a << '\n' << b << std::endl << d << std::endl;
 
     }
     catch (std::ios::failure &e) {
-        std::wcerr << e.what () << std::endl;
+        std::wcerr << e.what () << '\n';
     }
  
     return 0;

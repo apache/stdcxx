@@ -211,12 +211,12 @@ int main ()
        do_diff_conversion ();
     }
     catch (const std::exception &e) {
-        std::cout << "Caught an exception: " << e.what () << std::endl;
+        std::cout << "Caught an exception: " << e.what () << '\n';
 
         return 1;   // Indicate failure.
     }
     catch (...) {
-        std::cout << "Caught an unknown exception" << std::endl;
+        std::cout << "Caught an unknown exception" << '\n';
 
         return 1;   // Indicate failure.
     }

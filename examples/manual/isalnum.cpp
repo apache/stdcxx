@@ -40,7 +40,7 @@ int main ()
         if ((std::isalnum)(c, std::cout.getloc ()))
             std::cout << c << ' ';
 
-    std::cout << std::endl;
+    std::cout << '\n';
 
     return 0;
 }

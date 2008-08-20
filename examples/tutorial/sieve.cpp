@@ -34,7 +34,7 @@
 int main ()
 {
 
-    std::cout << "Prime Sieve program, a test of vectors" << std::endl;
+    std::cout << "Prime Sieve program, a test of vectors" << '\n';
 
     // Create a sieve of bits, initially set to 1.
     const int sievesize = 100;
@@ -51,7 +51,7 @@ int main ()
         if (sieve[j]) 
             std::cout << j << " ";
     
-    std::cout << std::endl << "End of Prime Sieve program" << std::endl;
+    std::cout << '\n' << "End of Prime Sieve program" << std::endl;
 
     return 0;
 }

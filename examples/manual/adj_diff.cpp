@@ -66,22 +66,22 @@ int main ()
     os_iter osit (std::cout, " ");
 
     // Output the results.
-    std::cout << "For the vector: " << std::endl << "     ";
+    std::cout << "For the vector: " << '\n' << "     ";
     std::copy (v.begin (), v.end (), osit);
 
-    std::cout << std::endl << std::endl;
+    std::cout << '\n' << std::endl;
 
     std::cout << "The differences between adjacent elements are: "
-              << std::endl << "    ";
+              << '\n' << "    ";
 
     std::copy (diffs.begin (), diffs.end (), osit);
-    std::cout << std::endl << std::endl;
+    std::cout << '\n' << std::endl;
 
     std::cout << "The products of adjacent elements are: "
-              << std::endl << "     ";
+              << '\n' << "     ";
 
     std::copy (prods.begin (), prods.end (), osit);
-    std::cout << std::endl;
+    std::cout << '\n';
 
     return 0;
 }

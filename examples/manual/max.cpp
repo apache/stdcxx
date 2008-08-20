@@ -55,7 +55,7 @@ int main ()
     double val4 = std::max(d1, d2, std::less<double>());
 
     std::cout << val1 << " " << val2 << " "
-              << val3 << " " << val4 << std::endl;
+              << val3 << " " << val4 << '\n';
 
     return 0;
 }

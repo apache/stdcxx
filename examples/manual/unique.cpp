@@ -52,7 +52,7 @@ int main ()
     Iter ins (result, result.begin ());
 
     // Demonstrate includes.
-    std::cout << "The vector: " << std::endl << "    ";
+    std::cout << "The vector: " << '\n' << "    ";
 
     std::copy (v.begin (), v.end (), OSIter (std::cout, " "));
 
@@ -63,7 +63,7 @@ int main ()
     std::cout << "\n\nHas the following unique elements:\n     ";
 
     std::copy (result.begin (), result.end (), OSIter (std::cout, " "));
-    std::cout << std::endl;
+    std::cout << '\n';
     
     return 0;
 }

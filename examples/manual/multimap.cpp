@@ -72,7 +72,7 @@ int main ()
     months.insert (value_type (31, std::string ("December")));
 
     // Print out the months.
-    std::cout << "All months of the year\n" << months << std::endl;
+    std::cout << "All months of the year\n" << months << '\n';
 
     // Find all months with 30 days.
     std::pair<months_type::iterator, months_type::iterator> p = 

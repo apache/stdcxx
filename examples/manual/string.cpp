@@ -56,7 +56,7 @@ int main ()
     // Try replacement.
     test.replace (test.find ("middle", 0), 6, "center");
     std::cout << "I didn't like the word 'middle', so instead, I'll say: \n"
-              << test << std::endl; 
+              << test << '\n'; 
 
     return 0;
 }

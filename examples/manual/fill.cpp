@@ -63,17 +63,17 @@ int main ()
                           std::char_traits<char> > out (std::cout, " ");
 
     std::copy (v1.begin (), v1.end (), out);
-    std::cout << std::endl;
+    std::cout << '\n';
 
     std::copy (v2.begin (), v2.end (), out);
-    std::cout << std::endl;
+    std::cout << '\n';
 
     std::copy (v3.begin (), v3.end (), out);
-    std::cout << std::endl;
+    std::cout << '\n';
 
     // Fill cout with 3 5's.
     std::fill_n (out, 3, 5);
-    std::cout << std::endl;
+    std::cout << '\n';
 
     return 0;
 }

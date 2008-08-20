@@ -46,9 +46,9 @@ int main ()
     pq.push (2);
 
     // Pop a couple of values and examine the ends.
-    std::cout << pq.top () << std::endl;
+    std::cout << pq.top () << '\n';
     pq.pop ();
-    std::cout << pq.top () << std::endl;
+    std::cout << pq.top () << '\n';
     pq.pop ();
 
     // Make a priority queue of strings.
@@ -59,11 +59,11 @@ int main ()
     // Push on a few strings then pop them back off.
     for (int i = 0; i < 10; i++) {
         pqs.push (std::string (i + 1, 'a'));
-        std::cout << pqs.top () << std::endl;
+        std::cout << pqs.top () << '\n';
     }
 
     for (int j = 0; j < 10; j++) {
-        std::cout << pqs.top () << std::endl;
+        std::cout << pqs.top () << '\n';
         pqs.pop ();
     }
 
@@ -76,11 +76,11 @@ int main ()
     // Push on a few strings then pop them back off.
     for (int k = 0; k < 10; k++)  {
         pgqs.push (std::string (k + 1, 'a'));
-        std::cout << pgqs.top () << std::endl;
+        std::cout << pgqs.top () << '\n';
     }
 
     for (int m = 0; m < 10; m++) {
-        std::cout << pgqs.top () << std::endl;
+        std::cout << pgqs.top () << '\n';
         pgqs.pop ();
     }
 

@@ -80,17 +80,17 @@ int main ()
                           std::char_traits<char> > out (std::cout, " ");
 
     std::copy (v1.begin (), v1.end (), out);
-    std::cout << std::endl;
+    std::cout << '\n';
 
     std::copy (v2.begin (), v2.end (), out);
-    std::cout << std::endl;
+    std::cout << '\n';
 
     std::copy (v3.begin (), v3.end (), out);
-    std::cout << std::endl;
+    std::cout << '\n';
 
     // Generate 3 values into cout.
     std::generate_n (out, 3, gen);
-    std::cout << std::endl;
+    std::cout << '\n';
 
     return 0;
 }

@@ -79,14 +79,14 @@ int main ()
         std::copy (l2.begin (), l2.end (), out);
              
         std::cout << "} \nboth versions of find_first_of point to: "
-                  << *it1 << std::endl;
+                  << *it1 << '\n';
 
         // Output results of find_end.
         // Iterator now points to the first element of the last
         // find subsequence.
 
         std::cout << "both versions of find_end point to: "
-                  << *it3 << std::endl;
+                  << *it3 << '\n';
     }
 
     return 0;

@@ -40,11 +40,11 @@ class X
 public:
 
     X (int i) : i_ (i) {
-        std::cout << "X::X (" << i_ << ')' << std::endl;
+        std::cout << "X::X (" << i_ << ')' << '\n';
     }
 
     ~X () {
-        std::cout << "X::~X [" << i_ << ']' << std::endl;
+        std::cout << "X::~X [" << i_ << ']' << '\n';
     }
 
     int get () const { return i_; }
@@ -65,13 +65,13 @@ int main ()
         a = b;
     }
 
-    std::cout << "b destroyed" << std::endl;
+    std::cout << "b destroyed" << '\n';
 
         // Output the value contained by the underlying pointer.
 #ifndef _RWSTD_NO_NONCLASS_ARROW_RETURN
-        std::cout << a->get () << std::endl;
+        std::cout << a->get () << '\n';
 #else
-        std::cout << (*a).get () << std::endl;
+        std::cout << (*a).get () << '\n';
 #endif
 
     // The pointer will be delete'd when a is destroyed on leaving scope.

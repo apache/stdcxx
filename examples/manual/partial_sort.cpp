@@ -56,7 +56,7 @@ int main()
     // Output result.
     std::cout << "\n\nA partial_sort of seven elements gives: \n     ";
     std::copy (v1.begin (), v1.end (), Iter (std::cout, " "));
-    std::cout << std::endl;
+    std::cout << '\n';
 
     // A vector of ten elements.
     Vector v2 (Vector::size_type (10), 0);
@@ -70,7 +70,7 @@ int main()
         << "\nA partial_sort_copy of the last ten elements gives: \n     ";
     std::copy (v2.begin (), v2.end (), Iter (std::cout, " "));
 
-    std::cout << std::endl;
+    std::cout << '\n';
 
     return 0;
 }

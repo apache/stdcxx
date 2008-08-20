@@ -45,26 +45,26 @@ int main ()
     // tie the wostream object to the wistringstream object
     std::wostream out (in.rdbuf ());
 
-    out << L"test beginning !" << std::endl;
+    out << L"test beginning !" << '\n';
     out.setf (std::wios::fixed, std::wios::floatfield);
 
     // output f in fixed format
-    out << f << std::endl; 
+    out << f << '\n'; 
 
     // store the current put-pointer position  
     std::wostream::pos_type pos = out.tellp ();
 
     // output s 
-    out << s << std::endl;
+    out << s << '\n';
 
     // output the all buffer to standard output
-    std::wcout << in.rdbuf () << std::endl;
+    std::wcout << in.rdbuf () << '\n';
 
     // position the get-pointer
     in.seekg (pos);
 
     // output s
-    std::wcout << in.rdbuf () << std::endl;         
+    std::wcout << in.rdbuf () << '\n';         
 
     return 0;
 }

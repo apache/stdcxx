@@ -53,17 +53,17 @@ bool WidgetTester::operator () (const Widget & wid, int testid) const
 
 void inventory::order (int wid) {
     
-    std::cout << "Received order for widget type " << wid << std::endl;
+    std::cout << "Received order for widget type " << wid << '\n';
 
     widgetList::iterator
         wehave = std::find_if (on_hand.begin (), on_hand.end (), 
                                std::bind2nd (WidgetTester (), wid));
     if (wehave != on_hand.end ()) {
-        std::cout << "Ship " << *wehave << std::endl;
+        std::cout << "Ship " << *wehave << '\n';
         on_hand.erase (wehave);
     }
     else {
-        std::cout << "Back order widget of type "  << wid  << std::endl;
+        std::cout << "Back order widget of type "  << wid  << '\n';
         on_order.push_front (wid);
     }
 }
@@ -71,13 +71,13 @@ void inventory::order (int wid) {
 
 void inventory::receive (int wid) {
 
-    std::cout << "Received shipment of widget type " << wid << std::endl;
+    std::cout << "Received shipment of widget type " << wid << '\n';
 
     idList::iterator weneed = std::find (on_order.begin (),
                                          on_order.end (), wid);
     if (weneed != on_order.end ()) {
         std::cout << "Ship " << Widget (wid) << " to fill back order"
-                  << std::endl;
+                  << '\n';
         on_order.erase (weneed);
     }
     else
@@ -87,7 +87,7 @@ void inventory::receive (int wid) {
 
 int main ()
 {
-    std::cout << "Widget Works test program" << std::endl;
+    std::cout << "Widget Works test program" << '\n';
 
     inventory stock;
     stock.receive (1);
@@ -98,7 +98,7 @@ int main ()
     stock.order (3);
     stock.receive (2);
     
-    std::cout << "End of widget words test program" << std::endl;
+    std::cout << "End of widget words test program" << '\n';
 
     return 0;
 }

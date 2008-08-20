@@ -61,8 +61,8 @@ int main ()
                        vi2.begin (), std::less_equal<int>());
 
     // Output results.
-    std::cout << *p1.first << ", " << *p1.second << std::endl;
-    std::cout << *p2.first << ", " << *p2.second << std::endl;
+    std::cout << *p1.first << ", " << *p1.second << '\n';
+    std::cout << *p2.first << ", " << *p2.second << '\n';
 
     return 0;
 }

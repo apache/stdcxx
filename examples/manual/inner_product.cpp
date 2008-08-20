@@ -69,7 +69,7 @@ int main ()
 
     std::cout << "}\nThe inner product is: " << prod
               << "\nThe wacky result is:  " << wacky
-              << std::endl;
+              << '\n';
 
     return 0;
 }

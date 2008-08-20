@@ -58,7 +58,7 @@ int main ()
                                      std::less<int>());
 
     std::cout << *it1 << " " << *it2 << " "
-              << *it3 << " " << *it4 << std::endl;
+              << *it3 << " " << *it4 << '\n';
 
     return 0;
 }

@@ -73,27 +73,27 @@ int main ()
     }
 
     // Print out the multiset.
-    std::cout << si << std::endl;
+    std::cout << si << '\n';
 
     // Make another multiset and an empty multiset.
     IntSet si2, result;
     for (IntSet::value_type i = 0; i < 10; i++)
         si2.insert (i + 5);
 
-    std::cout << si2 << std::endl;
+    std::cout << si2 << '\n';
 
     // Try a couple of set algorithms.
     std::set_union (si.begin (), si.end (), si2.begin (), si2.end (),
                     std::inserter (result, result.begin ()));
 
-    std::cout << "Union:\n" << result << std::endl;
+    std::cout << "Union:\n" << result << '\n';
 
     result.erase (result.begin (), result.end ());
 
     std::set_intersection (si.begin (), si.end (), si2.begin (), si2.end (),
                           std::inserter (result, result.begin ()));
 
-    std::cout << "Intersection:\n" << result << std::endl;
+    std::cout << "Intersection:\n" << result << '\n';
 
     return 0;
 }

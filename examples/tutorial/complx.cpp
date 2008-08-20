@@ -53,7 +53,7 @@ int main () {
     std::pair<dcomplex, dcomplex> ans = quadratic(a, b, c);
 
     std::cout << "Roots are " << ans.first << " and "
-              << ans.second   << std::endl;
+              << ans.second   << '\n';
 
     return 0;
 }

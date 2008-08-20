@@ -64,7 +64,7 @@ int main(void) {
       *= static_cast<valarray_t > (vi[std::gslice(2,length_val,stride_val)]);
 
   std::cout << "vi[gslice(0,[4,2],[4,8])] *= vi[gslice(2,[4,2],[4,6])]\n\n"
-            << vi << std::endl;
+            << vi << '\n';
 
   return 0;
 

@@ -45,8 +45,8 @@ int main ()
     q.push (1);
     q.push (2);
 
-    std::cout << q.front () << std::endl;
-    std::cout << q.back () << std::endl;
+    std::cout << q.front () << '\n';
+    std::cout << q.back () << '\n';
 
     typedef std::queue<std::string, std::deque<std::string,
                        std::allocator<std::string> > > SQueue;
@@ -57,11 +57,11 @@ int main ()
     // Push on a few strings then pop them back off.
     for (std::string::size_type i = 0U; i != 10U; i++) {
         qs.push (std::string (i + 1, 'a'));
-        std::cout << qs.front () << std::endl;
+        std::cout << qs.front () << '\n';
     }
 
     for (std::string::size_type j = 0U; j != 10U; j++) {
-        std::cout << qs.front () << std::endl;
+        std::cout << qs.front () << '\n';
         qs.pop ();
     }
 

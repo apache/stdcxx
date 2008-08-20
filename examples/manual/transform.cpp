@@ -64,7 +64,7 @@ int main ()
     for (i1 = d1.begin (); i1 != d1.end (); ++i1)
         std::cout << std::setw (6) << *i1 << " ";
 
-    std::cout << std::endl;
+    std::cout << '\n';
 
     return 0;
 }

@@ -83,14 +83,14 @@ void radixSort (IntList & values) {
         std::accumulate (buckets.begin (), buckets.end (), values.begin (), copyList);
         divisor *= 10;
         std::copy (values.begin (), values.end (), OstreamIter (std::cout, " "));
-        std::cout << std::endl;
+        std::cout << '\n';
     }
 }
 
 
 int main () {
     
-    std::cout << "Radix sort program"  << std::endl;
+    std::cout << "Radix sort program"  << '\n';
 
     const IntList::value_type data[] = { 624, 852, 426, 987, 269,
                                        146, 415, 301, 730, 78, 593 };
@@ -100,7 +100,7 @@ int main () {
     radixSort (values);
     std::copy (values.begin (), values.end (), OstreamIter (std::cout, " "));
 
-    std::cout << std::endl << "End radix sort program" << std::endl;
+    std::cout << '\n' << "End radix sort program" << std::endl;
 
     return 0;   
 }

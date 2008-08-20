@@ -65,7 +65,7 @@ int main ()
 
     std::cout << "\n\nHave the factorials: \n     ";
     std::copy (v.begin (), v.end (), Iter (std::cout, " "));
-    std::cout << std::endl;
+    std::cout << '\n';
 
     return 0;
 }

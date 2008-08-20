@@ -44,7 +44,7 @@ public:
     out_times_x (const Arg &x) : multiplier (x) { }
 
     void operator() (const Arg &x) const {
-        std::cout << x * multiplier << " " << std::endl;
+        std::cout << x * multiplier << " " << '\n';
     }
 };
 

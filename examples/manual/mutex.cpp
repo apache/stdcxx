@@ -88,11 +88,11 @@ int main()
     increment_shared();
     decrement_shared();
 
-    std::cout << "Multi Threading enabled" << std::endl;
+    std::cout << "Multi Threading enabled" << '\n';
 
 #else   // if !defined (_RWSTD_REENTRANT)
 
-    std::cout << "Multi Threading not enabled" << std::endl;
+    std::cout << "Multi Threading not enabled" << '\n';
 
 #endif   // _RWSTD_REENTRANT
 

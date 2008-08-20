@@ -47,7 +47,7 @@ bool isEven (int n) {
 // Illustrate the use of the remove algorithm.
 void remove_example ()
 {
-    std::cout << "Remove Algorithm examples" << std::endl;
+    std::cout << "Remove Algorithm examples" << '\n';
 
     // Create a list of numbers.
     int data[] = { 1, 2, 4, 3, 1, 4, 2 };
@@ -58,7 +58,7 @@ void remove_example ()
     std::copy (aList.begin (), aList.end (),
                ostrm_iter_type (std::cout, " "));
 
-    std::cout << std::endl;
+    std::cout << '\n';
 
     // Remove 2's, copy into a new list.
     std::list<int, std::allocator<int> > newList;
@@ -69,7 +69,7 @@ void remove_example ()
     std::copy (newList.begin (), newList.end (),
                ostrm_iter_type (std::cout, " "));
 
-    std::cout << std::endl;
+    std::cout << '\n';
 
     // Remove 2's in place.
     std::list<int, std::allocator<int> >::iterator 
@@ -79,14 +79,14 @@ void remove_example ()
     std::copy (aList.begin (), aList.end (),
                ostrm_iter_type (std::cout, " "));
 
-    std::cout << std::endl;
+    std::cout << '\n';
 
     aList.erase (where, aList.end ());
     std::cout << "List after erase: ";
     std::copy (aList.begin (), aList.end (),
                ostrm_iter_type (std::cout, " "));
 
-    std::cout << std::endl;
+    std::cout << '\n';
 
     // Remove all even values.
     where = std::remove_if (aList.begin (), aList.end (), isEven);
@@ -96,7 +96,7 @@ void remove_example ()
     std::copy (aList.begin (), aList.end (),
                ostrm_iter_type (std::cout, " "));
 
-    std::cout << std::endl;
+    std::cout << '\n';
 }
 
 
@@ -113,7 +113,7 @@ void unique_example ()
                ostrm_iter_type (std::cout, " "));
 
 
-    std::cout << std::endl;
+    std::cout << '\n';
 
     // Copy unique elements into a set.
     std::set<int, std::less<int>, std::allocator<int>  > aSet;
@@ -124,7 +124,7 @@ void unique_example ()
     std::cout << "Set after unique_copy: ";
     std::copy (aSet.begin (), aSet.end (), ostrm_iter_type (std::cout, " "));
 
-    std::cout << std::endl;
+    std::cout << '\n';
 
     // Copy unique elements in place.
     std::list<int, std::allocator<int> >::iterator 
@@ -134,7 +134,7 @@ void unique_example ()
     std::copy (aList.begin (), aList.end (),
                ostrm_iter_type (std::cout, " "));
 
-    std::cout << std::endl;
+    std::cout << '\n';
 
     // Remove trailing values.
     aList.erase (where, aList.end ());
@@ -143,20 +143,20 @@ void unique_example ()
     std::copy (aList.begin (), aList.end (),
                ostrm_iter_type (std::cout, " "));
 
-    std::cout << std::endl;
+    std::cout << '\n';
 
 }
 
 int main ()
 {
     std::cout << "STL generic algorithms -- Removal Algorithms"
-              << std::endl;
+              << '\n';
 
     remove_example ();
     unique_example ();
     
     std::cout << "End of removal algorithms sample program"
-              << std::endl;
+              << '\n';
 
     return 0;
 }

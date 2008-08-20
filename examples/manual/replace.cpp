@@ -58,7 +58,7 @@ int main ()
     // Print out original vector.
     std::cout << "Original sequence:\n    ";
     std::copy (v.begin (), v.end (), Iter (std::cout, " "));
-    std::cout << std::endl << std::endl;
+    std::cout << '\n' << std::endl;
 
     // Replace one number with another.
     std::replace (v.begin (), v.end (), 11199, 11211);
@@ -66,7 +66,7 @@ int main ()
     // Print out the new vector.
     std::cout << "Sequence after replace:\n    ";
     std::copy (v.begin (), v.end (), Iter (std::cout, " "));
-    std::cout << std::endl << std::endl;
+    std::cout << '\n' << std::endl;
 
     // Replace all numbers that aren't primes with zeros.
     std::replace_if (v.begin (), v.end (), std::not1 (is_prime ()), 0);
@@ -74,18 +74,18 @@ int main ()
     // Print out the remaining vector.
     std::cout << "After replace_if:\n    ";
     std::copy (v.begin (), v.end (), Iter (std::cout, " "));
-    std::cout << std::endl << std::endl;
+    std::cout << '\n' << std::endl;
 
     // Replace zeros with ones.
     std::cout << "Sequence replace_copy-ed to cout:\n    ";
     std::replace_copy (v.begin (), v.end (), Iter (std::cout, " "), 0, 1);
-    std::cout << std::endl << std::endl;
+    std::cout << '\n' << std::endl;
 
     // A simple example of replace_copy_if.
     std::cout << "Sequence replace_copy_if-ed to cout:\n    ";
     std::replace_copy_if (v.begin (), v.end (), Iter (std::cout, ""),
                           is_prime (), 1);
-    std::cout << std::endl;
+    std::cout << '\n';
 
     return 0;
 }

@@ -62,7 +62,7 @@ int main(void) {
     //  ------slice(0,3,3)    ----slice_array assignment refers to valarray.
 
     std::cout << "vi[slice(0,3,3)] = vi[slice(1,3,3)] + vi[slice(2,3,3)]\n\n"
-              << vi << std::endl;
+              << vi << '\n';
 
     return 0;
 }

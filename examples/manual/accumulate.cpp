@@ -57,7 +57,7 @@ int main ()
 
     std::cout << "where N = " << v1.size ()
               << "\nThe sum = (N * N + N) / 2 = " << sum
-              << "\nThe product = N! = " << prod << std::endl;
+              << "\nThe product = N! = " << prod << '\n';
 
     return 0;
 }

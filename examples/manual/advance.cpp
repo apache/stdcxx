@@ -51,14 +51,14 @@ int main ()
     std::cout << "For the list: ";
     std::copy (l.begin (), l.end (), os_iter (std::cout, " "));
 
-    std::cout << std::endl << std::endl
+    std::cout << '\n' << std::endl
               << "When the iterator is initialized to l.begin ()," 
-              << "\nit points to " << *itr << std::endl;
+              << "\nit points to " << *itr << '\n';
 
     // operator+ is not available for a ForwardIterator, so use advance.
     std::advance (itr, 4);
     std::cout << "\nAfter advance (itr, 4), the iterator points to "
-              << *itr << std::endl;
+              << *itr << '\n';
 
     return 0;
 }

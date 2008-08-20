@@ -63,7 +63,7 @@ int main ()
         msgs.close (cat);
     }
     else
-        std::cerr << "Unable to open message catalog" << std::endl;
+        std::cerr << "Unable to open message catalog" << '\n';
 
     return 0;
 }

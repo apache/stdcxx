@@ -67,7 +67,7 @@ int main ()
     std::copy (v2.begin (), v2.end (), out);
 
     std::cout << "}\nboth versions of find_first_of point to: "
-              << *it1 << std::endl; 
+              << *it1 << '\n'; 
 
     // Return 0 on success, non-0 on failure.
     return !(*it1 == *it2);

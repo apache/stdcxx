@@ -42,7 +42,7 @@ void print_vector (std::basic_ostream<charT, Traits> &strm,
     std::copy (v.begin (), v.end (),
                std::ostream_iterator<T, charT, Traits> (strm, " "));
 
-    strm << std::endl;
+    strm << '\n';
 }
 
 

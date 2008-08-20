@@ -74,7 +74,7 @@ int main ()
     std::cout << "\n\nUse a back_inserter: \n     ";
     std::copy (d.begin (), d.end (), os_iter (std::cout, " "));
 
-    std::cout << std::endl;
+    std::cout << '\n';
    
     return 0;
 }

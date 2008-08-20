@@ -94,7 +94,7 @@ int main () {
     
     std::cout << "Graph example program "
               << " - find shortest path in a directed graph." 
-              << std::endl;
+              << '\n';
 
     static const char pendleton[]  = "Pendleton";
     static const char pensacola[]  = "Pensacola";

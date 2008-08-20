@@ -54,7 +54,7 @@ int main()
                                             v1.begin (), v1.end (),
                                             std::less<int>());
     std::cout << std::boolalpha << b1
-              << " " << b2 << std::endl;
+              << " " << b2 << '\n';
 
     return 0;
 }

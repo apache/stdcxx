@@ -57,7 +57,7 @@ int main ()
 
     std::cout << "\n\nA reverse_copy to cout: \n     ";
     std::reverse_copy (v.begin (), v.end (), Iter (std::cout, " "));
-    std::cout << std::endl;
+    std::cout << '\n';
 
     return 0;
 }

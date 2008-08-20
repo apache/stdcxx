@@ -40,17 +40,17 @@ int main ()
     const std::ctype<char>& ct = std::use_facet<std::ctype<char> >(loc);
 
     // Check the classification of the 'a' character.
-    std::cout << ct.is (std::ctype_base::alpha, 'a') << std::endl;
-    std::cout << ct.is (std::ctype_base::punct, 'a') << std::endl;
+    std::cout << ct.is (std::ctype_base::alpha, 'a') << '\n';
+    std::cout << ct.is (std::ctype_base::punct, 'a') << '\n';
 
     // Scan for the first upper case character.
     std::cout << *ct.scan_is (std::ctype_base::upper,
                               s, s + sizeof s / sizeof *s)
-              << std::endl;
+              << '\n';
 
     // Convert characters to upper case.
     (ct.toupper)(s, s + sizeof s / sizeof *s);
-    std::cout << s << std::endl;
+    std::cout << s << '\n';
   
     return 0;
 }

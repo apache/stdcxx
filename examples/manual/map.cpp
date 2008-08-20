@@ -73,14 +73,14 @@ int main ()
     months.insert (value_type (std::string ("December"),  31));
 
     // Print out the months.  Second Febuary is not present.
-    std::cout << months << std::endl;
+    std::cout << months << '\n';
 
     // Find the Number of days in June.
     months_type::iterator p = months.find (std::string ("June"));
 
     // Print out the number of days in June.
     if (p != months.end ())
-        std::cout << std::endl << (*p).first << " has "
+        std::cout << '\n' << (*p).first << " has "
                   << (*p).second << " days\n";
   
     return 0;

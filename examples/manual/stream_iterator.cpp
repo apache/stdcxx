@@ -60,7 +60,7 @@ int main ()
 
     if (v.size ())
         std::cout << v.back () << " = " <<  
-            std::accumulate (v.begin (), v.end (), sum) << std::endl;
+            std::accumulate (v.begin (), v.end (), sum) << '\n';
 
     return 0;
 }

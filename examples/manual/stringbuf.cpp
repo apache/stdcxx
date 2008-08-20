@@ -52,13 +52,13 @@ int main ()
     std::istringstream in_2 (string_ex);
 
     // output in_1 to the standard output
-    std::cout << in_1.rdbuf () << std::endl;
+    std::cout << in_1.rdbuf () << '\n';
 
     // reposition in_1 at the beginning
     in_1.seekg (0);
 
     // output in_2 to the standard output
-    std::cout << in_2.rdbuf () << std::endl;
+    std::cout << in_2.rdbuf () << '\n';
 
     // reposition in_2 at the beginning
     in_2.seekg (0);
@@ -72,13 +72,13 @@ int main ()
     out_1 << ' ' << in_2.rdbuf ();
 
     // output in_1 to the standard output
-    std::cout << in_1.rdbuf () << std::endl;
+    std::cout << in_1.rdbuf () << '\n';
 
     // position the get sequence (equivalent to in_1.seekg (pos))
     in_1.rdbuf ()->pubseekpos (pos, std::ios::in);
 
     // output "L'heure est grave!"
-    std::cout << in_1.rdbuf () << std::endl;  
+    std::cout << in_1.rdbuf () << '\n';  
 
     return 0;
 }

@@ -54,7 +54,7 @@ int main(void) {
 
   // Double the values of the masked array and print out.
   vi[mask] += static_cast<valarray_t> (vi[mask]);
-  std::cout << "vi[mask] += vi[mask]\n\n" << vi << std::endl;
+  std::cout << "vi[mask] += vi[mask]\n\n" << vi << '\n';
 
   return 0;
 }

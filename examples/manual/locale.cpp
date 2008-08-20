@@ -56,10 +56,10 @@ int main ()
 
     // imbue modified locale onto cout
     std::locale old = std::cout.imbue (my_loc);
-    std::cout << "A \x93 jolly time was had by all" << std::endl;
+    std::cout << "A \x93 jolly time was had by all" << '\n';
 
     std::cout.imbue (old);
-    std::cout << "A jolly time was had by all" << std::endl;
+    std::cout << "A jolly time was had by all" << '\n';
 
     // Create a vector of strings 
     std::vector<std::string, std::allocator<std::string> > v;
@@ -71,14 +71,14 @@ int main ()
         Iter;
 
     std::copy (v.begin (), v.end (), Iter (std::cout, " "));
-    std::cout << std::endl;
+    std::cout << '\n';
 
     // Sort the strings using the locale as a comparitor
     std::sort (v.begin (), v.end (), loc);
 
     std::copy (v.begin (), v.end (), Iter (std::cout," "));
 
-    std::cout << std::endl;
+    std::cout << '\n';
 
     return 0;
 }

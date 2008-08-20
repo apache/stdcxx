@@ -57,18 +57,18 @@ int main ()
     bool answer = std::includes (all.begin (), all.end (), 
                                  other.begin (), other.end ());
 
-    std::cout << std::endl << (answer ? "INCLUDES " : "DOES NOT INCLUDE ");
+    std::cout << '\n' << (answer ? "INCLUDES " : "DOES NOT INCLUDE ");
     std::copy (other.begin (), other.end (), os_iter (std::cout, " "));
 
     answer = std::includes (all.begin (), all.end (),
                             even.begin (), even.end ());
 
-    std::cout << ", and" << std::endl
+    std::cout << ", and" << '\n'
               << (answer ? "INCLUDES" : "DOES NOT INCLUDE ");
 
     std::copy (even.begin (), even.end (), os_iter (std::cout, " "));
 
-    std::cout << std::endl << std::endl;
+    std::cout << '\n' << std::endl;
 
     return 0;
 }

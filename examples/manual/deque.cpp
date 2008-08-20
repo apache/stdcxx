@@ -55,7 +55,7 @@ template <class It, class It2>
 void print_current_hand (It start, It2 end) 
 {
     while (start < end) 
-        std::cout << *start++ << std::endl;
+        std::cout << *start++ << '\n';
 }
 
 

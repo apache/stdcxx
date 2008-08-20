@@ -64,7 +64,7 @@ int main ()
                       std::bind2nd (equal_to (), 3)); 
 
     // Output results.
-    std::cout << *it1 << " " << *it2 << " " << *it3 << std::endl;
+    std::cout << *it1 << " " << *it2 << " " << *it3 << '\n';
 
     return 0;
 }

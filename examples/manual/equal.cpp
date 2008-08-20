@@ -66,7 +66,7 @@ int main ()
     std::copy (v2.begin (), v2.end (), os_iter (std::cout, " "));
 
     // Output the result.
-    std::cout << "} --> " << std::boolalpha << same << std::endl;
+    std::cout << "} --> " << std::boolalpha << same << '\n';
 
     return 0;
 }

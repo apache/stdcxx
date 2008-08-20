@@ -55,10 +55,10 @@ int main ()
     mp.put (begin, false, std::cout, ' ', buffer);
 
     // Put out the long double representation of the monetary value
-    std::cout << std::endl << ldval << " --> ";
+    std::cout << '\n' << ldval << " --> ";
     mp.put (begin, false, std::cout, ' ', ldval);
 
-    std::cout << std::endl;
+    std::cout << '\n';
 
     return 0;
 }

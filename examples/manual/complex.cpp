@@ -45,7 +45,7 @@ int main ()
 
     // Output result in fixed notation.
     std::cout.setf (std::ios::fixed, std::ios::floatfield);
-    std::cout << "a = " << a << ", b = " << b << std::endl;
+    std::cout << "a = " << a << ", b = " << b << '\n';
 
     return 0;
 }

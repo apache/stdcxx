@@ -39,7 +39,7 @@ int main ()
     const std::ctype<char>&
         ct = std::use_facet<std::ctype<char> >(loc); 
 
-    std::cout << 'a' << ct.toupper('c') << std::endl;
+    std::cout << 'a' << ct.toupper('c') << '\n';
  
     return 0;
 }

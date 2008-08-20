@@ -64,7 +64,7 @@ int main ()
     it = std::adjacent_find (v1.begin (), v1.end (),
                              std::equal_to<Vector::value_type>());
 
-    std::cout << *it << std::endl;
+    std::cout << *it << '\n';
 
     return 0;
 }

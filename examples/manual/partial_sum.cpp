@@ -64,7 +64,7 @@ int main ()
 
     std::cout << "The partial products: \n     ";
     std::copy (prods.begin (), prods.end (), Iter (std::cout, " "));
-    std::cout << " should each equal N!" << std::endl;
+    std::cout << " should each equal N!" << '\n';
 
     return 0;
 }

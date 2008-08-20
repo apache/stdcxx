@@ -63,7 +63,7 @@ int main ()
     }
 #endif
 
-    std::cout << bval << std::endl;
+    std::cout << bval << '\n';
 
     {
         // Get the date
@@ -72,7 +72,7 @@ int main ()
         ng.get (begin, end, ins, state, lval);
     }
 
-    std::cout << lval << std::endl;
+    std::cout << lval << '\n';
 
     {
         // Get the weekday
@@ -82,7 +82,7 @@ int main ()
     }
 
     std::cout.setf (std::ios::fixed, std::ios::floatfield);
-    std::cout << ldval << std::endl;
+    std::cout << ldval << '\n';
 
     return 0;
 }

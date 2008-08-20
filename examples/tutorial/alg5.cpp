@@ -83,10 +83,10 @@ void count_example () {
 #endif   // _RWSTD_STRICT_ANSI
     
     std::cout << "There are "           << ecount
-              << " letter e's "         << std::endl
+              << " letter e's "         << '\n'
               << "and "                 << vowelCount
               << " vowels in the text:" << text
-              << std::endl;
+              << '\n';
 }
 
 
@@ -110,10 +110,10 @@ void accumulate_example () {
 
     std::cout << "The sum of the first five numbers is "
               << sum
-              << std::endl;
+              << '\n';
     std::cout << "The product of the first five numbers is "
               << product
-              << std::endl;
+              << '\n';
 
     // Example with different types for init.
     std::list<int, std::allocator<int> > nums;
@@ -121,7 +121,7 @@ void accumulate_example () {
 
     std::copy (nums.begin (), nums.end (), ostrm_iter_type (std::cout, " ")); 
 
-    std::cout << std::endl;
+    std::cout << '\n';
 }
 
 
@@ -133,14 +133,14 @@ void inner_product_example () {
 
     // Example 1, simple inner product.
     int in1 = std::inner_product (a, a+3, b, 0);
-    std::cout << "Inner product is " << in1 << std::endl;
+    std::cout << "Inner product is " << in1 << '\n';
 
     // Example 2, using different operations.
     bool anyequal = std::inner_product (a, a+3, b, true,
                                         std::logical_or<bool> (),
                                         std::equal_to<int> ());
 
-    std::cout << "any equal? " << anyequal << std::endl;  
+    std::cout << "any equal? " << anyequal << '\n';  
 }
 
 
@@ -151,11 +151,11 @@ void equal_example () {
     int b[] = { 4, 3, 3 };
     int c[] = { 4, 5, 3 };
     
-    std::cout << "a = b is:" << std::equal (a, a+3, b) << std::endl;
-    std::cout << "a = c is:" << std::equal (a, a+3, c) << std::endl;
+    std::cout << "a = b is:" << std::equal (a, a+3, b) << '\n';
+    std::cout << "a = c is:" << std::equal (a, a+3, c) << '\n';
     std::cout << "a pair-wise-greater_equal b is"
               << std::equal (a, a+3, b, std::greater_equal<int> ())
-              << std::endl;
+              << '\n';
 }
 
 
@@ -170,22 +170,22 @@ void lexical_comparison_example () {
                                                wordTwo + sizeof wordTwo,
                                                wordOne,
                                                wordOne + sizeof wordOne)
-              << std::endl;
+              << '\n';
             
     int a[] = { 3, 4, 5, 2 };
     int b[] = { 3, 4, 5 };
     int c[] = { 3, 5 };
     
     std::cout << "compare a to b: "
-              << std::lexicographical_compare (a, a+4, b, b+3) << std::endl;
+              << std::lexicographical_compare (a, a+4, b, b+3) << '\n';
     std::cout << "compare a to c: "
-              << std::lexicographical_compare (a, a+4, c, c+2) << std::endl;
+              << std::lexicographical_compare (a, a+4, c, c+2) << '\n';
 }
 
 int main () {
     
     std::cout << "STL generic algorithms -- "\
-              << "algorithms that produce scalar results" << std::endl;
+              << "algorithms that produce scalar results" << '\n';
 
     count_example ();
     accumulate_example ();
@@ -193,7 +193,7 @@ int main () {
     equal_example ();
     lexical_comparison_example ();
     
-    std::cout << "End of scalar algorithms test"  << std::endl;
+    std::cout << "End of scalar algorithms test"  << '\n';
 
     return 0;
 }

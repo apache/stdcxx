@@ -53,7 +53,7 @@ int main(void) {
   vi[selector] += vi[selector];
 
   // Print out the modified valarray.
-  std::cout << "vi[0,2,3,4,7,8] += vi[0,2,3,4,7,8]\n\n" << vi << std::endl;
+  std::cout << "vi[0,2,3,4,7,8] += vi[0,2,3,4,7,8]\n\n" << vi << '\n';
 
   return 0;
 }
