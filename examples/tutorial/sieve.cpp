@@ -51,7 +51,7 @@ int main ()
         if (sieve[j]) 
             std::cout << j << " ";
     
-    std::cout << '\n' << "End of Prime Sieve program" << std::endl;
+    std::cout << '\n' << "End of Prime Sieve program" << '\n';
 
     return 0;
 }

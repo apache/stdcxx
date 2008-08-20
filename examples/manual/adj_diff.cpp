@@ -69,13 +69,13 @@ int main ()
     std::cout << "For the vector: " << '\n' << "     ";
     std::copy (v.begin (), v.end (), osit);
 
-    std::cout << '\n' << std::endl;
+    std::cout << "\n\n";
 
     std::cout << "The differences between adjacent elements are: "
               << '\n' << "    ";
 
     std::copy (diffs.begin (), diffs.end (), osit);
-    std::cout << '\n' << std::endl;
+    std::cout << "\n\n";
 
     std::cout << "The products of adjacent elements are: "
               << '\n' << "     ";

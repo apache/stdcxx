@@ -62,7 +62,7 @@ void spellCheck (std::istream & dictionary, std::istream & text) {
             misspellings.insert (word);
 
     // Finally, output all misspellings.
-    std::cout << '\n' << "Misspelled words:" << std::endl;
+    std::cout << '\n' << "Misspelled words:" << '\n';
 
     std::copy (misspellings.begin (), misspellings.end (),
           ostrm_iter (std::cout, "\n"));

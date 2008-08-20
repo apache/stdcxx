@@ -66,7 +66,7 @@ int main ()
 
     // Write out the contents to cout.
     std::copy (v.begin (), v.end (), Iter (std::cout," "));
-    std::cout << '\n' << std::endl;
+    std::cout << "\n\n";
 
     // Move the 7 to the end of the vector.
     Vector::iterator result = std::remove (v.begin (), v.end (), 7);
@@ -75,18 +75,18 @@ int main ()
     v.erase (result, v.end ());
 
     std::copy (v.begin (), v.end (), Iter (std::cout, " "));
-    std::cout << '\n' << std::endl;
+    std::cout << "\n\n";
 
     // Remove all non-zero elements beyond the fourth element.
     v.erase (std::remove_if (v.begin () + 4, v.end (), 
                              bnd_greater( int_greater (), 0 )), v.end ());
 
     std::copy (v.begin (), v.end (), Iter (std::cout, " "));
-    std::cout << '\n' << std::endl;
+    std::cout << "\n\n";
 
     // Now remove all 3s on output.
     std::remove_copy (v.begin (), v.end (), Iter (std::cout, " "), 3);
-    std::cout << '\n' << std::endl;
+    std::cout << "\n\n";
 
     // Now remove everything satisfying predicate on output.
     std::remove_copy_if (v.begin (), v.end (), Iter (std::cout, " "),

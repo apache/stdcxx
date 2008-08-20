@@ -51,7 +51,7 @@ int main ()
     std::cout << "For the list: ";
     std::copy (l.begin (), l.end (), os_iter (std::cout, " "));
 
-    std::cout << '\n' << std::endl
+    std::cout << "\n\n"
               << "When the iterator is initialized to l.begin ()," 
               << "\nit points to " << *itr << '\n';
 

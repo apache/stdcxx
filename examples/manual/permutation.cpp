@@ -95,7 +95,7 @@ int main ()
     std::cout << "\n     Next Permutation:     ";
     std::copy (next_m2.begin (), next_m2.end (), CharOSIter (std::cout, " "));  
 
-    std::cout << '\n' << std::endl;
+    std::cout << "\n\n";
 
     return 0;
 }

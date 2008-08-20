@@ -100,7 +100,7 @@ int main () {
     radixSort (values);
     std::copy (values.begin (), values.end (), OstreamIter (std::cout, " "));
 
-    std::cout << '\n' << "End radix sort program" << std::endl;
+    std::cout << '\n' << "End radix sort program" << '\n';
 
     return 0;   
 }

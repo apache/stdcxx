@@ -131,7 +131,7 @@ int main ( )
         in >> a >> b >> d;
 
         // output 3 times 10
-        std::wcout << a << '\n' << b << std::endl << d << std::endl;
+        std::wcout << a << '\n' << b << '\n' << d << '\n';
 
     }
     catch (std::ios::failure &e) {

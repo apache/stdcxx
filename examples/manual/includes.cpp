@@ -68,7 +68,7 @@ int main ()
 
     std::copy (even.begin (), even.end (), os_iter (std::cout, " "));
 
-    std::cout << '\n' << std::endl;
+    std::cout << "\n\n";
 
     return 0;
 }
