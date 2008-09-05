@@ -522,10 +522,17 @@ __rw_strnxfrm (const char *src, _RWSTD_SIZE_T nchars)
             src    += (last - src) + 1;
         }
 
+#ifdef _RWSTD_OS_SUNOS
+        // Solaris 10u5 on AMD64 overwrites memory past the end of
+        // just_in_case_buf[8], to avoid this, pass a null pointer
+        char* const just_in_case_buf = 0;
+#else
         // provide a destination buffer to strxfrm() in case
         // it's buggy (such as MSVC's) and tries to write to
         // the buffer even if it's 0
         char just_in_case_buf [8];
+#endif
+
         const _RWSTD_SIZE_T dst_size = strxfrm (just_in_case_buf, psrc, 0);
 
         // check for strxfrm() errors
@@ -724,10 +731,16 @@ __rw_wcsnxfrm (const wchar_t *src, _RWSTD_SIZE_T nchars)
             src    += (last - src) + 1;
         }
 
+#ifdef _RWSTD_OS_SUNOS
+        // just in case Solaris wcsxfrm() has the same bug
+        // as its strxfrm() (see above)
+        wchar_t* const just_in_case_buf = 0;
+#else
         // provide a destination buffer to strxfrm() in case
         // it's buggy (such as MSVC's) and tries to write to
         // the buffer even if it's 0
         wchar_t just_in_case_buf [8];
+#endif
 
         const _RWSTD_SIZE_T dst_size =
             _RWSTD_WCSXFRM (just_in_case_buf, psrc, 0);
