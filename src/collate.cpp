@@ -43,7 +43,7 @@
 #include <limits>     // for numeric_limits
 
 #include <limits.h>
-#include <stdlib.h>   // for wcstombs()
+#include <stdlib.h>   // for size_t, wcstombs()
 #include <string.h>   // for memchr(), memcpy()
 
 #ifndef _RWSTD_NO_WCHAR_H
@@ -88,7 +88,7 @@ int wcscoll (const wchar_t*, const wchar_t*) _LIBC_THROWS ();
 extern "C" {
 
 // declare if not declared in the system header(s)
-_RWSTD_SIZE_T wcsxfrm (wchar_t*, const wchar_t*, _RWSTD_SIZE_T) _LIBC_THROWS ();
+size_t wcsxfrm (wchar_t*, const wchar_t*, size_t) _LIBC_THROWS ();
 
 #    define _RWSTD_WCSXFRM   wcsxfrm
 #    undef _RWSTD_NO_WCSXFRM
@@ -108,8 +108,8 @@ _RWSTD_SIZE_T wcsxfrm (wchar_t*, const wchar_t*, _RWSTD_SIZE_T) _LIBC_THROWS ();
 extern "C" {
 
 // declare if not declared in the system header(s)
-_RWSTD_DLLIMPORT _RWSTD_SIZE_T
-wcstombs (char*, const wchar_t*, _RWSTD_SIZE_T) _LIBC_THROWS ();
+_RWSTD_DLLIMPORT size_t
+wcstombs (char*, const wchar_t*, size_t) _LIBC_THROWS ();
 
 #  undef _RWSTD_NO_WCSTOMBS
 
@@ -321,10 +321,10 @@ __rw_get_w_ce_offset (const __rw_collate_t *impl,
         while (*cur_char < end) {
 
             // convert the next wchar_t character to a utf8 encoded character
-            const _RWSTD_SIZE_T nbytes =
+            const size_t nbytes =
                 _RW::__rw_itoutf8 (**cur_char, utf8_enc);
 
-            for (_RWSTD_SIZE_T i = 0; i < nbytes; i++) {
+            for (size_t i = 0; i < nbytes; i++) {
 
                 const unsigned c1 = impl->get_first_char_in_w_ce_tab (cur_tab);
                 const unsigned c2 = impl->get_last_char_in_w_ce_tab (cur_tab);
@@ -365,10 +365,10 @@ __rw_get_wchar_offset (const __rw_collate_t *impl,
 
     while (*cur_char < end) {
         // convert the next wchar_t character to a utf8 encoded character
-        const _RWSTD_SIZE_T nbytes =
+        const size_t nbytes =
             _RW::__rw_itoutf8 (**cur_char, utf8_enc);
 
-        for (_RWSTD_SIZE_T i = 0; i < nbytes; i++) {
+        for (size_t i = 0; i < nbytes; i++) {
             const unsigned c1 = impl->get_first_char_in_w_tab (cur_tab);
             if (UChar (utf8_enc [i]) < c1)
                 return -1;
@@ -476,14 +476,14 @@ __rw_is_invalid (const unsigned int* first_tab, const char *from)
 // in an array that may contain embedded NULs; these are inserted
 // into the transformed string
 static _STD::string
-__rw_strnxfrm (const char *src, _RWSTD_SIZE_T nchars)
+__rw_strnxfrm (const char *src, size_t nchars)
 {
     _STD::string res;
 
     char buf [256];
     char *pbuf = buf;
 
-    _RWSTD_SIZE_T bufsize = sizeof buf;
+    size_t bufsize = sizeof buf;
     char *psrc = buf;
 
     while (nchars) {
@@ -533,13 +533,13 @@ __rw_strnxfrm (const char *src, _RWSTD_SIZE_T nchars)
         char just_in_case_buf [8];
 #endif
 
-        const _RWSTD_SIZE_T dst_size = strxfrm (just_in_case_buf, psrc, 0);
+        const size_t dst_size = strxfrm (just_in_case_buf, psrc, 0);
 
         // check for strxfrm() errors
         if (0 == (dst_size << 1))
             return _STD::string ();
 
-        _RWSTD_SIZE_T res_size = res.size ();
+        size_t res_size = res.size ();
 
         _TRY {
             // resize the result string to fit itself plus the result
@@ -554,7 +554,7 @@ __rw_strnxfrm (const char *src, _RWSTD_SIZE_T nchars)
         }
 
         // transfor the source string up to the terminating NUL
-        _RWSTD_SIZE_T xfrm_size =
+        size_t xfrm_size =
             strxfrm (&res [0] + res_size, psrc, dst_size + 1);
 
 #if defined _MSC_VER && _MSC_VER < 1400
@@ -594,8 +594,8 @@ __rw_strnxfrm (const char *src, _RWSTD_SIZE_T nchars)
 // implements wcsxfrm() using wcstombs() and strxfrm() on platforms
 // such as some versions of BSD where the function isn't defined in
 // the C Standard Library
-static _RWSTD_SIZE_T
-__rw_wcsxfrm (wchar_t *dst, const wchar_t *src, _RWSTD_SIZE_T dstsize)
+static size_t
+__rw_wcsxfrm (wchar_t *dst, const wchar_t *src, size_t dstsize)
 {
     // src must be non-null
     _RWSTD_ASSERT (0 != src);
@@ -608,20 +608,20 @@ __rw_wcsxfrm (wchar_t *dst, const wchar_t *src, _RWSTD_SIZE_T dstsize)
     // convert wide string to a multibyte string before tranforming it
     // using strxfrm() and widening the result into the destination buffer
 
-    const _RWSTD_SIZE_T srclen = _RWSTD_WCSLEN (src);
+    const size_t srclen = _RWSTD_WCSLEN (src);
 
     // compute the size of the temporary nearrow buffer where to narrow
     // the source wide string to
-    const _RWSTD_SIZE_T needbytes =
+    const size_t needbytes =
         (dstsize ? dstsize : srclen) * MB_LEN_MAX;
 
     char narrow_buf [256];
     char* const nbuf =
         sizeof narrow_buf < needbytes ? new char [needbytes + 1] : narrow_buf;
 
-    _RWSTD_SIZE_T result;
+    size_t result;
 
-    const _RWSTD_SIZE_T nmbchars = wcstombs (nbuf, src, needbytes);
+    const size_t nmbchars = wcstombs (nbuf, src, needbytes);
 
     if (_RWSTD_SIZE_MAX == nmbchars)
         result = _RWSTD_SIZE_MAX;
@@ -630,8 +630,8 @@ __rw_wcsxfrm (wchar_t *dst, const wchar_t *src, _RWSTD_SIZE_T dstsize)
         // buffer (where 8 is a guess at the maximum number of bytes
         // needed to transform the longest multibyte character)
         char xfrm_buf [sizeof narrow_buf * 8];
-        const _RWSTD_SIZE_T xbufsize = sizeof xfrm_buf;
-        const _RWSTD_SIZE_T xbufneed = needbytes * 8;
+        const size_t xbufsize = sizeof xfrm_buf;
+        const size_t xbufneed = needbytes * 8;
 
         // allocate a larger buffer if the small statically buffer
         // isn't big enough
@@ -650,7 +650,7 @@ __rw_wcsxfrm (wchar_t *dst, const wchar_t *src, _RWSTD_SIZE_T dstsize)
             if (result < dstsize)
                 dstsize = result;
 
-            for (_RWSTD_SIZE_T i = 0; i != dstsize; ++i)
+            for (size_t i = 0; i != dstsize; ++i)
                 dst [i] = wchar_t (UChar (xbuf [i]));
         }
 
@@ -686,14 +686,14 @@ __rw_wcsxfrm (wchar_t *dst, const wchar_t *src, _RWSTD_SIZE_T dstsize)
 // in an array that may contain embedded NULs; these are inserted
 // into the transformed string
 static _STD::wstring
-__rw_wcsnxfrm (const wchar_t *src, _RWSTD_SIZE_T nchars)
+__rw_wcsnxfrm (const wchar_t *src, size_t nchars)
 {
     _STD::wstring res;
 
     wchar_t buf [256];
     wchar_t *pbuf = buf;
 
-    _RWSTD_SIZE_T bufsize = sizeof buf / sizeof *buf;
+    size_t bufsize = sizeof buf / sizeof *buf;
     wchar_t *psrc = buf;
 
     while (nchars) {
@@ -742,14 +742,14 @@ __rw_wcsnxfrm (const wchar_t *src, _RWSTD_SIZE_T nchars)
         wchar_t just_in_case_buf [8];
 #endif
 
-        const _RWSTD_SIZE_T dst_size =
+        const size_t dst_size =
             _RWSTD_WCSXFRM (just_in_case_buf, psrc, 0);
 
         // check for wcsxfrm() errors
         if (_RWSTD_SIZE_MAX == dst_size)
             return _STD::wstring ();
 
-        _RWSTD_SIZE_T res_size = res.size ();
+        size_t res_size = res.size ();
 
         _TRY {
             // resize the result string to fit itself plus the result
@@ -764,7 +764,7 @@ __rw_wcsnxfrm (const wchar_t *src, _RWSTD_SIZE_T nchars)
         }
 
         // transfor the source string up to the terminating NUL
-        _RWSTD_SIZE_T xfrm_size =
+        size_t xfrm_size =
             _RWSTD_WCSXFRM (&res [0] + res_size, psrc, dst_size + 1);
 
 #  if defined _MSC_VER && _MSC_VER < 1400
@@ -871,8 +871,8 @@ do_compare (const char_type *__lo1, const char_type *__hi1,
 {
     _RWSTD_ASSERT (__lo1 <= __hi1 && __lo2 <= __hi2);
 
-    const _RWSTD_SIZE_T __len1 = __hi1 - __lo1;
-    const _RWSTD_SIZE_T __len2 = __hi2 - __lo2;
+    const size_t __len1 = __hi1 - __lo1;
+    const size_t __len2 = __hi2 - __lo2;
 
     const int cmp = memcmp (__lo1, __lo2, __len1 < __len2 ? __len1 : __len2);
 
@@ -982,7 +982,7 @@ do_transform (const char* low, const char* high) const
                 // database to discover this information
                 if (impl->undefined_optimization) {
 
-                    _RWSTD_SIZE_T size;
+                    size_t size;
 
                     const _RW::__rw_codecvt_t *cvt = 
                         _RWSTD_STATIC_CAST (const _RW::__rw_codecvt_t*, 
@@ -1042,8 +1042,8 @@ do_compare (const char_type *__lo1, const char_type *__hi1,
 {
     _RWSTD_ASSERT (__lo1 <= __hi1 && __lo2 <= __hi2);
 
-    const _RWSTD_SIZE_T __len1 = __hi1 - __lo1;
-    const _RWSTD_SIZE_T __len2 = __hi2 - __lo2;
+    const size_t __len1 = __hi1 - __lo1;
+    const size_t __len2 = __hi2 - __lo2;
 
 #ifndef _RWSTD_NO_WMEMCMP
 
@@ -1054,7 +1054,7 @@ do_compare (const char_type *__lo1, const char_type *__hi1,
 
 #else   // if defined (_RWSTD_NO_WMEMCMP)
 
-    for (_RWSTD_SIZE_T __len = __len1 < __len2 ? __len1 : __len2;
+    for (size_t __len = __len1 < __len2 ? __len1 : __len2;
          __len--; ++__lo1, ++__lo2) {
 
         typedef string_type::traits_type _Traits;
@@ -1129,13 +1129,13 @@ do_compare (const wchar_t* low1, const wchar_t* high1,
 
     _RW::__rw_setlocale clocale (this->_C_name, _RWSTD_LC_COLLATE);
     
-    const _RWSTD_SIZE_T len1 = high1 - low1;
-    const _RWSTD_SIZE_T len2 = high2 - low2;
-    const _RWSTD_SIZE_T len  = len1 + len2;
+    const size_t len1 = high1 - low1;
+    const size_t len2 = high2 - low2;
+    const size_t len  = len1 + len2;
 
     // small local buffer
     wchar_t local_buffer [256];
-    const _RWSTD_SIZE_T bufsize = sizeof local_buffer / sizeof *local_buffer;
+    const size_t bufsize = sizeof local_buffer / sizeof *local_buffer;
 
     // allocate only if local buffer is too small
     wchar_t* const wbuf =
@@ -1210,7 +1210,7 @@ do_transform (const wchar_t* low, const wchar_t* high) const
                     // in the collate database we must use the codecvt 
                     // database to discover this information 
                     if (impl->undefined_optimization) {
-                        _RWSTD_SIZE_T size;
+                        size_t size;
                         const _RW::__rw_codecvt_t *cvt = 
                             _RWSTD_STATIC_CAST (const _RW::__rw_codecvt_t*, 
                                                 _RW::__rw_get_facet_data (
@@ -1219,7 +1219,7 @@ do_transform (const wchar_t* low, const wchar_t* high) const
 
                         char tmp [_RWSTD_MB_MAX];
 
-                        const _RWSTD_SIZE_T nbytes =
+                        const size_t nbytes =
                             _RW::__rw_itoutf8 (*tmp_lo2, tmp);
 
                         tmp [nbytes] = '\0';
