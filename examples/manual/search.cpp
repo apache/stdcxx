@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2006 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -46,8 +46,8 @@ int main ()
   //
   // Print out the original sequence.
   //
-  cout << endl << "The subsequence, " << subseq << ", was found at the ";
-  cout << endl << "location identified by a '*'" << endl << "     ";
+  cout << "\nThe subsequence, " << subseq << ", was found at the ";
+  cout << "\nlocation identified by a '*'" << "\n     ";
   //
   // Create an iterator to identify the location of 
   // subsequence within sequence.
@@ -65,9 +65,10 @@ int main ()
   //
   // Output sequence to display result.
   //
-  for (list<char,allocator<char> >::iterator i = sequence.begin(); i != sequence.end(); i++)
+  for (list<char,allocator<char> >::iterator i = sequence.begin();
+       i != sequence.end(); ++i)
     cout << *i;
-  cout << endl;
+  cout << '\n';
 
   return 0;
 }
