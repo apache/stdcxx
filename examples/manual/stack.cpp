@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2006 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -41,13 +41,14 @@ int main ()
   //
   // Make a stack using a vector container.
   //
-  stack<int,vector<int,allocator<int> > > s;
+  typedef stack<int,vector<int,allocator<int> > > IntStack;
+  IntStack s;
   //
   // Push a couple of values on the stack.
   //
   s.push(1);
   s.push(2);
-  cout << s.top() << endl;
+  cout << s.top() << '\n';
   //
   // Now pop them off.
   //
@@ -61,7 +62,7 @@ int main ()
   //
   // Push a bunch of strings on then pop them off.
   //
-  int i;
+  IntStack::size_type i;
   for (i = 0; i < 10; i++)
   {
     ss.push(string(i+1,'a'));
