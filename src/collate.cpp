@@ -966,6 +966,10 @@ do_transform (const char* low, const char* high) const
     // each character, in the process check for collating elements.
     const char* tmp_lo = low;
 
+    // lazily initialized in the first iteration of the loop
+    // in which the facet data is needed (possibly never)
+    const _RW::__rw_codecvt_t* cvt = 0;
+
     for (; tmp_lo < high; tmp_lo++) {
         const char* tmp_lo2 = tmp_lo;
         int ret = _RW::__rw_get_n_ce_offset (impl, &tmp_lo2, high);
@@ -983,18 +987,22 @@ do_transform (const char* low, const char* high) const
                 if (impl->undefined_optimization) {
 
                     size_t size;
+                    if (0 == cvt) {
+                        cvt = _RWSTD_STATIC_CAST (const _RW::__rw_codecvt_t*, 
+                                                  _RW::__rw_get_facet_data (
+                                                      ccvt_cat, size, _C_name, 
+                                                      impl->codeset_name ()));
 
-                    const _RW::__rw_codecvt_t *cvt = 
-                        _RWSTD_STATIC_CAST (const _RW::__rw_codecvt_t*, 
-                                            _RW::__rw_get_facet_data (
-                                                ccvt_cat, size, _C_name, 
-                                                impl->codeset_name ()));
+                        if (0 == cvt)
+                            return string_type ();   // error
+                    }
 
                     if (_RW::__rw_is_invalid (cvt->n_to_w_tab(), tmp_lo2))
-                        return 0;
+                        return string_type ();   // error
 
-                    const unsigned int *pwt =
+                    const unsigned int* const pwt =
                         impl->get_weight (impl->undefined_weight_idx);
+
                     indexes.append (&pwt, 1);
 
                     tmp_lo = tmp_lo2;
@@ -1194,6 +1202,10 @@ do_transform (const wchar_t* low, const wchar_t* high) const
         // is high - low
         _RW::__rw_pod_array<const unsigned int*, 1024> indexes;
 
+        // lazily initialized in the first iteration of the loop
+        // in which the facet data is needed (possibly never)
+        const _RW::__rw_codecvt_t* cvt = 0;
+
         // first go through the string getting a weight offset for
         // each character, in the process check for collating elements.
         for (const wchar_t* tmp_lo =low; tmp_lo < high; tmp_lo++) {
@@ -1211,11 +1223,17 @@ do_transform (const wchar_t* low, const wchar_t* high) const
                     // database to discover this information 
                     if (impl->undefined_optimization) {
                         size_t size;
-                        const _RW::__rw_codecvt_t *cvt = 
-                            _RWSTD_STATIC_CAST (const _RW::__rw_codecvt_t*, 
-                                                _RW::__rw_get_facet_data (
-                                                    ccvt_cat, size, _C_name,
-                                                    impl->codeset_name ()));
+
+
+                        if (0 == cvt) {
+                            cvt = _RWSTD_STATIC_CAST(const _RW::__rw_codecvt_t*,
+                                                     _RW::__rw_get_facet_data (
+                                                        ccvt_cat, size, _C_name,
+                                                        impl->codeset_name ()));
+
+                            if (0 == cvt)
+                                return string_type ();   // error
+                        }
 
                         char tmp [_RWSTD_MB_MAX];
 
