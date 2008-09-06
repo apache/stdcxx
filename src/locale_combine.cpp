@@ -502,15 +502,12 @@ _C_get_body (__rw_locale      *one,
         const char *pcatnames [__rw_n_cats] = { 0 };
 
         // try the libc "native" separator first, semicolon next
-        const char *sep = strchr (locname, *_RWSTD_CAT_SEP);
-        if (!sep)
-            sep = ";";
+        const char* const psep = strchr (locname, *_RWSTD_CAT_SEP);
+        const char sep = psep ? *psep : ';';
 
-        for (const char *s = locname; *s; ) {
-
-            const char *next = strchr (s, *sep);
-            if (!next)
-                next = s + strlen (s);
+        // redundant check for s being non-null shuts up a bogus
+        // HP cadvise null pointer derefence warning #20200
+        for (const char *s = locname; s && *s; ) {
 
             const char* const endcat = strchr (s, '=');
             if (!endcat)
@@ -530,7 +527,9 @@ _C_get_body (__rw_locale      *one,
                 }
             }
 
-            s = *next ? next + 1 : next;
+            // advance just past the next separator if one exists
+            const char* const next = strchr (s, sep);
+            s = next ? next + 1 : s + strlen (s);
         }
 
         // compose a normalized locale name out of category names
@@ -542,7 +541,7 @@ _C_get_body (__rw_locale      *one,
                 pcatnames [i] = "C";
             }
 
-            const char *endcat = strchr (pcatnames [i], *sep);
+            const char *endcat = strchr (pcatnames [i], sep);
 
             if (!endcat)
                 endcat = pcatnames [i] + strlen (pcatnames [i]);
