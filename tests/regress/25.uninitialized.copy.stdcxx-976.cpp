@@ -52,6 +52,17 @@ struct InputIterator: std::iterator<std::input_iterator_tag, T>
     bool operator!= (const InputIterator &rhs) const { return p_ != rhs.p_; }
 };
 
+class Test
+{
+    // private and not defined
+    Test (const Test&);
+
+public:
+    Test () {}
+    Test (Test&) {}
+    ~Test () {}
+};
+
 
 int main ()
 {
@@ -67,6 +78,13 @@ int main ()
     std::uninitialized_copy (CIter (src),  CIter (src + 5),  dst);
     std::uninitialized_copy (VIter (src),  VIter (src + 5),  dst);
     std::uninitialized_copy (CVIter (src), CVIter (src + 5), dst);
+
+
+    Test test;
+    volatile Test vtest;
+
+    std::uninitialized_copy (&test, &test, &test);
+    std::uninitialized_copy (&test, &test, &vtest);
 
     return 0;
 }
