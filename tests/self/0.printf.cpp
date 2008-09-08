@@ -44,13 +44,14 @@
 #include <ctype.h>      // for isdigit()
 #include <errno.h>      // for EXXX, errno
 #include <limits.h>     // for INT_MAX, ...
+#include <locale.h>     // for LC_ALL, ...
 #include <signal.h>     // for SIGABRT, ...
 #include <stdio.h>      // for printf(), ...
 #include <stdlib.h>     // for free(), size_t
 #include <string.h>     // for strcpy()
 #include <stdarg.h>     // for va_arg, ...
 #include <time.h>       // for struct tm
-#include <locale.h>     // for LC_ALL, ...
+#include <wchar.h>      // for WEOF
 
 
 // disable tests for function name in "%{lF}"
@@ -342,7 +343,7 @@ test_character ()
     TEST ("%{lc}", L'A',    0, 0, "A");
     TEST ("%{lc}", L'Z',    0, 0, "Z");
     TEST ("%{lc}", L'\xff', 0, 0, "\\xff");
-    TEST ("%{lc}", -1,      0, 0, "EOF");
+    TEST ("%{lc}", WEOF,    0, 0, "EOF");
 
     //////////////////////////////////////////////////////////////////
     printf ("%s\n", "extension: \"%{#lc}\": quoted escaped wide character");
@@ -358,7 +359,7 @@ test_character ()
     TEST ("%{#lc}", L'A',    0, 0, "'A'");
     TEST ("%{#lc}", L'Z',    0, 0, "'Z'");
     TEST ("%{#lc}", L'\xff', 0, 0, "'\\xff'");
-    TEST ("%{#lc}", -1,      0, 0, "EOF");
+    TEST ("%{#lc}", WEOF,    0, 0, "EOF");
 }
 
 /***********************************************************************/
