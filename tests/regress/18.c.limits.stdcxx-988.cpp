@@ -138,14 +138,14 @@ int main ()
     assert (SCHAR_MAX  == +127);
     assert (SHRT_MAX   >= +32767);
 
-#ifndef _RWSTD_EDG_ECCP
+#if !defined (_RWSTD_EDG_ECCP) && !defined (_MSC_VER)
 
     // avoid exercising with the EDG eccp front end (strict mode)
     assert (LONG_BIT   >= 32);
     assert (SSIZE_MAX  >= _POSIX_SSIZE_MAX);
     assert (WORD_BIT   >= 32);
 
-#endif   // EDG eccp
+#endif   // EDG eccp || MSVC || ICC/Windows
 
     assert (UCHAR_MAX  >= 255);
     assert (UINT_MAX   >= 4294967295);
