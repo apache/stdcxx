@@ -34,7 +34,7 @@ int main ()
     // Exercise the implementation of the resolution of LWG issue 432:
     // http://www.open-std.org/jtc1/sc22/wg21/docs/lwg-defects.html#432
 
-    struct: std::stringbuf {
+    struct MyBuf : std::stringbuf {
         using std::stringbuf::eback;
         using std::stringbuf::egptr;
         using std::stringbuf::pbase;
