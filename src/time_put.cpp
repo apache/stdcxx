@@ -133,13 +133,13 @@ extern const MaskT __rw_classic_tab [];
     (_RW::__rw_classic_tab [(unsigned char)c] & _RW::__rw_digit)
 
 
-_RWSTD_SIZE_T
+size_t
 __rw_get_timepunct (const _RW::__rw_facet*, int,
-                    const void*[], const _RWSTD_SIZE_T []);
+                    const void*[], const size_t []);
 
 // also declared in _time_put.cc
 _RWSTD_EXPORT char*
-__rw_put_time (const __rw_facet*, char*, _RWSTD_SIZE_T,
+__rw_put_time (const __rw_facet*, char*, size_t,
                _STD::ios_base&, char, const tm*,
                char, char, int, int);
 
@@ -148,7 +148,7 @@ __rw_put_time (const __rw_facet*, char*, _RWSTD_SIZE_T,
 
 // also declared in _time_put.cc
 _RWSTD_EXPORT wchar_t*
-__rw_put_time (const __rw_facet*, wchar_t*, _RWSTD_SIZE_T,
+__rw_put_time (const __rw_facet*, wchar_t*, size_t,
                _STD::ios_base&, wchar_t, const tm*,
                char, char, int, int);
 
@@ -164,7 +164,7 @@ typedef unsigned char UChar;
 
 // compute the format string corresponding to the "%x" format specifier
 // in the current locale (set by setlocale (LC_ALL, ...))
-static _RWSTD_SIZE_T
+static size_t
 __rw_get_date_fmat (char *fmt)
 {
     tm t;
@@ -190,10 +190,10 @@ __rw_get_date_fmat (char *fmt)
     char abmon [256];   // buffer for abbreviated month name
     char mon [256];     // buffer for full month name
 
-    _RWSTD_SIZE_T abday_len = 0;
-    _RWSTD_SIZE_T day_len;
-    _RWSTD_SIZE_T abmon_len;
-    _RWSTD_SIZE_T mon_len;
+    size_t abday_len = 0;
+    size_t day_len;
+    size_t abmon_len;
+    size_t mon_len;
 
     for (char *ptmp = tmp; *ptmp; ) {
 
@@ -215,7 +215,7 @@ __rw_get_date_fmat (char *fmt)
                 *pfmt++ = *ptmp;
         }
 
-        const _RWSTD_SIZE_T len = ptmp - begin;
+        const size_t len = ptmp - begin;
 
         if (len > 1) {
 
@@ -231,7 +231,7 @@ __rw_get_date_fmat (char *fmt)
             }
 
             char fmtchar = '\0';
-            _RWSTD_SIZE_T start = 0;
+            size_t start = 0;
 
             if (day_len <= len && !memcmp (day, begin, day_len)) {
                 fmtchar = 'A';
@@ -301,7 +301,7 @@ __rw_get_date_fmat (char *fmt)
 
 // compute the format string corresponding to the "%X" format specifier
 // in the current locale (set by setlocale (LC_ALL, ...))
-static _RWSTD_SIZE_T
+static size_t
 __rw_get_time_fmat (char *fmt)
 {
     tm t;
@@ -319,7 +319,7 @@ __rw_get_time_fmat (char *fmt)
 
     char pm [256];   // buffer for pm designator
 
-    _RWSTD_SIZE_T pm_len = 0;
+    size_t pm_len = 0;
 
     for (char *ptmp = tmp; *ptmp; ) {
 
@@ -340,7 +340,7 @@ __rw_get_time_fmat (char *fmt)
                 *pfmt++ = *ptmp;
         }
 
-        const _RWSTD_SIZE_T len = ptmp - begin;
+        const size_t len = ptmp - begin;
 
         if (len > 1) {
             if (0 == pm_len) {
@@ -355,7 +355,7 @@ __rw_get_time_fmat (char *fmt)
                 *pfmt++ = 'p';
 
                 // copy whatever follows the pm designator
-                for (_RWSTD_SIZE_T i = pm_len; i != len; ++i)
+                for (size_t i = pm_len; i != len; ++i)
                     *pfmt++ = begin [i];
             }
         }
@@ -411,7 +411,7 @@ __rw_get_time_fmat (char *fmt)
 
 
 const void*
-__rw_get_timepunct (const __rw_facet *pfacet, int flags, _RWSTD_SIZE_T inx)
+__rw_get_timepunct (const __rw_facet *pfacet, int flags, size_t inx)
 {
     const int  member = flags & ~__rw_wide;
     const bool wide   = !!(flags & __rw_wide);
@@ -449,7 +449,7 @@ __rw_get_timepunct (const __rw_facet *pfacet, int flags, _RWSTD_SIZE_T inx)
     // set all categories (need LC_TIME and LC_CTYPE) and lock
     const __rw_setlocale clocale (locname, _RWSTD_LC_ALL);
 
-    _RWSTD_SIZE_T bufsize = 2048;
+    size_t bufsize = 2048;
 
     const size_t newsize = bufsize + sizeof (__rw_time_t);
  
@@ -470,22 +470,22 @@ __rw_get_timepunct (const __rw_facet *pfacet, int flags, _RWSTD_SIZE_T inx)
     // reserve offset 0 for the empty string (both narrow and wide)
     *_RWSTD_REINTERPRET_CAST (wchar_t*, pbuf) = L'\0';
 
-    _RWSTD_SIZE_T off = sizeof (wchar_t);
+    size_t off = sizeof (wchar_t);
 
 #else   // if defined (_RWSTD_NO_WCHAR_T)
 
     // reserve offset 0 for the empty string
     *pbuf = '\0';
 
-    _RWSTD_SIZE_T off = sizeof (char);
+    size_t off = sizeof (char);
 
 #endif   // _RWSTD_NO_WCHAR_T
 
 #ifndef _RWSTD_NO_NL_LANGINFO
 
     static const struct {
-        int           nl_item;    // argument to nl_langinfo()
-        _RWSTD_SIZE_T moff [2];   // member offset
+        int    nl_item;    // argument to nl_langinfo()
+        size_t moff [2];   // member offset
     } nl_items [] = {
 
 
@@ -588,7 +588,7 @@ __rw_get_timepunct (const __rw_facet *pfacet, int flags, _RWSTD_SIZE_T inx)
 
     const bool c_locale = 'C' == locname [0] && '\0' == locname [1];
 
-    for (_RWSTD_SIZE_T i = 0; i != sizeof nl_items / sizeof *nl_items; ++i) {
+    for (size_t i = 0; i != sizeof nl_items / sizeof *nl_items; ++i) {
 
         if (D_T_FMT == nl_items [i].nl_item && i)
             continue;
@@ -599,11 +599,11 @@ __rw_get_timepunct (const __rw_facet *pfacet, int flags, _RWSTD_SIZE_T inx)
 
         _RWSTD_ASSERT (0 != str);
 
-        _RWSTD_SIZE_T size = 1 + strlen (str);
+        size_t size = 1 + strlen (str);
 
         // estimate the size required to accommodate both
         // the narrow and the wide char representations
-        const _RWSTD_SIZE_T estsize = size * (1 + sizeof (wchar_t));
+        const size_t estsize = size * (1 + sizeof (wchar_t));
 
         if (off + estsize >= bufsize) {
             // reallocate
@@ -632,7 +632,7 @@ __rw_get_timepunct (const __rw_facet *pfacet, int flags, _RWSTD_SIZE_T inx)
 #ifndef _RWSTD_NO_WCHAR_T
 
         // make sure wide string is properly aligned
-        const _RWSTD_SIZE_T align = off % sizeof (wchar_t);
+        const size_t align = off % sizeof (wchar_t);
         if (align)
             off += sizeof (wchar_t) - align;
 
@@ -665,14 +665,14 @@ __rw_get_timepunct (const __rw_facet *pfacet, int flags, _RWSTD_SIZE_T inx)
 
     memset (&t, 0, sizeof t);
 
-    _RWSTD_SIZE_T len;
+    size_t len;
 
 
 #if 0   // FIXME: implement same way as above
 
     static const struct {
         int tm::      *pmem;
-        _RWSTD_SIZE_T  moff;
+        size_t         moff;
         const char     fmt [3];
         int            begin;
         int            end;
@@ -685,7 +685,7 @@ __rw_get_timepunct (const __rw_facet *pfacet, int flags, _RWSTD_SIZE_T inx)
         { &tm::tm_hour, "%p", 1, 13, 12 }
     };
 
-    for (_RWSTD_SIZE_T i = 0; i != sizeof fmats / sizef *fmats; ++i) {
+    for (size_t i = 0; i != sizeof fmats / sizef *fmats; ++i) {
 
         for (int j = fmats [i].begin; j != fmats [i].end; j != fmats [i].step) {
 
@@ -717,7 +717,7 @@ __rw_get_timepunct (const __rw_facet *pfacet, int flags, _RWSTD_SIZE_T inx)
 #  ifndef _RWSTD_NO_WCHAR_T
 
         // make sure wide strings are properly aligned
-        const _RWSTD_SIZE_T align = off % sizeof (wchar_t);
+        const size_t align = off % sizeof (wchar_t);
         if (align)
             off += sizeof (wchar_t) - align;
 
@@ -743,7 +743,7 @@ __rw_get_timepunct (const __rw_facet *pfacet, int flags, _RWSTD_SIZE_T inx)
             _RWSTD_STATIC_CAST (const char*, pun->abday (t.tm_wday, 0));
 
         wchar_t *pwbuf = _RWSTD_REINTERPRET_CAST (wchar_t*, pbuf + off);
-        _RWSTD_SIZE_T size =
+        size_t size =
             mbstowcs (pwbuf, str, (bufsize - off) / sizeof (*pwbuf));
 
         if (_RWSTD_SIZE_MAX == size) {
@@ -797,7 +797,7 @@ __rw_get_timepunct (const __rw_facet *pfacet, int flags, _RWSTD_SIZE_T inx)
 #  ifndef _RWSTD_NO_WCHAR_T
 
         // make sure wide strings are properly aligned
-        const _RWSTD_SIZE_T align = off % sizeof (wchar_t);
+        const size_t align = off % sizeof (wchar_t);
         if (align)
             off += sizeof (wchar_t) - align;
 
@@ -822,7 +822,7 @@ __rw_get_timepunct (const __rw_facet *pfacet, int flags, _RWSTD_SIZE_T inx)
         const char *str =
             _RWSTD_STATIC_CAST (const char*, pun->abmon (t.tm_mon, 0));
         wchar_t *pwbuf = _RWSTD_REINTERPRET_CAST (wchar_t*, pbuf + off);
-        _RWSTD_SIZE_T size =
+        size_t size =
             mbstowcs (pwbuf, str, (bufsize - off) / sizeof (*pwbuf));
 
         if (_RWSTD_SIZE_MAX == size) {
@@ -911,13 +911,13 @@ __rw_get_timepunct (const __rw_facet *pfacet, int flags, _RWSTD_SIZE_T inx)
 
 #  ifndef _RWSTD_NO_WCHAR_T
 
-    const _RWSTD_SIZE_T align = off % sizeof (wchar_t);
+    const size_t align = off % sizeof (wchar_t);
     if (align)
         off += sizeof (wchar_t) - align;
 
-    const char    *str;
-    wchar_t       *pwbuf;
-    _RWSTD_SIZE_T  size;
+    const char *str;
+    wchar_t    *pwbuf;
+    size_t      size;
 
 #    ifndef _RWSTD_NO_WCSFTIME
 
@@ -1058,15 +1058,15 @@ __rw_get_timepunct (const __rw_facet *pfacet, int flags, _RWSTD_SIZE_T inx)
 }
 
 
-_RWSTD_SIZE_T
+size_t
 __rw_get_timepunct (const __rw_facet *pfacet, int flags,
-                    const void *names[], _RWSTD_SIZE_T sizes[])
+                    const void *names[], size_t sizes[])
 {
     const bool wide = !!(flags & __rw_wide);
 
     const int member = flags & ~__rw_wide;
 
-    _RWSTD_SIZE_T count = 0;
+    size_t count = 0;
 
     int flags_2 = 0;
 
@@ -1102,7 +1102,7 @@ __rw_get_timepunct (const __rw_facet *pfacet, int flags,
             _RWSTD_STATIC_CAST (const __rw_time_t*,
                                 __rw_get_timepunct (pfacet, 0, 0));
 
-        count = (_RWSTD_SIZE_T)ptime->era_count ();
+        count = size_t (ptime->era_count ());
         break;
     }
 
@@ -1124,7 +1124,7 @@ __rw_get_timepunct (const __rw_facet *pfacet, int flags,
             _RWSTD_STATIC_CAST (const __rw_time_t*,
                                 __rw_get_timepunct (pfacet, 0, 0));
 
-        count = (_RWSTD_SIZE_T)ptime->alt_digits_count ();
+        count = size_t (ptime->alt_digits_count ());
         break;
     }
 
@@ -1144,7 +1144,7 @@ __rw_get_timepunct (const __rw_facet *pfacet, int flags,
     if (wide)
         flags |= __rw_wide;
 
-    for (_RWSTD_SIZE_T i = 0; i != count; ++i) {
+    for (size_t i = 0; i != count; ++i) {
         names [i] = __rw_get_timepunct (pfacet, flags, i);
 
 #ifndef _RWSTD_NO_WCHAR_T
@@ -1163,7 +1163,7 @@ __rw_get_timepunct (const __rw_facet *pfacet, int flags,
         if (wide)
             flags_2 |= __rw_wide;
 
-        for (_RWSTD_SIZE_T j = count; j != 2 * count; ++j) {
+        for (size_t j = count; j != 2 * count; ++j) {
             names [j] = __rw_get_timepunct (pfacet, flags_2, j - count);
 
 #ifndef _RWSTD_NO_WCHAR_T
@@ -1184,10 +1184,10 @@ __rw_get_timepunct (const __rw_facet *pfacet, int flags,
 }
 
 
-_RWSTD_EXPORT _RWSTD_SIZE_T
+_RWSTD_EXPORT size_t
 __rw_get_timepunct (const __rw_facet *pfacet,
                     int data [4], tm *tmb, int **pmem,
-                    const void *names[], _RWSTD_SIZE_T sizes[])
+                    const void *names[], size_t sizes[])
 {
     enum _Fmt {   // for convenience
         _AmPm        = __rw_ampm,
@@ -1224,7 +1224,7 @@ __rw_get_timepunct (const __rw_facet *pfacet,
     const void** pv =
         _RWSTD_REINTERPRET_CAST (const void**, names);
 
-    _RWSTD_SIZE_T cnt = 0;
+    size_t cnt = 0;
 
     int flags = 0;
 
@@ -1489,7 +1489,7 @@ __rw_get_timepunct (const __rw_facet *pfacet,
 
 
 static char*
-__rw_fmt_time (const __rw_facet *pfacet, char *buf, _RWSTD_SIZE_T bufsize,
+__rw_fmt_time (const __rw_facet *pfacet, char *buf, size_t bufsize,
                _STD::ios_base &flags, char fill, const tm *tmb,
                const char *pat)
 {
@@ -1627,7 +1627,7 @@ __rw_fmt_time (const __rw_facet *pfacet, char *buf, _RWSTD_SIZE_T bufsize,
 #ifndef _RWSTD_NO_WCHAR_T
 
 static wchar_t*
-__rw_fmt_time (const __rw_facet *pfacet, wchar_t *wbuf, _RWSTD_SIZE_T bufsize,
+__rw_fmt_time (const __rw_facet *pfacet, wchar_t *wbuf, size_t bufsize,
                _STD::ios_base &flags, wchar_t fill, const tm *tmb,
                const wchar_t *wpat)
 {
@@ -1827,9 +1827,9 @@ __rw_get_era (const __rw_time_t *ptime, const tm *tmb)
     const int year = 1900 + tmb->tm_year;
 
     // get the number of eras in this locale
-    const _RWSTD_SIZE_T neras = (_RWSTD_SIZE_T)ptime->era_count ();
+    const size_t neras = size_t (ptime->era_count ());
 
-    for (_RWSTD_SIZE_T i = 0; i != neras; ++i) {
+    for (size_t i = 0; i != neras; ++i) {
         const __rw_time_t::era_t* const pera = ptime->era (i);
 
         _RWSTD_ASSERT (0 != pera);
@@ -2662,13 +2662,13 @@ __rw_get_time_put_data (__rw_time_put_data &tpd,
 
 
 _RWSTD_EXPORT char*
-__rw_put_time (const __rw_facet *facet, char *buf, _RWSTD_SIZE_T bufsize,
+__rw_put_time (const __rw_facet *facet, char *buf, size_t bufsize,
                _STD::ios_base &flags, char fill, const tm *tmb,
                char fmt, char mod, int width, int prec)
 {
     _RWSTD_ASSERT (0 != facet);
 
-    _RWSTD_SIZE_T res = 0;   // size of formatted output, -1 on error
+    size_t res = 0;   // size of formatted output, -1 on error
 
     // compute the values and get the format
     __rw_time_put_data tpd;
@@ -2713,9 +2713,9 @@ __rw_put_time (const __rw_facet *facet, char *buf, _RWSTD_SIZE_T bufsize,
 
         const char* const fmtstr = 'z' == fmt ? "%+*.*d" : "%*.*d";
 
-        res = (_RWSTD_SIZE_T)sprintf (buf, fmtstr,
-                                      width < 0 ? tpd.width : width,
-                                      prec < 0 ? tpd.prec : prec, tpd.val);
+        res = size_t (sprintf (buf, fmtstr,
+                               width < 0 ? tpd.width : width,
+                               prec < 0 ? tpd.prec : prec, tpd.val));
     }
     else {
         if (!tmb && tpd.fmt) {
@@ -2764,13 +2764,13 @@ __rw_put_time (const __rw_facet *facet, char *buf, _RWSTD_SIZE_T bufsize,
 #ifndef _RWSTD_NO_WCHAR_T
 
 _RWSTD_EXPORT wchar_t*
-__rw_put_time (const __rw_facet *facet, wchar_t *wbuf, _RWSTD_SIZE_T bufsize,
+__rw_put_time (const __rw_facet *facet, wchar_t *wbuf, size_t bufsize,
                _STD::ios_base &flags, wchar_t fill, const tm *tmb,
                char fmt, char mod, int width, int prec)
 {
     _RWSTD_ASSERT (0 != facet);
 
-    _RWSTD_SIZE_T res = 0;   // size of formatted output, -1 on error
+    size_t res = 0;   // size of formatted output, -1 on error
 
     __rw_time_put_data tpd;
 
@@ -2787,8 +2787,8 @@ __rw_put_time (const __rw_facet *facet, wchar_t *wbuf, _RWSTD_SIZE_T bufsize,
 
         if (tpd.altval >= 0 && tpd.altval < int (n)) {
 
-            const _RWSTD_SIZE_T altval =
-                _RWSTD_STATIC_CAST (_RWSTD_SIZE_T, tpd.altval);
+            const size_t altval =
+                _RWSTD_STATIC_CAST (size_t, tpd.altval);
 
             // format using alternative numeric symbols
             const wchar_t* digit =
@@ -2830,9 +2830,9 @@ __rw_put_time (const __rw_facet *facet, wchar_t *wbuf, _RWSTD_SIZE_T bufsize,
 
         char buf [64];
 
-        res = (_RWSTD_SIZE_T)::sprintf (buf, fmtstr,
-                                        width < 0 ? tpd.width : width,
-                                        prec < 0 ? tpd.prec : prec, tpd.val);
+        res = size_t (sprintf (buf, fmtstr,
+                               width < 0 ? tpd.width : width,
+                               prec < 0 ? tpd.prec : prec, tpd.val));
 
         _RWSTD_ASSERT (res < sizeof buf);
 
@@ -2905,7 +2905,7 @@ __rw_put_time (const __rw_facet *facet, wchar_t *wbuf, _RWSTD_SIZE_T bufsize,
 
             if (res <= sizeof buf) {
                 // widen narrow (not multibyte) result into wide buffer
-                for (_RWSTD_SIZE_T i = 0; i != res; ++i)
+                for (size_t i = 0; i != res; ++i)
                     wbuf [i] = _RWSTD_STATIC_CAST (unsigned char, buf [i]);
             }
 

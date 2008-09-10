@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2006 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -39,17 +39,17 @@
 _RWSTD_NAMESPACE (__rw) {
 
 #if 2 == _RWSTD_LONG_SIZE
-static const int           __rw_wbasebits =  1;
-static const _RWSTD_SIZE_T __rw_wbasemask = 15;
+static const int    __rw_wbasebits =  1;
+static const size_t __rw_wbasemask = 15;
 #elif 4 == _RWSTD_LONG_SIZE
-static const int           __rw_wbasebits =  2;
-static const _RWSTD_SIZE_T __rw_wbasemask = 31;
+static const int    __rw_wbasebits =  2;
+static const size_t __rw_wbasemask = 31;
 #elif 8 == _RWSTD_LONG_SIZE
-static const int           __rw_wbasebits =  3;
-static const _RWSTD_SIZE_T __rw_wbasemask = 63;
+static const int    __rw_wbasebits =  3;
+static const size_t __rw_wbasemask = 63;
 #else   // assume 16 == sizeof (long)
-static const int           __rw_wbasebits =   4;
-static const _RWSTD_SIZE_T __rw_wbasemask = 127;
+static const int    __rw_wbasebits =   4;
+static const size_t __rw_wbasemask = 127;
 #endif   // _RWSTD_LONG_SIZE
 
 // overloads of __rw_bitset() implement:
@@ -78,10 +78,10 @@ static const _RWSTD_SIZE_T __rw_wbasemask = 127;
 // -7- If M < N, remaining bit positions are initialized to zero.
 
 _RWSTD_SPECIALIZED_FUNCTION _RWSTD_EXPORT void
-__rw_bitset (unsigned long *bits, _RWSTD_SIZE_T maxbits,
-             const char *str, _RWSTD_SIZE_T slen,
+__rw_bitset (unsigned long *bits, size_t maxbits,
+             const char *str, size_t slen,
              const _STD::char_traits<char>*, char b0, char b1,
-             _RWSTD_SIZE_T pos, _RWSTD_SIZE_T n,
+             size_t pos, size_t n,
              const char *file, const char *fun)
 {
     if (_RWSTD_SIZE_MAX == slen)
@@ -92,15 +92,15 @@ __rw_bitset (unsigned long *bits, _RWSTD_SIZE_T maxbits,
                      (_RWSTD_ERROR_OUT_OF_RANGE, file, fun, pos, slen));
 
     // compute the number of characters in `str' past the offset `pos'
-    const _RWSTD_SIZE_T nchars = n < (slen - pos) ? n : slen - pos;
+    const size_t nchars = n < (slen - pos) ? n : slen - pos;
 
     // compute the number of bits to initialize from `str'
-    const _RWSTD_SIZE_T nbits = nchars < maxbits ? nchars : maxbits;
+    const size_t nbits = nchars < maxbits ? nchars : maxbits;
 
     str += pos;
 
     // compute the number of non-zero bytes occupied by `bits'
-    _RWSTD_SIZE_T nbytes = ((maxbits | 1) >> 3) + (0 != (maxbits & 7));
+    size_t nbytes = ((maxbits | 1) >> 3) + (0 != (maxbits & 7));
 
     // round the number up to a multiple of sizeof(long)
     nbytes = (  (nbytes >> __rw_wbasebits)
@@ -109,11 +109,11 @@ __rw_bitset (unsigned long *bits, _RWSTD_SIZE_T maxbits,
     memset (bits, 0, nbytes);
 
     // set all bits but also check any extra characters as required
-    for (_RWSTD_SIZE_T i = 0; i != nchars; ++i) {
+    for (size_t i = 0; i != nchars; ++i) {
 
         if (b1 == str [i]) {
             if (i < nbits) {
-                const _RWSTD_SIZE_T bitno = nbits - i - 1;
+                const size_t bitno = nbits - i - 1;
 
                 // efficiently compute the value of the expression below
                 // (i.e., without relying on slow division and modulo)
@@ -134,10 +134,10 @@ __rw_bitset (unsigned long *bits, _RWSTD_SIZE_T maxbits,
 #ifndef _RWSTD_NO_WCHAR_T
 
 _RWSTD_SPECIALIZED_FUNCTION _RWSTD_EXPORT void
-__rw_bitset (unsigned long *bits, _RWSTD_SIZE_T maxbits,
-             const wchar_t *str, _RWSTD_SIZE_T slen,
+__rw_bitset (unsigned long *bits, size_t maxbits,
+             const wchar_t *str, size_t slen,
              const _STD::char_traits<wchar_t>*, wchar_t b0, wchar_t b1,
-             _RWSTD_SIZE_T pos, _RWSTD_SIZE_T n,
+             size_t pos, size_t n,
              const char *file, const char *fun)
 {
     if (_RWSTD_SIZE_MAX == slen)
@@ -148,15 +148,15 @@ __rw_bitset (unsigned long *bits, _RWSTD_SIZE_T maxbits,
                      (_RWSTD_ERROR_OUT_OF_RANGE, file, fun, pos, slen));
 
     // compute the number of characters in `str' past the offset `pos'
-    const _RWSTD_SIZE_T nchars = n < (slen - pos) ? n : slen - pos;
+    const size_t nchars = n < (slen - pos) ? n : slen - pos;
 
     // compute the number of bits to initialize from `str'
-    const _RWSTD_SIZE_T nbits = nchars < maxbits ? nchars : maxbits;
+    const size_t nbits = nchars < maxbits ? nchars : maxbits;
 
     str += pos;
 
     // compute the number of non-zero bytes occupied by `bits'
-    _RWSTD_SIZE_T nbytes = ((maxbits | 1) >> 3) + (0 != (maxbits & 7));
+    size_t nbytes = ((maxbits | 1) >> 3) + (0 != (maxbits & 7));
 
     // round the number up to a multiple of sizeof(long)
     nbytes = (  (nbytes >> __rw_wbasebits)
@@ -165,11 +165,11 @@ __rw_bitset (unsigned long *bits, _RWSTD_SIZE_T maxbits,
     memset (bits, 0, nbytes);
 
     // set all bits but also check any extra characters as required
-    for (_RWSTD_SIZE_T i = 0; i != nchars; ++i) {
+    for (size_t i = 0; i != nchars; ++i) {
 
         if (b1 == str [i]) {
             if (i < nbits) {
-                const _RWSTD_SIZE_T bitno = nbits - i - 1;
+                const size_t bitno = nbits - i - 1;
                 bits [bitno >> (3 + __rw_wbasebits)]
                     |= 1UL << (bitno & __rw_wbasemask);
             }
@@ -209,13 +209,13 @@ __rw_bitcounts [256] = {
 
 
 // count the number of 1 bits in bitset `bits' of `size' elements
-_RWSTD_EXPORT _RWSTD_SIZE_T
+_RWSTD_EXPORT size_t
 __rw_bit_count (const unsigned long *bits,
-                _RWSTD_SIZE_T        size) _THROWS (())
+                size_t               size) _THROWS (())
 {
     _RWSTD_ASSERT (0 != bits);
 
-    _RWSTD_SIZE_T sum = 0;
+    size_t sum = 0;
 
     typedef unsigned char UChar;
 
@@ -231,10 +231,9 @@ __rw_bit_count (const unsigned long *bits,
 
 // shift bitset `bits' of `size' elements left by `n' positions
 _RWSTD_EXPORT void
-__rw_shl (unsigned long *bits,
-          _RWSTD_SIZE_T size, _RWSTD_SIZE_T n) _THROWS (())
+__rw_shl (unsigned long *bits, size_t size, size_t n) _THROWS (())
 {
-    const _RWSTD_SIZE_T wordbits = sizeof *bits * _RWSTD_CHAR_BIT;
+    const size_t wordbits = sizeof *bits * _RWSTD_CHAR_BIT;
 
     if (n >= size * wordbits) {
         memset (bits, 0, size * sizeof *bits);
@@ -244,14 +243,14 @@ __rw_shl (unsigned long *bits,
     if (!n)
         return;
 
-    const _RWSTD_SIZE_T shlw = n / wordbits;    // word shift left
-    const _RWSTD_SIZE_T shlb = n % wordbits;    // bit shift left
+    const size_t shlw = n / wordbits;    // word shift left
+    const size_t shlb = n % wordbits;    // bit shift left
 
     if (shlb) {
-        const _RWSTD_SIZE_T shrb = wordbits - shlb; // bit shift right
+        const size_t shrb = wordbits - shlb; // bit shift right
 
         // shift one word at a time, spanning word boundaries
-        for (_RWSTD_SIZE_T i = size - 1; i > shlw; --i)
+        for (size_t i = size - 1; i > shlw; --i)
             bits [i] =   bits [i - shlw]     << shlb
                        | bits [i - shlw - 1] >> shrb;
 
@@ -270,10 +269,9 @@ __rw_shl (unsigned long *bits,
 
 // shift bitset `bits' of `size' elements right by `n' positions
 _RWSTD_EXPORT void
-__rw_shr (unsigned long *bits,
-          _RWSTD_SIZE_T size, _RWSTD_SIZE_T n) _THROWS (())
+__rw_shr (unsigned long *bits, size_t size, size_t n) _THROWS (())
 {
-    const _RWSTD_SIZE_T wordbits = sizeof *bits * _RWSTD_CHAR_BIT;
+    const size_t wordbits = sizeof *bits * _RWSTD_CHAR_BIT;
 
     if (n >= size * wordbits) {
         memset (bits, 0, size * sizeof *bits);
@@ -283,17 +281,17 @@ __rw_shr (unsigned long *bits,
     if (!n)
         return;
 
-    const _RWSTD_SIZE_T shrw = n / wordbits;    // word shift right
-    const _RWSTD_SIZE_T shrb = n % wordbits;    // bit shift right
+    const size_t shrw = n / wordbits;    // word shift right
+    const size_t shrb = n % wordbits;    // bit shift right
 
     // max word index
-    const _RWSTD_SIZE_T maxw = size - shrw - 1;
+    const size_t maxw = size - shrw - 1;
 
     if (shrb) {
-        const _RWSTD_SIZE_T shlb = wordbits - shrb; // bit shift left
+        const size_t shlb = wordbits - shrb; // bit shift left
 
         // shift one word at a time, spanning word boundaries
-        for (_RWSTD_SIZE_T i = 0; i < maxw;  ++i)
+        for (size_t i = 0; i < maxw;  ++i)
             bits [i] =   bits [i + shrw]     >> shrb
                        | bits [i + shrw + 1] << shlb;
 

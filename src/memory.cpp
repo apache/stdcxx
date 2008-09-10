@@ -23,7 +23,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2006 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -33,7 +33,7 @@
 #include <rw/_mutex.h>
 
 #include <new>
-#include <stdlib.h>
+#include <stdlib.h>   // for free(), malloc(), size_t
 
 #include <rw/_defs.h>
 
@@ -42,7 +42,7 @@ _RWSTD_NAMESPACE (__rw) {
 
 
 _RWSTD_EXPORT void*
-__rw_allocate (_RWSTD_SIZE_T nbytes, int /* = 0 */)
+__rw_allocate (size_t nbytes, int /* = 0 */)
 {
     void *ptr = 0;
 
@@ -57,7 +57,7 @@ __rw_allocate (_RWSTD_SIZE_T nbytes, int /* = 0 */)
         // operator new() doesn't check for argument overflow,
         // check before calling it and fail if `n' looks too big
 
-        if (nbytes < (_RWSTD_SIZE_T)-1 - 256)
+        if (nbytes < size_t (-1) - 256)
             ptr = ::operator new (nbytes);
 
 #endif   // _RWSTD_NO_NEW_OFLOW_SAFE
@@ -76,7 +76,7 @@ __rw_allocate (_RWSTD_SIZE_T nbytes, int /* = 0 */)
 
 
 _RWSTD_EXPORT void
-__rw_deallocate (void *p, _RWSTD_SIZE_T, int /* = 0 */) _THROWS (())
+__rw_deallocate (void *p, size_t, int /* = 0 */) _THROWS (())
 {
     ::operator delete (p);
 }
@@ -104,7 +104,7 @@ __rw_deallocate (void *p, _RWSTD_SIZE_T, int /* = 0 */) _THROWS (())
 #  ifdef _RWSTD_NO_OPERATOR_NEW_NOTHROW
 
 _RWSTD_EXPORT void*
-operator new (_RWSTD_SIZE_T __size, const _STD::nothrow_t&) _NEW_THROWS (())
+operator new (size_t __size, const _STD::nothrow_t&) _NEW_THROWS (())
 {
     return malloc (__size);
 }
@@ -126,7 +126,7 @@ operator delete (void* __ptr, const _STD::nothrow_t&) _NEW_THROWS (())
 #  ifdef _RWSTD_NO_OPERATOR_NEW_ARRAY
 
 _RWSTD_EXPORT void*
-operator new[] (_RWSTD_SIZE_T __size) _NEW_THROWS ((_RWSTD_BAD_ALLOC))
+operator new[] (size_t __size) _NEW_THROWS ((_RWSTD_BAD_ALLOC))
 {
     return ::operator new (__size);
 }
@@ -136,7 +136,7 @@ operator new[] (_RWSTD_SIZE_T __size) _NEW_THROWS ((_RWSTD_BAD_ALLOC))
 #  ifdef _RWSTD_NO_OPERATOR_NEW_ARRAY_NOTHROW
 
 _RWSTD_EXPORT void*
-operator new[] (_RWSTD_SIZE_T __size, const _STD::nothrow_t&) _NEW_THROWS (())
+operator new[] (size_t __size, const _STD::nothrow_t&) _NEW_THROWS (())
 {
     _TRY {
         return ::operator new (__size);
@@ -178,7 +178,7 @@ operator delete[] (void* __ptr, const _STD::nothrow_t&) _NEW_THROWS (())
 
 #ifdef _MSC_VER
 
-typedef int (*__rw_new_handler_t)(_RWSTD_SIZE_T);
+typedef int (*__rw_new_handler_t)(size_t);
 
 _RWSTD_DLLIMPORT __rw_new_handler_t _set_new_handler (__rw_new_handler_t);
 
@@ -186,7 +186,7 @@ _RWSTD_NAMESPACE (__rw) {
 
 static _STD::new_handler __rw_new_handler /* = 0 */;
 
-static int __rw_new_handler_imp (_RWSTD_SIZE_T)
+static int __rw_new_handler_imp (size_t)
 {
     _RWSTD_ASSERT (0 != __rw_new_handler);
 

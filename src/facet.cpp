@@ -77,7 +77,7 @@ const char* __rw_get_cat_name (int category) _THROWS (())
     };
 
     // find facet's category name
-    for (_RWSTD_SIZE_T i = 0; i != sizeof cats / sizeof *cats; ++i) {
+    for (size_t i = 0; i != sizeof cats / sizeof *cats; ++i) {
         if (category == cats [i].cat)
             return cats [i].name;
     }
@@ -104,7 +104,7 @@ int __rw_facet::_C_opts = 0
 
 
 
-__rw_facet::__rw_facet (_RWSTD_SIZE_T __ref /* = 0 */) _THROWS (())
+__rw_facet::__rw_facet (size_t __ref /* = 0 */) _THROWS (())
     : _C_name (0), _C_buf (0), _C_impdata (0), _C_impsize (0),
     _C_type (_C_unknown), _C_ref (__ref), _C_pid (0 /* invalid */)
 {
@@ -135,14 +135,14 @@ __rw_facet::~__rw_facet () // nothrow
     // (derived facets may want to set `impdata' to their own,
     // not necessarily memory mapped, data w/o setting `impsize'
     // to something meaningful
-    if ((_RWSTD_SIZE_T)(-1) == _C_impsize)
+    if (size_t (-1) == _C_impsize)
         ::operator delete (_RWSTD_CONST_CAST (void*, _C_impdata));
     else if (_C_impdata && _C_impsize) 
         __rw_release_facet_data (_C_impdata, _C_impsize);
 }
 
 
-void __rw_facet::_C_set_name (const char *name, char *buf, _RWSTD_SIZE_T size)
+void __rw_facet::_C_set_name (const char *name, char *buf, size_t size)
 {
     _RWSTD_ASSERT (0 != name);
     _RWSTD_ASSERT (0 != buf || 0 == size);
@@ -151,7 +151,7 @@ void __rw_facet::_C_set_name (const char *name, char *buf, _RWSTD_SIZE_T size)
     _RWSTD_ASSERT (0 == _C_name);
     _RWSTD_ASSERT (0 == _C_buf);
 
-    _RWSTD_SIZE_T len = ::strlen (name) + 1;
+    size_t len = strlen (name) + 1;
 
     char *tmp = len <= size ? buf : new char [len];
 
@@ -186,7 +186,7 @@ const void* __rw_facet::_C_get_data ()
 
     // implementation database mapping data
     const void* pdata = 0;
-    _RWSTD_SIZE_T sz = 0;
+    size_t sz = 0;
 
     _RWSTD_ASSERT (0 != _C_pid);
     const int cat = __rw_get_cat (int (*_C_pid));
@@ -245,7 +245,7 @@ const void* __rw_facet::_C_get_data ()
 
             // set `impsize' to non-zero value to avoid subsequent
             // attempts at reinitialization
-            _C_impsize = (_RWSTD_SIZE_T)-1;
+            _C_impsize = size_t (-1);
             return 0;
         }
 
@@ -358,8 +358,8 @@ __rw_facet::_C_manage (__rw_facet            *pfacet,
     // to hold (pointers to) all standard facets for 8 locales
     static __rw_facet*  std_facet_buf [__rw_facet::_C_last_type * 8];
     static __rw_facet** std_facets = std_facet_buf;
-    static _RWSTD_SIZE_T n_std_facets = 0;
-    static _RWSTD_SIZE_T std_facet_bufsize =
+    static size_t n_std_facets = 0;
+    static size_t std_facet_bufsize =
         sizeof std_facet_buf / sizeof *std_facet_buf;
 
     // acquire lock
@@ -381,7 +381,7 @@ __rw_facet::_C_manage (__rw_facet            *pfacet,
                        sizeof pfacet, &cmpfacets);
         if (pf) {
 
-            const _RWSTD_SIZE_T inx =
+            const size_t inx =
                   _RWSTD_STATIC_CAST (const __rw_facet* const*, pf)
                 - _RWSTD_CONST_CAST (const __rw_facet* const*, std_facets);
 
@@ -389,7 +389,7 @@ __rw_facet::_C_manage (__rw_facet            *pfacet,
 
             if (0 == __rw_locale::_C_remove_ref (*pfacet)) {
 
-                static const _RWSTD_SIZE_T bufsize =
+                static const size_t bufsize =
                     sizeof std_facet_buf / sizeof *std_facet_buf;
 
                 --n_std_facets;
@@ -431,7 +431,7 @@ __rw_facet::_C_manage (__rw_facet            *pfacet,
         else {
 
             // facet is an ordinary (unnamed) standard facet
-            const _RWSTD_SIZE_T ref = __rw_locale::_C_remove_ref (*pfacet);
+            const size_t ref = __rw_locale::_C_remove_ref (*pfacet);
             _RWSTD_ASSERT (ref + 1U != 0);
             _RWSTD_UNUSED (ref);
         }
@@ -485,7 +485,7 @@ __rw_facet::_C_manage (__rw_facet            *pfacet,
 
             // set the facet's numeric id
             *__rw_access::_C_get_pid (*pfacet) =
-                _RWSTD_STATIC_CAST (_RWSTD_SIZE_T, (type + 1) / 2);
+                _RWSTD_STATIC_CAST (size_t, (type + 1) / 2);
 
             if (__rw_access::_C_get_type (*pfacet) != type) {
                 // set the type of the facet if not already set
@@ -517,7 +517,7 @@ __rw_facet::_C_manage (__rw_facet            *pfacet,
 }
 
 
-const void* __rw_get_facet_data (int cat, _RWSTD_SIZE_T &impsize, 
+const void* __rw_get_facet_data (int cat, size_t &impsize, 
                                  const char* name, const char* encoding) 
 {
     if (__rw_facet::_C_use_libc == (__rw_facet::_C_opts & 
@@ -582,7 +582,7 @@ const void* __rw_get_facet_data (int cat, _RWSTD_SIZE_T &impsize,
 }
 
 // Its counterpart - does the database unmapping
-void __rw_release_facet_data (const void* pv, _RWSTD_SIZE_T sz) _THROWS (())
+void __rw_release_facet_data (const void* pv, size_t sz) _THROWS (())
 {
     __rw_munmap (pv, sz);
 }
@@ -593,10 +593,10 @@ void __rw_release_facet_data (const void* pv, _RWSTD_SIZE_T sz) _THROWS (())
 // all others (i.e., id's of all user-defined facet types or
 // specializations of standard facets on user-defined types)
 // are in the range (__rw_facet::_C_last_type, ...)
-static _RWSTD_SIZE_T __rw_id_gen = __rw_facet::_C_last_type + 1;
+static size_t __rw_id_gen = __rw_facet::_C_last_type + 1;
 
 
-_RWSTD_SIZE_T __rw_facet_id::_C_init () const _THROWS (())
+size_t __rw_facet_id::_C_init () const _THROWS (())
 {
     // return immediately if already initialized
     if (_C_id)
@@ -607,8 +607,7 @@ _RWSTD_SIZE_T __rw_facet_id::_C_init () const _THROWS (())
     // of standard facets has a chance of completing at the step above
 
     // generate a unique id
-    const _RWSTD_SIZE_T new_id =
-        _RWSTD_ATOMIC_PREINCREMENT (__rw_id_gen, false);
+    const size_t new_id = _RWSTD_ATOMIC_PREINCREMENT (__rw_id_gen, false);
 
 #ifndef _RWSTD_NO_MUTABLE
 

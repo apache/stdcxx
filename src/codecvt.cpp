@@ -152,10 +152,10 @@ do_out (state_type         &state,
     if (always_noconv ())
         return noconv;
 
-    const _RWSTD_SIZE_T nfrom = from_end - from;
-    const _RWSTD_SIZE_T nto   = to_end - to;
+    const size_t nfrom = from_end - from;
+    const size_t nto   = to_end - to;
 
-    const _RWSTD_SIZE_T nconv = nfrom < nto ? nfrom : nto;
+    const size_t nconv = nfrom < nto ? nfrom : nto;
 
     // use memmove() in case ranges overlap
     memmove (to, from, nconv);
@@ -240,7 +240,7 @@ codecvt<char, char, _RWSTD_MBSTATE_T>::
 do_length (state_type        &state,
            const extern_type *from,
            const extern_type *from_end,
-           _RWSTD_SIZE_T      imax) const
+           size_t             imax) const
 {
     // 22.2.1.5.2, p9 - preconditions
     _RWSTD_ASSERT (from <= from_end);
@@ -255,7 +255,7 @@ do_length (state_type        &state,
         return 0;
 
     // 22.2.1.5.2, p10
-    const _RWSTD_SIZE_T len = from_end - from;
+    const size_t len = from_end - from;
     return int (len < imax ? len : imax);
 }
 

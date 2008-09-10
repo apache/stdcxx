@@ -31,6 +31,9 @@
 #include "podarray.h"        // for __rw_aligned_buffer
 #include <rw/_allocator.h>   // for __rw_allocate(), ...
 #include <rw/_mutex.h>       // for _RWSTD_THREAD_XXX()
+
+#include <stddef.h>          // for size_t
+
 #include <rw/_defs.h>
 
 
@@ -53,17 +56,17 @@ extern "C" {
 
 
 // used by std::get_temporary_buffer<>()
-_RWSTD_EXPORT _RWSTD_SIZE_T
-__rw_tmpbuf (void **pptr, _RWSTD_PTRDIFF_T nelems, _RWSTD_SIZE_T size)
+_RWSTD_EXPORT size_t
+__rw_tmpbuf (void **pptr, _RWSTD_PTRDIFF_T nelems, size_t size)
 {
     _RWSTD_ASSERT (0 != pptr);
     _RWSTD_ASSERT (0 != size);
 
     // detect overflow and fail
-    _RWSTD_SIZE_T nbytes = nelems * size;
+    size_t nbytes = nelems * size;
 
     if (   nelems < 0
-        || nbytes / size != _RWSTD_STATIC_CAST (_RWSTD_SIZE_T, nelems)
+        || nbytes / size != _RWSTD_STATIC_CAST (size_t, nelems)
         || nelems && nbytes / nelems != size) {
         *pptr = 0;
         return 0;

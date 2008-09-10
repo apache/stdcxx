@@ -30,7 +30,7 @@
 
 #include <rw/_defs.h>
 
-#include <string.h>     // for strxxx()
+#include <string.h>     // for size_t, strxxx()
 #include <iosfwd>       // for mbstate_t
 
 #include <loc/_codecvt.h>
@@ -166,9 +166,9 @@ struct __rw_chset_map_t
 // Database file mappings
 struct __rw_db_map_t
 {
-    const void*   pv;           // pointer to mapping
-    _RWSTD_SIZE_T size;         // size of mapping
-    const char*   name;         // canonical name
+    const void* pv;           // pointer to mapping
+    size_t      size;         // size of mapping
+    const char* name;         // canonical name
 };
 
 
@@ -668,8 +668,8 @@ __rw_iso2022jp_designate (__rw_iso2022_state_t& state,
 {
     // length of a designating sequence in ISO-2022-JP and
     // ISO-2022-JP-2 is 3 or 4 elements
-    _RWSTD_SIZE_T len   = sizeof (ISO_2022_JP_SET_ASCII) - 1U;
-    _RWSTD_SIZE_T sslen = 0;
+    size_t len   = sizeof (ISO_2022_JP_SET_ASCII) - 1U;
+    size_t sslen = 0;
 
     // register designation
     bool g2 = false;
@@ -735,7 +735,7 @@ __rw_iso2022jp_designate (__rw_iso2022_state_t& state,
         // insert the designation
         if (reg != state.g_map [2]) {
             // FIXME - check correctness
-            if (_RWSTD_STATIC_CAST (_RWSTD_SIZE_T, to_end - to) < len)
+            if (_RWSTD_STATIC_CAST (size_t, to_end - to) < len)
                 return CODECVT_PARTIAL;
 
             if (len) {
@@ -751,7 +751,7 @@ __rw_iso2022jp_designate (__rw_iso2022_state_t& state,
 
         // insert the single shift function
         // FIXME - check correctness
-        if (_RWSTD_STATIC_CAST (_RWSTD_SIZE_T, to_end - to) < len)
+        if (_RWSTD_STATIC_CAST (size_t, to_end - to) < len)
             return CODECVT_PARTIAL;
 
         if (sslen) {
@@ -766,7 +766,7 @@ __rw_iso2022jp_designate (__rw_iso2022_state_t& state,
     } else {
 
         // FIXME - check correctness
-        if (_RWSTD_STATIC_CAST (_RWSTD_SIZE_T, to_end - to) < len)
+        if (_RWSTD_STATIC_CAST (size_t, to_end - to) < len)
             return CODECVT_PARTIAL;
 
         if (len) {
@@ -1493,7 +1493,7 @@ __rw_ucs4_to_eucjp (const wchar_t*& from,
     if (from == from_end || to == to_end)
         return CODECVT_OK;
 
-    _RWSTD_SIZE_T ret = __rw_itoutf8 (*from, ptmp);
+    size_t ret = __rw_itoutf8 (*from, ptmp);
 
     unsigned int wc = tbl [UChar (*ptmp)];
     while (wc & 0x80000000) {
@@ -1512,7 +1512,7 @@ __rw_ucs4_to_eucjp (const wchar_t*& from,
     }
 
     // store the encoding sequence at destination
-    _RWSTD_SIZE_T offset = wc + sizeof (_RW::__rw_codecvt_t);
+    size_t offset = wc + sizeof (_RW::__rw_codecvt_t);
     while (impl_raw [offset]) {
         if (to == to_end)
             return CODECVT_PARTIAL;
@@ -1566,7 +1566,7 @@ __rw_ucs4_to_interm (  const wchar_t*& from,
         const unsigned int* tbl  = tbls;
         _RWSTD_ASSERT(tbls);
 
-        _RWSTD_SIZE_T ret = __rw_itoutf8 (*from, ptmp);
+        size_t ret = __rw_itoutf8 (*from, ptmp);
 
         bool success = true;
         unsigned int wc = tbl [UChar (*ptmp)];
@@ -1587,7 +1587,7 @@ __rw_ucs4_to_interm (  const wchar_t*& from,
             continue;
 
         // store the encoding sequence at destination
-        _RWSTD_SIZE_T offset = wc + sizeof (_RW::__rw_codecvt_t);
+        size_t offset = wc + sizeof (_RW::__rw_codecvt_t);
         while (impl_raw [offset])
             *to++ = impl_raw [offset++];
 
@@ -1856,10 +1856,10 @@ __rw_iso2022jp_do_unshift (_RWSTD_MBSTATE_T& state,
 }
 
 
-_RWSTD_SIZE_T
+size_t
 __rw_iso2022jp_do_length (_RWSTD_MBSTATE_T& state,
                           const char* from, const char* from_end,
-                          _RWSTD_SIZE_T max)
+                          size_t max)
 {
     _RWSTD_ASSERT(from <= from_end);
 
@@ -1901,7 +1901,7 @@ __rw_iso2022jp_do_length (_RWSTD_MBSTATE_T& state,
 }
 
 
-_RWSTD_SIZE_T
+size_t
 __rw_iso2022jp_do_max_length ()
 {
     return 2;
@@ -2076,10 +2076,10 @@ __rw_iso2022jp2_do_unshift (_RWSTD_MBSTATE_T& state,
 }
 
 
-_RWSTD_SIZE_T
+size_t
 __rw_iso2022jp2_do_length (_RWSTD_MBSTATE_T& state,
                            const char* from, const char* from_end,
-                           _RWSTD_SIZE_T max)
+                           size_t max)
 {
     _RWSTD_ASSERT(from <= from_end);
 
@@ -2144,7 +2144,7 @@ __rw_iso2022jp2_do_length (_RWSTD_MBSTATE_T& state,
 }
 
 
-_RWSTD_SIZE_T
+size_t
 __rw_iso2022jp2_do_max_length ()
 {
     return 2;

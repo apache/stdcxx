@@ -57,7 +57,7 @@
 extern "C" {
 
 _RWSTD_DLLIMPORT int
-snprintf (char*, _RWSTD_SIZE_T, const char*, ...) _LIBC_THROWS ();
+snprintf (char*, size_t, const char*, ...) _LIBC_THROWS ();
 
 }   // extern "C"
 
@@ -131,12 +131,12 @@ typedef _RWSTD_LONG_LONG          _LLong;
 typedef unsigned _RWSTD_LONG_LONG _ULLong;
 
 
-static _RWSTD_SIZE_T
+static size_t
 __rw_btoa (char *buf, _ULLong i, unsigned base)
 {
     _RWSTD_ASSERT (base && base <= 36);
 
-    const _RWSTD_SIZE_T dig = _STD::numeric_limits<_ULLong>::digits + 0U;
+    const size_t dig = _STD::numeric_limits<_ULLong>::digits + 0U;
 
     char*             end   = buf + dig;
     const char* const begin = end;
@@ -151,7 +151,7 @@ __rw_btoa (char *buf, _ULLong i, unsigned base)
         *--end = __rw_digits [i - tmp * base];
     } while ((i = tmp));
 
-    const _RWSTD_SIZE_T len = begin - end;
+    const size_t len = begin - end;
 
    memmove (buf, end, len);
 
@@ -159,12 +159,12 @@ __rw_btoa (char *buf, _ULLong i, unsigned base)
 }
 
 
-static _RWSTD_SIZE_T
+static size_t
 __rw_dtoa (char *buf, _ULLong i, unsigned flags)
 {
     // get the maximum number of decimal digits for an unsigned long
     // with the largest magnitude, plus 1 for the (optional) sign
-    const _RWSTD_SIZE_T dig10 = _STD::numeric_limits<_ULLong>::digits10 + 2U;
+    const size_t dig10 = _STD::numeric_limits<_ULLong>::digits10 + 2U;
 
     char*             end   = buf + dig10;
     const char* const begin = end;
@@ -183,7 +183,7 @@ __rw_dtoa (char *buf, _ULLong i, unsigned flags)
     if (flags & _RWSTD_IOS_SHOWPOS)
         *--end = '+';
 
-    const _RWSTD_SIZE_T len = begin - end;
+    const size_t len = begin - end;
 
    memmove (buf, end, len);
 
@@ -191,7 +191,7 @@ __rw_dtoa (char *buf, _ULLong i, unsigned flags)
 }
 
 
-static inline _RWSTD_SIZE_T
+static inline size_t
 __rw_dtoa (char *buf, _LLong i, unsigned flags)
 {
     if (i < 0) {
@@ -204,7 +204,7 @@ __rw_dtoa (char *buf, _LLong i, unsigned flags)
 }
 
 
-static _RWSTD_SIZE_T
+static size_t
 __rw_itoa (char *buf, _ULLong i, unsigned flags)
 {
     const char* const pdigs = flags & _RWSTD_IOS_UPPERCASE ?
@@ -271,7 +271,7 @@ __rw_itoa (char *buf, _ULLong i, unsigned flags)
 }
 
 
-static inline _RWSTD_SIZE_T
+static inline size_t
 __rw_itoa (char *buf, _LLong i, unsigned flags)
 {
     if (10 == flags >> _RWSTD_IOS_BASEOFF)
@@ -284,12 +284,12 @@ __rw_itoa (char *buf, _LLong i, unsigned flags)
 #endif   // _RWSTD_LONG_LONG
 
 
-static _RWSTD_SIZE_T
+static size_t
 __rw_btoa (char *buf, unsigned long i, unsigned base)
 {
     _RWSTD_ASSERT (base && base <= 36);
 
-    const _RWSTD_SIZE_T dig = _STD::numeric_limits<unsigned long>::digits + 0U;
+    const size_t dig = _STD::numeric_limits<unsigned long>::digits + 0U;
 
     char*             end   = buf + dig;
     const char* const begin = end;
@@ -304,7 +304,7 @@ __rw_btoa (char *buf, unsigned long i, unsigned base)
         *--end = __rw_digits [i - tmp * base];
     } while ((i = tmp));
 
-    const _RWSTD_SIZE_T len = begin - end;
+    const size_t len = begin - end;
 
    memmove (buf, end, len);
 
@@ -312,12 +312,12 @@ __rw_btoa (char *buf, unsigned long i, unsigned base)
 }
 
 
-static  inline _RWSTD_SIZE_T
+static  inline size_t
 __rw_dtoa (char *buf, unsigned long i, unsigned flags)
 {
     // get the maximum number of decimal digits for an unsigned long
     // with the largest magnitude, plus 1 for the (optional) sign
-    const _RWSTD_SIZE_T dig10 =
+    const size_t dig10 =
         _STD::numeric_limits<unsigned long>::digits10 + 2U;
 
     char*             end   = buf + dig10;
@@ -339,7 +339,7 @@ __rw_dtoa (char *buf, unsigned long i, unsigned flags)
         *--end = '+';
 
     // move the contents of the buffer to the beginning
-    const _RWSTD_SIZE_T len = begin - end;
+    const size_t len = begin - end;
 
    memmove (buf, end, len);
 
@@ -347,7 +347,7 @@ __rw_dtoa (char *buf, unsigned long i, unsigned flags)
 }
 
 
-static inline _RWSTD_SIZE_T
+static inline size_t
 __rw_dtoa (char *buf, long i, unsigned flags)
 {
     if (i < 0) {
@@ -362,7 +362,7 @@ __rw_dtoa (char *buf, long i, unsigned flags)
 
 
 // convert unsigned long to a roman number
-static _RWSTD_SIZE_T
+static size_t
 __rw_utor (char *buf, unsigned long i, unsigned flags)
 {
     //                          01234560123456
@@ -407,7 +407,7 @@ __rw_utor (char *buf, unsigned long i, unsigned flags)
 }
 
 
-static _RWSTD_SIZE_T
+static size_t
 __rw_itoa (char *buf, unsigned long i, unsigned flags)
 {
     const char* const pdigs = flags & _RWSTD_IOS_UPPERCASE ?
@@ -474,7 +474,7 @@ __rw_itoa (char *buf, unsigned long i, unsigned flags)
 }
 
 
-static inline _RWSTD_SIZE_T
+static inline size_t
 __rw_itoa (char *buf, long i, unsigned flags)
 {
     if (10 == flags >> _RWSTD_IOS_BASEOFF)
@@ -484,8 +484,8 @@ __rw_itoa (char *buf, long i, unsigned flags)
 }
 
 
-_RWSTD_EXPORT _RWSTD_SIZE_T
-__rw_put_groups (char **pbuf, _RWSTD_SIZE_T len, _RWSTD_SIZE_T bufsize,
+_RWSTD_EXPORT size_t
+__rw_put_groups (char **pbuf, size_t len, size_t bufsize,
                  const char *end, const char *grouping)
 {
     _RWSTD_ASSERT (0 != *pbuf);
@@ -523,8 +523,8 @@ __rw_put_groups (char **pbuf, _RWSTD_SIZE_T len, _RWSTD_SIZE_T bufsize,
             ++pd;
     }
 
-    _RWSTD_SIZE_T ngrps  = 0;   // number of complete groups
-    _RWSTD_SIZE_T grplen = 0;   // length of complete groups
+    size_t ngrps  = 0;   // number of complete groups
+    size_t grplen = 0;   // length of complete groups
 
     // compute the amount of buffer space needed for group separators
     const char *pg = grouping;
@@ -543,7 +543,7 @@ __rw_put_groups (char **pbuf, _RWSTD_SIZE_T len, _RWSTD_SIZE_T bufsize,
         else
             ++pg;
 
-        if (grplen + grp >= _RWSTD_STATIC_CAST (_RWSTD_SIZE_T, end - pd))
+        if (grplen + grp >= _RWSTD_STATIC_CAST (size_t, end - pd))
             break;
 
         grplen += grp;
@@ -568,7 +568,7 @@ __rw_put_groups (char **pbuf, _RWSTD_SIZE_T len, _RWSTD_SIZE_T bufsize,
             *pd = pd [-_RWSTD_STATIC_CAST (_RWSTD_PTRDIFF_T, ngrps)];
         }
         else {
-            if ((_RWSTD_SIZE_T)(end - pd) == grplen + 1) {
+            if (size_t (end - pd) == grplen + 1) {
                 // insert throusands separator and compute
                 // the offset of the next separator
                 *pd = ';';
@@ -615,7 +615,7 @@ __rw_put_groups (char **pbuf, _RWSTD_SIZE_T len, _RWSTD_SIZE_T bufsize,
 
 
 static inline void
-__rw_fix_flt (char *&end, _RWSTD_SIZE_T &len,
+__rw_fix_flt (char *&end, size_t &len,
               unsigned flags, _RWSTD_STREAMSIZE prec)
 {
 #ifdef _WIN32
@@ -635,7 +635,7 @@ __rw_fix_flt (char *&end, _RWSTD_SIZE_T &len,
         for (ptr = beg + 2; ptr != end && '0' == *ptr; ++ptr) ;
 
         if (ptr == end) {
-            const _RWSTD_SIZE_T exp_len =
+            const size_t exp_len =
                 0 > prec ? 7 : (1 < prec ? prec + 1 : 2);
             if (exp_len < len) {
                 end = beg + exp_len;
@@ -774,8 +774,8 @@ __rw_fix_flt (char *&end, _RWSTD_SIZE_T &len,
 
 
 
-_RWSTD_EXPORT _RWSTD_SIZE_T
-__rw_put_num (char **pbuf, _RWSTD_SIZE_T bufsize,
+_RWSTD_EXPORT size_t
+__rw_put_num (char **pbuf, size_t bufsize,
               unsigned flags, int type, _RWSTD_STREAMSIZE prec,
               const void *pval, const char *grouping)
 {
@@ -783,10 +783,8 @@ __rw_put_num (char **pbuf, _RWSTD_SIZE_T bufsize,
     const char       *fmt = 0;       // stdio format specifier
     char* const       buf = *pbuf;   // saved value of *pbuf
     char             *end = 0;       // decimal point
-    _RWSTD_SIZE_T     len;           // length of formatted number
+    size_t            len;           // length of formatted number
     _RWSTD_STREAMSIZE fpr;           // special case floating point precision
-
-    typedef _RWSTD_SIZE_T SizeT;
 
     switch (type) {
 
@@ -853,7 +851,7 @@ __rw_put_num (char **pbuf, _RWSTD_SIZE_T bufsize,
                 fmt = __rw_get_stdio_fmat (fmtbuf, type & ~__rw_facet::_C_ptr,
                                            flags, fpr);
                 for (; ;) {
-                    len = SizeT (_SNPRINTF (*pbuf, bufsize, fmt, fval));
+                    len = size_t (_SNPRINTF (*pbuf, bufsize, fmt, fval));
 
                     if (len >= bufsize) {
                         if (*pbuf != buf)
@@ -889,7 +887,7 @@ __rw_put_num (char **pbuf, _RWSTD_SIZE_T bufsize,
                                            flags, fpr);
 
                 for ( ; ; ) {
-                    len = SizeT (_SNPRINTF (*pbuf, bufsize, fmt, dval));
+                    len = size_t (_SNPRINTF (*pbuf, bufsize, fmt, dval));
 
                     if (len >= bufsize) {
                         if (*pbuf != buf)
@@ -927,7 +925,7 @@ __rw_put_num (char **pbuf, _RWSTD_SIZE_T bufsize,
                                            flags, fpr);
 
                 for ( ; ; ) {
-                    len = SizeT (_SNPRINTF (*pbuf, bufsize, fmt, ldval));
+                    len = size_t (_SNPRINTF (*pbuf, bufsize, fmt, ldval));
                     if (len >= bufsize) {
                         if (*pbuf != buf)
                             delete[] *pbuf;
@@ -955,7 +953,7 @@ __rw_put_num (char **pbuf, _RWSTD_SIZE_T bufsize,
     case __rw_facet::_C_pvoid:
         if (pval) {
             fmt = __rw_get_stdio_fmat (fmtbuf, type, flags, prec);
-            len = SizeT (_SNPRINTF (buf, bufsize, fmt, pval));
+            len = size_t (_SNPRINTF (buf, bufsize, fmt, pval));
         }
         else {
             // prevent GNU libc from formatting null pointers as "(nil)"
@@ -988,8 +986,8 @@ __rw_put_num (char **pbuf, _RWSTD_SIZE_T bufsize,
 
         const _RWSTD_PTRDIFF_T ndigs = len - sign;
 
-        _RWSTD_SIZE_T nfill;   // the number of 0's to insert
-        _RWSTD_SIZE_T nmove;   // the number of digits to move
+        size_t nfill;   // the number of 0's to insert
+        size_t nmove;   // the number of digits to move
 
         if (-prec >= ndigs) {
 
@@ -1012,7 +1010,7 @@ __rw_put_num (char **pbuf, _RWSTD_SIZE_T bufsize,
             // e.g., "1234" with prec == -3 yields "1.234"
 
             nfill = 0;
-            nmove = SizeT (-prec);
+            nmove = size_t (-prec);
 
             src = beg + (ndigs + prec);
             dst = src + 1;

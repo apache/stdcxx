@@ -31,12 +31,14 @@
 #include <rw/_defs.h>
 
 #include <new>
-#include <string.h>
+#include <string.h>      // for size_t, strchr(), strlen()
 
 #include <loc/_facet.h>
 #include <loc/_locale.h>
 
 #include "locale_body.h"
+#include "setlocale.h"   // for __rw_cats
+
 
 #if 6 == _RWSTD_HP_aCC_MAJOR && _RWSTD_HP_aCC_MINOR <= 1600
    // silence bogus HP aCC 6.16/cadvise warning #20200-D:
@@ -68,7 +70,7 @@ string locale::name () const
 
         string result;
 
-        _RWSTD_SIZE_T i = 0;
+        size_t i = 0;
 
         for (const char *catnm = _C_body->_C_name; *catnm; ) {
 
