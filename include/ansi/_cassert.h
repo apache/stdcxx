@@ -29,15 +29,6 @@
 
 #include <rw/_defs.h>
 
-_RWSTD_NAMESPACE (__rw) { 
-
-void _RWSTD_EXPORT
-__rw_assert_fail (const char*, const char*, int, const char*)
-    _RWSTD_GNUC_ATTRIBUTE ((noreturn));
-
-
-}   // namespace __rw
-
 #undef assert
 
 #if !defined (NDEBUG)
