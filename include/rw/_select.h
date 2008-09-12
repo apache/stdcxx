@@ -89,7 +89,7 @@ _RWSTD_SPECIALIZE_IS_INT (wchar_t);
 
 #if !defined (__SUNPRO_CC) || __SUNPRO_CC > 0x530
 #  define _RWSTD_DISPATCH(iter)   \
-       (_TYPENAME _RW::__rw_select_int< iter >::_SelectT (0))
+       (_TYPENAME _RW::__rw_select_int< iter >::_SelectT (1L))
 
 #else
    // working around a SunPro 5.3 a prior bug (PR #28739)
