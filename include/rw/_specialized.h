@@ -52,11 +52,6 @@
 #endif   // _RWSTD_RW_NEW_H_INCLUDED
 
 
-#ifndef _RWSTD_RW_ITERBASE_H_INCLUDED
-#  include <rw/_iterbase.h>
-#endif   // _RWSTD_RW_ITERBASE_H_INCLUDED
-
-
 _RWSTD_NAMESPACE (__rw) { 
 
 
@@ -98,7 +93,24 @@ __rw_construct (_TypeT* __p, _TypeU& __val)
 
 template <class _TypeT, class _TypeU>
 inline void
+__rw_construct (_TypeT* __p, const _TypeU& __val)
+{
+    ::new (_RWSTD_STATIC_CAST (void*, __p)) _TypeT (__val);
+}
+
+
+template <class _TypeT, class _TypeU>
+inline void
 __rw_construct (volatile _TypeT* __p, _TypeU& __val)
+{
+    // remove volatile before invoking operator new
+    __rw_construct (_RWSTD_CONST_CAST (_TypeT*, __p), __val);
+}
+
+
+template <class _TypeT, class _TypeU>
+inline void
+__rw_construct (volatile _TypeT* __p, const _TypeU& __val)
 {
     // remove volatile before invoking operator new
     __rw_construct (_RWSTD_CONST_CAST (_TypeT*, __p), __val);
@@ -167,16 +179,10 @@ uninitialized_copy (_InputIterator __first, _InputIterator __last,
                     _ForwardIterator __res)
 {
     const _ForwardIterator __start = __res;
-    typedef const _TYPENAME iterator_traits<_InputIterator>::value_type& _RefT;
 
     _TRY {
         for (; __first != __last; ++__first, ++__res)
-#ifndef __HP_aCC
-            _RW::__rw_construct (&*__res, _RefT (*__first));
-#else    // ifdef __HP_aCC
-            // Don't cast to _RefT on HP aCC due to ICE (see STDCXX-1005)
             _RW::__rw_construct (&*__res, *__first);
-#endif   // __HP_aCC
     }
     _CATCH (...) {
         _RW::__rw_destroy (__start, __res);
