@@ -480,8 +480,9 @@ _RWSTD_NAMESPACE (std) {
 
 // class template specialization for UDC type
 _RWSTD_SPECIALIZED_CLASS
-struct collate<UDC>: locale::facet
+class collate<UDC>: public locale::facet
 {
+public:
     typedef UDC                                 char_type;
     typedef StringTypes<char_type>::string_type string_type;
 
@@ -1000,7 +1001,7 @@ test_ctype (const char* cname)
 template <class charT>
 struct CodecvtDerived: std::codecvt<charT, char, std::mbstate_t>
 {
-    typedef std::codecvt<charT, char, std::mbstate_t> Codecvt;
+    typedef CodecvtDerived<charT>                     Codecvt;
     typedef std::codecvt_base::result                 Result;
     typedef typename Codecvt::intern_type             InternT;
     typedef typename Codecvt::extern_type             ExternT;
