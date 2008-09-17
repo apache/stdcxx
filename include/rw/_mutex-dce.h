@@ -1,8 +1,11 @@
 /***************************************************************************
  *
- * atomic.s
+ * _mutex-dce.h - definitions of classes for thread safety using DCE threads
  *
- * $Id$
+ * This is an internal header file used to implement the C++ Standard
+ * Library. It should never be #included directly by a program.
+ *
+ * $Id  $
  *
  ***************************************************************************
  *
@@ -10,7 +13,7 @@
  * contributor  license agreements.  See  the NOTICE  file distributed
  * with  this  work  for  additional information  regarding  copyright
  * ownership.   The ASF  licenses this  file to  you under  the Apache
- * License, Version  2.0 (the  License); you may  not use  this file
+ * License, Version  2.0 (the  "License"); you may  not use  this file
  * except in  compliance with the License.   You may obtain  a copy of
  * the License at
  *
@@ -22,31 +25,19 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2003-2006 Rogue Wave Software.
+ * Copyright 1994-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
+#if defined (_RWSTD_NO_DCE_PTHREAD_H)
+#  include <pthread.h>
+#else
+#  include <dce/pthread.h>
+#endif
 
-#if defined (__i386__)
-#  include "x86/atomic.s"
-#elif defined (__x86_64) || defined (__x86_64__)
-#  include "x86_64/atomic.s"
-#elif defined (__ia64) || defined (__ia64__)
-#  if defined (_LP64) || defined (__LP64__)
-#    include "ia64/atomic-64.s"
-#  else
-#    include "ia64/atomic.s"
-#  endif
-#elif defined (__parisc) || defined (__parisc__)
-#  if defined (__LP64__)
-#    include "parisc/atomic-64.s"
-#  else
-#    include "parisc/atomic.s"
-#  endif
-#elif defined (__sparc) || defined (__sparc__)
-#  if defined (__sparcv9) || defined (__sparcv9__)
-#    include "sparc/atomic-64.s"
-#  else
-#    include "sparc/atomic.s"
-#  endif
-#endif 
+#define _RWSTD_MUTEX_INIT(mutex) \
+        pthread_mutex_init (&mutex, pthread_mutexattr_default)
+#define _RWSTD_MUTEX_DESTROY(mutex)   pthread_mutex_destroy (&mutex)
+#define _RWSTD_MUTEX_LOCK(mutex)      pthread_mutex_lock (&mutex)
+#define _RWSTD_MUTEX_UNLOCK(mutex)    pthread_mutex_unlock (&mutex)
+#define _RWSTD_MUTEX_T                pthread_mutex_t
