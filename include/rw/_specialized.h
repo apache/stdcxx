@@ -52,6 +52,11 @@
 #endif   // _RWSTD_RW_NEW_H_INCLUDED
 
 
+#ifndef _RWSTD_RW_ITERBASE_H_INCLUDED
+#  include <rw/_iterbase.h>
+#endif   // _RWSTD_RW_ITERBASE_H_INCLUDED
+
+
 _RWSTD_NAMESPACE (__rw) { 
 
 
@@ -93,24 +98,7 @@ __rw_construct (_TypeT* __p, _TypeU& __val)
 
 template <class _TypeT, class _TypeU>
 inline void
-__rw_construct (_TypeT* __p, const _TypeU& __val)
-{
-    ::new (_RWSTD_STATIC_CAST (void*, __p)) _TypeT (__val);
-}
-
-
-template <class _TypeT, class _TypeU>
-inline void
 __rw_construct (volatile _TypeT* __p, _TypeU& __val)
-{
-    // remove volatile before invoking operator new
-    __rw_construct (_RWSTD_CONST_CAST (_TypeT*, __p), __val);
-}
-
-
-template <class _TypeT, class _TypeU>
-inline void
-__rw_construct (volatile _TypeT* __p, const _TypeU& __val)
 {
     // remove volatile before invoking operator new
     __rw_construct (_RWSTD_CONST_CAST (_TypeT*, __p), __val);
@@ -179,10 +167,14 @@ uninitialized_copy (_InputIterator __first, _InputIterator __last,
                     _ForwardIterator __res)
 {
     const _ForwardIterator __start = __res;
+    typedef _TYPENAME iterator_traits<_ForwardIterator>::value_type _TypeT;
 
     _TRY {
-        for (; __first != __last; ++__first, ++__res)
-            _RW::__rw_construct (&*__res, *__first);
+        for (; __first != __last; ++__first, ++__res) {
+            volatile void* const __ptr =
+                _RWSTD_STATIC_CAST (volatile void*, &*__res);
+            ::new (_RWSTD_CONST_CAST (void*, __ptr)) _TypeT (*__first);
+        }
     }
     _CATCH (...) {
         _RW::__rw_destroy (__start, __res);
