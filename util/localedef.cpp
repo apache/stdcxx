@@ -267,7 +267,7 @@ create_locale (std::string std_src,
     if (C_locales.empty ())
         return;
 
-#if !defined (_WIN32)
+#if !defined (_WIN32) && !defined (__CYGWIN32__)
 
     if (link_aliases == false)
         return;
@@ -283,7 +283,7 @@ create_locale (std::string std_src,
         // pointing to our locale database
         create_symlink (outdir, std_locale, *it);
     }
-#endif  // _WIN32
+#endif  // !_WIN32 && !__CYGWIN32__
 }
 
 
