@@ -746,8 +746,12 @@ __rw_wcsnxfrm (const wchar_t *src, size_t nchars)
             _RWSTD_WCSXFRM (just_in_case_buf, psrc, 0);
 
         // check for wcsxfrm() errors
-        if (_RWSTD_SIZE_MAX == dst_size)
+        if (_RWSTD_SIZE_MAX == dst_size) {
+            if (pbuf != buf)
+                delete[] pbuf;
+
             return _STD::wstring ();
+        }
 
         size_t res_size = res.size ();
 
