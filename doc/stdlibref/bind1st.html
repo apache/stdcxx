@@ -64,14 +64,13 @@ namespace std {
 <A NAME="sec4"><H3>Description</H3></A>
 <P>Because so many functions included in the C++ Standard Library take other functions as arguments, the library includes classes that let you build new function objects out of old ones. Both <SAMP><A HREF="bind1st.html">bind1st()</A></SAMP> and <SAMP><A HREF="bind1st.html">bind2nd()</A></SAMP> are functions that take as arguments a binary function object <SAMP>f</SAMP> and a value <SAMP>x,</SAMP> and return, respectively, classes <B><I><A HREF="bind1st.html">binder1st</A></I></B> and <B><I><A HREF="bind1st.html">binder2nd</A></I></B>. The underlying function object must be a subclass of <B><I><A HREF="binary-function.html">binary_function</A></I></B>.</P>
 <P>Class <B><I><A HREF="bind1st.html">binder1st</A></I></B> binds the value to the first argument of the binary function, and <B><I><A HREF="bind1st.html">binder2nd</A></I></B> does the same thing for the second argument of the function. The resulting classes can be used in place of a unary predicate in other function calls.</P>
-<P>For example, you could use the <SAMP><A HREF="count.html">count_if()</A></SAMP> algorithm to count all elements in a <B><I><A HREF="vector.html">vector</A></I></B> that are less than or equal to 7, using the following:</P>
+<P>For example, you could use the <SAMP><A HREF="count.html">count_if()</A></SAMP> algorithm to count all elements in a <B><I><A HREF="vector.html">vector</A></I></B> that are less than 7, using the following:</P>
 
 <UL><PRE>
-vector&lt;int&gt; v;<br>int littleNums;<br>
-count_if(v.begin, v.end, bind1st(greater&lt;int&gt;(),7),
-         littleNums)
+std::vector&lt;int&gt; v (/* ... */);
+int littleNums = std::count_if (v.begin (), v.end (), std::bind1st (std::less&lt;int&gt;(), 7));
 </PRE></UL>
-<P>This function adds one to <SAMP>littleNums</SAMP> each time the element is greater than&nbsp;7.</P>
+<P>The function counts the number of elements in the range [<SAMP>v.begin()</SAMP>, <SAMP>v.end()</SAMP>) as denoted by the first two iterator arguments that satisfy the predicate specified by the third argument and returns the result.</P>
 <A NAME="sec5"><H3>Interface</H3></A>
 
 <UL><PRE>namespace std {
@@ -126,52 +125,65 @@ count_if(v.begin, v.end, bind1st(greater&lt;int&gt;(),7),
 
 #include &lt;algorithm&gt;   // for find_if
 #include &lt;functional&gt;  // for equal_to, bind1st, bind2nd
-#include &lt;iostream&gt;    // for cout, endl
+#include &lt;iostream&gt;    // for cout
+#include &lt;iterator&gt;    // for ostream_iterator
 #include &lt;vector&gt;      // for vector
-
 
 
 int main ()
 {
-    typedef std::vector&lt;int, std::allocator&lt;int&gt; &gt; vector;
-    typedef std::equal_to&lt;vector::value_type&gt;      equal_to;
+    typedef std::vector&lt;int&gt;                  Vector;
+    typedef std::equal_to&lt;Vector::value_type&gt; EqualTo;
 
-    const vector::value_type arr [] = { 1, 2, 3, 4 };
+    const Vector::value_type arr [] = { 1, 2, 3, 4, 5 };
 
-    // Set up a vector.
-    vector v1 (arr + 0, arr + sizeof arr / sizeof *arr);
+    // Initialize a vector with the array elements.
+    const Vector v1 (arr, arr + sizeof arr / sizeof *arr);
 
-    // Create an 'equal to 3' unary predicate by binding 3 to
-    // the equal_to binary predicate.
-    std::binder1st&lt;equal_to&gt; equal_to_3 = 
-                                  bind1st (equal_to (), 3);
+    // Value to look for.
+    const Vector::value_type x (3);
+
+    // Create an 'equal to 3' unary predicate by binding the value
+    // 3 to the EqualTo binary predicate.
+    const std::binder1st&lt;EqualTo&gt; equal_to_3 =
+        std::bind1st (EqualTo (), x);
 
     // Now use this new predicate in a call to find_if.
-    vector::iterator it1 = std::find_if (v1.begin (), 
-                                         v1.end (),
-                                         equal_to_3);
+    const Vector::const_iterator it1 =
+        std::find_if (v1.begin (), v1.end (), equal_to_3);
 
     // Even better, construct the new predicate on the fly.
-    vector::iterator it2 =
-        std::find_if (v1.begin (), v1.end (),
-                      std::bind1st (equal_to (), 3)); 
+    const Vector::const_iterator it2 =
+        std::find_if (v1.begin (), v1.end (), std::bind1st (EqualTo (), x));
 
     // And now the same thing using bind2nd.
-    // Same result since equal_to is commutative.
-    vector::iterator it3 =
-        std::find_if (v1.begin (), v1.end (),
-                      std::bind2nd (equal_to (), 3)); 
+    // Same result since EqualTo is commutative.
+    const Vector::const_iterator it3 =
+        std::find_if (v1.begin (), v1.end (), std::bind2nd (EqualTo (), x));
+
+    // Use the same predicate to count the number of elements
+    // equal to 3.
+    const Vector::size_type n =
+        std::count_if (v1.begin (), v1.end (), std::bind2nd (EqualTo (), x));
 
     // Output results.
-    std::cout &lt;&lt; *it1 &lt;&lt; " " &lt;&lt; *it2 &lt;&lt; " " 
-              &lt;&lt; *it3 &lt;&lt; std::endl;
+    std::ostream_iterator&lt;Vector::value_type&gt; out (std::cout, " ");
 
-    return 0;
+    std::cout &lt;&lt; "The vector { ";
+    std::copy (v1.begin (), v1.end (), out);
+
+    std::cout &lt;&lt; "} contains " &lt;&lt; n &lt;&lt; " element equal to "
+              &lt;&lt; x &lt;&lt;  " at offset " &lt;&lt;
+              it1 - v1.begin () &lt;&lt; ".\n";
+    
+    // Exit with status of 0 on success, 1 on failure.
+    const bool success = 1 == n && it1 == it2 && it1 == it2 && *it1 == x;
+
+    return success ? 0 : 1;
 }
 
-
 Program Output:
-3 3 3
+The vector { 1 2 3 4 5 } contains 1 element equal to 3 at offset 2.
 </PRE></UL>
 <UL><PRE></PRE></UL>
 <A NAME="sec7"><H3>See Also</H3></A>

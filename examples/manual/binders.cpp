@@ -22,13 +22,14 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2006 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
 #include <algorithm>   // for find_if
 #include <functional>  // for equal_to, bind1st, bind2nd
-#include <iostream>    // for cout, endl
+#include <iostream>    // for cout
+#include <iterator>    // for ostream_iterator
 #include <vector>      // for vector
 
 #include <examples.h>
@@ -36,35 +37,50 @@
 
 int main ()
 {
-    typedef std::vector<int, std::allocator<int> > Vector;
-    typedef std::equal_to<Vector::value_type>      equal_to;
+    typedef std::vector<int>                  Vector;
+    typedef std::equal_to<Vector::value_type> EqualTo;
 
-    const Vector::value_type arr [] = { 1, 2, 3, 4 };
+    const Vector::value_type arr [] = { 1, 2, 3, 4, 5 };
 
-    // Set up a vector.
-    Vector v1 (arr + 0, arr + sizeof arr / sizeof *arr);
+    // Initialize a vector with the array elements.
+    const Vector v1 (arr, arr + sizeof arr / sizeof *arr);
 
-    // Create an 'equal to 3' unary predicate by binding 3 to
-    // the equal_to binary predicate.
-    std::binder1st<equal_to> equal_to_3 = std::bind1st (equal_to (), 3);
+    // Value to look for.
+    const Vector::value_type x (3);
+
+    // Create an 'equal to 3' unary predicate by binding the value
+    // 3 to the EqualTo binary predicate.
+    const std::binder1st<EqualTo> equal_to_3 (std::bind1st (EqualTo (), x));
 
     // Now use this new predicate in a call to find_if.
-    Vector::iterator it1 = std::find_if (v1.begin (), v1.end (),
-                                         equal_to_3);
+    const Vector::const_iterator it1 =
+        std::find_if (v1.begin (), v1.end (), equal_to_3);
 
     // Even better, construct the new predicate on the fly.
-    Vector::iterator it2 =
-        std::find_if (v1.begin (), v1.end (),
-                      std::bind1st (equal_to (), 3)); 
+    const Vector::const_iterator it2 =
+        std::find_if (v1.begin (), v1.end (), std::bind1st (EqualTo (), x));
 
     // And now the same thing using bind2nd.
-    // Same result since equal_to is commutative.
-    Vector::iterator it3 =
-        std::find_if (v1.begin (), v1.end (),
-                      std::bind2nd (equal_to (), 3)); 
+    // Same result since EqualTo is commutative.
+    const Vector::const_iterator it3 =
+        std::find_if (v1.begin (), v1.end (), std::bind2nd (EqualTo (), x));
+
+    // Use the same predicate to count the number of elements
+    // equal to 3.
+    const Vector::size_type n =
+        std::count_if (v1.begin (), v1.end (), std::bind2nd (EqualTo (), x));
 
     // Output results.
-    std::cout << *it1 << " " << *it2 << " " << *it3 << std::endl;
+    std::ostream_iterator<Vector::value_type> out (std::cout, " ");
 
-    return 0;
+    std::cout << "The vector { ";
+    std::copy (v1.begin (), v1.end (), out);
+
+    std::cout << "} contains " << n << " element equal to " << x
+              <<  " at offset " << it1 - v1.begin () << ".\n";
+    
+    // Exit with status of 0 on success, 1 on failure.
+    const bool success = 1 == n && it1 == it2 && it1 == it2 && *it1 == x;
+
+    return success ? 0 : 1;
 }
