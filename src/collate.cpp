@@ -536,8 +536,12 @@ __rw_strnxfrm (const char *src, size_t nchars)
         const size_t dst_size = strxfrm (just_in_case_buf, psrc, 0);
 
         // check for strxfrm() errors
-        if (0 == (dst_size << 1))
+        if (0 == (dst_size << 1)) {
+            if (pbuf != buf)
+                delete[] pbuf;
+
             return _STD::string ();
+        }
 
         size_t res_size = res.size ();
 
