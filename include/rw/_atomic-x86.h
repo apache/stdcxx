@@ -61,13 +61,13 @@ InterlockedDecrement (_RWSTD_INTERLOCKED_T*);
 __declspec (dllimport) long __stdcall
 InterlockedExchange (_RWSTD_INTERLOCKED_T*, long);
 
+}   // extern "C"
+
 inline long _InterlockedIncrement (volatile long *__x)
 {
     return InterlockedIncrement (
         _RWSTD_CONST_CAST (_RWSTD_INTERLOCKED_T*, __x));
 }
-
-}   // extern "C"
 
 inline long _InterlockedDecrement (volatile long *__x)
 {
