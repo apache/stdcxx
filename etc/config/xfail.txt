@@ -60,10 +60,8 @@ hu_HU.ISO-8859-2    *.*.*.*.*                       1         STDCXX-372
 2.smartptr.shared   hpux-*-*-acc-3.*-*              COMP      STDCXX-615
 19.exceptions.mt    aix-5.3-*-vacpp-9.0-{12,15}?    HUP       STDCXX-644
 21.string.assign.stdcxx-629    *-*-*-*-*            ABRT      STDCXX-629
-21.string.exceptions           *-*-*-*-*            COMP      STDCXX-1009
 21.string.insert.stdcxx-632    *-*-*-*-*            ABRT      STDCXX-632
 21.string.replace.stdcxx-170   *-*-*-*-*            ABRT      STDCXX-170
-21.string.stdcxx-1009          *-*-*-*-*            COMP      STDCXX-1009
 21.string.stdcxx-162  linux*-*-{amd64,em64t}-*-*-{12,15}{D,S} ABRT STDCXX-162
 23.vector.modifiers.stdcxx-495 *-*-*-*-*            ABRT      STDCXX-495
 25.uninitialized.copy.stdcxx-976 *-*-*-*-*          COMP      STDCXX-976
