@@ -36,7 +36,7 @@
 
 #ifndef _RWSTD_RW_MUTEX_H_INCLUDED
 #  include <rw/_mutex.h>
-#endif _RWSTD_RW_MUTEX_H_INCLUDED
+#endif   // _RWSTD_RW_MUTEX_H_INCLUDED
 
 
 _RWSTD_NAMESPACE (__rw) {
