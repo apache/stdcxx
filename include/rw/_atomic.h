@@ -57,6 +57,10 @@
 #    include <rw/_atomic-mipspro.h>
 #  elif defined (_PA_RISC2_0)
 #    include <rw/_atomic-parisc.h>
+#  elif defined (__GNUC__) && (__GNUC__ * 100 + __GNUC_MINOR__ >= 401) \
+     && (defined (__i386__) || defined (__x86_64) || defined (__ia64)) \
+     || (defined (__INTEL_COMPILER) && defined (__ia64))
+#    include <rw/_atomic-sync.h>
 #  elif defined (__i386__) && (defined (__GNUG__) \
      || defined (__INTEL_COMPILER)) || defined (_M_IX86)
 #    include <rw/_atomic-x86.h>
