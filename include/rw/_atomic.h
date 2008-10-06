@@ -76,11 +76,14 @@
 
 #    ifndef _RWSTD_NO_BOOL
 
-#      if _RWSTD_BOOL_SIZE == _RWSTD_CHAR_SIZE
+#      if   _RWSTD_BOOL_SIZE == _RWSTD_CHAR_SIZE  \
+         && !defined (_RWSTD_NO_CHAR_ATOMIC_OPS)
 #        define _RWSTD_BOOL_TYPE char
-#      elif _RWSTD_BOOL_SIZE == _RWSTD_SHORT_SIZE
+#      elif _RWSTD_BOOL_SIZE == _RWSTD_SHORT_SIZE \
+         && !defined (_RWSTD_NO_SHORT_ATOMIC_OPS)
 #        define _RWSTD_BOOL_TYPE short
-#      elif _RWSTD_BOOL_SIZE == _RWSTD_INT_SIZE
+#      elif _RWSTD_BOOL_SIZE == _RWSTD_INT_SIZE   \
+         && !defined (_RWSTD_NO_INT_ATOMIC_OPS)
 #        define _RWSTD_BOOL_TYPE int
 #      endif
 
@@ -107,7 +110,11 @@ __rw_atomic_exchange (bool &__x, bool __y, bool)
 
 /********************** generic long functions ************************/
 
-#    if _RWSTD_LONG_SIZE == _RWSTD_INT_SIZE
+#    if   _RWSTD_LONG_SIZE == _RWSTD_INT_SIZE \
+       && defined (_RWSTD_NO_LONG_ATOMIC_OPS) \
+       && !defined (_RWSTD_NO_INT_ATOMIC_OPS)
+
+#      undef _RWSTD_NO_LONG_ATOMIC_OPS
 
 #      if 6 == _RWSTD_HP_aCC_MAJOR
          // suppress HP aCC 64 bit migration remark: conversion from
@@ -174,8 +181,12 @@ __rw_atomic_exchange (unsigned long &__x,
 
 /********************** generic long long functions *******************/
 
-#    ifdef _RWSTD_LONG_LONG
-#      if _RWSTD_LLONG_SIZE == _RWSTD_LONG_SIZE
+#    if   defined (_RWSTD_LONG_LONG)            \
+       && _RWSTD_LLONG_SIZE == _RWSTD_LONG_SIZE \
+       && defined (_RWSTD_NO_LLONG_ATOMIC_OPS)  \
+       && !defined (_RWSTD_NO_LONG_ATOMIC_OPS)
+
+#      undef _RWSTD_NO_LLONG_ATOMIC_OPS
 
 _RWSTD_NAMESPACE (__rw) {
     
@@ -226,8 +237,7 @@ __rw_atomic_exchange (unsigned _RWSTD_LONG_LONG &__x,
 
 }   // namespace __rw
 
-#      endif   // _RWSTD_LLONG_SIZE == _RWSTD_LONG_SIZE
-#    endif   // _RWSTD_LONG_LONG
+#    endif   // _RWSTD_LONG_LONG && _RWSTD_LLONG_SIZE == _RWSTD_LONG_SIZE
 
 #  endif   // _RWSTD_NO_ATOMIC_OPS
 

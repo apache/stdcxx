@@ -32,6 +32,10 @@
 
 #  include <mutex.h>
 
+#define _RWSTD_NO_CHAR_ATOMIC_OPS
+#define _RWSTD_NO_SHORT_ATOMIC_OPS
+#define _RWSTD_NO_LLONG_ATOMIC_OPS
+
 _RWSTD_NAMESPACE (__rw) {
 
 inline unsigned
@@ -127,6 +131,8 @@ __rw_atomic_exchange (long &__x, long __y, bool)
                                  false);
 }
 
+#  else   // _RWSTD_INT_SIZE == _RWSTD_LONG_SIZE
+#    define _RWSTD_NO_LONG_ATOMIC_OPS
 #  endif   // _RWSTD_INT_SIZE < _RWSTD_LONG_SIZE
 
 }   // namespace __rw

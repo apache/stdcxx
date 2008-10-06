@@ -30,6 +30,9 @@
  * 
  **************************************************************************/
 
+#define _RWSTD_NO_LONG_ATOMIC_OPS
+#define _RWSTD_NO_LLONG_ATOMIC_OPS
+
 #ifdef _MSC_VER
 
 extern "C" long __cdecl _InterlockedIncrement (volatile long*);

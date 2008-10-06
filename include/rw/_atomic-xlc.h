@@ -32,6 +32,10 @@
 
 #include <sys/atomic_op.h>
 
+#define _RWSTD_NO_CHAR_ATOMIC_OPS
+#define _RWSTD_NO_SHORT_ATOMIC_OPS
+#define _RWSTD_NO_LLONG_ATOMIC_OPS
+
 _RWSTD_NAMESPACE (__rw) {
 
 inline int
@@ -137,6 +141,8 @@ __rw_atomic_exchange (unsigned long &__x, unsigned long __y, bool)
                                  _RWSTD_STATIC_CAST (long, __y), false);
 }
 
+#  else   // _RWSTD_INT_SIZE == _RWSTD_LONG_SIZE
+#    define _RWSTD_NO_LONG_ATOMIC_OPS
 #  endif   // _RWSTD_INT_SIZE < _RWSTD_LONG_SIZE
 
 }   // namespace __rw

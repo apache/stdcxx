@@ -32,6 +32,10 @@
 
 _RWSTD_NAMESPACE (__rw) {
 
+#define _RWSTD_NO_CHAR_ATOMIC_OPS
+#define _RWSTD_NO_SHORT_ATOMIC_OPS
+#define _RWSTD_NO_LLONG_ATOMIC_OPS
+
 extern "C" {
 
 // define in assembler file "atomic-sparc.s" and "atomic-sparc64.s"
@@ -149,6 +153,8 @@ __rw_atomic_exchange (unsigned long &__x, unsigned long __y, bool)
                                _RWSTD_STATIC_CAST (long, __y));
 }
 
+#  else   // _RWSTD_INT_SIZE == _RWSTD_LONG_SIZE
+#    define _RWSTD_NO_LONG_ATOMIC_OPS
 #  endif   // _RWSTD_INT_SIZE < _RWSTD_LONG_SIZE
 
 }   // namespace __rw

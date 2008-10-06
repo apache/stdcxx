@@ -295,16 +295,16 @@ __rw_mutex_base& __rw_get_static_mutex (_TypeT*)
     // up with multiple copies)
     static volatile int __cntr /* = 0 */;   // initialization counter
 
-#    if !defined (_RWSTD_NO_ATOMIC_OPS) && !defined (_PA_RISC2_0)
+#    if !defined (_RWSTD_NO_ATOMIC_OPS) && !defined (_RWSTD_NO_INT_ATOMIC_OPS)
     // MT safe
     // cast __cntr to int& (see STDCXX-792)
     // casting should be removed after fixing STDCXX-794
     if (0 == __cntr && 1 == _RWSTD_ATOMIC_PREINCREMENT (
             _RWSTD_CONST_CAST (int&, __cntr), false))
-#    else
+#    else   // _RWSTD_NO_ATOMIC_OPS || _RWSTD_NO_INT_ATOMIC_OPS
     // not so safe (volatile should help)
     if (0 == __cntr && 1 == ++__cntr)
-#    endif   // _RWSTD_NO_ATOMIC_OPS
+#    endif   // !_RWSTD_NO_ATOMIC_OPS && !_RWSTD_NO_INT_ATOMIC_OPS
 
     {
         // manually initialize `mutex' via a call to placement new
@@ -444,5 +444,26 @@ struct __rw_synchronized
 
 
 #endif   // _RWSTD_REENTRANT
+
+// clean up
+#ifdef _RWSTD_NO_CHAR_ATOMIC_OPS
+#  undef _RWSTD_NO_CHAR_ATOMIC_OPS
+#endif
+
+#ifdef _RWSTD_NO_SHORT_ATOMIC_OPS
+#  undef _RWSTD_NO_SHORT_ATOMIC_OPS
+#endif
+
+#ifdef _RWSTD_NO_INT_ATOMIC_OPS
+#  undef _RWSTD_NO_INT_ATOMIC_OPS
+#endif
+
+#ifdef _RWSTD_NO_LONG_ATOMIC_OPS
+#  undef _RWSTD_NO_LONG_ATOMIC_OPS
+#endif
+
+#ifdef _RWSTD_NO_LLONG_ATOMIC_OPS
+#  undef _RWSTD_NO_LLONG_ATOMIC_OPS
+#endif
 
 #endif   // _RWSTD_RW_MUTEX_H_INCLUDED

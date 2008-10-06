@@ -33,6 +33,10 @@
 // get declarations of __ATOMIC_XXX intrinsics
 #  include <machine/builtins.h>
 
+#define _RWSTD_NO_CHAR_ATOMIC_OPS
+#define _RWSTD_NO_SHORT_ATOMIC_OPS
+#define _RWSTD_NO_LLONG_ATOMIC_OPS
+
 _RWSTD_NAMESPACE (__rw) {
 
 // __ATOMIC_[DE|IN]CREMENT_[LONG|QUAD] and __ATOMIC_EXCH_[LONG|QUAD] are

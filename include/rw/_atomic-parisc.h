@@ -30,6 +30,12 @@
  * 
  **************************************************************************/
 
+#define _RWSTD_NO_CHAR_ATOMIC_OPS
+#define _RWSTD_NO_SHORT_ATOMIC_OPS
+#define _RWSTD_NO_INT_ATOMIC_OPS
+#define _RWSTD_NO_LONG_ATOMIC_OPS
+#define _RWSTD_NO_LLONG_ATOMIC_OPS
+
 _RWSTD_NAMESPACE (__rw) {
     
 extern "C" {
