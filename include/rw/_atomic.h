@@ -58,7 +58,7 @@
 #  elif defined (_PA_RISC2_0)
 #    include <rw/_atomic-parisc.h>
 #  elif defined (__GNUG__) && (__GNUC__ * 100 + __GNUC_MINOR__ >= 401) \
-     && (defined (__i386__) || defined (__x86_64) || defined (__ia64)) \
+     && (defined (__i486__) || defined (__x86_64) || defined (__ia64)) \
      && !defined (__INTEL_COMPILER)                                    \
      || (defined (__INTEL_COMPILER) && defined (__ia64))
 #    include <rw/_atomic-sync.h>

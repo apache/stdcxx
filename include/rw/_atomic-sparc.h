@@ -45,12 +45,12 @@ extern "C" {
 int  __rw_atomic_xchg32 (int*, int);
 int  __rw_atomic_add32 (int*, int);
 
-#  if defined (_LP64)
+#  if defined (__sparcv9) || defined (__sparcv9__)
 
 long __rw_atomic_xchg64 (long*, long);
 long __rw_atomic_add64 (long*, long);
 
-#  endif   // !_LP64
+#  endif
 
 }   // extern "C"
 
