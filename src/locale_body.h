@@ -91,8 +91,6 @@ private:
     // (i.e., one with the same id) in the locale object
     _RWSTD_SIZE_T _C_byname_facet_bits;
 
-    __rw_mutex    _C_mutex;
-
     friend struct _STD::locale;
 
 public:
@@ -163,14 +161,6 @@ public:
 
     static _RWSTD_SIZE_T _C_remove_ref (__rw_facet &__facet) {
         return _RWSTD_ATOMIC_PREDECREMENT (__facet._C_ref, false);
-    }
-
-    _RWSTD_SIZE_T _C_add_ref () {
-        return _RWSTD_ATOMIC_PREINCREMENT (_C_ref, _C_mutex);
-    }
-
-    _RWSTD_SIZE_T _C_remove_ref () {
-        return _RWSTD_ATOMIC_PREDECREMENT (_C_ref, _C_mutex);
     }
 
     // access private facet name
