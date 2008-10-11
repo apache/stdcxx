@@ -23,6 +23,14 @@
 #   <compiler> ::=   acc | compaq | eccp | gcc | icc | icl | mipspro
 #                  | msvc | sunpro | vacpp
 #
+#   <status>   ::= COMP | LINK | EXEC | WARN | DIFF | <signal> | <exit>
+#
+#   where
+#
+#   <signal>   ::= signal name such as SIGABRT, SIGBUS, or SIGSEGV
+#
+#   <exit>     ::= non-zero exit status (between 1 and 126)
+#
 ########################################################################
 
 ########################################################################
