@@ -2,7 +2,7 @@
 *
 * 23.containers.cpp - definitions of helpers used in clause 23 tests
 *
-* $Id: 23.containers.cpp
+* $Id$
 *
 ***************************************************************************
 *
