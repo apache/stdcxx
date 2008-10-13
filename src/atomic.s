@@ -28,9 +28,9 @@
 
 
 #if defined (__i386__)
-#  include "i86/atomic.s"
+#  include "x86/atomic.s"
 #elif defined (__x86_64) || defined (__x86_64__)
-#  include "i86_64/atomic.s"
+#  include "x86_64/atomic.s"
 #elif defined (__ia64) || defined (__ia64__)
 #  if defined (_LP64) || defined (__LP64__)
 #    include "ia64/atomic-64.s"

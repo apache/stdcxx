@@ -386,7 +386,7 @@ void test_erase (T*, Allocator*,
 
                  // assert precondition to silence a bogus HP cadvise
                  // warning #20200-D: Potential null pointer dereference
-                 const ListIter::pointer pres_iter = &*res_iter;
+                 const T* pres_iter = &*res_iter;
                  RW_ASSERT (pres_iter != 0);
 
                  bool success =

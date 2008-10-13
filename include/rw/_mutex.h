@@ -1,7 +1,6 @@
 /***************************************************************************
  *
- * _mutex.h - definitions of classes and inline functions
- *            for thread safety and atomic operations
+ * _mutex.h - definitions of classes for thread safety
  *
  * This is an internal header file used to implement the C++ Standard
  * Library. It should never be #included directly by a program.
@@ -44,316 +43,45 @@
 #endif   // _RWSTD_RW_DEFS_H_INCLUDED
 
 
+#ifndef _RWSTD_RW_ATOMIC_H_INCLUDED
+#  include <rw/_atomic.h>
+#endif   // _RWSTD_RW_ATOMIC_H_INCLUDED
+
+
 #ifdef _RWSTD_REENTRANT
 
-#ifndef _RWSTD_RW_EXCEPTION_H_INCLUDED
-#  include <rw/_exception.h>
-#endif   // _RWSTD_RW_EXCEPTION_INCLUDED
+#  ifndef _RWSTD_RW_EXCEPTION_H_INCLUDED
+#    include <rw/_exception.h>
+#  endif   // _RWSTD_RW_EXCEPTION_INCLUDED
 
-#ifndef _RWSTD_RW_ERROR_H_INCLUDED
-#  include <rw/_error.h>
-#endif   // _RWSTD_RW_ERROR_H_INCLUDED
+#  ifndef _RWSTD_RW_ERROR_H_INCLUDED
+#    include <rw/_error.h>
+#  endif   // _RWSTD_RW_ERROR_H_INCLUDED
 
 
 // work around SunOS 5.{8,9}/SunPro bug (see PR #26255)
-#if defined (__SunOS_5_8) || defined (__SunOS_5_9)
-#  undef _TIME_T
-#endif   // __SunOS_5_{8,9}
+#  if defined (__SunOS_5_8) || defined (__SunOS_5_9)
+#    undef _TIME_T
+#  endif   // __SunOS_5_{8,9}
 
-#if defined (_RWSTD_SOLARIS_THREADS)  // assuming Solaris 2.1 or greater
-
-// SunOS 5.7 Threads Library:
-//   "A statically  allocated  mutex does  not  need to be explicitly
-//   initialized; by default, a statically allocated mutex is initialized
-//   with  all  zeros and its scope is set to be within the calling
-//   process."
-
-#  include <synch.h>
-#  include <thread.h>
-
-#  define _RWSTD_MUTEX_INIT(mutex)      mutex_init (&mutex, USYNC_THREAD, 0)
-#  define _RWSTD_MUTEX_DESTROY(mutex)   mutex_destroy (&mutex)
-#  define _RWSTD_MUTEX_LOCK(mutex)      mutex_lock (&mutex)
-#  define _RWSTD_MUTEX_UNLOCK(mutex)    mutex_unlock (&mutex)
-#  define _RWSTD_MUTEX_T                mutex_t
-
-#elif defined (_RWSTD_POSIX_THREADS)
-
-#  if    defined (_RWSTD_EDG_ECCP) && defined (_RWSTD_OS_LINUX) \
-      && defined (_RWSTD_NO_LONG_LONG)
-     // disable error #450-D: the type "long long" is nonstandard
-     // when using the vanilla EDG eccp in strict mode (i.e., w/o
-     // long long support)
-#    pragma diag_suppress 450
-#  endif   // EDG eccp on Linux
-
-// LinuxThreads man page:
-//   "Variables of type pthread_mutex_t can also be initialized
-//    statically, using the constants  PTHREAD_MUTEX_INITIALIZER
-//    (for fast mutexes), PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP
-//    (for recursive mutexes), and PTHREAD_ERRORCHECK_MUTEX_INI-
-//    TIALIZER_NP (for error checking mutexes)."
-//    ...
-//    "Attempting to initialize an already initialized mutex results
-//    in undefined behavior."
-
-#  include <pthread.h>
-
-#  define _RWSTD_MUTEX_INIT(mutex)      pthread_mutex_init (&mutex, 0)
-#  define _RWSTD_MUTEX_DESTROY(mutex)   pthread_mutex_destroy (&mutex)
-#  define _RWSTD_MUTEX_LOCK(mutex)      pthread_mutex_lock (&mutex)
-#  define _RWSTD_MUTEX_UNLOCK(mutex)    pthread_mutex_unlock (&mutex)
-#  define _RWSTD_MUTEX_T                pthread_mutex_t
-
-#elif defined (_RWSTD_DCE_THREADS)
-
-#  if defined (_RWSTD_NO_DCE_PTHREAD_H)
-#    include <pthread.h>
+#  if defined (_RWSTD_SOLARIS_THREADS)  // assuming Solaris 2.1 or greater
+#    include <rw/_mutex-solaris.h>
+#  elif defined (_RWSTD_POSIX_THREADS)
+#    include <rw/_mutex-pthread.h>
+#  elif defined (_RWSTD_DCE_THREADS)
+#    include <rw/_mutex-dce.h>
+#  elif defined (_WIN32)
+#    include <rw/_mutex-win32.h>
+#  elif defined (__OS2__)
+#    include <rw/_mutex-os2.h>
 #  else
-#    include <dce/pthread.h>
+#    error unknown thread environment
 #  endif
 
-#  define _RWSTD_MUTEX_INIT(mutex) \
-          pthread_mutex_init (&mutex, pthread_mutexattr_default)
-#  define _RWSTD_MUTEX_DESTROY(mutex)   pthread_mutex_destroy (&mutex)
-#  define _RWSTD_MUTEX_LOCK(mutex)      pthread_mutex_lock (&mutex)
-#  define _RWSTD_MUTEX_UNLOCK(mutex)    pthread_mutex_unlock (&mutex)
-#  define _RWSTD_MUTEX_T                pthread_mutex_t
 
-#elif defined (_WIN32)
-
-#  ifdef __MINGW32__
-#    define _RWSTD_CRITICAL_SECTION _CRITICAL_SECTION
-#  else
-#    define _RWSTD_CRITICAL_SECTION _RTL_CRITICAL_SECTION
-#  endif
-
-#  ifdef _RWSTD_NO_FWD_DECLARATIONS
-
-     // #including <windows.h> without WIN32_LEAN_AND_MEAN macro defined
-     // may cause an errors "WinSock.h has already been included"
-     // when <winsock2.h> has been included after this header
-#    include <windows.h>
-#    define _RWSTD_MUTEX_T _RWSTD_CRITICAL_SECTION
-
-#  else   // if !defined (_RWSTD_NO_FWD_DECLARATIONS)
-
-   // avoid #including this header (MFC doesn't like it)
-   // #  include <windows.h>
-
-extern "C" {
-
-// but rather declare these globals here
-struct _RWSTD_CRITICAL_SECTION;
-
-__declspec (dllimport) void __stdcall
-InitializeCriticalSection (_RWSTD_CRITICAL_SECTION*);
-
-__declspec (dllimport) void __stdcall
-EnterCriticalSection (_RWSTD_CRITICAL_SECTION*);
-
-__declspec (dllimport) void __stdcall
-LeaveCriticalSection (_RWSTD_CRITICAL_SECTION*);
-
-__declspec (dllimport) void __stdcall
-DeleteCriticalSection (_RWSTD_CRITICAL_SECTION*);
-
-#    if defined (_RWSTD_INTERLOCKED_T) && !defined (_MSC_VER)
-
-__declspec (dllimport) long __stdcall
-InterlockedIncrement (_RWSTD_INTERLOCKED_T*);
-
-__declspec (dllimport) long __stdcall
-InterlockedDecrement (_RWSTD_INTERLOCKED_T*);
-
-__declspec (dllimport) long __stdcall
-InterlockedExchange (_RWSTD_INTERLOCKED_T*, long);
-
-#    endif   // _RWSTD_INTERLOCKED_T && !_MSC_VER
-
-}   // extern "C"
-
-_RWSTD_NAMESPACE (__rw) { 
-
-// fake critical section type
-union __rw_critical_section {
-    long _C_pad;   // force alignment
-
-#    ifndef _WIN64
-    char _C_buf [24 /* == sizeof (_RTL_CRITICAL_SECTION) */];
-#    else    // #ifdef _WIN64
-    char _C_buf [40 /* == sizeof (_RTL_CRITICAL_SECTION) */];
-#    endif   // _WIN64
-};
-
-#    define _RWSTD_MUTEX_T _RW::__rw_critical_section
-
-}   // namespace __rw
-
-
-#  endif   // _RWSTD_NO_FWD_DECLARATIONS
-
-#  ifdef _MSC_VER
-extern "C" long __cdecl _InterlockedIncrement (volatile long*);
-extern "C" long __cdecl _InterlockedDecrement (volatile long*);
-extern "C" long __cdecl _InterlockedExchange (volatile long*, long);
-#    ifdef _RWSTD_MSVC
-#      pragma intrinsic (_InterlockedIncrement)
-#      pragma intrinsic (_InterlockedDecrement)
-#      pragma intrinsic (_InterlockedExchange)
-#    endif   // _RWSTD_MSVC
-
-#    if defined (_RWSTD_MSVC) && _RWSTD_MSVC >= 1400
-extern "C" short __cdecl _InterlockedIncrement16 (volatile short*);
-extern "C" short __cdecl _InterlockedDecrement16 (volatile short*);
-#      pragma intrinsic (_InterlockedIncrement16)
-#      pragma intrinsic (_InterlockedDecrement16)
-#    endif   // _RWSTD_MSVC >= 1400
-
-#    ifdef _M_X64
-extern "C" long long __cdecl _InterlockedIncrement64 (volatile long long*);
-extern "C" long long __cdecl _InterlockedDecrement64 (volatile long long*);
-extern "C" long long __cdecl _InterlockedExchange64 (volatile long long*,
-                                                     long long);
-#      ifdef _RWSTD_MSVC
-#        pragma intrinsic (_InterlockedIncrement64)
-#        pragma intrinsic (_InterlockedDecrement64)
-#        pragma intrinsic (_InterlockedExchange64)
-#      endif   // _RWSTD_MSVC
-#    endif   // _M_X64
-#  elif defined (_RWSTD_INTERLOCKED_T)
-
-inline long _InterlockedIncrement (volatile long *__x)
-{
-    return InterlockedIncrement (
-        _RWSTD_CONST_CAST (_RWSTD_INTERLOCKED_T*, __x));
-}
-
-inline long _InterlockedDecrement (volatile long *__x)
-{
-    return InterlockedDecrement (
-        _RWSTD_CONST_CAST (_RWSTD_INTERLOCKED_T*, __x));
-}
-
-inline long _InterlockedExchange (volatile long *__x, long __y)
-{
-    return InterlockedExchange (
-        _RWSTD_CONST_CAST (_RWSTD_INTERLOCKED_T*, __x), __y);
-}
-
-#  endif   // _MSC_VER
-
-
-_RWSTD_NAMESPACE (__rw) { 
-
-#  ifndef _MSC_VER
-#    define __try               if (1)
-#    define __except(ignore)    else if (0)
-#  endif   // _MSC_VER
-
-// Win32/64 throws non-C++ exceptions rather than returning error status
-// from some system calls like most other operating systems do
-
-inline int __rw_mutex_init (_RWSTD_CRITICAL_SECTION *__mutex)
-{
-    __try {
-        InitializeCriticalSection (__mutex);
-    }
-    __except (1) {
-        return -1;
-    }
-    return 0;
-}
-
-inline int __rw_mutex_destroy (_RWSTD_CRITICAL_SECTION *__mutex)
-{
-    __try {
-        DeleteCriticalSection (__mutex);
-    }
-    __except (1) {
-        return -1;
-    }
-    return 0;
-}
-
-inline int __rw_mutex_lock (_RWSTD_CRITICAL_SECTION *__mutex)
-{
-    __try {
-        EnterCriticalSection (__mutex);
-    }
-    __except (1) {
-        return -1;
-    }
-    return 0;
-}
-
-inline int __rw_mutex_unlock (_RWSTD_CRITICAL_SECTION *__mutex)
-{
-    __try {
-        LeaveCriticalSection (__mutex);
-    }
-    __except (1) {
-        return -1;
-    }
-    return 0;
-}
-
-#  define _RWSTD_MUTEX_INIT(mutex)      \
-   __rw_mutex_init (_RWSTD_REINTERPRET_CAST (_RWSTD_CRITICAL_SECTION*, &mutex))
-#  define _RWSTD_MUTEX_DESTROY(mutex)   \
-   __rw_mutex_destroy (_RWSTD_REINTERPRET_CAST (_RWSTD_CRITICAL_SECTION*, &mutex))
-#  define _RWSTD_MUTEX_LOCK(mutex)      \
-   __rw_mutex_lock (_RWSTD_REINTERPRET_CAST (_RWSTD_CRITICAL_SECTION*, &mutex))
-#  define _RWSTD_MUTEX_UNLOCK(mutex)    \
-   __rw_mutex_unlock (_RWSTD_REINTERPRET_CAST (_RWSTD_CRITICAL_SECTION*, &mutex))
-
-#  ifndef _MSC_VER
-#    undef __try
-#    undef __except
-#  endif   // _MSC_VER
-
-}   // namespace __rw
-
-#elif defined (__OS2__)
-
-#  define INCL_DOSSEMAPHORES
-
-#  include <os2.h>
-
-#  define _RWSTD_MUTEX_INIT(mutex) \
-          DosCreateMutexSem (0, &mutex, DC_SEM_SHARED,FALSE)
-#  define _RWSTD_MUTEX_DESTROY(mutex)   DosCloseMutexSem (mutex)
-#  define _RWSTD_MUTEX_LOCK(mutex) \
-          DosRequestMutexSem (mutex, SEM_INDEFINITE_WAIT)
-#  define _RWSTD_MUTEX_UNLOCK(mutex)    DosReleaseMutexSem (mutex)
-#  define _RWSTD_MUTEX_T                HMTX
-
-#else
-#  error unknown thread environment
-#endif
-
-#if defined(_RWSTD_NO_STATIC_MUTEX_INIT)
-#  include <new>
-#endif  //_RWSTD_NO_STATIC_MUTEX_INIT
-
-
-#if defined (__GNUG__) && defined (__osf__)
-   // prevent g++ warnings about missing initializers
-   // see <pthread.h> for explanation of _PTHREAD_NOMETER_STATIC
-#  ifndef _PTHREAD_NOMETER_STATIC
-#    define _RWSTD_PTHREAD_MUTEX_INITIALIZER \
-            { _PTHREAD_MSTATE_SLOW, _PTHREAD_MVALID | _PTHREAD_MVF_STA, \
-              0, 0, 0, 0, 0, 0 }
-#  else   // if defined (_PTHREAD_NOMETER_STATIC)
-#    define _RWSTD_PTHREAD_MUTEX_INITIALIZER
-            { 0, _PTHREAD_MVALID | _PTHREAD_MVF_STA, 0, 0, 0, 0, 0, 0 }
-#  endif   // _PTHREAD_NOMETER_STATIC
-#elif defined (__GNUG__) && defined (__sgi__)
-   // prevent g++ warnings about a partly bracketed initializer
-#  define _RWSTD_PTHREAD_MUTEX_INITIALIZER { PTHREAD_MUTEX_INITIALIZER }
-#else
-#  define _RWSTD_PTHREAD_MUTEX_INITIALIZER PTHREAD_MUTEX_INITIALIZER
-#endif
+#  if defined(_RWSTD_NO_STATIC_MUTEX_INIT)
+#    include <new>
+#  endif  //_RWSTD_NO_STATIC_MUTEX_INIT
 
 
 _RWSTD_NAMESPACE (__rw) { 
@@ -382,19 +110,19 @@ class _RWSTD_EXPORT __rw_mutex_base
 public:
 
     void _C_acquire () {
-#if !defined (__HP_aCC) || __HP_aCC > 32700
+#  if !defined (__HP_aCC) || __HP_aCC > 32700
         if (0 != _RWSTD_MUTEX_LOCK (_C_mutex))
             _RW::__rw_throw (_RWSTD_ERROR_RUNTIME_ERROR,
                              "synchronization error");
-#else
+#  else
         // working around an HP aCC 3.27 bug JAGac88738
         _RWSTD_MUTEX_LOCK (_C_mutex);
-#endif   // !defined (__HP_aCC) || __HP_aCC > 32700
+#  endif   // !defined (__HP_aCC) || __HP_aCC > 32700
     }
 
     void _C_release ();
 
-#ifdef _RWSTD_NO_STATIC_MUTEX_INIT
+#  ifdef _RWSTD_NO_STATIC_MUTEX_INIT
 
     // static initialization not an option, define ctor and dtor
     // and make member mutex private
@@ -409,7 +137,7 @@ private:
     __rw_mutex_base (const __rw_mutex_base&);
     __rw_mutex_base& operator= (const __rw_mutex_base&);
 
-#endif   // _RWSTD_NO_STATIC_MUTEX_INIT
+#  endif   // _RWSTD_NO_STATIC_MUTEX_INIT
 
     _RWSTD_MUTEX_T _C_mutex;   // the real thing
 };
@@ -429,7 +157,7 @@ class _RWSTD_EXPORT __rw_mutex: public __rw_mutex_base
 {
 public:
 
-#ifndef _RWSTD_NO_STATIC_MUTEX_INIT
+#  ifndef _RWSTD_NO_STATIC_MUTEX_INIT
 
     __rw_mutex ();
 
@@ -441,12 +169,12 @@ private:
     __rw_mutex (const __rw_mutex&);
     __rw_mutex& operator= (const __rw_mutex&);
 
-#endif   // _RWSTD_NO_STATIC_MUTEX_INIT
+#  endif   // _RWSTD_NO_STATIC_MUTEX_INIT
 
 };
 
 
-#ifndef _RWSTD_NO_STATIC_MUTEX_INIT
+#  ifndef _RWSTD_NO_STATIC_MUTEX_INIT
 
 // helper factory class - static member is guranteed to be constructed
 // during static initialization; objects of this POD class are not
@@ -462,14 +190,15 @@ struct __rw_static_mutex
 template <class _TypeT>
 __rw_mutex_base __rw_static_mutex<_TypeT>::_C_mutex
 
-#ifdef _RWSTD_POSIX_THREADS
+#    ifdef _RWSTD_MUTEX_INITIALIZER
 
-    = { _RWSTD_PTHREAD_MUTEX_INITIALIZER }
+    = { _RWSTD_MUTEX_INITIALIZER }
 
-#endif   // _RWSTD_POSIX_THREADS
+#      undef _RWSTD_MUTEX_INITIALIZER
+#    endif   // _RWSTD_MUTEX_INITIALIZER
         ;
 
-#if _RWSTD_INSTANTIATE (_STATIC_MUTEX, _INT)
+#    if _RWSTD_INSTANTIATE (_STATIC_MUTEX, _INT)
 
 // explicitly instantiated to work around a g++ 2.95.2 bug on COFF systems
 // (such as IBM AIX or DEC OSF1) where it "forgets" to do so implicitly for
@@ -477,30 +206,30 @@ __rw_mutex_base __rw_static_mutex<_TypeT>::_C_mutex
 _RWSTD_INSTANTIATE_1 (class _RWSTD_TI_EXPORT __rw_static_mutex<int>);
 _RWSTD_INSTANTIATE_1 (class _RWSTD_TI_EXPORT __rw_static_mutex<size_t>);
 
-#endif   // _RWSTD_INSTANTIATE (_STATIC_MUTEX, _INT)
+#    endif   // _RWSTD_INSTANTIATE (_STATIC_MUTEX, _INT)
 
 
 inline __rw_mutex::__rw_mutex ()
 
-#else   // if defined (_RWSTD_NO_STATIC_MUTEX_INIT)
+#  else   // if defined (_RWSTD_NO_STATIC_MUTEX_INIT)
 
 inline __rw_mutex_base::__rw_mutex_base ()
 
-#endif   // _RWSTD_NO_STATIC_MUTEX_INIT
+#  endif   // _RWSTD_NO_STATIC_MUTEX_INIT
 { 
     if (0 != _RWSTD_MUTEX_INIT (_C_mutex))
         _RW::__rw_throw (_RWSTD_ERROR_RUNTIME_ERROR, "synchronization error");
 }
 
-#ifndef _RWSTD_NO_STATIC_MUTEX_INIT
+#  ifndef _RWSTD_NO_STATIC_MUTEX_INIT
 
 inline __rw_mutex::~__rw_mutex () 
 
-#else   // if defined (_RWSTD_NO_STATIC_MUTEX_INIT)
+#  else   // if defined (_RWSTD_NO_STATIC_MUTEX_INIT)
 
 inline __rw_mutex_base::~__rw_mutex_base () 
 
-#endif   // _RWSTD_NO_STATIC_MUTEX_INIT
+#  endif   // _RWSTD_NO_STATIC_MUTEX_INIT
 {
     _RWSTD_MUTEX_DESTROY (_C_mutex);
 }
@@ -516,7 +245,7 @@ template<class _TypeT, int _IntI> struct __rw_type { };
 // function with a ptr to that type to obtain an initialized mutex object
 // that is the same for each unique type passed to the function
 
-#ifndef _RWSTD_NO_STATIC_MUTEX_INIT
+#  ifndef _RWSTD_NO_STATIC_MUTEX_INIT
 
 template <class _TypeT>
 inline
@@ -526,20 +255,20 @@ __rw_mutex_base& __rw_get_static_mutex (_TypeT*)
     return __rw_static_mutex<_TypeT>::_C_mutex;
 }
 
-#else   // if defined (_RWSTD_NO_STATIC_MUTEX_INIT)
+#  else   // if defined (_RWSTD_NO_STATIC_MUTEX_INIT)
 
-#ifdef _INLINE_WITH_STATICS
+#    ifdef _INLINE_WITH_STATICS
 
 template <class _TypeT>
 _INLINE_WITH_STATICS
 __rw_mutex_base& __rw_get_static_mutex (_TypeT*)
 
-#else    // if !defined (_INLINE_WITH_STATICS)
+#    else    // if !defined (_INLINE_WITH_STATICS)
 
 template <class _TypeT>
 __rw_mutex_base& __rw_get_static_mutex (_TypeT*)
 
-#endif   // _INLINE_WITH_STATICS
+#    endif   // _INLINE_WITH_STATICS
 
 {
     // allocate properly aligned memory for static mutex (necessary
@@ -564,15 +293,18 @@ __rw_mutex_base& __rw_get_static_mutex (_TypeT*)
     // implicit initialization used to prevent a g++ 2.95.2 warning on Tru64
     // sorry: semantics of inline function static data are wrong (you'll wind
     // up with multiple copies)
-    static volatile long __cntr /* = 0 */;   // initialization counter
+    static volatile int __cntr /* = 0 */;   // initialization counter
 
-#if defined (_WIN32)
+#    if !defined (_RWSTD_NO_ATOMIC_OPS) && !defined (_RWSTD_NO_INT_ATOMIC_OPS)
     // MT safe
-    if (0 == __cntr && 1 == _InterlockedIncrement ((long*)&__cntr))
-#else
+    // cast __cntr to int& (see STDCXX-792)
+    // casting should be removed after fixing STDCXX-794
+    if (0 == __cntr && 1 == _RWSTD_ATOMIC_PREINCREMENT (
+            _RWSTD_CONST_CAST (int&, __cntr), false))
+#    else   // _RWSTD_NO_ATOMIC_OPS || _RWSTD_NO_INT_ATOMIC_OPS
     // not so safe (volatile should help)
     if (0 == __cntr && 1 == ++__cntr)
-#endif   // _WIN32
+#    endif   // !_RWSTD_NO_ATOMIC_OPS && !_RWSTD_NO_INT_ATOMIC_OPS
 
     {
         // manually initialize `mutex' via a call to placement new
@@ -589,13 +321,13 @@ __rw_mutex_base& __rw_get_static_mutex (_TypeT*)
     return __mutex;
 }
 
-#endif   //_RWSTD_NO_STATIC_MUTEX_INIT
+#  endif   //_RWSTD_NO_STATIC_MUTEX_INIT
 
 
 // clean up
-#undef _RWSTD_MUTEX_LOCK
-#undef _RWSTD_MUTEX_UNLOCK
-#undef _RWSTD_MUTEX_T
+#  undef _RWSTD_MUTEX_LOCK
+#  undef _RWSTD_MUTEX_UNLOCK
+#  undef _RWSTD_MUTEX_T
 
 
 // allows safe use of a mutex in the presence of exceptions
@@ -653,1478 +385,18 @@ struct _RWSTD_EXPORT __rw_synchronized
     }
 };
 
-
-// helper functions for atomic value [in|de]crement and exchange
-// the functions are atomic with respect to each other as long as
-// they are passed the same mutex by the callers
-template <class _TypeT>
-inline
-_TypeT __rw_atomic_preincrement (_TypeT &__t, __rw_mutex_base &__mutex)
-{
-    _RWSTD_MT_GUARD (__mutex);
-
-    return ++__t;
-}
-
-
-template <class _TypeT>
-inline
-_TypeT __rw_atomic_predecrement (_TypeT &__t, __rw_mutex_base &__mutex)
-{
-    _RWSTD_MT_GUARD (__mutex);
-
-    return --__t;
-}
-
-
-template <class _TypeT, class _TypeU>
-inline
-_TypeT __rw_atomic_exchange (_TypeT &__t, const _TypeU &__u,
-                             __rw_mutex_base &__mutex)
-{
-    _RWSTD_MT_GUARD (__mutex);
-
-    _TypeT __tmp = __t;
-
-#ifndef _WIN64
-    __t = __u;
-#else
-    // silence MSVC conversion warnings (cast breaks SunPro 5.3 and prior)
-    __t = _RWSTD_STATIC_CAST (_TypeT, __u);
-#endif
-
-    return __tmp;
-}
-
-
-// for use on class statics or on namespace-scope variables
-// the unused argument is only here so that all functions
-// can be called from the same set of macros
-
-template <class _TypeT>
-inline
-_TypeT __rw_atomic_preincrement (_TypeT &__t, bool)
-{
-    return __rw_atomic_preincrement (__t,
-                                     __rw_get_static_mutex ((_TypeT*)0));
-}
-
-
-template <class _TypeT>
-inline
-_TypeT __rw_atomic_predecrement (_TypeT &__t, bool)
-{
-    return __rw_atomic_predecrement (__t,
-                                     __rw_get_static_mutex ((_TypeT*)0));
-}
-
-
-template <class _TypeT, class _TypeU>
-inline
-_TypeT __rw_atomic_exchange (_TypeT &__t, const _TypeU &__u, bool)
-{
-    return __rw_atomic_exchange (__t, __u,
-                                 __rw_get_static_mutex ((_TypeT*)0));
-}
-
-/********************** no atomic ops ********************************/
-
-#if defined (_RWSTD_NO_ATOMIC_OPS)
-
-// do nothing
-
-/********************** DEC CXX **************************************/
-
-#elif defined (__DECCXX)
-
 }   // namespace __rw
 
-// get declarations of __ATOMIC_XXX intrinsics
-#  include <machine/builtins.h>
 
-_RWSTD_NAMESPACE (__rw) {
-
-// __ATOMIC_[DE|IN]CREMENT_[LONG|QUAD] and __ATOMIC_EXCH_[LONG|QUAD] are
-// intrinsic functions declared in <machine/builtins.h> that atomically
-// modify their argument and return its original value (__ATOMIC_XXX_LONG
-// is misnamed -- it actually operates on an int, not a long)
-
-inline int
-__rw_atomic_preincrement (int &__x, bool)
-{
-    return 1 + __ATOMIC_INCREMENT_LONG (&__x);
-}
-
-
-inline unsigned
-__rw_atomic_preincrement (unsigned &__x, bool)
-{
-    return __rw_atomic_preincrement (_RWSTD_REINTERPRET_CAST (int&, __x),
-                                     false);
-}
-
-
-inline long
-__rw_atomic_preincrement (long &__x, bool)
-{
-    return 1 + __ATOMIC_INCREMENT_QUAD (&__x);
-}
-
-
-inline unsigned long
-__rw_atomic_preincrement (unsigned long &__x, bool)
-{
-    return __rw_atomic_preincrement (_RWSTD_REINTERPRET_CAST (long&, __x),
-                                     false);
-}
-
-
-inline int
-__rw_atomic_predecrement (int &__x, bool)
-{
-    return __ATOMIC_DECREMENT_LONG (&__x) - 1;
-}
-
-
-inline unsigned
-__rw_atomic_predecrement (unsigned &__x, bool)
-{
-    return __rw_atomic_predecrement (_RWSTD_REINTERPRET_CAST (int&, __x),
-                                     false);
-}
-
-
-inline long
-__rw_atomic_predecrement (long &__x, bool)
-{
-    return __ATOMIC_DECREMENT_QUAD (&__x) - 1;
-}
-
-
-inline unsigned long
-__rw_atomic_predecrement (unsigned long &__x, bool)
-{
-    return __rw_atomic_predecrement (_RWSTD_REINTERPRET_CAST (long&, __x),
-                                     false);
-}
-
-
-inline int
-__rw_atomic_exchange (int &__x, int __y, bool)
-{
-    return __ATOMIC_EXCH_LONG (&__x, __y);
-}
-
-
-inline unsigned
-__rw_atomic_exchange (unsigned &__x, unsigned __y, bool)
-{
-    return __rw_atomic_exchange (_RWSTD_REINTERPRET_CAST (unsigned&, __x),
-                                 _RWSTD_STATIC_CAST (int, __y), false);
-}
-
-
-inline long
-__rw_atomic_exchange (long &__x, long __y, bool)
-{
-    return __ATOMIC_EXCH_QUAD (&__x, __y);
-}
-
-
-inline unsigned long
-__rw_atomic_exchange (unsigned long &__x, unsigned long __y, bool)
-{
-    return __rw_atomic_exchange (_RWSTD_REINTERPRET_CAST (long&, __x),
-                                 _RWSTD_STATIC_CAST (long, __y), false);
-}
-
-/********************** SPARC **************************************/
-
-#elif defined (__sparc) && (defined (__SUNPRO_CC) || defined (__GNUG__))
-
-extern "C" {
-
-// define in assembler file "atomic-sparc.s" and "atomic-sparc64.s"
-// exchange returns the original value, and add returns the incremented
-// value
-
-int  __rw_atomic_xchg32 (int*, int);
-int  __rw_atomic_add32 (int*, int);
-
-#  if defined (_LP64)
-
-long __rw_atomic_xchg64 (long*, long);
-long __rw_atomic_add64 (long*, long);
-
-#  endif   // !_LP64
-
-}   // extern "C"
-
-
-inline int
-__rw_atomic_preincrement (int &__x, bool)
-{
-    _RWSTD_COMPILE_ASSERT (4 == sizeof (int));
-    return __rw_atomic_add32 (&__x, 1);
-}
-
-
-inline unsigned
-__rw_atomic_preincrement (unsigned &__x, bool)
-{
-    _RWSTD_COMPILE_ASSERT (4 == sizeof (unsigned));
-    return __rw_atomic_add32 (_RWSTD_REINTERPRET_CAST (int*, &__x), 1);
-}
-
-
-inline int
-__rw_atomic_predecrement (int &__x, bool)
-{
-    _RWSTD_COMPILE_ASSERT (4 == sizeof (int));
-    return __rw_atomic_add32 (&__x, -1);
-}
-
-
-inline unsigned
-__rw_atomic_predecrement (unsigned &__x, bool)
-{
-    _RWSTD_COMPILE_ASSERT (4 == sizeof (unsigned));
-    return __rw_atomic_add32 (_RWSTD_REINTERPRET_CAST (int*, &__x), -1);
-}
-
-
-inline int
-__rw_atomic_exchange (int &__x, int __y, bool)
-{
-    _RWSTD_COMPILE_ASSERT (4 == sizeof (int));
-    return __rw_atomic_xchg32 (&__x, __y);
-}
-
-
-inline unsigned
-__rw_atomic_exchange (unsigned &__x, unsigned __y, bool)
-{
-    _RWSTD_COMPILE_ASSERT (4 == sizeof (unsigned));
-    return __rw_atomic_xchg32 (_RWSTD_REINTERPRET_CAST (int*, &__x),
-                               _RWSTD_STATIC_CAST (int, __y));
-}
-
-#  if _RWSTD_INT_SIZE < _RWSTD_LONG_SIZE
-
-inline long
-__rw_atomic_preincrement (long &__x, bool)
-{
-    _RWSTD_COMPILE_ASSERT (8 == sizeof (long));
-    return __rw_atomic_add64 (&__x, 1);
-}
-
-
-inline unsigned long
-__rw_atomic_preincrement (unsigned long &__x, bool)
-{
-    _RWSTD_COMPILE_ASSERT (8 == sizeof (unsigned long));
-    return __rw_atomic_add64 (_RWSTD_REINTERPRET_CAST (long*, &__x), 1);
-}
-
-
-
-inline long
-__rw_atomic_predecrement (long &__x, bool)
-{
-    _RWSTD_COMPILE_ASSERT (8 == sizeof (long));
-    return __rw_atomic_add64 (&__x, -1);
-}
-
-
-inline unsigned long
-__rw_atomic_predecrement (unsigned long &__x, bool)
-{
-    _RWSTD_COMPILE_ASSERT (8 == sizeof (unsigned long));
-    return __rw_atomic_add64 (_RWSTD_REINTERPRET_CAST (long*, &__x), -1);
-}
-
-
-inline long
-__rw_atomic_exchange (long &__x, long __y, bool)
-{
-    _RWSTD_COMPILE_ASSERT (8 == sizeof (long));
-    return __rw_atomic_xchg64 (&__x, __y);
-}
-
-
-inline unsigned long
-__rw_atomic_exchange (unsigned long &__x, unsigned long __y, bool)
-{
-    _RWSTD_COMPILE_ASSERT (8 == sizeof (unsigned long));
-    return __rw_atomic_xchg64 (_RWSTD_REINTERPRET_CAST (long*, &__x),
-                               _RWSTD_STATIC_CAST (long, __y));
-}
-
-#  endif   // _RWSTD_INT_SIZE < _RWSTD_LONG_SIZE
-
-/********************** AIX **************************************/
-
-#elif defined (_AIX43) && defined (__IBMCPP__)
-
-}   // namespace __rw
-
-#include <sys/atomic_op.h>
-
-_RWSTD_NAMESPACE (__rw) {
-
-inline int
-__rw_atomic_preincrement (int &__x, bool)
-{
-    return fetch_and_add (&__x, 1) + 1;
-}
-
-
-inline unsigned
-__rw_atomic_preincrement (unsigned &__x, bool)
-{
-    return __rw_atomic_preincrement (_RWSTD_REINTERPRET_CAST (int&, __x),
-                                     false);
-}
-
-
-inline int
-__rw_atomic_predecrement (int &__x, bool)
-{
-    return fetch_and_add(&__x,-1) - 1;
-}
-
-
-inline unsigned
-__rw_atomic_predecrement (unsigned &__x, bool)
-{
-    return __rw_atomic_predecrement (_RWSTD_REINTERPRET_CAST (int&, __x),
-                                     false);
-}
-
-
-inline int
-__rw_atomic_exchange (int &__x, int __y, bool)
-{
-    int __tmp;
-
-    do {
-        __tmp = __x;
-    } while (!compare_and_swap (&__x, &__tmp, __y));
-
-    return __tmp;
-}
-
-
-inline unsigned
-__rw_atomic_exchange (unsigned &__x, unsigned __y, bool)
-{
-    return __rw_atomic_exchange (_RWSTD_REINTERPRET_CAST (int&, __x),
-                                 _RWSTD_STATIC_CAST (int, __y), false);
-}
-
-
-#  if _RWSTD_INT_SIZE < _RWSTD_LONG_SIZE
-
-inline long
-__rw_atomic_preincrement (long &__x, bool)
-{
-    return fetch_and_addlp (&__x, 1) + 1;
-}
-
-
-inline unsigned long
-__rw_atomic_preincrement (unsigned long &__x, bool)
-{
-  return __rw_atomic_preincrement (_RWSTD_REINTERPRET_CAST (long&, __x),
-                                   false);
-}
-
-
-inline long
-__rw_atomic_predecrement (long &__x, bool)
-{
-    return fetch_and_addlp (&__x, -1) - 1;
-}
-
-
-inline unsigned long
-__rw_atomic_predecrement (unsigned long &__x, bool)
-{
-    return __rw_atomic_predecrement (_RWSTD_REINTERPRET_CAST (long&, __x),
-                                     false);
-}
-
-
-inline long
-__rw_atomic_exchange (long &__x, long __y, bool)
-{
-    long __tmp;
-
-    do {
-        __tmp = __x;
-    } while (!compare_and_swaplp (&__x, &__tmp, __y));
-
-    return __tmp;
-}
-
-
-inline unsigned long
-__rw_atomic_exchange (unsigned long &__x, unsigned long __y, bool)
-{
-    return __rw_atomic_exchange (_RWSTD_REINTERPRET_CAST (long&, __x),
-                                 _RWSTD_STATIC_CAST (long, __y), false);
-}
-
-#  endif   // _RWSTD_INT_SIZE < _RWSTD_LONG_SIZE
-
-
-/********************** SGI **************************************/
-
-#elif defined (__sgi) && defined (__host_mips)
-
-}   // namespace __rw
-
-#  include <mutex.h>
-
-_RWSTD_NAMESPACE (__rw) {
-
-
-inline unsigned
-__rw_atomic_preincrement (unsigned &__x, bool)
-{
-    return __add_then_test32 (&__x, 1U);
-}
-
-
-inline int
-__rw_atomic_preincrement (int &__x, bool)
-{
-    return __rw_atomic_preincrement (_RWSTD_REINTERPRET_CAST (unsigned&, __x),
-                                     false);
-}
-
-
-inline unsigned
-__rw_atomic_predecrement (unsigned &__x, bool)
-{
-    return __add_then_test32 (&__x, unsigned (-1));
-}
-
-
-inline int
-__rw_atomic_predecrement (int &__x, bool)
-{
-    return __rw_atomic_predecrement (_RWSTD_REINTERPRET_CAST (unsigned &, __x),
-                                     false);
-}
-
-
-inline unsigned
-__rw_atomic_exchange (unsigned &__x, unsigned __y, bool)
-{
-    return __test_and_set32 (&__x, __y);
-}
-
-
-inline int
-__rw_atomic_exchange (int &__x, int __y, bool)
-{
-    return __rw_atomic_exchange (_RWSTD_REINTERPRET_CAST (unsigned int&, __x),
-                                 _RWSTD_STATIC_CAST (unsigned int, __y), false);
-}
-
-
-#  if _RWSTD_INT_SIZE < _RWSTD_LONG_SIZE
-
-inline unsigned long
-__rw_atomic_preincrement (unsigned long &__x, bool)
-{
-    return __add_then_test (&__x, 1);
-}
-
-
-inline long
-__rw_atomic_preincrement (long &__x, bool)
-{
-    return __rw_atomic_preincrement (_RWSTD_REINTERPRET_CAST(unsigned long&,
-                                                             __x),
-                                     false);
-}
-
-inline unsigned long
-__rw_atomic_predecrement (unsigned long &__x, bool)
-{
-    return __add_then_test (&__x, -1);
-}
-
-
-inline long
-__rw_atomic_predecrement (long &__x, bool)
-{
-    return __rw_atomic_predecrement (_RWSTD_REINTERPRET_CAST (unsigned long&,
-                                                              __x),
-                                     false);
-}
-
-
-inline unsigned long
-__rw_atomic_exchange (unsigned long &__x, unsigned long __y, bool)
-{
-    return __test_and_set (&__x, __y);
-}
-
-
-inline long
-__rw_atomic_exchange (long &__x, long __y, bool)
-{
-    return __rw_atomic_exchange (_RWSTD_REINTERPRET_CAST (unsigned long&, __x),
-                                 _RWSTD_STATIC_CAST (unsigned long, __y),
-                                 false);
-}
-
-#  endif   // _RWSTD_INT_SIZE < _RWSTD_LONG_SIZE
-
-/********************** PA-RISC 2.0 ************************************/
-
-#elif defined (_PA_RISC2_0)
-
-extern "C" {
-
-// special constraint: the value of both the argument and the result
-// must not be zero
-
-int __rw_atomic_incr32 (int*);
-int __rw_atomic_decr32 (int*);
-int __rw_atomic_xchg32 (int*, int);
-
-}   // extern "C"
-
-
-inline int
-__rw_string_atomic_preincrement (int &__x, bool)
-{
-    return  __rw_atomic_incr32 (&__x);
-}
-
-
-inline unsigned
-__rw_string_atomic_preincrement (unsigned &__x, bool)
-{
-  
-    return __rw_atomic_preincrement (_RWSTD_REINTERPRET_CAST(int&, __x),
-                                     false);
-}
-
-
-inline int
-__rw_string_atomic_predecrement (int &__x, bool)
-{
-    return  __rw_atomic_decr32 (&__x);
-}
-
-
-inline unsigned
-__rw_string_atomic_predecrement (unsigned &__x, bool)
-{
-  
-    return __rw_atomic_predecrement (_RWSTD_REINTERPRET_CAST(int&, __x),
-                                     false);
-}
-
-
-inline int
-__rw_string_atomic_exchange (int &__x, int __y, bool)
-{
-    return __rw_atomic_xchg32 (&__x, __y);
-}
-
-
-inline unsigned
-__rw_string_atomic_exchange (unsigned &__x, unsigned __y, bool)
-{
-    return __rw_string_atomic_exchange (_RWSTD_REINTERPRET_CAST(int&, __x),
-                                        _RWSTD_STATIC_CAST(int,__y),
-                                        false);
-} 
-
-/********************** i386/gcc || _M_IX86 *********************************/
-
-#elif defined (__i386__) && (defined (__GNUG__) \
-   || defined (__INTEL_COMPILER)) || defined (_M_IX86)
-
-extern "C" {
-
-_RWSTD_EXPORT char __rw_atomic_add8 (char*, int);
-_RWSTD_EXPORT short __rw_atomic_add16 (short*, short);
-_RWSTD_EXPORT int __rw_atomic_add32 (int*, int);
-
-_RWSTD_EXPORT char __rw_atomic_xchg8 (char*, char);
-_RWSTD_EXPORT short __rw_atomic_xchg16 (short*, short);
-_RWSTD_EXPORT int __rw_atomic_xchg32 (int*, int);
-
-}   // extern "C"
-
-
-inline char
-__rw_atomic_preincrement (char &__x, bool)
-{
-    _RWSTD_COMPILE_ASSERT (1 == sizeof (char));
-    return __rw_atomic_add8 (&__x, +1);
-}
-
-
-inline signed char
-__rw_atomic_preincrement (signed char &__x, bool)
-{
-    _RWSTD_COMPILE_ASSERT (1 == sizeof (signed char));
-    return __rw_atomic_add8 (_RWSTD_REINTERPRET_CAST (char*, &__x), +1);
-}
-
-
-inline unsigned char
-__rw_atomic_preincrement (unsigned char &__x, bool)
-{
-    _RWSTD_COMPILE_ASSERT (1 == sizeof (unsigned char));
-    return __rw_atomic_add8 (_RWSTD_REINTERPRET_CAST (char*, &__x), +1);
-}
-
-
-inline short
-__rw_atomic_preincrement (short &__x, bool)
-{
-    _RWSTD_COMPILE_ASSERT (2 == sizeof (short));
-
-#if defined (_RWSTD_MSVC) && _RWSTD_MSVC >= 1400
-    return _InterlockedIncrement16 (&__x);
-#else
-    return __rw_atomic_add16 (&__x, +1);
-#endif
-}
-
-
-inline unsigned short
-__rw_atomic_preincrement (unsigned short &__x, bool)
-{
-    _RWSTD_COMPILE_ASSERT (2 == sizeof (unsigned short));
-
-#if defined (_RWSTD_MSVC) && _RWSTD_MSVC >= 1400
-    return _InterlockedIncrement16 (_RWSTD_REINTERPRET_CAST (short*, &__x));
-#else
-    return __rw_atomic_add16 (_RWSTD_REINTERPRET_CAST (short*, &__x), +1);
-#endif
-}
-
-
-inline int
-__rw_atomic_preincrement (int &__x, bool)
-{
-    _RWSTD_COMPILE_ASSERT (4 == sizeof (int));
-
-#ifdef _MSC_VER
-    return _InterlockedIncrement (_RWSTD_REINTERPRET_CAST (long*, &__x));
-#else
-    return __rw_atomic_add32 (&__x, 1);
-#endif
-}
-
-
-inline unsigned int
-__rw_atomic_preincrement (unsigned int &__x, bool)
-{
-    _RWSTD_COMPILE_ASSERT (4 == sizeof (unsigned int));
-
-#ifdef _MSC_VER
-    return _InterlockedIncrement (_RWSTD_REINTERPRET_CAST (long*, &__x));
-#else
-    return __rw_atomic_add32 (_RWSTD_REINTERPRET_CAST (int*, &__x), 1);
-#endif
-}
-
-
-inline char
-__rw_atomic_predecrement (char &__x, bool)
-{
-    _RWSTD_COMPILE_ASSERT (1 == sizeof (char));
-    return __rw_atomic_add8 (&__x, -1);
-}
-
-
-inline signed char
-__rw_atomic_predecrement (signed char &__x, bool)
-{
-    _RWSTD_COMPILE_ASSERT (1 == sizeof (signed char));
-    return __rw_atomic_add8 (_RWSTD_REINTERPRET_CAST (char*, &__x), -1);
-}
-
-
-inline unsigned char
-__rw_atomic_predecrement (unsigned char &__x, bool)
-{
-    _RWSTD_COMPILE_ASSERT (1 == sizeof (unsigned char));
-    return __rw_atomic_add8 (_RWSTD_REINTERPRET_CAST (char*, &__x), -1);
-}
-
-
-inline short
-__rw_atomic_predecrement (short &__x, bool)
-{
-    _RWSTD_COMPILE_ASSERT (2 == sizeof (short));
-
-#if defined (_RWSTD_MSVC) && _RWSTD_MSVC >= 1400
-    return _InterlockedDecrement16 (&__x);
-#else
-    return __rw_atomic_add16 (&__x, -1);
-#endif
-}
-
-
-inline unsigned short
-__rw_atomic_predecrement (unsigned short &__x, bool)
-{
-    _RWSTD_COMPILE_ASSERT (2 == sizeof (unsigned short));
-
-#if defined (_RWSTD_MSVC) && _RWSTD_MSVC >= 1400
-    return _InterlockedDecrement16 (_RWSTD_REINTERPRET_CAST (short*, &__x));
-#else
-    return __rw_atomic_add16 (_RWSTD_REINTERPRET_CAST (short*, &__x), -1);
-#endif
-}
-
-
-inline int
-__rw_atomic_predecrement (int &__x, bool)
-{
-    _RWSTD_COMPILE_ASSERT (4 == sizeof (int));
-
-#ifdef _MSC_VER
-    return _InterlockedDecrement (_RWSTD_REINTERPRET_CAST (long*, &__x));
-#else
-    return __rw_atomic_add32 (&__x, -1);
-#endif
-}
-
-
-inline unsigned int
-__rw_atomic_predecrement (unsigned int &__x, bool)
-{
-    _RWSTD_COMPILE_ASSERT (4 == sizeof (unsigned int));
-
-#ifdef _MSC_VER
-    return _InterlockedDecrement (_RWSTD_REINTERPRET_CAST (long*, &__x));
-#else
-    return __rw_atomic_add32 (_RWSTD_REINTERPRET_CAST (int*, &__x), -1);
-#endif
-}
-
-
-inline char
-__rw_atomic_exchange (char &__x, char __y, bool)
-{
-    _RWSTD_COMPILE_ASSERT (1 == sizeof (char));
-    return __rw_atomic_xchg8 (&__x, __y);
-}
-
-
-inline signed char
-__rw_atomic_exchange (signed char &__x, signed char __y, bool)
-{
-    _RWSTD_COMPILE_ASSERT (1 == sizeof (signed char));
-    return __rw_atomic_xchg8 (_RWSTD_REINTERPRET_CAST (char*, &__x),
-                              _RWSTD_STATIC_CAST (char, __y));
-}
-
-
-inline unsigned char
-__rw_atomic_exchange (unsigned char &__x, unsigned char __y, bool)
-{
-    _RWSTD_COMPILE_ASSERT (1 == sizeof (unsigned char));
-    return __rw_atomic_xchg8 (_RWSTD_REINTERPRET_CAST (char*, &__x),
-                              _RWSTD_STATIC_CAST (char, __y));
-}
-
-
-inline short
-__rw_atomic_exchange (short &__x, short __y, bool)
-{
-    _RWSTD_COMPILE_ASSERT (2 == sizeof (short));
-    return __rw_atomic_xchg16 (&__x, __y);
-}
-
-
-inline unsigned short
-__rw_atomic_exchange (unsigned short &__x, unsigned short __y, bool)
-{
-    _RWSTD_COMPILE_ASSERT (2 == sizeof (unsigned short));
-    return __rw_atomic_xchg16 (_RWSTD_REINTERPRET_CAST (short*, &__x),
-                               _RWSTD_STATIC_CAST (short, __y));
-}
-
-
-inline int
-__rw_atomic_exchange (int &__x, int __y, bool)
-{
-    _RWSTD_COMPILE_ASSERT (4 == sizeof (int));
-
-#ifdef _MSC_VER
-    return _InterlockedExchange (_RWSTD_REINTERPRET_CAST (long*, &__x),
-                                 _RWSTD_STATIC_CAST (long, __y));
-#else
-    return __rw_atomic_xchg32 (&__x, __y);
-#endif
-}
-
-
-inline unsigned int
-__rw_atomic_exchange (unsigned int &__x, unsigned int __y, bool)
-{
-    _RWSTD_COMPILE_ASSERT (4 == sizeof (unsigned int));
-
-#ifdef _MSC_VER
-    return _InterlockedExchange (_RWSTD_REINTERPRET_CAST (long*, &__x),
-                                 _RWSTD_STATIC_CAST (long, __y));
-#else
-    return __rw_atomic_xchg32 (_RWSTD_REINTERPRET_CAST (int*, &__x),
-                               _RWSTD_STATIC_CAST (int, __y));
-#endif
-}
-
-/********************** IA64/x86_64/_M_X64 *****************************/
-
-#elif defined (__ia64) || defined (__x86_64) || defined (_M_X64)
-
-extern "C" {
-
-_RWSTD_EXPORT _RWSTD_INT8_T
-__rw_atomic_xchg8  (_RWSTD_INT8_T*,  _RWSTD_INT8_T);
-
-_RWSTD_EXPORT _RWSTD_INT16_T
-__rw_atomic_xchg16 (_RWSTD_INT16_T*, _RWSTD_INT16_T);
-
-_RWSTD_EXPORT _RWSTD_INT32_T
-__rw_atomic_xchg32 (_RWSTD_INT32_T*, _RWSTD_INT32_T);
-
-
-_RWSTD_EXPORT _RWSTD_INT8_T
-__rw_atomic_add8  (_RWSTD_INT8_T*,  _RWSTD_INT8_T);
-
-_RWSTD_EXPORT _RWSTD_INT16_T
-__rw_atomic_add16 (_RWSTD_INT16_T*, _RWSTD_INT16_T);
-
-_RWSTD_EXPORT _RWSTD_INT32_T
-__rw_atomic_add32 (_RWSTD_INT32_T*, _RWSTD_INT32_T);
-
-#ifdef _RWSTD_INT64_T
-
-_RWSTD_EXPORT _RWSTD_INT64_T
-__rw_atomic_xchg64 (_RWSTD_INT64_T*, _RWSTD_INT64_T);
-
-_RWSTD_EXPORT _RWSTD_INT64_T
-__rw_atomic_add64 (_RWSTD_INT64_T*, _RWSTD_INT64_T);
-
-#endif   // _RWSTD_INT64_T
-
-}   // extern "C"
-
-
-inline char
-__rw_atomic_preincrement (char &__x, bool)
-{
-    _RWSTD_COMPILE_ASSERT (1 == sizeof (char));
-
-    return __rw_atomic_add8 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT8_T*, &__x),
-                             +1);
-}
-
-
-inline signed char
-__rw_atomic_preincrement (signed char &__x, bool)
-{
-    _RWSTD_COMPILE_ASSERT (1 == sizeof (signed char));
-
-    return __rw_atomic_add8 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT8_T*, &__x),
-                             +1);
-}
-
-
-inline unsigned char
-__rw_atomic_preincrement (unsigned char &__x, bool)
-{
-    _RWSTD_COMPILE_ASSERT (1 == sizeof (unsigned char));
-
-    return __rw_atomic_add8 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT8_T*, &__x),
-                             +1);
-}
-
-
-inline short
-__rw_atomic_preincrement (short &__x, bool)
-{
-    _RWSTD_COMPILE_ASSERT (2 == sizeof (short));
-
-#if defined (_RWSTD_MSVC) && _RWSTD_MSVC >= 1400
-    return _InterlockedIncrement16 (&__x);
-#else
-    return __rw_atomic_add16 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT16_T*, &__x),
-                              +1);
-#endif
-}
-
-
-inline unsigned short
-__rw_atomic_preincrement (unsigned short &__x, bool)
-{
-    _RWSTD_COMPILE_ASSERT (2 == sizeof (unsigned short));
-
-#if defined (_RWSTD_MSVC) && _RWSTD_MSVC >= 1400
-    return _InterlockedIncrement16 (_RWSTD_REINTERPRET_CAST (short*, &__x));
-#else
-    return __rw_atomic_add16 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT16_T*, &__x),
-                              +1);
-#endif
-}
-
-
-inline int
-__rw_atomic_preincrement (int &__x, bool)
-{
-    _RWSTD_COMPILE_ASSERT (4 == sizeof (int));
-
-#ifdef _MSC_VER
-    return _InterlockedIncrement (_RWSTD_REINTERPRET_CAST (long*, &__x));
-#else
-    return __rw_atomic_add32 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT32_T*, &__x),
-                              +1);
-#endif
-}
-
-
-inline unsigned int
-__rw_atomic_preincrement (unsigned int &__x, bool)
-{
-    _RWSTD_COMPILE_ASSERT (4 == sizeof (unsigned int));
-
-#ifdef _MSC_VER
-    return _InterlockedIncrement (_RWSTD_REINTERPRET_CAST (long*, &__x));
-#else
-    return __rw_atomic_add32 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT32_T*, &__x),
-                              +1);
-#endif
-}
-
-
-#if 4 < _RWSTD_LONG_SIZE
-
-inline long
-__rw_atomic_preincrement (long &__x, bool)
-{
-    _RWSTD_COMPILE_ASSERT (8 == sizeof (long));
-
-    return __rw_atomic_add64 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT64_T*, &__x),
-                              +1);
-}
-
-
-inline unsigned long
-__rw_atomic_preincrement (unsigned long &__x, bool)
-{
-    _RWSTD_COMPILE_ASSERT (8 == sizeof (unsigned long));
-
-    return __rw_atomic_add64 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT64_T*, &__x),
-                              +1);
-}
-
-#endif   // _RWSTD_LONG_SIZE
-
-
-#ifdef _RWSTD_LONG_LONG
-#  if _RWSTD_LLONG_SIZE > _RWSTD_LONG_SIZE
-
-inline _RWSTD_LONG_LONG
-__rw_atomic_preincrement (_RWSTD_LONG_LONG &__x, bool)
-{
-    _RWSTD_COMPILE_ASSERT (8 == sizeof (_RWSTD_LONG_LONG));
-
-#ifdef _MSC_VER
-    return _InterlockedIncrement64 (_RWSTD_REINTERPRET_CAST (__int64*, &__x));
-#else
-    return __rw_atomic_add64 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT64_T*, &__x),
-                              +1);
-#endif
-}
-
-
-inline unsigned _RWSTD_LONG_LONG
-__rw_atomic_preincrement (unsigned _RWSTD_LONG_LONG &__x, bool)
-{
-    _RWSTD_COMPILE_ASSERT (8 == sizeof (unsigned _RWSTD_LONG_LONG));
-
-#ifdef _MSC_VER
-    return _InterlockedIncrement64 (_RWSTD_REINTERPRET_CAST (__int64*, &__x));
-#else
-    return __rw_atomic_add64 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT64_T*, &__x),
-                              +1);
-#endif
-}
-
-#  endif   // _RWSTD_LLONG_SIZE > _RWSTD_LONG_SIZE
-#endif   // _RWSTD_LONG_LONG
-
-
-inline char
-__rw_atomic_predecrement (char &__x, bool)
-{
-    _RWSTD_COMPILE_ASSERT (1 == sizeof (char));
-
-    return __rw_atomic_add8 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT8_T*, &__x),
-                             -1);
-}
-
-
-inline signed char
-__rw_atomic_predecrement (signed char &__x, bool)
-{
-    _RWSTD_COMPILE_ASSERT (1 == sizeof (signed char));
-
-    return __rw_atomic_add8 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT8_T*, &__x),
-                             -1);
-}
-
-
-inline unsigned char
-__rw_atomic_predecrement (unsigned char &__x, bool)
-{
-    _RWSTD_COMPILE_ASSERT (1 == sizeof (unsigned char));
-
-    return __rw_atomic_add8 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT8_T*, &__x),
-                             -1);
-}
-
-
-inline short
-__rw_atomic_predecrement (short &__x, bool)
-{
-    _RWSTD_COMPILE_ASSERT (2 == sizeof (short));
-
-#if defined (_RWSTD_MSVC) && _RWSTD_MSVC >= 1400
-    return _InterlockedDecrement16 (&__x);
-#else
-    return __rw_atomic_add16 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT16_T*, &__x),
-                              -1);
-#endif
-}
-
-
-inline unsigned short
-__rw_atomic_predecrement (unsigned short &__x, bool)
-{
-    _RWSTD_COMPILE_ASSERT (2 == sizeof (unsigned short));
-
-#if defined (_RWSTD_MSVC) && _RWSTD_MSVC >= 1400
-    return _InterlockedDecrement16 (_RWSTD_REINTERPRET_CAST (short*, &__x));
-#else
-    return __rw_atomic_add16 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT16_T*, &__x),
-                              -1);
-#endif
-}
-
-
-inline int
-__rw_atomic_predecrement (int &__x, bool)
-{
-    _RWSTD_COMPILE_ASSERT (4 == sizeof (int));
-
-#ifdef _MSC_VER
-    return _InterlockedDecrement (_RWSTD_REINTERPRET_CAST (long*, &__x));
-#else
-    return __rw_atomic_add32 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT32_T*, &__x),
-                              -1);
-#endif
-}
-
-
-inline unsigned int
-__rw_atomic_predecrement (unsigned int &__x, bool)
-{
-    _RWSTD_COMPILE_ASSERT (4 == sizeof (unsigned int));
-
-#ifdef _MSC_VER
-    return _InterlockedDecrement (_RWSTD_REINTERPRET_CAST (long*, &__x));
-#else
-    return __rw_atomic_add32 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT32_T*, &__x),
-                              -1);
-#endif
-}
-
-
-#if 4 < _RWSTD_LONG_SIZE
-
-inline long
-__rw_atomic_predecrement (long &__x, bool)
-{
-    _RWSTD_COMPILE_ASSERT (8 == sizeof (long));
-
-    return __rw_atomic_add64 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT64_T*, &__x),
-                              -1);
-}
-
-
-inline unsigned long
-__rw_atomic_predecrement (unsigned long &__x, bool)
-{
-    _RWSTD_COMPILE_ASSERT (8 == sizeof (unsigned long));
-
-    return __rw_atomic_add64 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT64_T*, &__x),
-                              -1);
-}
-
-#endif   // _RWSTD_LONG_SIZE
-
-
-#ifdef _RWSTD_LONG_LONG
-#  if _RWSTD_LLONG_SIZE > _RWSTD_LONG_SIZE
-
-inline _RWSTD_LONG_LONG
-__rw_atomic_predecrement (_RWSTD_LONG_LONG &__x, bool)
-{
-    _RWSTD_COMPILE_ASSERT (8 == sizeof (_RWSTD_LONG_LONG));
-
-#ifdef _MSC_VER
-    return _InterlockedDecrement64 (_RWSTD_REINTERPRET_CAST (__int64*, &__x));
-#else
-    return __rw_atomic_add64 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT64_T*, &__x),
-                              -1);
-#endif
-}
-
-
-inline unsigned _RWSTD_LONG_LONG
-__rw_atomic_predecrement (unsigned _RWSTD_LONG_LONG &__x, bool)
-{
-    _RWSTD_COMPILE_ASSERT (8 == sizeof (unsigned _RWSTD_LONG_LONG));
-
-#ifdef _MSC_VER
-    return _InterlockedDecrement64 (_RWSTD_REINTERPRET_CAST (__int64*, &__x));
-#else
-    return __rw_atomic_add64 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT64_T*, &__x),
-                              -1);
-#endif
-}
-
-#  endif   // _RWSTD_LLONG_SIZE > _RWSTD_LONG_SIZE
-#endif   // _RWSTD_LONG_LONG
-
-
-inline char
-__rw_atomic_exchange (char &__x, char __y, bool)
-{
-    _RWSTD_COMPILE_ASSERT (1 == sizeof (char));
-
-    return __rw_atomic_xchg8 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT8_T*, &__x),
-                              _RWSTD_STATIC_CAST (_RWSTD_INT8_T, __y));
-}
-
-
-inline signed char
-__rw_atomic_exchange (signed char &__x, signed char __y, bool)
-{
-    _RWSTD_COMPILE_ASSERT (1 == sizeof (signed char));
-
-    return __rw_atomic_xchg8 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT8_T*, &__x),
-                              _RWSTD_STATIC_CAST (_RWSTD_INT8_T, __y));
-}
-
-
-inline unsigned char
-__rw_atomic_exchange (unsigned char &__x, unsigned char __y, bool)
-{
-    _RWSTD_COMPILE_ASSERT (1 == sizeof (unsigned char));
-
-    return __rw_atomic_xchg8 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT8_T*, &__x),
-                              _RWSTD_STATIC_CAST (_RWSTD_INT8_T, __y));
-}
-
-
-inline short
-__rw_atomic_exchange (short &__x, short __y, bool)
-{
-    _RWSTD_COMPILE_ASSERT (2 == sizeof (short));
-
-    return __rw_atomic_xchg16 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT16_T*, &__x),
-                               _RWSTD_STATIC_CAST (_RWSTD_INT16_T, __y));
-}
-
-
-inline unsigned short
-__rw_atomic_exchange (unsigned short &__x, unsigned short __y, bool)
-{
-    _RWSTD_COMPILE_ASSERT (2 == sizeof (unsigned short));
-
-    return __rw_atomic_xchg16 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT16_T*, &__x),
-                               _RWSTD_STATIC_CAST (_RWSTD_INT16_T, __y));
-}
-
-
-inline int
-__rw_atomic_exchange (int &__x, int __y, bool)
-{
-    _RWSTD_COMPILE_ASSERT (4 == sizeof (int));
-
-#ifdef _MSC_VER
-    return _InterlockedExchange (_RWSTD_REINTERPRET_CAST (long*, &__x),
-                                 _RWSTD_STATIC_CAST (long, __y));
-#else
-    return __rw_atomic_xchg32 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT32_T*, &__x),
-                               _RWSTD_STATIC_CAST (_RWSTD_INT32_T, __y));
-#endif
-}
-
-
-inline unsigned int
-__rw_atomic_exchange (unsigned int &__x, unsigned int __y, bool)
-{
-    _RWSTD_COMPILE_ASSERT (4 == sizeof (unsigned int));
-
-#ifdef _MSC_VER
-    return _InterlockedExchange (_RWSTD_REINTERPRET_CAST (long*, &__x),
-                                 _RWSTD_STATIC_CAST (long, __y));
-#else
-    return __rw_atomic_xchg32 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT32_T*, &__x),
-                               _RWSTD_STATIC_CAST (_RWSTD_INT32_T, __y));
-#endif
-}
-
-
-#  if 4 < _RWSTD_LONG_SIZE
-
-inline long
-__rw_atomic_exchange (long &__x, long __y, bool)
-{
-    _RWSTD_COMPILE_ASSERT (8 == sizeof (long));
-
-    return __rw_atomic_xchg64 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT64_T*, &__x),
-                               _RWSTD_STATIC_CAST (_RWSTD_INT64_T, __y));
-}
-
-
-inline unsigned long
-__rw_atomic_exchange (unsigned long &__x, unsigned long __y, bool)
-{
-    _RWSTD_COMPILE_ASSERT (8 == sizeof (unsigned long));
-
-    return __rw_atomic_xchg64 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT64_T*, &__x),
-                               _RWSTD_STATIC_CAST (_RWSTD_INT64_T, __y));
-}
-
-#  endif   // _RWSTD_LONG_SIZE == _RWSTD_INT_SIZE
-
-
-#ifdef _RWSTD_LONG_LONG
-#  if _RWSTD_LLONG_SIZE > _RWSTD_LONG_SIZE
-
-inline _RWSTD_LONG_LONG
-__rw_atomic_exchange (_RWSTD_LONG_LONG &__x, _RWSTD_LONG_LONG __y, bool)
-{
-    _RWSTD_COMPILE_ASSERT (8 == sizeof (_RWSTD_LONG_LONG));
-
-#ifdef _MSC_VER
-    return _InterlockedExchange64 (_RWSTD_REINTERPRET_CAST (__int64*, &__x),
-                                   _RWSTD_STATIC_CAST (__int64, __y));
-#else
-    return __rw_atomic_xchg64 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT64_T*, &__x),
-                               _RWSTD_STATIC_CAST (_RWSTD_INT64_T, __y));
-#endif
-}
-
-
-inline unsigned _RWSTD_LONG_LONG
-__rw_atomic_exchange (unsigned _RWSTD_LONG_LONG &__x,
-                      unsigned _RWSTD_LONG_LONG __y, bool)
-{
-    _RWSTD_COMPILE_ASSERT (8 == sizeof (unsigned _RWSTD_LONG_LONG));
-
-#ifdef _MSC_VER
-    return _InterlockedExchange64 (_RWSTD_REINTERPRET_CAST (__int64*, &__x),
-                                   _RWSTD_STATIC_CAST (__int64, __y));
-#else
-    return __rw_atomic_xchg64 (_RWSTD_REINTERPRET_CAST (_RWSTD_INT64_T*, &__x),
-                               _RWSTD_STATIC_CAST (_RWSTD_INT64_T, __y));
-#endif
-}
-
-#  endif   // _RWSTD_LLONG_SIZE > _RWSTD_LONG_SIZE
-#endif   // _RWSTD_LONG_LONG
-
-
-#elif !defined (_RWSTD_NO_ATOMIC_OPS)
-#  define _RWSTD_NO_ATOMIC_OPS
-#endif   // _RWSTD_NO_ATOMIC_OPS
-
-
-/********************** generic bool functions ************************/
-
-#ifndef _RWSTD_NO_BOOL
-
-#  if _RWSTD_BOOL_SIZE == _RWSTD_CHAR_SIZE
-#    define _RWSTD_BOOL_TYPE char
-#  elif _RWSTD_BOOL_SIZE == _RWSTD_SHORT_SIZE
-#    define _RWSTD_BOOL_TYPE short
-#  elif _RWSTD_BOOL_SIZE == _RWSTD_INT_SIZE
-#    define _RWSTD_BOOL_TYPE int
-#  endif
-
-#  ifdef _RWSTD_BOOL_TYPE
-
-inline bool
-__rw_atomic_exchange (bool &__x, bool __y, bool)
-{
-    return 0 != __rw_atomic_exchange (
-                    _RWSTD_REINTERPRET_CAST (_RWSTD_BOOL_TYPE&, __x),
-                    _RWSTD_STATIC_CAST (_RWSTD_BOOL_TYPE, __y),
-                    false);
-}
-
-#    undef _RWSTD_BOOL_TYPE
-#  endif   // _RWSTD_BOOL_TYPE
-
-#endif   // _RWSTD_NO_BOOL
-
-
-/********************** generic long functions ************************/
-
-#if _RWSTD_LONG_SIZE == _RWSTD_INT_SIZE
-
-#  if 6 == _RWSTD_HP_aCC_MAJOR
-     // suppress HP aCC 64 bit migration remark: conversion from
-     // "long *" to "int *" may cause target of pointers to have
-     // a different size
-#    pragma diag_suppress 4230
-#  endif   // HP aCC 6
-
-
-inline long
-__rw_atomic_preincrement (long &__x, bool)
-{
-    return __rw_atomic_preincrement (_RWSTD_REINTERPRET_CAST (int&, __x),
-                                     false);
-}
-
-inline unsigned long
-__rw_atomic_preincrement (unsigned long &__x, bool)
-{
-    return __rw_atomic_preincrement (_RWSTD_REINTERPRET_CAST (int&, __x),
-                                     false);
-}
-
-inline long
-__rw_atomic_predecrement (long &__x, bool)
-{
-    return __rw_atomic_predecrement (_RWSTD_REINTERPRET_CAST (int&, __x),
-                                     false);
-}
-
-inline unsigned long
-__rw_atomic_predecrement (unsigned long &__x, bool)
-{
-    return __rw_atomic_predecrement (_RWSTD_REINTERPRET_CAST (int&, __x),
-                                     false);
-}
-
-inline long
-__rw_atomic_exchange (long &__x, long __y, bool)
-{
-    return __rw_atomic_exchange (_RWSTD_REINTERPRET_CAST (int&, __x),
-                                 _RWSTD_STATIC_CAST (int, __y),
-                                 false);
-}
-
-inline unsigned long
-__rw_atomic_exchange (unsigned long &__x,
-                      unsigned long __y, bool)
-{
-    return __rw_atomic_exchange (_RWSTD_REINTERPRET_CAST (int&, __x),
-                                 _RWSTD_STATIC_CAST (int, __y),
-                                 false);
-}
-
-
-#  if 6 == _RWSTD_HP_aCC_MAJOR
-#    pragma diag_default 4230
-#  endif   // HP aCC 6
-
-#endif   // _RWSTD_LONG_SIZE == _RWSTD_INT_SIZE
-
-/********************** generic long long functions *******************/
-
-#ifdef _RWSTD_LONG_LONG
-#  if _RWSTD_LLONG_SIZE == _RWSTD_LONG_SIZE
-
-inline _RWSTD_LONG_LONG
-__rw_atomic_preincrement (_RWSTD_LONG_LONG &__x, bool)
-{
-    return __rw_atomic_preincrement (_RWSTD_REINTERPRET_CAST (long&, __x),
-                                     false);
-}
-
-inline unsigned _RWSTD_LONG_LONG
-__rw_atomic_preincrement (unsigned _RWSTD_LONG_LONG &__x, bool)
-{
-    return __rw_atomic_preincrement (_RWSTD_REINTERPRET_CAST (long&, __x),
-                                     false);
-}
-
-inline _RWSTD_LONG_LONG
-__rw_atomic_predecrement (_RWSTD_LONG_LONG &__x, bool)
-{
-    return __rw_atomic_predecrement (_RWSTD_REINTERPRET_CAST (long&, __x),
-                                     false);
-}
-
-inline unsigned _RWSTD_LONG_LONG
-__rw_atomic_predecrement (unsigned _RWSTD_LONG_LONG &__x, bool)
-{
-    return __rw_atomic_predecrement (_RWSTD_REINTERPRET_CAST (long&, __x),
-                                     false);
-}
-
-inline _RWSTD_LONG_LONG
-__rw_atomic_exchange (_RWSTD_LONG_LONG &__x, _RWSTD_LONG_LONG __y, bool)
-{
-    return __rw_atomic_exchange (_RWSTD_REINTERPRET_CAST (long&, __x),
-                                 _RWSTD_STATIC_CAST (long, __y),
-                                 false);
-}
-
-inline unsigned _RWSTD_LONG_LONG
-__rw_atomic_exchange (unsigned _RWSTD_LONG_LONG &__x,
-                      unsigned _RWSTD_LONG_LONG __y, bool)
-{
-    return __rw_atomic_exchange (_RWSTD_REINTERPRET_CAST (long&, __x),
-                                 _RWSTD_STATIC_CAST (long, __y),
-                                 false);
-}
-
-#  endif   // _RWSTD_LLONG_SIZE == _RWSTD_LONG_SIZE
-#endif   // _RWSTD_LONG_LONG
-
-
-}   // namespace __rw
+// include atomic functions using mutex object
+#  ifndef _RWSTD_RW_ATOMIC_MUTEX_H_INCLUDED
+#    include <rw/_atomic-mutex.h>
+#  endif   // _RWSTD_RW_ATOMIC_MUTEX_H_INCLUDED
 
 
 #else   // if !defined (_RWSTD_REENTRANT)
 
-
 _RWSTD_NAMESPACE (__rw) { 
-
-// atomic in a single-threaded environment
-template <class _TypeT, class _TypeU>
-inline
-_TypeT __rw_atomic_exchange (_TypeT &__t, const _TypeU &__u, bool)
-{
-    _TypeT __tmp = __t;
-    __t = _TypeT (__u);
-    return __tmp;
-}
-
 
 // dummy classes used as a base class in single-threaded environments
 
@@ -2173,21 +445,25 @@ struct __rw_synchronized
 
 #endif   // _RWSTD_REENTRANT
 
+// clean up
+#ifdef _RWSTD_NO_CHAR_ATOMIC_OPS
+#  undef _RWSTD_NO_CHAR_ATOMIC_OPS
+#endif
 
-_RWSTD_NAMESPACE (__rw) { 
+#ifdef _RWSTD_NO_SHORT_ATOMIC_OPS
+#  undef _RWSTD_NO_SHORT_ATOMIC_OPS
+#endif
 
-// available in all environments (ST and MT), used along with
-// __rw_atomic_exchange<>() from conditional expressions in iostreams
-template <class _TypeT, class _TypeU>
-inline
-_TypeT __rw_ordinary_exchange (_TypeT &__t, const _TypeU &__u)
-{
-    _TypeT __tmp = __t;
-    __t = __u;
-    return __tmp;
-}
+#ifdef _RWSTD_NO_INT_ATOMIC_OPS
+#  undef _RWSTD_NO_INT_ATOMIC_OPS
+#endif
 
-}   // namespace __rw
+#ifdef _RWSTD_NO_LONG_ATOMIC_OPS
+#  undef _RWSTD_NO_LONG_ATOMIC_OPS
+#endif
 
+#ifdef _RWSTD_NO_LLONG_ATOMIC_OPS
+#  undef _RWSTD_NO_LLONG_ATOMIC_OPS
+#endif
 
 #endif   // _RWSTD_RW_MUTEX_H_INCLUDED

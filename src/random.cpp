@@ -47,6 +47,8 @@
 #  include <rw/_mutex.h>
 #endif   // _RWSTD_REENTRANT
 
+#include <stddef.h>   // for size_t
+
 
 _RWSTD_NAMESPACE (__rw) {
 
