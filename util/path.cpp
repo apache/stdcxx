@@ -69,7 +69,7 @@ static char* get_cwd (char* s, std::size_t l)
 }
 
 
-#ifndef _WIN32
+#if !defined (_WIN32) && !defined (__CYGWIN__)
 
 void
 create_symlink (const std::string &dir, 
@@ -112,7 +112,7 @@ create_symlink (const std::string &dir,
     }
 }
 
-#endif  // _WIN32
+#endif  // !_WIN32 && !__CYGWIN__
 
 
 inline int

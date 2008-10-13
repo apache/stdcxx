@@ -2,7 +2,7 @@
 *
 * 23.list.h - definitions of helpers used in clause 23.list tests
 *
-* $Id: 23.list.h
+* $Id$
 *
 ***************************************************************************
 *

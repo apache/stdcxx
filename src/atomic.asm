@@ -28,9 +28,9 @@
 
 
 ifdef Win32
-  include <i86/atomic.inc>
+  include <x86/atomic.inc>
 elseifdef x64
-  include <i86_64/atomic.inc>
+  include <x86_64/atomic.inc>
 endif
 
 end
