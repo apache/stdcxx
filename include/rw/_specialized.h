@@ -52,6 +52,11 @@
 #endif   // _RWSTD_RW_NEW_H_INCLUDED
 
 
+#ifndef _RWSTD_RW_ITERBASE_H_INCLUDED
+#  include <rw/_iterbase.h>
+#endif   // _RWSTD_RW_ITERBASE_H_INCLUDED
+
+
 _RWSTD_NAMESPACE (__rw) { 
 
 
@@ -162,10 +167,15 @@ uninitialized_copy (_InputIterator __first, _InputIterator __last,
                     _ForwardIterator __res)
 {
     const _ForwardIterator __start = __res;
+    typedef typename iterator_traits<_ForwardIterator>::value_type _TypeT;
 
     _TRY {
-        for (; __first != __last; ++__first, ++__res)
-            _RW::__rw_construct (&*__res, *__first);
+        for (; __first != __last; ++__first, ++__res) {
+            // avoid const-qualifying ptr to prevent an HP aCC 3 bug
+            volatile void* /* const */ __ptr =
+                _RWSTD_STATIC_CAST (volatile void*, &*__res);
+            ::new (_RWSTD_CONST_CAST (void*, __ptr)) _TypeT (*__first);
+        }
     }
     _CATCH (...) {
         _RW::__rw_destroy (__start, __res);
