@@ -171,7 +171,8 @@ uninitialized_copy (_InputIterator __first, _InputIterator __last,
 
     _TRY {
         for (; __first != __last; ++__first, ++__res) {
-            volatile void* const __ptr =
+            // avoid const-qualifying ptr to prevent an HP aCC 3 bug
+            volatile void* /* const */ __ptr =
                 _RWSTD_STATIC_CAST (volatile void*, &*__res);
             ::new (_RWSTD_CONST_CAST (void*, __ptr)) _TypeT (*__first);
         }
