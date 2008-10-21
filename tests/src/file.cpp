@@ -208,8 +208,13 @@ const char* rw_tmpnam (char *buf)
 #ifndef _RWSTD_NO_MKSTEMP
 #  define TMP_TEMPLATE      "tmpfile-XXXXXX"
 
+    const char *tmpdir = getenv ("TMPDIR");
+    if (tmpdir == NULL) { 
+        tmpdir = P_tmpdir;
+    }
+
     if (!buf) {
-        static char fname_buf [sizeof (P_tmpdir) + sizeof (TMP_TEMPLATE)];
+        static char fname_buf [PATH_MAX];
 
         buf = fname_buf;
         *buf = '\0';
@@ -217,13 +222,13 @@ const char* rw_tmpnam (char *buf)
 
     if ('\0' == *buf) {
         // copy the template to the buffer; make sure there is exactly
-        // one path separator character between P_tmpdir and the file
+        // one path separator character between tmpdir and the file
         // name template (it doesn't really matter how many there are
         // as long as it's at least one, but one looks better than two
         // in diagnostic messages)
-        size_t len = sizeof (P_tmpdir) - 1;
+        size_t len = strlen (tmpdir) - 1;
 
-        memcpy (buf, P_tmpdir, len);
+        memcpy (buf, tmpdir, len);
         if (_RWSTD_PATH_SEP != buf [len - 1])
             buf [len++] = _RWSTD_PATH_SEP;
 
@@ -251,7 +256,7 @@ const char* rw_tmpnam (char *buf)
 #  ifdef _WIN32
 
     // create a temporary file name
-    char* fname = tempnam (P_tmpdir, ".rwtest-tmp");
+    char* fname = tempnam (tmpdir, ".rwtest-tmp");
 
     if (fname) {
 
@@ -272,7 +277,7 @@ const char* rw_tmpnam (char *buf)
     else {
         fprintf (stderr, "%s:%d: tempnam(\"%s\", \"%s\") failed: %s\n",
                  __FILE__, __LINE__,
-                 P_tmpdir, ".rwtest-tmp", strerror (errno));
+                 tmpdir, ".rwtest-tmp", strerror (errno));
     }
 
 #  else
