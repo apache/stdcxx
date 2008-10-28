@@ -70,10 +70,14 @@
 #endif
 
 #ifndef P_tmpdir
-   // P_tmpdir is an XSI (X/Open System Interfaces) extension
-   // to POSIX which need not be provided by otherwise conforming
-   // implementations
-#  define P_tmpdir "/tmp/"
+#  ifndef _WIN32
+     // P_tmpdir is an XSI (X/Open System Interfaces) extension
+     // to POSIX which need not be provided by otherwise conforming
+     // implementations
+#    define P_tmpdir "/tmp/"
+#  else   // _WIN32
+#    define P_tmpdir "\\"
+#  endif   // _WIN32
 #endif
 
 #ifndef _RWSTD_NO_PURE_C_HEADERS
@@ -209,9 +213,8 @@ const char* rw_tmpnam (char *buf)
 #  define TMP_TEMPLATE      "tmpfile-XXXXXX"
 
     const char *tmpdir = getenv ("TMPDIR");
-    if (tmpdir == NULL) { 
+    if (!tmpdir)
         tmpdir = P_tmpdir;
-    }
 
     if (!buf) {
         static char fname_buf [PATH_MAX];
@@ -254,6 +257,10 @@ const char* rw_tmpnam (char *buf)
 #else   // if defined (_RWSTD_NO_MKSTEMP)
 
 #  ifdef _WIN32
+
+    const char *tmpdir = getenv ("TMP");
+    if (!tmpdir)
+        tmpdir = P_tmpdir;
 
     // create a temporary file name
     char* fname = tempnam (tmpdir, ".rwtest-tmp");
