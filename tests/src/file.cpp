@@ -229,7 +229,7 @@ const char* rw_tmpnam (char *buf)
         // name template (it doesn't really matter how many there are
         // as long as it's at least one, but one looks better than two
         // in diagnostic messages)
-        size_t len = strlen (tmpdir) - 1;
+        size_t len = strlen (tmpdir);
 
         memcpy (buf, tmpdir, len);
         if (_RWSTD_PATH_SEP != buf [len - 1])
