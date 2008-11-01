@@ -37,11 +37,12 @@
 #  define _RWSTD_NO_DEPRECATED_C_HEADERS
 #endif   // _RWSTD_NO_DEPRECATED_C_HEADERS
 
-#include <errno.h>    // for ERANGE, errno
+#include <errno.h>    // for ENAMETOOLONG, ERANGE, errno
 #include <stddef.h>   // for ptrdiff_t
-#include <stdio.h>    // for P_tmpdir, std{err,in,out}, tmpnam()
+#include <stdio.h>    // for P_tmpdir, std{err,in,out}, remove(), tmpnam()
 #include <stdlib.h>   // for mkstemp(), strtoul(), size_t
 #include <ctype.h>    // for isalpha(), isspace(), toupper()
+#include <string.h>   // for memcpy()
 
 
 #if defined (_WIN32) && !defined (__CYGWIN__)
@@ -58,6 +59,24 @@
 #  define _BINARY 0
 #endif
 
+#ifndef ENAMETOOLONG
+   // hardcode based on the known value on each platform
+#  ifdef _RWSTD_OS_AIX
+#    define ENAMETOOLONG    86
+#  elif defined _RWSTD_OS_FREEBSD
+#    define ENAMETOOLONG    63
+#  elif defined _RWSTD_OS_HP_UX
+#    define ENAMETOOLONG   248
+#  elif defined _RWSTD_OS_LINUX
+#    define ENAMETOOLONG    36
+#  elif defined _RWSTD_OS_SUN_OS
+#    define ENAMETOOLONG    78
+#  endif
+#endif   // ENAMETOOLONG
+
+#ifndef PATH_MAX
+#  define PATH_MAX   1024
+#endif
 
 #include <rw/_file.h>
 #include <rw/_defs.h>
@@ -257,18 +276,48 @@ __rw_mkstemp (int modebits, long prot)
 #    define P_tmpdir "/tmp"
 #  endif   // P_tmpdir
 
-    char fnamebuf[] = P_tmpdir "/.rwtmpXXXXXX";
+    // use TMPDIR and fall back on P_tmpdir as per POSIX
+    const char *tmpdir = getenv ("TMPDIR");
+    if (0 == tmpdir || '\0' == *tmpdir) 
+        tmpdir = P_tmpdir;
 
-    fd = mkstemp (fnamebuf);
+    // template for temporary file name
+    static const char rwtmpXXXXXX[] = "/.rwtmpXXXXXX";
 
+    // buffer for temporary pathname
+    char pathbuf [PATH_MAX];
+
+    // check to see if the buffer is large enough
+    const size_t len = strlen (tmpdir) - 1;
+    if (sizeof pathbuf < len + sizeof rwtmpXXXXXX) {
+
+#  ifdef ENAMETOOLONG
+        // fail according to POSIX rules
+        errno = ENAMETOOLONG;
+#  endif   // ENAMETOOLONG
+
+        return -1;
+    }
+
+    // construct a template for temporary pathname
+    memcpy (pathbuf, tmpdir, len);
+    memcpy (pathbuf + len, rwtmpXXXXXX, sizeof rwtmpXXXXXX);
+
+    // call mkstemp() to create a temporary file and fill
+    // pathbuf with its pathname
+    fd = mkstemp (pathbuf);
+
+    // immediately delete the temporary file on success
+    // the open descriptor will refer to the file until
+    // it's explicitly closed or until the process exits
     if (fd >= 0)
-        unlink (fnamebuf);
+        remove (pathbuf);
 
 #else   // if defined (_RWSTD_NO_MKSTEMP)
 
     modebits |= _RWSTD_O_EXCL | _RWSTD_O_CREAT;
 
-#ifdef _WIN32
+#  ifdef _WIN32
 
     // tempnam(const char *dir, const char *prefix) will generate
     // a unique file name for a directory chosen by the following rules:
@@ -286,7 +335,7 @@ __rw_mkstemp (int modebits, long prot)
     //    exist, tempnam will use the current working directory to
     //    generate unique names. Currently, if both TMP and dir specify
     //    names of directories that do not exist, the tempnam function
-    // call will fail.
+    //    call will fail.
     //
     // The name returned by tempnam will be a concatenation of prefix
     // and a sequential number, which will combine to create a unique
@@ -294,7 +343,7 @@ __rw_mkstemp (int modebits, long prot)
     // names that have no extension. tempnam uses malloc to allocate
     // space for the filename; the program is responsible for freeing
     // this space when it is no longer needed. 
-    char* const fname = tempnam (P_tmpdir, ".rwtmp");
+    char* const fname = tempnam (tmpdir, ".rwtmp");
 
     if (!fname)
         return -1;
@@ -317,10 +366,10 @@ __rw_mkstemp (int modebits, long prot)
 
     fd = open (fname, modebits, prot);
 
-    // unlink the file, forcing the OS to delete it when
+    // remove the file, forcing the OS to delete it when
     // the last file descriptor that refers to it is closed
     if (fd >= 0)
-        unlink (fname);
+        remove (fname);
 
 #  endif   // _WIN32
 #endif   // _RWSTD_NO_MKSTEMP
