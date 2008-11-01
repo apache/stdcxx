@@ -870,6 +870,11 @@ test_open (const char* tname)
         BEGIN_MODE (std::ios::in | iomodes [minx],
                     ", file name = 0 [extension]");
 
+        int fdcount [2];
+        int next_fd [2];
+
+        next_fd [0] = rw_nextfd (fdcount + 0);
+
         // verify that open() succeeds when the first argument
         // is the null pointer (the call creates a temporary
         // file and opens it for reading -- such a file may not
@@ -882,8 +887,27 @@ test_open (const char* tname)
         rw_assert (fb.is_open (), __FILE__, __LINE__,
                    "basic_filebuf<%s>::is_open()", tname);
 
-        // FIXME: verify that the call to close removes the file
+        // verify that a single file descriptor has been allocated
+        next_fd [1] = rw_nextfd (fdcount + 1);
+
+        rw_assert (   next_fd [0] + 1 == next_fd [1]
+                   && fdcount [0] + 1 == fdcount [1],
+                   __FILE__, __LINE__,
+                   "%d file descriptor leak(s) detected after construction",
+                   fdcount [1] - fdcount [0]);
+
         fb.close ();
+
+        // verify that a single file descriptor has been deallocated
+        next_fd [1] = rw_nextfd (fdcount + 1);
+
+        rw_assert (next_fd [0] == next_fd [1] && fdcount [0] == fdcount [1],
+                   __FILE__, __LINE__,
+                   "%d file descriptor leak(s) detected after close()",
+                   fdcount [1] - fdcount [0]);
+
+        // FIXME: verify that the temporary file has been deleted
+        //        from the file system
     }
 
     //////////////////////////////////////////////////////////////////
@@ -893,6 +917,11 @@ test_open (const char* tname)
 
         BEGIN_MODE (std::ios::out | iomodes [minx],
                     ", file name = 0 [extension]");
+
+        int fdcount [2];
+        int next_fd [2];
+
+        next_fd [0] = rw_nextfd (fdcount + 0);
 
         // verify that open() succeeds when the first argument
         // is the null pointer (the call creates a temporary
@@ -904,8 +933,27 @@ test_open (const char* tname)
         rw_assert (fb.is_open (), __FILE__, __LINE__,
                    "basic_filebuf<%s>::is_open()", tname);
 
-        // FIXME: verify that the call to close removes the file
+        // verify that a single file descriptor has been allocated
+        next_fd [1] = rw_nextfd (fdcount + 1);
+
+        rw_assert (   next_fd [0] + 1 == next_fd [1]
+                   && fdcount [0] + 1 == fdcount [1],
+                   __FILE__, __LINE__,
+                   "%d file descriptor leak(s) detected after construction",
+                   fdcount [1] - fdcount [0]);
+
         fb.close ();
+
+        // verify that a single file descriptor has been deallocated
+        next_fd [1] = rw_nextfd (fdcount + 1);
+
+        rw_assert (next_fd [0] == next_fd [1] && fdcount [0] == fdcount [1],
+                   __FILE__, __LINE__,
+                   "%d file descriptor leak(s) detected after close()",
+                   fdcount [1] - fdcount [0]);
+
+        // FIXME: verify that the temporary file has been deleted
+        //        from the file system
     }
 
     //////////////////////////////////////////////////////////////////
@@ -916,14 +964,38 @@ test_open (const char* tname)
         BEGIN_MODE (std::ios::in | std::ios::out | iomodes [minx],
                     ", file name = 0 [extension]");
 
+        int fdcount [2];
+        int next_fd [2];
+
+        next_fd [0] = rw_nextfd (fdcount + 0);
+
         Filebuf fb;
         fb.open ((const char*)0, mode);
 
         rw_assert (fb.is_open (), __FILE__, __LINE__,
                    "basic_filebuf<%s>::is_open()", tname);
 
-        // FIXME: verify that the call to close removes the file
+        // verify that a single file descriptor has been allocated
+        next_fd [1] = rw_nextfd (fdcount + 1);
+
+        rw_assert (   next_fd [0] + 1 == next_fd [1]
+                   && fdcount [0] + 1 == fdcount [1],
+                   __FILE__, __LINE__,
+                   "%d file descriptor leak(s) detected after construction",
+                   fdcount [1] - fdcount [0]);
+
         fb.close ();
+
+        // verify that a single file descriptor has been deallocated
+        next_fd [1] = rw_nextfd (fdcount + 1);
+
+        rw_assert (next_fd [0] == next_fd [1] && fdcount [0] == fdcount [1],
+                   __FILE__, __LINE__,
+                   "%d file descriptor leak(s) detected after close()",
+                   fdcount [1] - fdcount [0]);
+
+        // FIXME: verify that the temporary file has been deleted
+        //        from the file system
     }
 
 
@@ -2801,4 +2873,3 @@ main (int argc, char* argv [])
                     "",   // no comment
                     run_test, "", 0);
 }
-
