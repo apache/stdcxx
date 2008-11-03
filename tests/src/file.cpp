@@ -213,7 +213,7 @@ const char* rw_tmpnam (char *buf)
 #  define TMP_TEMPLATE      "tmpfile-XXXXXX"
 
     const char *tmpdir = getenv ("TMPDIR");
-    if (!tmpdir)
+    if (0 == tmpdir || '\0' == *tmpdir) 
         tmpdir = P_tmpdir;
 
     if (!buf) {
@@ -259,7 +259,7 @@ const char* rw_tmpnam (char *buf)
 #  ifdef _WIN32
 
     const char *tmpdir = getenv ("TMP");
-    if (!tmpdir)
+    if (0 == tmpdir || '\0' == *tmpdir) 
         tmpdir = P_tmpdir;
 
     // create a temporary file name

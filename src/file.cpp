@@ -288,7 +288,7 @@ __rw_mkstemp (int modebits, long prot)
     char pathbuf [PATH_MAX];
 
     // check to see if the buffer is large enough
-    const size_t len = strlen (tmpdir) - 1;
+    const size_t len = strlen (tmpdir);
     if (sizeof pathbuf < len + sizeof rwtmpXXXXXX) {
 
 #  ifdef ENAMETOOLONG
@@ -318,6 +318,15 @@ __rw_mkstemp (int modebits, long prot)
     modebits |= _RWSTD_O_EXCL | _RWSTD_O_CREAT;
 
 #  ifdef _WIN32
+
+#  ifndef P_tmpdir   // #defined in <stdio.h> by POSIX
+#    define P_tmpdir "\\"
+#  endif   // P_tmpdir
+
+    // use TMPDIR and fall back on P_tmpdir as per POSIX
+    const char *tmpdir = getenv ("TMP");
+    if (0 == tmpdir || '\0' == *tmpdir) 
+        tmpdir = P_tmpdir;
 
     // tempnam(const char *dir, const char *prefix) will generate
     // a unique file name for a directory chosen by the following rules:
