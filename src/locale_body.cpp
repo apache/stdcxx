@@ -859,6 +859,21 @@ _C_manage (__rw_locale *plocale, const char *locname)
         return tmp;
     }
 
+    if (plocale && plocale == classic) {
+        // optimize the "destruction" of the classic C locale
+        // the object is never destroyed and its reference count
+        // never drops to 0
+        _RWSTD_ASSERT (__rw_is_C (locname));
+        _RWSTD_ASSERT (__rw_is_C (plocale->_C_name));
+
+        const size_t ref =
+            _RWSTD_ATOMIC_PREDECREMENT (plocale->_C_ref, false);
+
+        _RWSTD_ASSERT (ref + 1U != 0);
+        _RWSTD_UNUSED (ref);
+
+        return 0;
+    }
 
     // re-entrant to protect static local data structures
     // (not the locales themselves)
@@ -1064,6 +1079,15 @@ _C_is_managed (int cat) const _THROWS (())
         if (_C_n_usr_facets) {
             _RWSTD_ASSERT (0 != _C_usr_facets);
             return false;
+        }
+
+        _RWSTD_ASSERT (0 == _C_usr_facets);
+
+        if (_C_all == _C_std_facet_bits && 0 == _C_byname_facet_bits) {
+            // optimized for the C locale
+            _RWSTD_ASSERT (__rw_is_C (_C_name));
+
+            return true;
         }
 
         // unless all facets in the same category come either from
