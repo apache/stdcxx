@@ -278,6 +278,18 @@
 #ifdef _WIN32
 #  define _RWSTD_NO_STATIC_MUTEX_INIT
 #  define _RWSTD_PATH_SEP '\\'
+#  ifdef _RWSTD_LIB_SRC
+     // Don't use implicit TLS in our library on Windows because of the TLS
+     // might not be initialized when our library DLL or the DLL, that
+     // linked statically against our library, is loaded explicitly using
+     // LoadLibrary() function. (STDCXX-1023)
+#    ifndef _RWSTD_NO_TLS
+#      define _RWSTD_NO_TLS
+#    endif
+#    ifdef _RWSTD_THREAD
+#      undef _RWSTD_THREAD
+#    endif
+#  endif   // _RWSTD_LIB_SRC
 #endif   // _WIN32
 
 #ifndef _RWSTD_PATH_SEP
