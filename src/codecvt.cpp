@@ -127,8 +127,8 @@ do_out (state_type         &state,
     // verify that both ranges are valid
     _RWSTD_ASSERT (from <= from_end);
     _RWSTD_ASSERT (to <= to_end);
-    _RWSTD_ASSERT (from && from_end || !from && !from_end);
-    _RWSTD_ASSERT (to && to_end || !to && !to_end);
+    _RWSTD_ASSERT ((from && from_end) || (!from && !from_end));
+    _RWSTD_ASSERT ((to && to_end) || (!to && !to_end));
 
     // next pointers must always be set before returning, even on error
     from_next = from;
@@ -183,8 +183,8 @@ do_in (state_type         &state,
     // verify that both ranges are valid
     _RWSTD_ASSERT (from <= from_end);
     _RWSTD_ASSERT (to   <= to_end);
-    _RWSTD_ASSERT (from && from_end || !from && !from_end);
-    _RWSTD_ASSERT (to && to_end || !to && !to_end);
+    _RWSTD_ASSERT ((from && from_end) || (!from && !from_end));
+    _RWSTD_ASSERT ((to && to_end) || (!to && !to_end));
 
     typedef codecvt<char, char, _RWSTD_MBSTATE_T> This;
 
@@ -204,7 +204,7 @@ do_unshift (state_type   &state,
 {
     // verify that the range is valid
     _RWSTD_ASSERT (to <= to_end);
-    _RWSTD_ASSERT (to && to_end || !to && !to_end);
+    _RWSTD_ASSERT ((to && to_end) || (!to && !to_end));
 
     _RWSTD_UNUSED (to_end);
 
@@ -246,7 +246,7 @@ do_length (state_type        &state,
     _RWSTD_ASSERT (from <= from_end);
 
     // verify that the range is valid
-    _RWSTD_ASSERT (from && from_end || !from && !from_end);
+    _RWSTD_ASSERT ((from && from_end) || (!from && !from_end));
 
     const int mbstate_valid = _RW::__rw_mbsinit (&state);
     _RWSTD_ASSERT (mbstate_valid);

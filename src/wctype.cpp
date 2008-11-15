@@ -107,8 +107,8 @@ __rw_get_mask (__rw_ctype_t    *impl,
                     // to the current character; otherwise continue
                     if (vec)
                         *vec = MaskT (next_elm.mask & mask);
-                    else if (    scan_is && next_elm.mask & mask
-                             || !scan_is && !(next_elm.mask & mask))
+                    else if (    (scan_is && next_elm.mask & mask)
+                             || (!scan_is && !(next_elm.mask & mask)))
                         return beg;
 
                     break;
@@ -236,7 +236,7 @@ __rw_get_mask (__rw_ctype_t    *impl,
 
         if (vec)
             *vec++ = MaskT (m);
-        else if (scan_is && m & mask || !scan_is && !(m & mask))
+        else if ((scan_is && m & mask) || (!scan_is && !(m & mask)))
             break;
     }
 

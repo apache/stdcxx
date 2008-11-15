@@ -104,19 +104,19 @@ ios_base::fmtflags ios_base::flags (fmtflags fl)
         // if basefield is set, clear the base mask and set
         // the numeric base bits according to the basefield
     case oct:
-        ifl = ifl &  mask | 8U << _RWSTD_IOS_BASEOFF;
+        ifl = (ifl & mask) | 8U << _RWSTD_IOS_BASEOFF;
         break;
 
     case dec:
-        ifl = ifl & mask | 10U << _RWSTD_IOS_BASEOFF;
+        ifl = (ifl & mask) | 10U << _RWSTD_IOS_BASEOFF;
         break;
 
     case hex:
-        ifl = ifl & mask | 16U << _RWSTD_IOS_BASEOFF;
+        ifl = (ifl & mask) | 16U << _RWSTD_IOS_BASEOFF;
         break;
 
     case _RWSTD_IOS_BIN:
-        ifl = ifl & mask | 2U << _RWSTD_IOS_BASEOFF;
+        ifl = (ifl & mask) | 2U << _RWSTD_IOS_BASEOFF;
         break;
 
     case 0:

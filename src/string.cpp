@@ -36,7 +36,7 @@ _RWSTD_NAMESPACE (__rw) {
 _RWSTD_EXPORT void*
 __rw_memcpy (void *dst, const void *src, size_t nbytes)
 {
-    _RWSTD_ASSERT (0 == nbytes || dst && src);
+    _RWSTD_ASSERT (0 == nbytes || (dst && src));
 
     const char* csrc = _RWSTD_STATIC_CAST (const char*, src);
 
@@ -50,7 +50,7 @@ __rw_memcpy (void *dst, const void *src, size_t nbytes)
 _RWSTD_EXPORT void*
 __rw_memmove (void *dst, const void *src, size_t nbytes)
 {
-    _RWSTD_ASSERT (0 == nbytes || dst && src);
+    _RWSTD_ASSERT (0 == nbytes || (dst && src));
 
     char* cdst = _RWSTD_STATIC_CAST (char*, dst);
     const char* csrc = _RWSTD_STATIC_CAST (const char*, src);
@@ -101,7 +101,7 @@ __rw_memset (void *dst, int c, size_t nbytes)
 _RWSTD_EXPORT int
 __rw_memcmp (const void *s1, const void *s2, size_t nbytes)
 {
-    _RWSTD_ASSERT (0 == nbytes || s1 && s2);
+    _RWSTD_ASSERT (0 == nbytes || (s1 && s2));
 
     typedef unsigned char UChar;
 
@@ -110,7 +110,8 @@ __rw_memcmp (const void *s1, const void *s2, size_t nbytes)
 
     int result = 0;
 
-    for ( ; nbytes && !(result = *cs1 - *cs2); ++cs1, ++cs2, --nbytes);
+    for ( ; nbytes && !(result = *cs1 - *cs2); ++cs1, ++cs2, --nbytes)
+        /* no-op */;
 
     return result;
 }
@@ -121,7 +122,8 @@ __rw_strlen (const char *str)
 {
     const char* const begin = str;
 
-    for (; *str; ++str);
+    while (*str)
+        ++str;
 
     return _RWSTD_STATIC_CAST (size_t, str - begin);
 }
@@ -132,7 +134,7 @@ __rw_strlen (const char *str)
 _RWSTD_EXPORT wchar_t*
 __rw_wmemcpy (wchar_t *dst, const wchar_t *src, size_t nwchars)
 {
-    _RWSTD_ASSERT (0 == nwchars || dst && src);
+    _RWSTD_ASSERT (0 == nwchars || (dst && src));
 
     for (wchar_t *tmp = dst; nwchars; --nwchars)
         *tmp++ = *src++;
@@ -144,7 +146,7 @@ __rw_wmemcpy (wchar_t *dst, const wchar_t *src, size_t nwchars)
 _RWSTD_EXPORT wchar_t*
 __rw_wmemmove (wchar_t *dst, const wchar_t *src, size_t nwchars)
 {
-    _RWSTD_ASSERT (0 == nwchars || dst && src);
+    _RWSTD_ASSERT (0 == nwchars || (dst && src));
 
     if (dst < src) {
         while (nwchars--)
@@ -188,11 +190,12 @@ __rw_wmemset (wchar_t *dst, wchar_t wc, size_t nwchars)
 _RWSTD_EXPORT int
 __rw_wmemcmp (const wchar_t *s1, const wchar_t *s2, size_t nwchars)
 {
-    _RWSTD_ASSERT (0 == nwchars || s1 && s2);
+    _RWSTD_ASSERT (0 == nwchars || (s1 && s2));
 
     int result = 0;
 
-    for ( ; nwchars && !(result = *s1 - *s2); ++s1, ++s2, --nwchars);
+    for ( ; nwchars && !(result = *s1 - *s2); ++s1, ++s2, --nwchars)
+        /* no-op */;
 
     return result;
 }
@@ -205,7 +208,8 @@ __rw_wcslen (const wchar_t *wstr)
 
     const wchar_t* const begin = wstr;
 
-    for (; *wstr; ++wstr);
+    while (*wstr)
+        ++wstr;
 
     return _RWSTD_STATIC_CAST (size_t, wstr - begin);
 }

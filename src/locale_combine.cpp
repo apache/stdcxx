@@ -235,11 +235,11 @@ _C_construct (const __rw_locale &one, const __rw_locale &other, int cat)
     // compute and assign facet bitmaps
     const int bits = _C_LC2facet_bits (cat);
 
-    _C_std_facet_bits    =   one._C_std_facet_bits & ~bits
-                           | other._C_std_facet_bits & bits;
+    _C_std_facet_bits    =   (one._C_std_facet_bits & ~bits)
+                           | (other._C_std_facet_bits & bits);
 
-    _C_byname_facet_bits =   one._C_byname_facet_bits & ~bits
-                           | other._C_byname_facet_bits & bits;
+    _C_byname_facet_bits =   (one._C_byname_facet_bits & ~bits)
+                           | (other._C_byname_facet_bits & bits);
 
     for (size_t i = 0; i != _C_n_std_facets; ++i) {
 

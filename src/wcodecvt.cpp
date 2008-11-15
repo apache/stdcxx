@@ -431,8 +431,8 @@ __rw_libc_do_out (_RWSTD_MBSTATE_T &state,
     _RWSTD_ASSERT (to <= to_limit);
 
     // verify that both ranges are valid
-    _RWSTD_ASSERT (from && from_end || !from && !from_end);
-    _RWSTD_ASSERT (to && to_limit || !to && !to_limit);
+    _RWSTD_ASSERT (!from == !from_end);
+    _RWSTD_ASSERT (!to == !to_limit);
 
     // set the (possibly uninitialized) next pointers
     // to point to the beginning of each sequence
@@ -769,8 +769,8 @@ __rw_libstd_do_out (const wchar_t             *from,
             // doesn't generate signed/unsigned compiler warnings
             const WIntT wi = _RWSTD_STATIC_CAST (WIntT, *from_next);
 
-            if (   WIntT (0xd800U) <= wi && wi <= WIntT (0xdfffU)
-                || WIntT (0xfffeU) <= wi && wi <= WIntT (0xffffU)) {
+            if (   (WIntT (0xd800U) <= wi && wi <= WIntT (0xdfffU))
+                || (WIntT (0xfffeU) <= wi && wi <= WIntT (0xffffU))) {
                 res = _STD::codecvt_base::error;
                 break;
             }
@@ -1081,8 +1081,8 @@ do_out (state_type         &state,
     _RWSTD_ASSERT (to   <= to_end);
 
     // verify that both ranges are valid
-    _RWSTD_ASSERT (from && from_end || !from && !from_end);
-    _RWSTD_ASSERT (to && to_end || !to && !to_end);
+    _RWSTD_ASSERT (!from == !from_end);
+    _RWSTD_ASSERT (!to == !to_end);
 
     // next pointers must always be set before returning, even on error
     from_next = from;
@@ -1128,8 +1128,8 @@ do_in (state_type         &state,
     _RWSTD_ASSERT (to   <= to_end);
 
     // verify that both ranges are valid
-    _RWSTD_ASSERT (from && from_end || !from && !from_end);
-    _RWSTD_ASSERT (to && to_end || !to && !to_end);
+    _RWSTD_ASSERT (!from == !from_end);
+    _RWSTD_ASSERT (!to == !to_end);
 
     // next pointers must always be set before returning, even on error
     from_next = from;
@@ -1161,7 +1161,7 @@ do_unshift (state_type   &state,
 {
     // verify that the range is valid
     _RWSTD_ASSERT (to <= to_end);
-    _RWSTD_ASSERT (to && to_end || !to && !to_end);
+    _RWSTD_ASSERT (!to == !to_end);
 
     _RWSTD_UNUSED (to_end);
 
@@ -1189,7 +1189,7 @@ do_length (state_type        &state,
     _RWSTD_ASSERT (from <= from_end);
 
     // verify that the range is valid
-    _RWSTD_ASSERT (from && from_end || !from && !from_end);
+    _RWSTD_ASSERT (!from == !from_end);
 
     const int mbstate_valid = _RW::__rw_mbsinit (&state);
 
@@ -1338,8 +1338,8 @@ do_in (state_type&         state,
     _RWSTD_ASSERT (to <= to_limit);
 
     // verify that both ranges are valid
-    _RWSTD_ASSERT (from && from_end || !from && !from_end);
-    _RWSTD_ASSERT (to && to_limit || !to && !to_limit);
+    _RWSTD_ASSERT (!from == !from_end);
+    _RWSTD_ASSERT (!to == !to_limit);
 
     // the standard does not specify the value of
     // *next pointers at entry;
@@ -1428,8 +1428,8 @@ do_out (state_type         &state,
     _RWSTD_ASSERT (to <= to_limit);
 
     // verify that both ranges are valid
-    _RWSTD_ASSERT (from && from_end || !from && !from_end);
-    _RWSTD_ASSERT (to && to_limit || !to && !to_limit);
+    _RWSTD_ASSERT (!from == !from_end);
+    _RWSTD_ASSERT (!to == !to_limit);
 
     // the standard does not specify the value of the next pointers on entry
     from_next = from;
@@ -1507,7 +1507,7 @@ do_unshift (state_type&   state,
 {
     // verify that the range is valid
     _RWSTD_ASSERT (to <= to_limit);
-    _RWSTD_ASSERT (to && to_limit || !to && !to_limit);
+    _RWSTD_ASSERT (!to == !to_limit);
 
     // the standard does not specify the value of
     // to_next pointer at entry;
@@ -1573,7 +1573,7 @@ do_length (state_type&        state,
     _RWSTD_ASSERT (from <= from_end);
 
     // verify that the range is valid
-    _RWSTD_ASSERT (from && from_end || !from && !from_end);
+    _RWSTD_ASSERT (!from == !from_end);
 
     size_t len = 0;
 

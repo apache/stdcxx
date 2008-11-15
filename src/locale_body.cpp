@@ -1096,18 +1096,18 @@ _C_is_managed (int cat) const _THROWS (())
         // detect categores of all byname facets not all of which
         // belong to the same named locale)
         if (   (_C_std_facet_bits & _C_all) != _C_all
-            || (_C_byname_facet_bits & _C_collate)
-            && (_C_byname_facet_bits & _C_collate)  != _C_collate
-            || (_C_byname_facet_bits & _C_ctype)
-            && (_C_byname_facet_bits & _C_ctype)    != _C_ctype
-            || (_C_byname_facet_bits & _C_monetary)
-            && (_C_byname_facet_bits & _C_monetary) != _C_monetary
-            || (_C_byname_facet_bits & _C_numeric)
-            && (_C_byname_facet_bits & _C_numeric)  != _C_numeric
-            || (_C_byname_facet_bits & _C_time)
-            && (_C_byname_facet_bits & _C_time)     != _C_time
-            || (_C_byname_facet_bits & _C_messages)
-            && (_C_byname_facet_bits & _C_messages) != _C_messages)
+            || (   (_C_byname_facet_bits & _C_collate)
+                && (_C_byname_facet_bits & _C_collate) != _C_collate)
+            || (   (_C_byname_facet_bits & _C_ctype)
+                && (_C_byname_facet_bits & _C_ctype) != _C_ctype)
+            || (   (_C_byname_facet_bits & _C_monetary)
+                && (_C_byname_facet_bits & _C_monetary) != _C_monetary)
+            || (   (_C_byname_facet_bits & _C_numeric)
+                && (_C_byname_facet_bits & _C_numeric) != _C_numeric)
+            || (   (_C_byname_facet_bits & _C_time)
+                && (_C_byname_facet_bits & _C_time) != _C_time)
+            || (   (_C_byname_facet_bits & _C_messages)
+                && (_C_byname_facet_bits & _C_messages) != _C_messages))
             return false;
 
         // check whether all _byname facets in each category belong

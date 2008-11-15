@@ -253,7 +253,9 @@ __rw_itoa (char *buf, _ULLong i, unsigned flags)
 
     // skip leading zeros
     if (i) {
-        for (j = digits - 1; j && !(i & (base << j * bits)); --j);
+        j = digits - 1;
+        while (j && !(i & (base << j * bits)))
+            --j;
     }
     else
         j = 0;
@@ -457,7 +459,9 @@ __rw_itoa (char *buf, unsigned long i, unsigned flags)
         const int digits =
             (_STD::numeric_limits<unsigned long>::digits + bits - 1) / bits;
 
-        for (j = digits - 1; !(i & (long (basemask) << j * bits)); --j);
+        j = digits - 1;
+        while (!(i & (long (basemask) << j * bits)))
+            --j;
     }
     else
         j = 0;

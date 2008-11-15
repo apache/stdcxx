@@ -84,10 +84,10 @@ bool locale::operator== (const locale &rhs) const
         // share the exact same facets (otherwise the bits may or may not
         // be the same)
         _RWSTD_ASSERT (   !eql
-                       ||    _C_body->_C_std_facet_bits
-                          == rhs._C_body->_C_std_facet_bits
-                       &&    _C_body->_C_byname_facet_bits
-                          == rhs._C_body->_C_byname_facet_bits);
+                       || (   _C_body->_C_std_facet_bits
+                              == rhs._C_body->_C_std_facet_bits
+                           &&    _C_body->_C_byname_facet_bits
+                              == rhs._C_body->_C_byname_facet_bits));
 
         // the names of both objects must be the same if the two objects
         // share the exact same facets (otherwise the names may or may not

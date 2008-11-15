@@ -113,7 +113,7 @@ __rw_facet::__rw_facet (size_t __ref /* = 0 */) _THROWS (())
 
 __rw_facet::~__rw_facet () // nothrow
 {
-    _RWSTD_ASSERT (!_C_name && !_C_buf || _C_name && _C_buf);
+    _RWSTD_ASSERT ((!_C_name && !_C_buf) || (_C_name && _C_buf));
 
     static const char destroyed[] = "*** destroyed facet ***";
 
@@ -218,8 +218,8 @@ const void* __rw_facet::_C_get_data ()
             pdata = __rw_get_facet_data (cat, sz, strip_name.data ());
         }
         else if (   pstr && pstr [4] == '-' && !pstr [6]
-                 && (   '4' == pstr [5] && sizeof (wchar_t) == 4
-                     || '2' == pstr [5] && sizeof (wchar_t) == 2)) {
+                 && (   ('4' == pstr [5] && sizeof (wchar_t) == 4)
+                     || ('2' == pstr [5] && sizeof (wchar_t) == 2))) {
 
             // @UCS-4 is only recognized where sizeof (wchar_t) == 4
             // @UCS-2 is only recognized where sizeof (wchar_t) == 2
@@ -249,7 +249,7 @@ const void* __rw_facet::_C_get_data ()
             return 0;
         }
 
-        if (!is_wcodecvt_byname || pstr && pdata) {
+        if (!is_wcodecvt_byname || (pstr && pdata)) {
             _C_impdata = pdata; 
             _C_impsize = sz;
             return _C_impdata;

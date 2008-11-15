@@ -246,7 +246,7 @@ strstreambuf::setbuf (char_type* buf, streamsize bufsize)
     _RWSTD_ASSERT (_C_is_valid ());
 
     if (   !(_C_state & _C_dynamic) || (_C_state & _C_frozen)
-        || !buf && !bufsize) {
+        || (!buf && !bufsize)) {
         // lwg issue 66
         return 0;
     }

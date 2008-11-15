@@ -239,7 +239,7 @@ struct _RWSTD_EXPORT ios_base: _RW::__rw_synchronized
 
     // 27.4.2.2, p6
     fmtflags setf (fmtflags __f, fmtflags __mask) {
-        return flags (flags () & ~__mask | __f & __mask);
+        return flags ((flags () & ~__mask) | (__f & __mask));
     }
 
     // 27.4.2.2, p8
