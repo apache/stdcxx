@@ -158,7 +158,7 @@ NOTE -- This feature was available in the traditional iostreams, but is not offe
 <P>The effect is the same as in the previous solution, because the standard output stream <SAMP>std::cout</SAMP> is connected to the C standard file <SAMP>stdout</SAMP>. This is the simplest of all solutions, because it doesn't involve reassigning or sharing stream buffers. The output file stream's buffer is simply connected to the right file. However, this is a nonstandard and nonportable solution.</P>
 <A NAME="3423"><H3>34.2.3 Using Pointers or References to Streams</H3></A>
 <A NAME="idx851"><!></A>
-<P>If you do not want to deal with stream buffers at all, you can also use pointers or references to streams instead. Here is an example:</P>
+<P>If you do not want to deal with stream buffers at all, you can also use pointers to streams instead. Here is an example:</P>
 
 <UL><PRE>
 int main(int argc, char *argv[])
@@ -170,7 +170,7 @@ int main(int argc, char *argv[])
      fp = &amp;std::cout                                          //3
 
   *fp &lt;&lt; "Hello world!" &lt;&lt; std::endl;                         //4
-  if (fp!=&amp;std::cout) 
+  if (fp != &amp;std::cout)
      delete fp;
 }
 </PRE></UL>
@@ -181,25 +181,7 @@ int main(int argc, char *argv[])
 <TR VALIGN="top"><TD><SAMP>//3</SAMP></TD><TD>Otherwise, a pointer to <SAMP>std::cout</SAMP> is used.
 <TR VALIGN="top"><TD><SAMP>//4</SAMP></TD><TD>Output is written through the pointer to either <SAMP>std::cout</SAMP> or the named output file.
 </TABLE>
-<A NAME="idx852"><!></A>
-<P>An alternative approach could use a reference instead of a pointer:</P>
-
-<UL><PRE>
-int main(int argc, char *argv[])
-{
-  std::ostream&amp; fr;
-  if (argc &gt; 1)
-    fr = *(new std::ofstream(argv[1]));
-  else
-    fr = std::cout;
-
-  fr &lt;&lt; "Hello world!" &lt;&lt; std::endl;
-
-  if (&amp;fr!=&amp;std::cout) 
-    delete(&amp;fr);
-}
-</PRE></UL>
-<P>Working with pointers and references has a drawback: you must create an output file stream object on the heap and, in principle, you must worry about deleting the object again, which might lead you into other dire straits.</P>
+<P>Working with pointers has a drawback: you must create an output file stream object on the heap and, in principle, you must worry about deleting the object again, which might lead you into other dire straits.</P>
 <A NAME="idx853"><!></A>
 <P>In summary, creating a copy of a stream is not trivial and should only be done if you really need a copy of a stream object. In many cases, it is more appropriate to use references or pointers to stream objects instead, or to share a stream buffer between two streams.  </P>
 <BLOCKQUOTE><HR><B>
