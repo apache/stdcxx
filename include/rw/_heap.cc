@@ -95,17 +95,10 @@ void __make_heap (_RandomAccessIter __first, _RandomAccessIter __last,
 
     const _Dist __dist = __last - __first;
 
-#if   !defined (_RWSTD_MSVC) || (1500 < _RWSTD_MSVC) \
-    || defined (_WIN64) || defined (_RWSTDDEBUG)
-    for (_Dist __parent = (__dist - 2) / 2; ; --__parent) {
-#else   // _RWSTD_MSVC <= 1500 && !_WIN64 && !_RWSTDDEBUG
-    // Workaround for ICE on 32-bit MSVC in optimized builds (STDCXX-1022)
-    for (_Dist __parent = (__dist - 2) / 2; 0 <= __parent; --__parent) {
-#endif   // !_RWSTD_MSVC || _RWSTD_MSVC > 1500 || _WIN64 || _RWSTDDEBUG
+    for (_Dist __parent = __dist / 2; 0 < __parent; ) {
+        --__parent;
         __adjust_heap (__first, __parent, __dist, *(__first + __parent),
                        __comp);
-        if (__parent == 0)
-            return;
     }
 }
 
