@@ -95,11 +95,10 @@ void __make_heap (_RandomAccessIter __first, _RandomAccessIter __last,
 
     const _Dist __dist = __last - __first;
 
-    for (_Dist __parent = (__dist - 2) / 2; ; --__parent) {
+    for (_Dist __parent = __dist / 2; 0 < __parent; ) {
+        --__parent;
         __adjust_heap (__first, __parent, __dist, *(__first + __parent),
                        __comp);
-        if (__parent == 0)
-            return;
     }
 }
 
