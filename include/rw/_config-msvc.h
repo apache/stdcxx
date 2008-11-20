@@ -112,7 +112,7 @@
 
 #  define _RWSTD_TT_ALIGN_OF(T)            __alignof(T)
 #  define _RWSTD_TT_ALIGNED_POD(N)         \
-      struct {__declspec(align(Align)) unsigned char _C_align; }
+      struct {__declspec(align(N)) unsigned char _C_align; }
 
 #  define _RWSTD_TT_MAX_ALIGNMENT          8192
 #endif // _MSC_FULL_VER >= 140050215
