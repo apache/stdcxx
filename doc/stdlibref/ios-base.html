@@ -390,7 +390,28 @@ NOTE -- The nocreate and noreplace elements are not part of the C++ Standard, bu
 <A NAME="idx678"></A><PRE>fmtflags 
 <B>flags</B>(fmtflags fmtfl); </PRE>
 <UL>
-<P>Saves the format control information, then sets it to <SAMP>fmtfl</SAMP> and returns the previously saved value.</P>
+<P>Sets <SAMP>flags()</SAMP> to <SAMP>fmtfl</SAMP> and returns the previous value of <SAMP>flags()</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx686"></A><PRE>fmtflags 
+<B>setf</B>(fmtflags fmtfl); </PRE>
+<UL>
+<P>Sets <SAMP>flags()</SAMP> to <SAMP>(fmtfl | flags())</SAMP> and returns the previous value of <SAMP>flags()</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx687"></A><PRE>fmtflags 
+<B>setf</B>(fmtflags fmtfl, fmtflags mask); </PRE>
+<UL>
+<P>Clears <SAMP>mask</SAMP> in <SAMP>flags()</SAMP>, sets <SAMP>(fmtfl &amp; mask)</SAMP> in <SAMP>flags()</SAMP>, and returns the previous value of <SAMP>flags()</SAMP>.</P>
+</UL>
+
+
+<A NAME="idx689"></A><PRE>void 
+<B>unsetf</B>(fmtflags mask); </PRE>
+<UL>
+<P>Clears <SAMP>mask</SAMP> in <SAMP>flags()</SAMP>.</P>
 </UL>
 
 
@@ -443,31 +464,10 @@ NOTE -- The nocreate and noreplace elements are not part of the C++ Standard, bu
 </UL>
 
 
-<A NAME="idx686"></A><PRE>fmtflags 
-<B>setf</B>(fmtflags fmtfl); </PRE>
-<UL>
-<P>Saves the format control information, then sets it to <SAMP>fmtfl</SAMP> and returns the previously saved value.</P>
-</UL>
-
-
-<A NAME="idx687"></A><PRE>fmtflags 
-<B>setf</B>(fmtflags fmtfl, fmtflags mask); </PRE>
-<UL>
-<P>Saves the format control information, then clears <SAMP>mask</SAMP> in <SAMP>flags()</SAMP>, sets <SAMP>fmtfl &amp; mask in flags()</SAMP>, and returns the previously saved value.</P>
-</UL>
-
-
 <A NAME="idx688"></A><PRE>bool 
 <B>sync_with_stdio</B>(bool sync = true); </PRE>
 <UL>
 <P>When called with a <SAMP>false</SAMP> argument, allows the C++ standard streams to operate independently of the standard C streams, which greatly improves performance. When called with a <SAMP>true</SAMP> argument, restores the default synchronization. The return value of the function is the status of the synchronization at the time of the call. </P>
-</UL>
-
-
-<A NAME="idx689"></A><PRE>void 
-<B>unsetf</B>(fmtflags mask); </PRE>
-<UL>
-<P>Clears <SAMP>mask</SAMP> in <SAMP>flags()</SAMP>.</P>
 </UL>
 
 
