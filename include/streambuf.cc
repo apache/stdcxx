@@ -23,7 +23,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2006 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -90,23 +90,35 @@ xsgetn (char_type* __buf, streamsize __n)
         // number of characters available in get area
         streamsize __navail = egptr () - gptr ();
 
-        if (0 == __navail)
+        if (0 < __navail) {
+            if (__navail > __n)
+                __navail = __n;
+
+            // copy contents of get area to the destination buffer
+            traits_type::copy (__buf + __nget, gptr (), __navail);
+
+            // increment pointers and counts by the number of characters
+            // copied
+            gbump (__navail);
+            __n    -= __navail;
+            __nget += __navail;
+        }
+        else if (traits_type::eq_int_type (__c, traits_type::eof ())) {
+            // break out on underflow() failure (e.g., reaching EOF)
             break;
+        }
+        else {
+            // unbuffered mode: empty pending seuqence but non-EOF
+            // overflow() return value
 
-        if (__navail > __n)
-            __navail = __n;
+            // append character returned by underflow()
+            traits_type::assign (__buf [__nget],
+                                 traits_type::to_char_type (__c));
 
-        // copy contents of get area to the destination buffer
-        traits_type::copy (__buf + __nget, gptr (), __navail);
-
-        // increment pointers and counts by the number of characters copied
-        gbump (__navail);
-        __n    -= __navail;
-        __nget += __navail;
-
-        // break out on underflow error
-        if (traits_type::eq_int_type (__c, traits_type::eof ()))
-            break;
+            // avoid incrementing egptr() but adjust counters
+            --__n;
+            ++__nget;
+        }
     }
 
     return __nget;
