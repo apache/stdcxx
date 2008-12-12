@@ -34,7 +34,7 @@ int main ()
 {
     static int x = '0';
 
-    struct: std::streambuf {
+    struct MyBuf : std::streambuf {
         // unbuffered, always successfully reads one character
         int_type underflow () {
             assert (gptr () == egptr ());
