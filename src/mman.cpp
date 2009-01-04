@@ -29,6 +29,12 @@
 #define _RWSTD_LIB_SRC
 #include <rw/_defs.h>
 
+#if defined __linux__ && 4 == __GNUC__ && 3 == __GNUC_MINOR__
+   // work around gcc bug 37405
+   // http://gcc.gnu.org/bugzilla/show_bug.cgi?id=37405
+#  define __wur /* empty */
+#endif   // gcc 4.3 on Linux
+
 #ifndef _MSC_VER
    // <unistd.h> is included here because of PR #26255
 #  include <unistd.h>

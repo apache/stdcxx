@@ -1,6 +1,6 @@
 /***************************************************************************
  *
- * rw_setlocale.cpp - implementation of the __rw_setlocale class
+ * setlocale.cpp - implementation of the __rw_setlocale class
  *
  * This is an internal header file used to implement the C++ Standard
  * Library. It should never be #included directly by a program.
@@ -25,13 +25,19 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2001-2006 Rogue Wave Software.
+ * Copyright 2001-2006 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
 #define _RWSTD_LIB_SRC
 
 #include <rw/_defs.h>
+
+#if defined __linux__ && 4 == __GNUC__ && 3 == __GNUC_MINOR__
+   // work around gcc bug 37405
+   // http://gcc.gnu.org/bugzilla/show_bug.cgi?id=37405
+#  define __wur /* empty */
+#endif   // gcc 4.3 on Linux
 
 #if defined (__linux__) && !defined (_XOPEN_SOURCE)
    // need S_IFDIR on Linux
