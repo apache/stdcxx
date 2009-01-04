@@ -29,6 +29,11 @@
 // expand _TEST_EXPORT macros
 #define _RWSTD_TEST_SRC
 
+#if defined __linux__ && 4 == __GNUC__ && 3 == __GNUC_MINOR__
+   // work around gcc bug 37405
+   // http://gcc.gnu.org/bugzilla/show_bug.cgi?id=37405
+#  define __wur /* empty */
+#endif   // gcc 4.3 on Linux
 
 #include <rw_locale.h>
 #include <rw_environ.h>   // for rw_putenv()
