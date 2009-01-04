@@ -93,7 +93,8 @@ find (_InputIter __first, _InputIter __last, const _TypeT &__val)
 {
     _RWSTD_ASSERT_RANGE (__first, __last);
 
-    for (; !(__first == __last) && !(*__first == __val); ++__first);
+    while (!(__first == __last) && !(*__first == __val))
+        ++__first;
 
     return __first;
 }
@@ -105,7 +106,8 @@ find_if (_InputIter __first, _InputIter __last, _Predicate __pred)
 {
     _RWSTD_ASSERT_RANGE (__first, __last);
 
-    for (; !(__first == __last) && __pred (*__first) == false; ++__first);
+    while (!(__first == __last) && __pred (*__first) == false)
+        ++__first;
 
     return __first;
 }

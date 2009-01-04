@@ -791,9 +791,10 @@ _RandomAccessIter __unguarded_partition (_RandomAccessIter __first,
     _RWSTD_ASSERT_RANGE (__first, __last);
 
     for ( ; ; ++__first) {
-        for (; __comp (*__first, __pivot); ++__first);
+        while (__comp (*__first, __pivot))
+            ++__first;
 
-        while (__comp (__pivot, *--__last));
+        while (__comp (__pivot, *--__last)) { /* no-op */ }
 
         if (!(__first < __last))
             return __first;
@@ -1826,7 +1827,7 @@ bool next_permutation (_BidirIter __first, _BidirIter __last, _Compare __comp)
 
             _BidirIter __j = __last;
 
-            while (__comp (*__i, *--__j) == false);
+            while (__comp (*__i, *--__j) == false) { /* no-op */ }
 
             _STD::iter_swap (__i, __j);
 
@@ -1870,7 +1871,7 @@ bool prev_permutation (_BidirIter __first, _BidirIter __last, _Compare __comp)
 
             _BidirIter __j = __last;
 
-            while (__comp (*--__j, *__i) == false);
+            while (__comp (*--__j, *__i) == false) { /* no-op */ }
 
             _STD::iter_swap (__i, __j);
 

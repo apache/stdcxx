@@ -338,7 +338,8 @@ insert (iterator __it, const value_type &__v, bool __dup)
 
     {   // verify the consistency of the tree
         size_type __two_logN = 0;
-        for (size_type __i = size () + 1; __i >>= 1; ++__two_logN);
+        for (size_type __i = size () + 1; __i >>= 1; )
+            ++__two_logN;
 
         __two_logN *= 2;
 
@@ -408,7 +409,8 @@ __rb_tree<_Key, _Val, _KeyOf, _Comp, _Alloc>::erase (iterator __it)
 
     {   // verify the consistency of the tree
         size_type __two_logN = 0;
-        for (size_type __i = size () + 1; __i >>= 1; ++__two_logN);
+        for (size_type __i = size () + 1; __i >>= 1; )
+            ++__two_logN;
 
         __two_logN *= 2;
 
@@ -844,7 +846,8 @@ erase (iterator __first, iterator __last)
         // return end()
         __tmp = end ();
     } else
-        for (__tmp = end (); !(__first == __last); __tmp = erase (__first++));
+        for (__tmp = end (); !(__first == __last); __tmp = erase (__first))
+            ++__first;
 
     return __tmp;
 }
