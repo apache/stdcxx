@@ -1659,7 +1659,7 @@
      std::basic_filebuf and the std::basic_fstream family of templates
      are not available.
 
-  o  _RWSTD_EXT_DEEP_STRING_COPY [pure]
+  o  _RWSTD_NO_EXT_DEEP_STRING_COPY [pure]
 
      When  #defined,  the member  function  copy()  of class  template
      basic_string which  returns a deep  copy of the string  object is
