@@ -32,12 +32,6 @@
 #include <rw_file.h>
 
 #ifdef _RWSTD_OS_LINUX
-#  if 4 == __GNUC__ && 3 == __GNUC_MINOR__
-     // work around gcc bug 37405
-     // http://gcc.gnu.org/bugzilla/show_bug.cgi?id=37405
-#    define __wur /* empty */
-#  endif   // gcc 4.3
-
 #  ifdef _RWSTD_NO_PURE_C_HEADERS
      // on Linux define _XOPEN_SOURCE to get CODESET defined in <langinfo.h>
      // (avoid this hackery when using pure "C' headers (i.e., with the EDG

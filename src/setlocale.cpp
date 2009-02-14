@@ -33,12 +33,6 @@
 
 #include <rw/_defs.h>
 
-#if defined __linux__ && 4 == __GNUC__ && 3 == __GNUC_MINOR__
-   // work around gcc bug 37405
-   // http://gcc.gnu.org/bugzilla/show_bug.cgi?id=37405
-#  define __wur /* empty */
-#endif   // gcc 4.3 on Linux
-
 #if defined (__linux__) && !defined (_XOPEN_SOURCE)
    // need S_IFDIR on Linux
 #  define _XOPEN_SOURCE 
