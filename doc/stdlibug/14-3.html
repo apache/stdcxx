@@ -44,8 +44,8 @@ namespace std {
                    [, Compare ] );
 }
 </PRE></UL>
-<P>Following the call on <SAMP>std::nth_element()</SAMP>, the nth largest value is copied into the position denoted by the middle <B><I><A HREF="../stdlibref/iterator.html">iterator</A></I></B>. The region between the first <B><I>iterator</I></B> and the middle iterator will have values no larger than the nth element, while the region between the middle <B><I>iterator</I></B> and the end will hold values no smaller than the nth element.</P>
-<P>The example program illustrates finding the fifth largest value in a <B><I><A HREF="../stdlibref/vector.html">vector</A></I></B> of random numbers.</P>
+<P>Following the call on <SAMP>std::nth_element()</SAMP>, the nth smallest value (as determined by the optional <SAMP>Compare</SAMP> predicate, or by <SAMP>std::less</SAMP>, when none is specified) is copied into the position denoted by the middle <B><I><A HREF="../stdlibref/iterator.html">iterator</A></I></B>. The region between the first <B><I>iterator</I></B> and the middle iterator will have values no larger than the nth element, while the region between the middle <B><I>iterator</I></B> and the end will hold values no smaller than the nth element.</P>
+<P>The example program illustrates finding the fifth smallest value in a <B><I><A HREF="../stdlibref/vector.html">vector</A></I></B> of random numbers.</P>
 
 <A NAME="idx355"><!></A>
 <UL><PRE>
@@ -57,11 +57,11 @@ void nth_element_example()
   std::vector&lt;int&gt; aVec(10);
   std::generate(aVec.begin(), aVec.end(), randomValue);
 
-  // now find the 5th largest
+  // now find the 5th smallest value
   std::vector&lt;int&gt;::iterator nth = aVec.begin() + 4;
   std::nth_element(aVec.begin(), nth, aVec.end());
 
-  std::cout &lt;&lt; "fifth largest is " &lt;&lt; *nth &lt;&lt; std::endl;
+  std::cout &lt;&lt; "fifth smallest is " &lt;&lt; *nth &lt;&lt; std::endl;
 }
 </PRE></UL>
 
