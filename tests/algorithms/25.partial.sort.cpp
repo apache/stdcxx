@@ -184,7 +184,7 @@ void test_partial_sort (int                  line,
                    "line %d: %s<%s%{?}, %s%{;}%{?}, %s%{;}> "
                    "(\"%s\", %zu, ...): ==> \"%{X=*.*}\" not sorted",
                     __LINE__, fname, itname, copy, outname, ppred, funname, 
-                    src, mid, int (mid), -1, res_x);
+                    src, mid, int (sizeof (*res_x)), int (mid), -1, res_x);
     }
     else {
         rw_assert (success, 0, line,
@@ -224,9 +224,9 @@ void test_partial_sort (int                  line,
         rw_assert (success, 0, line,
                    "line %d: %s<%s%{?}, %s%{;}%{?}, %s%{;}> "
                    "(\"%s\", %zu, ...): ==> \"%{X=*.*}\" got less element "
-                   "%{?}%#c%{;} in the unsorted part",
-                   __LINE__, fname, itname, copy, outname, ppred, funname, 
-                   src, mid, int (copy ? mid : nsrc), -1, res_x, 
+                   "%{?}%#c%{;} in the unsorted part", __LINE__, fname,
+                   itname, copy, outname, ppred, funname, src, mid,
+                   int (sizeof (*res_x)), int (copy ? mid : nsrc), -1, res_x, 
                    !copy, xsrc[j].data_.val_);
     }
     else {

@@ -245,6 +245,8 @@ void test_merge (int                line,
                    predname, src1, src2, ndst, xdst_res - xdst);
     }
 
+    static const int cwidth = sizeof (*xdst);
+
     // check that the sequence is sorted
     success = is_sorted_lt (xdst, xdst_end);
     rw_assert (success, 0, line,
@@ -253,7 +255,7 @@ void test_merge (int                line,
                "not sorted",
                __LINE__, algname, it1name, !inplace, it2name, outname, 
                predicate, predname, src1, !inplace, src2, inplace, midinx,
-               int (ndst), -1, xdst);
+               cwidth, int (ndst), -1, xdst);
 
     // check that the algorithm is stable
     std::size_t i = 1;
@@ -274,7 +276,7 @@ void test_merge (int                line,
                "not stable at %zu: got ids %d != %d for values %#c == %#c",
                __LINE__, algname, it1name, !inplace, it2name, outname, 
                predicate, predname, src1, !inplace, src2, inplace, midinx,
-               int (ndst), i, xdst, i, xdst [i - 1].origin_, 
+               cwidth, int (ndst), i, xdst, i, xdst [i - 1].origin_, 
                xdst [i].origin_, xdst [i - 1].data_.val_, xdst [i].data_.val_);
 
     // check the complexity
@@ -285,7 +287,7 @@ void test_merge (int                line,
                "complexity: got %zu, expected <= %zu",
                __LINE__, algname, it1name, !inplace, it2name, outname, 
                predicate, predname, src1, !inplace, src2, inplace, midinx,
-               int (ndst), -1, xdst, n_ops_lt, ndst - 1);
+               cwidth, int (ndst), -1, xdst, n_ops_lt, ndst - 1);
 
     delete[] xsrc1;
     delete[] xsrc2;

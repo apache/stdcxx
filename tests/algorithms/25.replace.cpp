@@ -196,11 +196,13 @@ void test_replace (int line,
             break;
     }
 
+    static const int cwidth = sizeof (T);
+
     rw_assert (success, 0, line, 
                "line %d: %s<%s>(\"%s\", ..., %#c, %#c) ==> "
                "\"%{X=*.*}\"; unexpected element value %#c",
                __LINE__, fname, itname, src, val, new_val,
-               int (nsrc), int (i), xsrc, src [i]);
+               cwidth, int (nsrc), int (i), xsrc, src [i]);
 
     // check the id (not just the value) of the matching element
     // to make sure it has really been replaced
@@ -220,7 +222,7 @@ void test_replace (int line,
                "\"%{X=#*.*}\"; failed to replace element %zu: "
                "origin %d (%d, %d), expected %d (%d)",
                __LINE__, fname, itname, src, val, new_val,
-               int (nsrc), int (i), xsrc,
+               cwidth, int (nsrc), int (i), xsrc,
                i, xsrc [i].origin_, xsrc [i].id_, xsrc [i].src_id_,
                replace_with.origin_, replace_with.id_);
 
@@ -309,11 +311,13 @@ void test_replace (int line,
             break;
     }
 
+    static const int cwidth = sizeof (T);
+
     rw_assert (success, 0, line,
                "line %d: %s<%s>(\"%s\", ..., %#c) ==> "
                "\"%{X=*.*}\"; unexpected element value %#c",
                __LINE__, fname, itname, src, val,
-               int (nsrc), int (i), xdst, src [i]);
+               cwidth, int (nsrc), int (i), xdst, src [i]);
 
     // check the id (not just the value) of the matching element
     // to make sure it has really been copied
@@ -332,7 +336,7 @@ void test_replace (int line,
                "\"%{X=*.*}\"; failed to copy and replace element %zu: "
                "origin %d (%d, %d), expected %d (%d)",
                __LINE__, fname, itname, src, val, new_val,
-               int (nsrc), int (i), xdst,
+               cwidth, int (nsrc), int (i), xdst,
                i, xdst [i].origin_, xdst [i].id_, xdst [i].src_id_,
                replace_with.origin_, replace_with.id_);
 

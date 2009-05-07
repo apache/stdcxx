@@ -152,8 +152,8 @@ void test_nth_element (int                 line,
                    "line %d: %s<%s%{?}, %s%{;}>(\"%s\", %zu, ...) ==> "
                    "\"%{X=*.*}\", got %#c at %zu !< %#c at %zu",
                    __LINE__, fname, itname, ppred, funname, src, nth, 
-                   int (nsrc), -1, xsrc, xsrc[i].data_.val_, i,
-                   xsrc[j].data_.val_, j);
+                   int (sizeof (*xsrc)), int (nsrc), -1, xsrc,
+                   xsrc[i].data_.val_, i, xsrc[j].data_.val_, j);
     }
     else {
         rw_assert (success, 0, line,

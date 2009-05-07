@@ -160,7 +160,7 @@ void test_permutations (int                     line,
                "line %d. %s <%s%{?}, %s%{;}> (\"%s\", ...) "
                "==> got \"%{X=*.*}\", expected \"%s\"",
                __LINE__, algname, itname, 0 != ppred, predname, src,
-               int (nsrc), int (i), xsrc, dst);
+               int (sizeof (*xsrc)), int (nsrc), int (i), xsrc, dst);
 
     // verify the complexity: 25.3.9 p2 and p5.
     // (last - first) / 2 swaps, 2 assign per swap

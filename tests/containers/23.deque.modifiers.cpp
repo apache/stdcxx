@@ -357,12 +357,14 @@ void test_insert (int line, int exceptions,
     char* funcall = 0;
     std::size_t len = 0;
 
+    static const int cwidth = sizeof (*xseq);
+
     rw_asnprintf (&funcall, &len, "deque(\"%{X=*.*}\").insert("
                   "%{?}begin(), %{:}%{?}end (), %{:}begin () + %zu%{;}%{;}"
                   "%{?}%d)%{:}%{?}\"%{X=*.*}\")%{:}%d, %d)%{;}%{;}",
-                  int (seqlen), -1, xseq, 0 == off, seqlen == off, off,
-                  nelems == -2, *ins, nelems == -1, 
-                  int (inslen), -1, xins, nelems, *ins);
+                  cwidth, int (seqlen), -1, xseq, 0 == off, seqlen == off,
+                  off, nelems == -2, *ins, nelems == -1, 
+                  cwidth, int (inslen), -1, xins, nelems, *ins);
 
     std::size_t n_copy = UserClass::n_total_copy_ctor_;
     std::size_t n_asgn = UserClass::n_total_op_assign_;
@@ -870,12 +872,14 @@ void test_assign (int line, int exceptions,
     char* funcall = 0;
     std::size_t len = 0;
 
+    static const int cwidth = sizeof (*xseq);
+
     rw_asnprintf (&funcall, &len, 
                   "deque(\"%{X=*.*}\").assign("
                   "%{?}\"%{X=*.*}\")%{:}%d, %d)%{;}", 
-                  seqlen, -1, xseq, 
+                  cwidth, seqlen, -1, xseq, 
                   nelems < 0, 
-                  asnlen, -1, xasn, 
+                  cwidth, asnlen, -1, xasn, 
                   nelems, *asn);
 
     std::size_t n_copy = UserClass::n_total_copy_ctor_;
@@ -1089,12 +1093,14 @@ void test_erase (int line,
     char* funcall = 0;
     std::size_t buflen = 0;
 
+    static const int cwidth = sizeof (*xseq);
+
     if (std::size_t (-1) == len) {   // erase(iterator)
 
         rw_asnprintf (&funcall, &buflen,
                       "deque(\"%{X=*.*}\").erase(%{?}end()%{:}"
                       "%{?}begin () + %zu%{:}begin ()%{;}%{;}",
-                      seqlen, -1, xseq,
+                      cwidth, seqlen, -1, xseq,
                       begoff == deq.size (), begoff, begoff);
         
         exception_loop (line, Erase_1, funcall, 0,
@@ -1110,7 +1116,7 @@ void test_erase (int line,
                       "%{?}begin () + %zu%{:}begin ()%{;}%{;}"
                       "%{?})%{:}%{?}, end ())%{:}%{?}, begin ())"
                       "%{:}begin () + %zu%{;}%{;}%{;}",
-                      seqlen, -1, xseq,
+                      cwidth, seqlen, -1, xseq,
                       begoff == deq.size (), begoff, begoff,
                       std::size_t (-1) == len,
                       end == deq.end (),

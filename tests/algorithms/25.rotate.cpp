@@ -173,7 +173,8 @@ void test_rotate (int line,
                "line %d: %s<%s>(\"%s\", %zu, ...) ==> "
                "\"%{X=*.*}\"; unexpected element value %#c at %zu",
                __LINE__, fname, itname, src, midnsrc,
-               int (nsrc), int (i), xsrc, xsrc [xpos].data_.val_, i);
+               int (sizeof (*xsrc)), int (nsrc), int (i), xsrc,
+               xsrc [xpos].data_.val_, i);
 
     success = iter_swap_calls <= nsrc;
     rw_assert (success, 0, line,
@@ -239,7 +240,8 @@ void test_rotate (int line,
                "line %d: %s<%s, %s>(\"%s\", %zu, ...) ==> "
                "\"%{X=*.*}\"; unexpected element value %#c at %zu",
                __LINE__, fname, it1name, it2name, src, midnsrc,
-               int (nsrc), int (i), xsrc, xdst [xpos].data_.val_, i);
+               int (sizeof (*xsrc)), int (nsrc), int (i), xsrc,
+               xdst [xpos].data_.val_, i);
 
     success = T::n_total_op_assign_ - last_n_op_assign == nsrc;
     rw_assert (success, 0, line,

@@ -141,9 +141,9 @@ void test_unique (int                    line,
 
     rw_assert (0 == mismatch, 0, line,
                "line %d: std::%s <%s%{?}, %s%{;}%{?}, %s%{;}>(\"%s\", ...) "
-               "==> \"%s\", got \"%{X=*.@}\"", 
-               __LINE__, fname, itname, use_copy, outname, 0 != ppred,
-               funname, src, dst, int (ndst), mismatch, xdst);
+               "==> \"%s\", got \"%{X=*.@}\"", __LINE__, fname, itname,
+               use_copy, outname, 0 != ppred, funname, src, dst,
+               int (sizeof (*xdst)), int (ndst), mismatch, xdst);
 
     if (ppred)
         n_total_ops = ppred->n_total_op_fcall_ - n_total_ops;

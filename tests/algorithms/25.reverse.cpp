@@ -153,7 +153,7 @@ void test_reverse (int line,
                "line %d: %s<%s>(\"%s\", ...) ==> "
                "\"%{X=*.*}\"; unexpected element value %#c at offset %zu",
                __LINE__, fname, itname, src,
-               int (nsrc), int (i), xsrc,
+               int (sizeof (*xsrc)), int (nsrc), int (i), xsrc,
                xsrc [nsrc - i - 1].data_.val_, i);
 
     const std::size_t iter_swap_expect = nsrc / 2;
@@ -214,7 +214,7 @@ void test_reverse (int line,
                "line %d: %s<%s>(\"%s\", ...) ==> "
                "\"%{X=*.*}\"; unexpected element value %#c at offset %zu",
                __LINE__, fname, itname, src,
-               int (nsrc), int (i), xsrc,
+               int (sizeof (*xsrc)), int (nsrc), int (i), xsrc,
                xdst [nsrc - i - 1].data_.val_, i);
 
     success = T::n_total_op_assign_ - last_n_op_assign == nsrc;

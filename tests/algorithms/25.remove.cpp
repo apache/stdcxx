@@ -179,6 +179,8 @@ void test_remove (int line,
     // variable "res" was set but never used
     _RWSTD_UNUSED (end);
 
+    static const int cwidth = sizeof (T);
+
     // verify that the returned iterator is set as expected
     bool success = end.cur_ == first.cur_ + (nsrc - nrem);
     rw_assert (success, 0, line, 
@@ -195,7 +197,7 @@ void test_remove (int line,
                    "line %d: %s<%s>(\"%s\", ..., %#c) ==> "
                    "\"%{X=*.*}\"; expected element value %#c",
                    __LINE__, fname, itname, src, val,
-                   int (nsrc), int (i), xsrc, src [i]);
+                   cwidth, int (nsrc), int (i), xsrc, src [i]);
     }
 
 
@@ -208,7 +210,7 @@ void test_remove (int line,
                    "line %d: %s<%s>(\"%s\", ..., %#c) ==> \"%{X=#*.*}\"; "
                    "unstable at offset %zu element ids: %d and %d",
                    __LINE__, fname, itname, src, val,
-                   int (nsrc), int (i - 1), xsrc,
+                   cwidth, int (nsrc), int (i - 1), xsrc,
                    i - 1, xsrc [i - 1].id_, xsrc [i].id_);
     }
 
@@ -222,7 +224,7 @@ void test_remove (int line,
                    "line %d: %s<%s>(\"%s\", ..., %#c) ==> "
                    "\"%{X=*.*}\"; expected element value %#c",
                    __LINE__, fname, itname, src, val,
-                   int (nsrc), int (i), xsrc, val);
+                   cwidth, int (nsrc), int (i), xsrc, val);
     }
 
 
@@ -283,6 +285,8 @@ void test_remove (int line,
     // variable "res" was set but never used
     _RWSTD_UNUSED (end);
 
+    const int cwidth = sizeof (T);
+
     // verify that the returned iterator is set as expected p 25.2.7.8
     bool success = end.cur_ == result.cur_ + (nsrc - nrem);
     rw_assert (success, 0, line, 
@@ -298,7 +302,7 @@ void test_remove (int line,
                    "line %d: %s<%s>(\"%s\", ..., %#c) ==> "
                    "\"%{X=*.*}\"; expected element value %#c",
                    __LINE__, fname, itname, src, val,
-                   int (nsrc - nrem), int (i), xdst, src [i]);
+                   cwidth, int (nsrc - nrem), int (i), xdst, src [i]);
     }
 
     // verify that the algorithm is stable: the relative order of the elements
@@ -310,7 +314,7 @@ void test_remove (int line,
                    "line %d: %s<%s>(\"%s\", ..., %#c) ==> \"%{X=#*.*}\"; "
                    "unstable at offset %zu: element ids: %d and %d",
                    __LINE__, fname, itname, src, val,
-                   int (nsrc - nrem), int (i - 1), xdst,
+                   cwidth, int (nsrc - nrem), int (i - 1), xdst,
                    i - 1, xdst [i - 1].id_, xdst [i].id_);
     }
 

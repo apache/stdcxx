@@ -197,6 +197,8 @@ void test_adjacent_difference (const std::size_t         N,
     UserClass* const src = new UserClass [N + 1];
     UserClass* dst = same_seq ? src : new UserClass [N + 1];
 
+    static const int cwidth = sizeof (*src);
+
     for (std::size_t i = 0; i != N; ++i) {
 
         UserClass* const src_end = src + i;
@@ -229,7 +231,7 @@ void test_adjacent_difference (const std::size_t         N,
                    "adjacent_difference <%s, %s%{?}, %s%{;}>"
                    "({%{X=+*}}, ...) == result + %td, got result + %td",
                    itname, outname, binop, opname,
-                   int (i), src, dst_end - dst, res - dst);
+                   cwidth, int (i), src, dst_end - dst, res - dst);
 
         for (k = 0; k < i; k++) {
             success = dst [k].data_.val_ == tmp_val [k];
@@ -246,7 +248,7 @@ void test_adjacent_difference (const std::size_t         N,
                        "adjacent_difference <%s, %s%{?}, %s%{;}>"
                        "({%{X=+*}}, ...) ==> {%{X=+*.*}}, expected %d",
                        itname, outname, binop, opname,
-                       int (i), src, int (i), int (k), dst, tmp_val [k]);
+                       cwidth, int (i), src, int (i), int (k), dst, tmp_val [k]);
         }
 
         delete[] tmp_val;
@@ -262,7 +264,7 @@ void test_adjacent_difference (const std::size_t         N,
                    "({%{X=+*}}, ...) complexity: got %zu invocations "
                    "of %s, expected %zu",
                    itname, outname, binop, opname,
-                   int (i), src, minus_ops,
+                   cwidth, int (i), src, minus_ops,
                    binop ? "BinaryMinus" : "operator-", exp_minus_ops);
 
         if (!success)
