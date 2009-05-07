@@ -106,7 +106,7 @@ test_qsort (int          line,
     rw_assert (success, 0, line, 
                "line %d: extern \"C%{?}++%{;}\" qsort (\"%s\", ...) ==> "
                "\"%{X=*.*}\" not sorted",
-               __LINE__, cxx, src, int (nsrc), -1, xsrc);
+               __LINE__, cxx, src, int (sizeof (*xsrc)), int (nsrc), -1, xsrc);
 
     delete[] xsrc;
 }

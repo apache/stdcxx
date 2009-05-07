@@ -218,13 +218,15 @@ void test_partial_sum (const std::size_t     N,
         const std::size_t plus_ops = binop ? Accumulator::funcalls_ : 
             UserClass::n_total_op_plus_assign_ - last_n_op_plus;
 
+        static const int cwidth = sizeof (*src);
+
         // verify the returned iterator 26.4.3, p2
         bool success = res == dst_end;
         rw_assert (success, 0, __LINE__,
                    "partial_sum<%s, %s%{?}, %s%{;}>"
                    "({%{X=+*}}, ...) == result + %d, got result %td",
                    itname, outname, binop, opname,
-                   int (i), src, dst_end - dst, res - dst_end);
+                   cwidth, int (i), src, dst_end - dst, res - dst_end);
 
         int sum = 0;
         for (k = 0; k < i; ++k) {
@@ -243,7 +245,8 @@ void test_partial_sum (const std::size_t     N,
                        "partial_sum<%s, %s%{?}, %s%{;}>"
                        "({%{X=+*}}, ...) ==> {%{X=+*.*}}, expected %d",
                        itname, outname, binop, opname,
-                       int (i), src, int (i), int (k), dst, sum);
+                       cwidth, int (i), src,
+                       cwidth, int (i), int (k), dst, sum);
         }
 
         delete[] tmp_val;
@@ -259,7 +262,7 @@ void test_partial_sum (const std::size_t     N,
                    "({%{X=+*}}, ...) complexity: got %zu invocations "
                    "of %s, expected %zu",
                    itname, outname, binop, opname,
-                   int (i), src, plus_ops,
+                   cwidth, int (i), src, plus_ops,
                    binop ? "BinaryPlus" : "operator+", exp_plus_ops);
 
         if (!success)

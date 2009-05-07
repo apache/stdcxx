@@ -293,15 +293,17 @@ void test_insert (int             line,     // line number of call site
     char* fcall = 0;
     std::size_t len = 0;
 
+    static const int cwidth = sizeof (*xseq);
+
     // format a string describing the function call being tested
     // (used in diagnostic messages, if any, below)
     rw_asnprintf (&fcall, &len, "vector(\"%{X=*.*}\").insert("
                   "%{?}begin()%{:}%{?}end()%{:}begin() + %zu%{;}%{;}, "
                   "%{?}%d%{:}%{?}\"%{X=*.*}\"%{:}%d, %d%{;}%{;})",
-                  int (seqlen), -1, xseq, 
+                  cwidth, int (seqlen), -1, xseq, 
                   0 == off, int (seqlen) == off, off, 
                   n == -2, *ins, n == -1, 
-                  int (inslen), -1, xins, n, *ins);
+                  cwidth, int (inslen), -1, xins, n, *ins);
 
     // 23.2.4.3, p1
     // Notes: Causes reallocation if the new size is greater than

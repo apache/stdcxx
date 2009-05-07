@@ -147,25 +147,27 @@ void test_swap (const T *lhs_seq, std::size_t lhs_seq_len,
     const Iterator rhs_end_1   = rhs.end ();
     const SizeType rhs_size_1  = rhs.size ();
 
+    static const int cwidth = sizeof (T);
+
     // verify that the iterators and sizes
     // of the two objects were swapped
     rw_assert (lhs_begin_0 == rhs_begin_1 && lhs_begin_1 == rhs_begin_0, 
                0, __LINE__,
                "begin() not swapped for \"%{X=*.*}\" and \"%{X=*.*}\"",
-               int (lhs_seq_len), -1, lhs_seq,
-               int (rhs_seq_len), -1, rhs_seq);
+               cwidth, int (lhs_seq_len), -1, lhs_seq,
+               cwidth, int (rhs_seq_len), -1, rhs_seq);
 
     rw_assert (lhs_end_0 == rhs_end_1 && lhs_end_1 == rhs_end_0, 
                0, __LINE__,
                "end() not swapped for \"%{X=*.*}\" and \"%{X=*.*}\"",
-               int (lhs_seq_len), -1, lhs_seq,
-               int (rhs_seq_len), -1, rhs_seq);
+               cwidth, int (lhs_seq_len), -1, lhs_seq,
+               cwidth, int (rhs_seq_len), -1, rhs_seq);
 
     rw_assert (lhs_size_0 == rhs_size_1 && lhs_size_1 == rhs_size_0, 
                0, __LINE__,
                "size() not swapped for \"%{X=*.*}\" and \"%{X=*.*}\"",
-               int (lhs_seq_len), -1, lhs_seq,
-               int (rhs_seq_len), -1, rhs_seq);
+               cwidth, int (lhs_seq_len), -1, lhs_seq,
+               cwidth, int (rhs_seq_len), -1, rhs_seq);
 
     // swap one of the containers with an empty unnamed temporary
     // container and verify that the object is empty
@@ -177,11 +179,11 @@ void test_swap (const T *lhs_seq, std::size_t lhs_seq_len,
 
     rw_assert (lhs_begin_2 == lhs_end_2, 0, __LINE__,
                "deque<%s>().begin() not swapped for \"%{X=*.*}\"",
-               tname, int (rhs_seq_len), -1, rhs_seq);
+               tname, cwidth, int (rhs_seq_len), -1, rhs_seq);
 
     rw_assert (0 == lhs_size_2, 0, __LINE__,
                "deque<%s>().size() not swapped for \"%{X=*.*}\"",
-               tname, int (rhs_seq_len), -1, rhs_seq);
+               tname, cwidth, int (rhs_seq_len), -1, rhs_seq);
 }
 
 

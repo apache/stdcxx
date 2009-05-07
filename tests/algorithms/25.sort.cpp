@@ -198,6 +198,8 @@ void test_sort (int                line,
     }
     */
 
+    static const int cwidth = sizeof (T);
+
     // check that the array is sorted
     bool success = is_sorted_lt (xsrc, xsrc_end);
     if (src) {
@@ -205,7 +207,7 @@ void test_sort (int                line,
                    "line %d: %s<%s%{?}, %s%{;}> (\"%s\", ...) ==> "
                    "\"%{X=*.*}\" not sorted",
                    __LINE__, fname, itname, ppred, funname, src,
-                   int (nsrc), -1, xsrc);
+                   cwidth, int (nsrc), -1, xsrc);
     }
     else {
         rw_assert (success, 0, line,
@@ -248,7 +250,7 @@ void test_sort (int                line,
                        "\"%{X=*.*}\" relative order is broken at %zu: "
                        "got ids %zu and %zu for values %#c and %#c",
                        __LINE__, fname, itname, ppred, funname, src,
-                       int (nsrc), -1, xsrc, j, xsrc[j - 1].origin_, 
+                       cwidth, int (nsrc), -1, xsrc, j, xsrc[j - 1].origin_, 
                        xsrc[j].origin_, xsrc[j - 1].data_.val_,
                        xsrc[j].data_.val_);
         }
