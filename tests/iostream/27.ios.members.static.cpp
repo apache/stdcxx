@@ -42,10 +42,13 @@
 // rwtest headers
 #include <rw_driver.h>
 #include <rw_file.h>
+#include <rw_process.h>     // for rw_process_create(), rw_waitpid()
+
+
+#include <fcntl.h>
 
 #ifndef _WIN32
 
-#  include <fcntl.h>
 #  include <unistd.h>
 #  include <sys/types.h>
 #  include <sys/wait.h>
@@ -54,7 +57,6 @@
 
 #else   // ifdef _WIN32
 
-#  include <fcntl.h>
 #  include <io.h>
 
 #  ifndef STDIN_FILENO
@@ -67,11 +69,17 @@
 
 #endif   // _WIN32
 
+static int _rw_child = 0;
 
 // use buffers larger than L_tmpnam with rw_tmpnam()
-char stderr_fname [256];   // name of file to which stderr is redirected
-char stdout_fname [256];   // name of file to which stderr is redirected
-char stdio_fname  [256];   // same as above but for both stderr and stdout
+// name of file to which stderr is redirected
+static char _rw_stderr_fname [256];
+// name of file to which stderr is redirected
+static char _rw_stdout_fname [256];
+// same as above but for both stderr and stdout
+static char _rw_stdio_fname  [256];
+
+static char* args [] = { _rw_stderr_fname, _rw_stdout_fname, _rw_stdio_fname };
 
 /**************************************************************************/
 
@@ -147,18 +155,29 @@ do_test ()
 
     rw_info (0, __FILE__, __LINE__,
              "interleaved std::cout and stdout output");
-    test_file<char> (stdout_fname, stdout_expect);
+    test_file<char> (_rw_stdout_fname, stdout_expect);
 
     rw_info (0, __FILE__, __LINE__,
              "interleaved std::cerr and stderr output");
-    test_file<char> (stderr_fname, stderr_expect);
+    test_file<char> (_rw_stderr_fname, stderr_expect);
 
     rw_info (0, __FILE__, __LINE__,
              "interleaved std::cout/cerr and stdout/stderr output");
-    test_file<char> (stdio_fname,  stdio_expect);
+    test_file<char> (_rw_stdio_fname,  stdio_expect);
 }
 
 /**************************************************************************/
+
+static int _rw_dup2(int fd1, int fd2)
+{
+#ifndef _WIN32
+    return dup2 (fd1, fd2);
+#else
+    // on Windows dup2() returns 0 to indicate success and -1 to indicate error
+    const int ret = dup2 (fd1, fd2);
+    return (0 == ret) ? fd2 : ret;
+#endif
+}
 
 static int
 redirect_to_file (const char* fname, int fd)
@@ -189,7 +208,7 @@ redirect_to_file (const char* fname, int fd)
         return -1;   // bail out after a critical error
     }
 
-    const int fd2 = dup2 (fd_tmp, fd);
+    const int fd2 = _rw_dup2 (fd_tmp, fd);
 
     if (0 > fd2) {
         n = std::sprintf (buf,
@@ -220,7 +239,7 @@ redirect_to_file (const char* fname, int fd)
 
 
 static int
-exec_stdout_setup ()
+exec_stdout_setup (const char* stdout_fname)
 {
     // create a new file and redirect stdout to it
     const int fd_stdout = redirect_to_file (stdout_fname, STDOUT_FILENO);
@@ -255,7 +274,7 @@ exec_stdout_setup ()
 
 
 static int
-exec_stderr_setup ()
+exec_stderr_setup (const char* stderr_fname)
 {
     // create a new file and redirect stderr to it
     const int fd_stderr = redirect_to_file (stderr_fname, STDERR_FILENO);
@@ -298,7 +317,7 @@ exec_stderr_setup ()
 
 
 static int
-exec_stdio_setup ()
+exec_stdio_setup (const char* stdio_fname)
 {
     // create a new file and redirect both stdout and stderr to it
     const int fd_stdout = redirect_to_file (stdio_fname, STDOUT_FILENO);
@@ -366,46 +385,63 @@ struct cleanup
     int dummy;
 
     ~cleanup () {
-        if (*stdout_fname)
-            std::remove (stdout_fname);
-        if (*stderr_fname)
-            std::remove (stderr_fname);
-        if (*stdio_fname)
-            std::remove (stdio_fname);
+        if (*_rw_stdout_fname)
+            std::remove (_rw_stdout_fname);
+        if (*_rw_stderr_fname)
+            std::remove (_rw_stderr_fname);
+        if (*_rw_stdio_fname)
+            std::remove (_rw_stdio_fname);
     }
 };
 
 
 static int
-run_test (int /* unused */, char* /* unused */ [])
+run_test (int argc, char** argv)
 {
+    if (_rw_child) {
+
+        rw_info (0, 0, 0,
+            "The child process: _rw_child = %i", _rw_child);
+
+        int i;
+        for (i = 1; i < argc && 0 != std::strcmp ("--", argv [i]); ++i);
+
+        if (++i < argc) {
+            switch (_rw_child) {
+            case 1: return exec_stderr_setup (argv [i]);
+            case 2: return exec_stdout_setup (argv [i]);
+            case 3: return exec_stdio_setup (argv [i]);
+            }
+        }
+
+        return 1;
+    }
+
     const cleanup remove_tmp_files = { 0 };
 
     // prevent unused warnings
     (void)&remove_tmp_files;
 
-    if (!rw_tmpnam (stdout_fname)) {
+    if (!rw_tmpnam (_rw_stdout_fname)) {
         std::fprintf (stderr,
                       "rw_tmpnam (%p) failed: %s\n",
-                      stdout_fname, std::strerror (errno));
+                      _rw_stdout_fname, std::strerror (errno));
         return 1;
     }
 
-    if (!rw_tmpnam (stderr_fname)) {
+    if (!rw_tmpnam (_rw_stderr_fname)) {
         std::fprintf (stderr,
                       "rw_tmpnam (%p) failed: %s\n",
-                      stderr_fname, std::strerror (errno));
+                      _rw_stderr_fname, std::strerror (errno));
         return 1;
     }
 
-    if (!rw_tmpnam (stdio_fname)) {
+    if (!rw_tmpnam (_rw_stdio_fname)) {
         std::fprintf (stderr,
                       "rw_tmpnam (%p) failed: %s\n",
-                      stdio_fname, std::strerror (errno));
+                      _rw_stdio_fname, std::strerror (errno));
         return 1;
     }
-
-#ifndef _WIN32
 
     // create three child process and have each redirect
     // its stdout, stderr, and both, respectively, to
@@ -415,35 +451,30 @@ run_test (int /* unused */, char* /* unused */ [])
     // streams have been properly flushed and synchronized
 
     for (int i = 0; i != 3; ++i) {
-        const pid_t child_pid = fork ();
+        const rw_pid_t child_pid = rw_process_create (
+            "\"%s\" --child=%d --no-stdout -- \"%s\"",
+            argv [0], i + 1, args [i]);
 
-        if (child_pid < 0) {   // fork error
-
-            std::fprintf (stderr, "fork() failed: %s\n",
+        if (-1 == child_pid) {
+            std::fprintf (stderr, "rw_process_create() failed: %s\n",
                           std::strerror (errno));
-
             return 1;
         }
-        else if (child_pid > 0) {   // parent
-            wait (0);
+
+        int child_result;
+        const rw_pid_t wait_res = rw_waitpid (child_pid, &child_result);
+
+        if (-1 == wait_res) {
+            std::fprintf (stderr, "rw_waitpid() failed: %s\n",
+                          std::strerror (errno));
+            return 1;
         }
-        else {   // child
 
-            int ret = 1;
-
-            switch (i) {
-            case 0: ret = exec_stderr_setup (); break;
-            case 1: ret = exec_stdout_setup (); break;
-            case 2: ret = exec_stdio_setup (); break;
-            }
-
-            // prevent child process from cleaning up files
-            *stdout_fname = *stderr_fname = *stdio_fname = '\0';
-            return ret;
+        if (0 != child_result) {
+            std::fprintf (stderr, "child process failed\n");
+            return 1;
         }
     }
-
-#endif   // _WIN32
 
     do_test ();
 
@@ -457,6 +488,8 @@ main (int argc, char* argv [])
     return rw_test (argc, argv, __FILE__,
                     "lib.ios.members.static",
                     "27.4.2.4 ios_base static members",
-                    run_test, "", 0);
+                    run_test,
+                    "|-child#0",
+                    &_rw_child,
+                    0 /*sentinel*/);
 }
-
