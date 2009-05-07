@@ -2925,27 +2925,32 @@ test_conditional ()
 
 /***********************************************************************/
 
+// directive syntax:
+// "X=" [ '#' ] [ '+' ] [ '*' | <n> ] [ '.' [ '*' | '@' | <n> ] ]
+// where
+// '#' causes UserClass::id_ to be included in output
+//     ignored for UserPOD
+// '+' forces UserClass::data_.val_ or UserPOD::data_.val to be
+//     formatted as an integer (otherwise it is formatted as an
+//     (optionally escaped) character '*' or <n> is the number
+//     of elements in the sequence (the first occurrence)
+// '*', <n> is the offset of the cursor within the sequence
+//          (where the cursor is a pair of pointy brackets
+//          surrounding the element, e.g., >123<)
+// '@' is the pointer to the element to be surrended by the
+//     pair of pointy brackets
+// first rw_snprintfa's variable argument of int type should be
+// sizeof(UserClass) or sizeof(UserPOD)
+
+#undef TEST
+#define TEST(fmt, a1, a2, a3, expect)                               \
+    do_test (__LINE__, fmt, expect, rw_sprintfa (fmt, cwidth, a1, a2, a3))
+
 static void
 test_userclass_format ()
 {
-    // %{X=} directive syntax:
-    //
-    //   "X=" [ '#' ] [ '+' ] [ '*' | <n> ] [ '.' [ '*' | '@' | <n> ] ]
-    //
-    // where
-    //   '#' causes UserClass::id_ to be included in output
-    //   '+' forces UserClass::data_.val_ to be formatted as an int
-    //       otherwise it is formatted as an (optionally escaped)
-    //       char
-    //   '*' or <n> is the number of elements in the sequence
-    //       (the first occurrence)
-    //   '*', <n> is the offset of the cursor within the sequence
-    //            (where the cursor is a pair of pointy brackets
-    //            surrounding the element, e.g., >123<)
-    //   '@' is the pointer to the element to be surrended by the
-    //       pair of pointy brackets
-
     UserClass* const x = UserClass::from_char ("abcdef");
+    static const int cwidth = sizeof (*x);
 
     TEST ("[%{X=*}]", 0, x, 0, "[]");
     TEST ("[%{X=*}]", 1, x, 0, "[a]");
@@ -2955,6 +2960,7 @@ test_userclass_format ()
     TEST ("[%{X=*}]", 5, x, 0, "[abcde]");
     TEST ("[%{X=*}]", 6, x, 0, "[abcdef]");
 
+
     TEST ("[%{X=#*}]", 0, x, 0, "[]");
     TEST ("[%{X=#*}]", 1, x, 0, "[1:a]");
     TEST ("[%{X=#*}]", 2, x, 0, "[1:a2:b]");
@@ -2963,6 +2969,7 @@ test_userclass_format ()
     TEST ("[%{X=#*}]", 5, x, 0, "[1:a2:b3:c4:d5:e]");
     TEST ("[%{X=#*}]", 6, x, 0, "[1:a2:b3:c4:d5:e6:f]");
 
+
     TEST ("[%{X=+*}]", 0, x, 0, "[]");
     TEST ("[%{X=+*}]", 1, x, 0, "[97]");
     TEST ("[%{X=+*}]", 2, x, 0, "[97,98]");
@@ -2970,6 +2977,35 @@ test_userclass_format ()
     TEST ("[%{X=+*}]", 4, x, 0, "[97,98,99,100]");
     TEST ("[%{X=+*}]", 5, x, 0, "[97,98,99,100,101]");
     TEST ("[%{X=+*}]", 6, x, 0, "[97,98,99,100,101,102]");
+
+
+    TEST ("[%{X=*.0}]", 0, x, 0, "[]");
+
+    TEST ("[%{X=*.0}]", 1, x, 0, "[>a<]");
+
+    TEST ("[%{X=*.*}]", 2, 0, x, "[>a<b]");
+    TEST ("[%{X=*.1}]", 2, x, 0, "[a>b<]");
+
+    TEST ("[%{X=*.0}]", 3, x, 0, "[>a<bc]");
+    TEST ("[%{X=*.*}]", 3, 1, x, "[a>b<c]");
+    TEST ("[%{X=*.*}]", 3, 2, x, "[ab>c<]");
+
+    TEST ("[%{X=*.*}]", 4, 0, x, "[>a<bcd]");
+    TEST ("[%{X=*.*}]", 4, 1, x, "[a>b<cd]");
+    TEST ("[%{X=*.*}]", 4, 2, x, "[ab>c<d]");
+    TEST ("[%{X=*.*}]", 4, 3, x, "[abc>d<]");
+
+    TEST ("[%{X=*.@}]", 4, x + 3, x, "[abc>d<]");
+    TEST ("[%{X=*.@}]", 4, x + 2, x, "[ab>c<d]");
+    TEST ("[%{X=*.@}]", 4, x + 1, x, "[a>b<cd]");
+    TEST ("[%{X=*.@}]", 4, x + 0, x, "[>a<bcd]");
+
+    TEST ("[%{X=#5.*}]", 0, x, 0, "[>1:a<2:b3:c4:d5:e]");
+    TEST ("[%{X=#5.*}]", 1, x, 0, "[1:a>2:b<3:c4:d5:e]");
+    TEST ("[%{X=#5.*}]", 2, x, 0, "[1:a2:b>3:c<4:d5:e]");
+    TEST ("[%{X=#5.*}]", 3, x, 0, "[1:a2:b3:c>4:d<5:e]");
+    TEST ("[%{X=#5.*}]", 4, x, 0, "[1:a2:b3:c4:d>5:e<]");
+
 
     TEST ("[%{X=+*.0}]", 0, x, 0, "[]");
 
@@ -3001,7 +3037,102 @@ test_userclass_format ()
     delete[] x;
 }
 
+static void
+test_userpod_format ()
+{
+    UserPOD* const x = UserPOD::from_char ("abcdef");
+    static const int cwidth = sizeof (*x);
+
+    TEST ("[%{X=*}]", 0, x, 0, "[]");
+    TEST ("[%{X=*}]", 1, x, 0, "[a]");
+    TEST ("[%{X=*}]", 2, x, 0, "[ab]");
+    TEST ("[%{X=*}]", 3, x, 0, "[abc]");
+    TEST ("[%{X=*}]", 4, x, 0, "[abcd]");
+    TEST ("[%{X=*}]", 5, x, 0, "[abcde]");
+    TEST ("[%{X=*}]", 6, x, 0, "[abcdef]");
+
+
+    TEST ("[%{X=#*}]", 0, x, 0, "[]");
+    TEST ("[%{X=#*}]", 1, x, 0, "[a]");
+    TEST ("[%{X=#*}]", 2, x, 0, "[ab]");
+    TEST ("[%{X=#*}]", 3, x, 0, "[abc]");
+    TEST ("[%{X=#*}]", 4, x, 0, "[abcd]");
+    TEST ("[%{X=#*}]", 5, x, 0, "[abcde]");
+    TEST ("[%{X=#*}]", 6, x, 0, "[abcdef]");
+
+
+    TEST ("[%{X=+*}]", 0, x, 0, "[]");
+    TEST ("[%{X=+*}]", 1, x, 0, "[97]");
+    TEST ("[%{X=+*}]", 2, x, 0, "[97,98]");
+    TEST ("[%{X=+*}]", 3, x, 0, "[97,98,99]");
+    TEST ("[%{X=+*}]", 4, x, 0, "[97,98,99,100]");
+    TEST ("[%{X=+*}]", 5, x, 0, "[97,98,99,100,101]");
+    TEST ("[%{X=+*}]", 6, x, 0, "[97,98,99,100,101,102]");
+
+
+    TEST ("[%{X=*.0}]", 0, x, 0, "[]");
+
+    TEST ("[%{X=*.0}]", 1, x, 0, "[>a<]");
+
+    TEST ("[%{X=*.*}]", 2, 0, x, "[>a<b]");
+    TEST ("[%{X=*.1}]", 2, x, 0, "[a>b<]");
+
+    TEST ("[%{X=*.0}]", 3, x, 0, "[>a<bc]");
+    TEST ("[%{X=*.*}]", 3, 1, x, "[a>b<c]");
+    TEST ("[%{X=*.*}]", 3, 2, x, "[ab>c<]");
+
+    TEST ("[%{X=*.*}]", 4, 0, x, "[>a<bcd]");
+    TEST ("[%{X=*.*}]", 4, 1, x, "[a>b<cd]");
+    TEST ("[%{X=*.*}]", 4, 2, x, "[ab>c<d]");
+    TEST ("[%{X=*.*}]", 4, 3, x, "[abc>d<]");
+
+    TEST ("[%{X=*.@}]", 4, x + 3, x, "[abc>d<]");
+    TEST ("[%{X=*.@}]", 4, x + 2, x, "[ab>c<d]");
+    TEST ("[%{X=*.@}]", 4, x + 1, x, "[a>b<cd]");
+    TEST ("[%{X=*.@}]", 4, x + 0, x, "[>a<bcd]");
+
+    TEST ("[%{X=#5.*}]", 0, x, 0, "[>a<bcde]");
+    TEST ("[%{X=#5.*}]", 1, x, 0, "[a>b<cde]");
+    TEST ("[%{X=#5.*}]", 2, x, 0, "[ab>c<de]");
+    TEST ("[%{X=#5.*}]", 3, x, 0, "[abc>d<e]");
+    TEST ("[%{X=#5.*}]", 4, x, 0, "[abcd>e<]");
+
+
+    TEST ("[%{X=+*.0}]", 0, x, 0, "[]");
+
+    TEST ("[%{X=+*.0}]", 1, x, 0, "[>97<]");
+
+    TEST ("[%{X=+*.*}]", 2, 0, x, "[>97<,98]");
+    TEST ("[%{X=+*.1}]", 2, x, 0, "[97,>98<]");
+
+    TEST ("[%{X=+*.0}]", 3, x, 0, "[>97<,98,99]");
+    TEST ("[%{X=+*.*}]", 3, 1, x, "[97,>98<,99]");
+    TEST ("[%{X=+*.*}]", 3, 2, x, "[97,98,>99<]");
+
+    TEST ("[%{X=+*.*}]", 4, 0, x, "[>97<,98,99,100]");
+    TEST ("[%{X=+*.*}]", 4, 1, x, "[97,>98<,99,100]");
+    TEST ("[%{X=+*.*}]", 4, 2, x, "[97,98,>99<,100]");
+    TEST ("[%{X=+*.*}]", 4, 3, x, "[97,98,99,>100<]");
+
+    TEST ("[%{X=+*.@}]", 4, x + 3, x, "[97,98,99,>100<]");
+    TEST ("[%{X=+*.@}]", 4, x + 2, x, "[97,98,>99<,100]");
+    TEST ("[%{X=+*.@}]", 4, x + 1, x, "[97,>98<,99,100]");
+    TEST ("[%{X=+*.@}]", 4, x + 0, x, "[>97<,98,99,100]");
+
+    TEST ("[%{X=+#5.*}]", 0, x, 0, "[>97<,98,99,100,101]");
+    TEST ("[%{X=+#5.*}]", 1, x, 0, "[97,>98<,99,100,101]");
+    TEST ("[%{X=+#5.*}]", 2, x, 0, "[97,98,>99<,100,101]");
+    TEST ("[%{X=+#5.*}]", 3, x, 0, "[97,98,99,>100<,101]");
+    TEST ("[%{X=+#5.*}]", 4, x, 0, "[97,98,99,100,>101<]");
+
+    delete[] x;
+}
+
 /***********************************************************************/
+
+#undef TEST
+#define TEST(fmt, a1, a2, a3, expect)                               \
+    do_test (__LINE__, fmt, expect, rw_sprintfa (fmt, a1, a2, a3))
 
 static int
 user_fun_va (const char *fun_name,   // name of calling function
@@ -3400,6 +3531,7 @@ int main ()
 
     // must be exercised before user-defined formatting
     test_userclass_format ();
+    test_userpod_format ();
 
     test_user_defined_formatting ();
 

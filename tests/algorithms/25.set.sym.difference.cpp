@@ -219,11 +219,13 @@ void test_set_sym_difference (int                         line,
     // to avoid errors in --trace mode
     i = i < ndst ? i : ndst - 1;
 
+    static const int cwidth = sizeof (*xdst);
+
     rw_assert (success, 0, line,
                "line %d: %s<%s, %s, %s%{?}, %s%{;}> (\"%s\", \"%s\", ...) "
                " ==> \"%{X=*.*}\", expected \"%s\"", 
                __LINE__, algname, it1name, it2name, outname, predicate, 
-               funname, src1, src2, int (ndst), i, xdst, res);
+               funname, src1, src2, cwidth, int (ndst), i, xdst, res);
 
     // verfiy that only elements from first sequence sequence were taken
     success = n1 == nf;
@@ -233,7 +235,7 @@ void test_set_sym_difference (int                         line,
                "%zu from second, expected %zu from first and %zu from second",
                __LINE__, algname, it1name, it2name, outname, predicate,
                funname, src1, src2,
-               int (ndst), -1, xdst, n1, n2, nf, ndst - nf);
+               cwidth, int (ndst), -1, xdst, n1, n2, nf, ndst - nf);
 
     // verify that the operation is stable: two equal elements
     // should go in the same order
@@ -254,7 +256,7 @@ void test_set_sym_difference (int                         line,
                    " ==> \"%{X=*.*}\" not stable : elements %#c==%#c have "
                    "ids %d >= %d ",
                    __LINE__, algname, it1name, it2name, outname, predicate, 
-                   funname, src1, src2, int (ndst), i, xdst,
+                   funname, src1, src2, cwidth, int (ndst), i, xdst,
                    xdst[i - 1].data_.val_, xdst[i].data_.val_,
                    xdst[i - 1].origin_, xdst[i].origin_);
     }

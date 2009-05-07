@@ -126,16 +126,18 @@ void test_partitions (int                   line,
                    : std::partition (first, last, pred);
 
     // check that there is no leaked objects
-     const std::size_t t_n_objs_diff =
+    const std::size_t t_n_objs_diff =
            T::n_total_def_ctor_ + T::n_total_copy_ctor_
          - t_n_ctors - T::n_total_dtor_ + t_n_dtors;
+
+    static const int cwidth = sizeof (T);
 
     bool success = 0 == t_n_objs_diff;
     rw_assert (success, 0, line,
                "line %d: std::%s <%s, %s>(\"%s\", ...) ==> \"%{X=*.*}\", "
                "number of objects changed on %d: %s detected",
                __LINE__, fname, itname, funname, src, 
-               int (nsrc), -1, xsrc, t_n_objs_diff, 
+               cwidth, int (nsrc), -1, xsrc, t_n_objs_diff, 
                t_n_objs_diff > 0 ? "memory leak" : "unexpected dtor call");
 
     // check that the returned iterator points to the expected element
@@ -143,8 +145,8 @@ void test_partitions (int                   line,
     rw_assert (success, 0, line,
                "line %d: std::%s <%s, %s>(\"%s\", ...) ==> \"%{X=*.*}\", "
                "returned iterator it = first + %td, expected first + %zu",
-               __LINE__, fname, itname, funname, src, int (nsrc), 
-               -1, xsrc, res.cur_ - first.cur_, offset);
+               __LINE__, fname, itname, funname, src,
+               cwidth, int (nsrc), -1, xsrc, res.cur_ - first.cur_, offset);
 
     // check 25.2.12, p2 & p5
     // "left" part of the array there the predicate should be true
@@ -158,8 +160,9 @@ void test_partitions (int                   line,
     rw_assert (success, 0, line,
                "line %d: std::%s <%s, %s>(\"%s\", ...) "
                "==> \"%{X=*.*}\", at %zu got: %#c !> %#c",
-               __LINE__, fname, itname, funname, src, int (nsrc), 
-               -1, xsrc, i + 1, xsrc[i].data_.val_, value);
+               __LINE__, fname, itname, funname, src,
+               cwidth, int (nsrc), -1, xsrc, i + 1,
+               xsrc[i].data_.val_, value);
 
 
     // "right" part of the array there the predicate should be false
@@ -172,8 +175,9 @@ void test_partitions (int                   line,
     rw_assert (success, 0, line,
                "line %d: std::%s <%s, %s>(\"%s\", ...) "
                "==> \"%{X=*.*}\", at %zu got: %#c !<= %#c",
-               __LINE__, fname, itname, funname, src, int (nsrc), 
-               -1, xsrc, i + 1, xsrc[i].data_.val_, value);
+               __LINE__, fname, itname, funname, src,
+               cwidth, int (nsrc), -1, xsrc, i + 1,
+               xsrc[i].data_.val_, value);
 
 
     // check the complexity, 25.2.12 p3 & p6
@@ -217,7 +221,8 @@ void test_partitions (int                   line,
                    "expected \"%{X=*.*}\", realtive order broken at %zu, "
                    "%#c != %#c",
                    __LINE__, fname, itname, funname, src, 
-                   int (nsrc), int (i), xsrc, int (ndst), int (i), xdst,
+                   cwidth, int (nsrc), int (i), xsrc,
+                   cwidth, int (ndst), int (i), xdst,
                    i, xsrc[i].data_.val_, xdst[i].data_.val_);
     }
 

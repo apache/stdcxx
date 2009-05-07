@@ -212,11 +212,13 @@ void test_set_union (int                 line,
     // to avoid errors in --trace mode
     i = i < ndst ? i : ndst - 1;
 
+    static const int cwidth = sizeof (*xdst);
+
     rw_assert (success, 0, line,
                "line %d: %s<%s, %s, %s%{?}, %s%{;}> (\"%s\", \"%s\", ...) "
                " ==> \"%{X=*.*}\", expected \"%s\"", 
                __LINE__, fname, it1name, it2name, outname, predicate, 
-               funname, src1, src2, int (ndst), i, xdst, res);
+               funname, src1, src2, cwidth, int (ndst), i, xdst, res);
 
     // check that the operation is stable : for two equal elements
     // one from the first sequence should be taken
@@ -226,7 +228,8 @@ void test_set_union (int                 line,
                " ==> \"%{X=*.*}\" got %zu elements from first sequence and "
                "%zu from second, expected %zu from first and %zu from second",
                __LINE__, fname, it1name, it2name, outname, predicate, funname, 
-               src1, src2, int (ndst), -1, xdst, n1, n2, nsrc1, ndst - nsrc1);
+               src1, src2, cwidth, int (ndst), -1, xdst,
+               n1, n2, nsrc1, ndst - nsrc1);
 
     // check the complexity
     const std::size_t n_exp_ops =

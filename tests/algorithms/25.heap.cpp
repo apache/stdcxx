@@ -196,6 +196,7 @@ void test_heap_operation (int               line,
         Predicate::funcalls_ : T::n_total_op_lt_ - last_n_op_lt;
 
     const std::size_t len = 2 != finx ? nsrc : nsrc - 1;
+    static const int cwidth = sizeof (T);
 
     if (2 == finx) {     // pop_heap special verification
         // verify that the maximal element is in 
@@ -204,7 +205,8 @@ void test_heap_operation (int               line,
                    "line %d std::%s <%s%{?}, %s%{;}> (\"%s\", ...) ==> "
                    "\"%{X=*.*}\", last is %#c, expected %#c",
                    __LINE__, fname, itname, ppred, funname, src, 
-                   int (nsrc), -1, xsrc, xsrc [nsrc - 1].data_.val_, val);
+                   cwidth, int (nsrc), -1, xsrc,
+                   xsrc [nsrc - 1].data_.val_, val);
     }
 
     if (3 == finx) {     // sort_heap special verification
@@ -213,7 +215,7 @@ void test_heap_operation (int               line,
                    "line %d std::%s <%s%{?}, %s%{;}> (\"%s\", ...) ==> "
                    "\"%{X=*.*}\" is not sorted",
                    __LINE__, fname, itname, ppred, funname, src, 
-                   int (nsrc), -1, xsrc);
+                   cwidth, int (nsrc), -1, xsrc);
     }
     else {  
         // verify that we got a heap: 
@@ -222,7 +224,7 @@ void test_heap_operation (int               line,
                    "line %d std::%s <%s%{?}, %s%{;}> (\"%s\", ...) ==> "
                    "\"%{X=*.*}\" is not a heap",
                    __LINE__, fname, itname, ppred, funname, src, 
-                   int (len), -1, xsrc);
+                   cwidth, int (len), -1, xsrc);
     }
 
     // verify the complexity: 
@@ -232,7 +234,7 @@ void test_heap_operation (int               line,
                "\"%{X=*.*}\" complexity: got %zu invocations of %s, "
                "expected no more %zu",
                __LINE__, fname, itname, ppred, funname, src, 
-               int (nsrc), -1, xsrc, n_ops_lt, 
+               cwidth, int (nsrc), -1, xsrc, n_ops_lt, 
                ppred ? "predicate" : "operator< ()", ops);
 
     delete[] xsrc;

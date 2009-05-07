@@ -33,6 +33,7 @@
 #include <stdarg.h>     // for va_arg, va_list, ...
 #include <stdlib.h>     // for strtol()
 #include <string.h>     // for size_t, strlen()
+#include <wchar.h>      // for wint_t
 
 
 #include <rw_value.h>
@@ -680,6 +681,15 @@ operator()(const UserClass &lhs, const UserClass &rhs) /* non-const */
 }
 
 
+static inline void
+_rw_advance (const void*& parray, int idx, bool is_class)
+{
+    if (is_class)
+        parray = _RWSTD_STATIC_CAST (const UserClass*, parray) + idx;
+    else
+        parray = _RWSTD_STATIC_CAST (const UserPOD*, parray) + idx;
+}
+
 static int
 _rw_fmtxarrayv (char **pbuf, size_t *pbufsize, const char *fmt, va_list va)
 {
@@ -687,51 +697,59 @@ _rw_fmtxarrayv (char **pbuf, size_t *pbufsize, const char *fmt, va_list va)
     RW_ASSERT (0 != pbufsize);
     RW_ASSERT (0 != fmt);
 
-    va_list* pva      =  0;   // pointer to rw_vsnprintf's va_list
     bool     fl_plus  =  false;
     bool     fl_pound =  false;
     int      nelems   = -1;
     int      cursor   = -1;
 
-    const UserClass* pelem = 0;
+    const void* pelem = 0;
 
     // directive syntax:
     // "X=" [ '#' ] [ '+' ] [ '*' | <n> ] [ '.' [ '*' | '@' | <n> ] ]
     // where
     // '#' causes UserClass::id_ to be included in output
-    // '+' forces UserClass::data_.val_ to be formatted as an integer (
-    //     otherwise it is formatted as an (optionally escaped) character
-    // '*' or <n> is the number of elements in the sequence (the
-    //     first occurrence)
+    //     ignored for UserPOD
+    // '+' forces UserClass::data_.val_ or UserPOD::data_.val to be
+    //     formatted as an integer (otherwise it is formatted as an
+    //     (optionally escaped) character '*' or <n> is the number
+    //     of elements in the sequence (the first occurrence)
     // '*', <n> is the offset of the cursor within the sequence
     //          (where the cursor is a pair of pointy brackets
     //          surrounding the element, e.g., >123<)
     // '@' is the pointer to the element to be surrended by the
     //     pair of pointy brackets
+    // first rw_snprintfa's variable argument of int type should be
+    // sizeof(UserClass) or sizeof(UserPOD)
 
     if ('X' != fmt [0] || '=' != fmt [1])
         return _RWSTD_INT_MIN;
 
+    // extract the address of the caller's variable argument list
+    va_list* const pva = va_arg (va, va_list*);
+    RW_ASSERT (0 != pva);
+
+    // process element width
+    const int cwidth = va_arg (*pva, int);
+    RW_ASSERT (sizeof (UserClass) == cwidth || sizeof (UserPOD) == cwidth);
+
+    const bool is_class = (sizeof (UserClass) == cwidth);
+
     fmt += 2;
 
     if ('+' == *fmt) {
-        // use numerical formatting for UserClass::data_.val_
+        // use numerical formatting for data_.val_
         fl_plus = true;
         ++fmt;
     }
 
     if ('#' == *fmt) {
         // include UserClass::id_ in output
-        fl_pound = true;
+        fl_pound = is_class;
         ++fmt;
     }
 
     if ('*' == *fmt) {
         // process width
-        pva = va_arg (va, va_list*);
-
-        RW_ASSERT (0 != pva);
-
         // extract the width from rw_snprintfa's variable argument
         // list pass through to us by the caller
         nelems = va_arg (*pva, int);
@@ -750,59 +768,41 @@ _rw_fmtxarrayv (char **pbuf, size_t *pbufsize, const char *fmt, va_list va)
     if ('.' == *fmt) {
         // process precision (cursor)
         if ('*' == *++fmt) {
-            if (0 == pva)
-                pva = va_arg (va, va_list*);
-
-            RW_ASSERT (0 != pva);
-
-            // extract the width from rw_snprintfa's variable argument
-            // list passed through to us by the caller
+            // extract the cursor index from rw_snprintfa's variable
+            // argument list passed through to us by the caller
             cursor = va_arg (*pva, int);
             ++fmt;
         }
         else if ('@' == *fmt) {
-            if (0 == pva)
-                pva = va_arg (va, va_list*);
-
-            RW_ASSERT (0 != pva);
-
             // extract the pointer from rw_snprintfa's variable argument
             // list passed through to us by the caller
-            pelem = va_arg (*pva, UserClass*);
-
+            pelem = va_arg (*pva, void*);
             ++fmt;
         }
         else if (isdigit (*fmt)) {
             char* end = 0;
             cursor = int (strtol (fmt, &end, 10));
-
             fmt = end;
         }
     }
 
     RW_ASSERT ('\0' == *fmt);
 
-    // extract the address of the caller's variable argument list
-    if (0 == pva)
-        pva = va_arg (va, va_list*);
-
-    RW_ASSERT (0 != pva);
-
-    // extract a pointer to UserClass from rw_snprintfa's variable argument
-    // list pass through to us by the caller 
-    const UserClass* const xbeg = va_arg (*pva, UserClass*);
+    // extract a pointer to UserClass or UserPOD from rw_snprintfa's
+    // variable argument list pass through to us by the caller 
+    const void* const xbeg = va_arg (*pva, const void*);
 
     if (-1 != cursor) {
         RW_ASSERT (-1 < cursor);
         RW_ASSERT (0 == pelem);
 
-        pelem = xbeg + cursor;
+        pelem = xbeg;
+        _rw_advance (pelem, cursor, is_class);
     }
 
     // extract the address where to store the extracted argument
     // for use by any subsequent positional paramaters
-    const UserClass** const pparam = va_arg (va, const UserClass**);
-
+    const void** const pparam = va_arg (va, const void**);
     RW_ASSERT (0 != pparam);
 
     // store the extracted argument
@@ -820,8 +820,9 @@ _rw_fmtxarrayv (char **pbuf, size_t *pbufsize, const char *fmt, va_list va)
     // bytes appended) back to the caller
 
     const char* pointer [2];
+    const void* px = xbeg;
 
-    for (const UserClass *px = xbeg; px != xbeg + nelems; ++px) {
+    for (int i = 0; i != nelems; ++i) {
 
         if (px == pelem) {
             pointer [0] = ">";
@@ -832,22 +833,40 @@ _rw_fmtxarrayv (char **pbuf, size_t *pbufsize, const char *fmt, va_list va)
             pointer [1] = "";
         }
 
+        int id;
+        int val;
+
+        if (is_class) {
+            const UserClass* const pclass =
+                _RWSTD_STATIC_CAST (const UserClass*, px);
+            val = pclass->data_.val_;
+            id = pclass->id_;
+        }
+        else {
+            const UserPOD* const ppod =
+                _RWSTD_STATIC_CAST (const UserPOD*, px);
+            val = ppod->data_.val_;
+            id = 0;
+        }
+
         const int n =
             rw_asnprintf (pbuf, pbufsize,
                           "%{+}%s"                        // '>'
                           "%{?}%d:%{;}"
-                          "%{?}%d%s%{?},%{;}%{:}%{lc}%{;}",
+                          "%{?}%d%s%{?},%{;}%{:}%{lc}%s%{;}",
                           pointer [0],                    // ">" or ""
-                          fl_pound, px->id_,              // "<id>:"
-                          fl_plus, px->data_.val_,        // <val>
+                          fl_pound, id,                   // "<id>:"
+                          fl_plus, val,                   // <val>
                           pointer [1],                    // "<" or ""
-                          px + 1 < xbeg + nelems,         // ','
-                          px->data_.val_,                 // <val>
+                          i + 1 < nelems,                 // ','
+                          wint_t (val),                   // <val>
                           pointer [1]);                   // "<" or ""
         if (n < 0)
             return n;
 
         nbytes += n;
+
+        _rw_advance (px, 1, is_class);
     }
 
     //////////////////////////////////////////////////////////////////

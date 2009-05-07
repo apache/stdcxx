@@ -203,7 +203,7 @@ void test_random_shuffle (const int                    line,
                    "with value %td: got \"%{X=*.*}\"",
                    i, fname, itname, rnd_gen, funname,
                    first_missing - missing,
-                   int (i), -1, buf);
+                   int (sizeof (*buf)), int (i), -1, buf);
 
 
         // verify 25.2.11, p2, complexity:

@@ -260,7 +260,8 @@ void test_inner_product (const std::size_t       N,
                    "inner_product <%s, %s, %s%{?}, %s, %s%{;}>"
                    "({%{X=+*}}, {%{X=+*}}) == %d, got %d",
                    it1name, it2name, tname, binop, op1name, op2name,
-                   int (i), buf1, int (i), buf2, sum, res.data_.val_);
+                   int (sizeof (*buf1)), int (i), buf1,
+                   int (sizeof (*buf2)), int (i), buf2, sum, res.data_.val_);
 
         sum += (buf1 [i].data_.val_ * buf2 [i].data_.val_);
 
