@@ -91,6 +91,7 @@ cptr_test_cases [] = {
     TEST ("edfcbahjig", "cba",           3),
     TEST ("edfcbahcba", "cba",           3),
     TEST ("cbacbahjig", "cba",           0),
+    TEST ("abcbcbd",    "bcbd",          3),
 
     TEST ("e\0cb\0\0g", "b\0\0g",        3),
     TEST ("e\0cb\0\0g", "ecb",        NPOS),
@@ -173,6 +174,7 @@ cstr_test_cases [] = {
     TEST ("edfcbahjig", "cba",           3),
     TEST ("edfcbahcba", "cba",           3),
     TEST ("cbacbahjig", "cba",           0),
+    TEST ("abcbcbd",    "bcbd",          3),
 
     TEST ("e\0cb\0\0g", "b\0\0g",        3),
     TEST ("e\0cb\0\0g", "ecb",        NPOS),
@@ -262,6 +264,7 @@ cptr_size_test_cases [] = {
     TEST ("edfcbahcba", "cba",         1,     3),
     TEST ("edfcbahcba", "cba",         5,     7),
     TEST ("cbacbahjig", "cba",         5,  NPOS),
+    TEST ("abcbcbd",    "bcbd",        0,     3),
 
     TEST ("e\0cb\0\0g", "b\0\0g",      0,     3),
     TEST ("e\0cb\0\0g", "b\0\0g",      4,  NPOS),
@@ -367,6 +370,7 @@ cptr_size_size_test_cases [] = {
     TEST ("edfcbahcba", "cba",         5,  3,    7),
     TEST ("cbacbahjig", "cba",         5,  3, NPOS),
     TEST ("cbacbahjcg", "cba",         5,  1,    8),
+    TEST ("abcbcbd",    "bcbd",        0,  4,    3),
 
     TEST ("e\0cb\0\0g", "b\0\0g",      0,  4,    3),
     TEST ("e\0cb\0\0g", "b\0\0g",      4,  4, NPOS),
@@ -484,6 +488,7 @@ cstr_size_test_cases [] = {
     TEST ("edfcbahcba", "cba",         1,    3),
     TEST ("edfcbahcba", "cba",         5,    7),
     TEST ("cbacbahjig", "cba",         5, NPOS),
+    TEST ("abcbcbd",    "bcbd",        0,    3),
 
     TEST ("e\0cb\0\0g", "b\0\0g",      0,    3),
     TEST ("e\0cb\0\0g", "b\0\0g",      4, NPOS),
