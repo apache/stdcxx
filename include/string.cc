@@ -722,15 +722,15 @@ find (const_pointer __seq, size_type __off, size_type __len) const
                 return size_type (__next - _C_data);
 
             if (traits_type::eq (*__n, *__s)) {
-                if (__next != __first && traits_type::eq (*__n, *__seq))
-                    __first = __n + 1;
+                if (const_pointer () == __first && __n != __next && traits_type::eq (*__n, *__seq))
+                    __first = __n;
             }
             else {
                 if (const_pointer () == __first) {
                     // look for the first occurrence of the first element
                     // of the sought sequence in the rest of the cotrolling
                     // sequence
-                    __first = traits_type::find (__next + 1, __ext - 1, *__seq);
+                    __first = traits_type::find (__n, __end - __n, *__seq);
 
                     if (const_pointer () == __first)
                         return npos;
