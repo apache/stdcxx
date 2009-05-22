@@ -1,16 +1,12 @@
+// checking for length_error dtor
+
 /***************************************************************************
- *
- * invalid_argument.cpp - definitions of class invalid_argument members
- *
- * $Id$
- *
- ***************************************************************************
  *
  * Licensed to the Apache Software  Foundation (ASF) under one or more
  * contributor  license agreements.  See  the NOTICE  file distributed
  * with  this  work  for  additional information  regarding  copyright
  * ownership.   The ASF  licenses this  file to  you under  the Apache
- * License, Version  2.0 (the  "License"); you may  not use  this file
+ * License, Version  2.0 (the  License); you may  not use  this file
  * except in  compliance with the License.   You may obtain  a copy of
  * the License at
  *
@@ -22,26 +18,23 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
+ * Copyright 1999-2007 Rogue Wave Software, Inc.
+ * 
  **************************************************************************/
 
-#define _RWSTD_LIB_SRC
+#if 0   // guard invalid preprocessor symbol below
+   // establish a dependency on RUNTIME_IN_STD.cpp
+#  ifndef _RWSTD_NO_RUNTIME_IN_STD
+#  endif   // _RWSTD_NO_RUNTIME_IN_STD
+#endif   // 0
 
-#include <stdexcept>
-#include <rw/_defs.h>
+#define TEST_DTOR
+#define bad_alloc length_error
+#define main      test_length_error_dtor
+#include "BAD_ALLOC_ASSIGNMENT.cpp"
+#undef main
 
-
-_RWSTD_NAMESPACE (std) {
-
-#ifdef _RWSTD_NO_INVALID_ARGUMENT_DTOR
-
-// outlined to avoid generating a vtable in each translation unit
-// that uses the class
-/* virtual */ invalid_argument::
-~invalid_argument () _THROWS (())
+int main (int argc, char *argv[])
 {
-    // no-op
+    return test_length_error_dtor (argc, argv);
 }
-
-#endif   // _RWSTD_NO_INVALID_ARGUMENT_DTOR
-
-}   // namespace std
