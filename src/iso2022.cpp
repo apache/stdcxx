@@ -1,6 +1,6 @@
 /***************************************************************************
  *
- * rw_iso2022.cpp
+ * iso2022.cpp
  *
  * $Id$
  *
@@ -416,8 +416,8 @@ static __rw_iso2022_state_t __rw_iso2022_states [ISO_2022_ARRAY_SIZE];
 // returns an index in the array of state structures or -1 if none
 // is available; ISO-2022-JP and ISO-2022-JP-2 assume different
 // initializations
-static inline
-int __rw_allocate_state ()
+static inline int
+__rw_allocate_state ()
 {
     _RWSTD_MT_CLASS_GUARD (__rw_iso2022_state_t);
 
@@ -434,8 +434,8 @@ int __rw_allocate_state ()
 // deallocates state and makes it available for future conversions
 // if `initial_only' is non-zero suceeds only if the `iso_state'
 // argument represents an initial shift state
-static inline
-void __rw_deallocate_state (__rw_iso2022_state_t &iso_state,
+static void
+__rw_deallocate_state (__rw_iso2022_state_t &iso_state,
                             _RWSTD_MBSTATE_T     &state,
                             bool                  initial_only)
 {

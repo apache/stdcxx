@@ -84,6 +84,64 @@ __rw_realloc (void *array, _RWSTD_SIZE_T size, _RWSTD_SIZE_T &n, int inx)
 _RWSTD_NAMESPACE (std) {
 
 
+/* static */ ios_base::_C_usr_data*
+ios_base::_C_usr_data::_C_alloc (_C_fire_fun pfire)
+{
+    _TRY {
+        // rely on zero-initialization of PODs
+        _C_usr_data* const pdata = new _C_usr_data ();
+
+#ifdef _RWSTD_NO_NEW_THROWS
+
+        if (!pdata)
+            return 0;
+
+#endif   // _RWSTD_NO_NEW_THROWS
+
+        _RWSTD_ASSERT (0 != pdata);
+
+#ifndef _RWSTD_NO_POD_ZERO_INIT
+
+        // assert that the POD ctor above zeroed out all members
+        _RWSTD_ASSERT (!pdata->_C_tie);
+        _RWSTD_ASSERT (!pdata->_C_iarray);
+        _RWSTD_ASSERT (!pdata->_C_parray);
+        _RWSTD_ASSERT (!pdata->_C_cbarray);
+        _RWSTD_ASSERT (!pdata->_C_isize);
+        _RWSTD_ASSERT (!pdata->_C_psize);
+        _RWSTD_ASSERT (!pdata->_C_cbsize);
+
+#else   // if defined (_RWSTD_NO_POD_ZERO_INIT)
+
+        memset (pdata, 0, sizeof *pdata);
+
+#endif   // _RWSTD_NO_POD_ZERO_INIT
+
+        pdata->_C_fire = pfire;
+
+        return pdata;
+    }
+    _CATCH (...) {
+        return 0;
+    }
+}
+
+
+/* static */ void
+ios_base::_C_usr_data::_C_dealloc (_C_usr_data *ptr)
+{
+    if (ptr) {
+        operator delete (ptr->_C_iarray);
+        operator delete (ptr->_C_parray);
+        operator delete (ptr->_C_cbarray);
+
+        if (   ptr != _C_usr_data::_C_std_usr_data
+            && ptr != _C_usr_data::_C_std_usr_data + 1)
+            delete ptr;
+    }
+}
+
+
 /* static */ int ios_base::xalloc ()
 {
     // outlined to hide implementation details

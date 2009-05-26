@@ -153,7 +153,7 @@ __rw_btoa (char *buf, _ULLong i, unsigned base)
 
     const _RWSTD_SIZE_T len = begin - end;
 
-   memmove (buf, end, len);
+    memmove (buf, end, len);
 
     return len;
 }
@@ -185,7 +185,7 @@ __rw_dtoa (char *buf, _ULLong i, unsigned flags)
 
     const _RWSTD_SIZE_T len = begin - end;
 
-   memmove (buf, end, len);
+    memmove (buf, end, len);
 
     return len;
 }
@@ -194,13 +194,23 @@ __rw_dtoa (char *buf, _ULLong i, unsigned flags)
 static inline _RWSTD_SIZE_T
 __rw_dtoa (char *buf, _LLong i, unsigned flags)
 {
+    size_t n;
+
     if (i < 0) {
+        // prepend the minus sign and clear the showpos bit in flags
+        // and the sign bit in the number
         flags  &= ~_RWSTD_IOS_SHOWPOS;
         *buf++  = '-';
-        return 1 + __rw_dtoa (buf, _RWSTD_STATIC_CAST (_ULLong, -i), flags);
+
+        i = -i;
+
+        // remember to add 1 for the minus sign
+        n = 1;
     }
-        
-    return __rw_dtoa (buf, _RWSTD_STATIC_CAST (_ULLong, i), flags);
+    else
+        n = 0;   // no sign here
+
+    return n + __rw_dtoa (buf, _RWSTD_STATIC_CAST (_ULLong, i), flags);
 }
 
 
@@ -312,7 +322,7 @@ __rw_btoa (char *buf, unsigned long i, unsigned base)
 }
 
 
-static  inline _RWSTD_SIZE_T
+static inline size_t
 __rw_dtoa (char *buf, unsigned long i, unsigned flags)
 {
     // get the maximum number of decimal digits for an unsigned long
@@ -341,7 +351,7 @@ __rw_dtoa (char *buf, unsigned long i, unsigned flags)
     // move the contents of the buffer to the beginning
     const _RWSTD_SIZE_T len = begin - end;
 
-   memmove (buf, end, len);
+    memmove (buf, end, len);
 
     return len;
 }
@@ -350,14 +360,23 @@ __rw_dtoa (char *buf, unsigned long i, unsigned flags)
 static inline _RWSTD_SIZE_T
 __rw_dtoa (char *buf, long i, unsigned flags)
 {
+    size_t n;
+
     if (i < 0) {
+        // prepend the minus sign and clear the showpos bit in flags
+        // and the sign bit in the number
         flags  &= ~_RWSTD_IOS_SHOWPOS;
         *buf++  = '-';
-        return 1 + __rw_dtoa (buf, _RWSTD_STATIC_CAST (unsigned long, -i),
-                              flags);
+
+        i = -i;
+
+        // remember to add 1 for the minus sign
+        n = 1;
     }
-        
-    return __rw_dtoa (buf, _RWSTD_STATIC_CAST (unsigned long, i), flags);
+    else
+        n = 0;   // no sign here
+
+    return n + __rw_dtoa (buf, _RWSTD_STATIC_CAST (unsigned long, i), flags);
 }
 
 
