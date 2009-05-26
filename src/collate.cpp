@@ -130,7 +130,7 @@ _RWSTD_NAMESPACE (__rw) {
 
 // computes LC_XXX category from a numeric facet id, returns the
 // LC_XXX category for standard facets, LC_ALL for all others
-int __rw_get_cat (int);
+int __rw_get_cat (int) _THROWS (());
 
 
 #ifndef _RWSTD_NO_WCHAR_T

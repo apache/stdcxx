@@ -242,7 +242,8 @@ public:
 
     _RWSTD_STATIC_CONST (_RWSTD_SIZE_T, table_size = 256);
 
-    explicit ctype (const mask* = 0, bool = false, _RWSTD_SIZE_T = 0);
+    explicit
+    ctype (const mask* = 0, bool = false, _RWSTD_SIZE_T = 0) _THROWS (());
 
     const char_type* is (const char_type*, const char_type*, mask*) const;
 
@@ -292,7 +293,7 @@ protected:
 
     static const mask* classic_table () _THROWS (());
 
-    virtual ~ctype ();
+    virtual ~ctype () _RWSTD_ATTRIBUTE_NOTHROW;
 
     virtual const char_type*
     do_toupper (char_type*, const char_type*) const;
@@ -421,7 +422,7 @@ public:
 
     typedef wchar_t char_type;
 
-    explicit ctype (_RWSTD_SIZE_T = 0);
+    explicit ctype (_RWSTD_SIZE_T = 0) _THROWS (());
 
     // 22.2.1.1.1, p1
     bool is (mask __m, char_type __c) const {
@@ -484,7 +485,7 @@ public:
 
 protected:
 
-    virtual ~ctype ();
+    virtual ~ctype () _RWSTD_ATTRIBUTE_NOTHROW;
 
     // 22.2.1.1.2, p1
     virtual bool do_is (mask, char_type) const;
@@ -601,7 +602,7 @@ public:
 
 protected:
 
-    virtual ~ctype_byname ();
+    virtual ~ctype_byname () _RWSTD_ATTRIBUTE_NOTHROW;
 
     virtual bool
     do_is (mask, char_type) const;

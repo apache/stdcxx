@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2006 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -40,7 +40,7 @@
 
 #include <rw/_defs.h>
 
-#include <limits.h>
+#include <stddef.h>   // for size_t
 
 #include <ios>
 #include <strstream>
@@ -50,7 +50,7 @@ _RWSTD_NAMESPACE (std) {
 
 
 /* virtual */
-strstreambuf::~strstreambuf ()
+strstreambuf::~strstreambuf () /* nothrow */
 {
     _RWSTD_ASSERT (_C_is_valid ());
 
@@ -91,7 +91,7 @@ strstreambuf::overflow (int_type c)
 
 
 /* virtual */ strstreambuf::int_type
-strstreambuf::pbackfail (int_type c)
+strstreambuf::pbackfail (int_type c) /* nothrow */
 {
     _RWSTD_ASSERT (_C_is_valid ());
 
@@ -133,7 +133,7 @@ strstreambuf::pbackfail (int_type c)
 
 
 /* virtual */ strstreambuf::int_type
-strstreambuf::underflow ()
+strstreambuf::underflow () /* nothrow */
 {
     _RWSTD_ASSERT (_C_is_valid ());
 
@@ -162,6 +162,7 @@ strstreambuf::underflow ()
 
 /* virtual */ strstreambuf::pos_type
 strstreambuf::seekoff (off_type off, ios::seekdir way, ios::openmode which)
+    /* nothrow */
 {
     _RWSTD_ASSERT (_C_is_valid ());
 
@@ -229,7 +230,7 @@ strstreambuf::seekoff (off_type off, ios::seekdir way, ios::openmode which)
 
 
 /* virtual */ strstreambuf::pos_type
-strstreambuf::seekpos (pos_type sp, ios::openmode which)
+strstreambuf::seekpos (pos_type sp, ios::openmode which) /* nothrow */
 {
     _RWSTD_ASSERT (_C_is_valid ());
 
@@ -245,7 +246,7 @@ strstreambuf::setbuf (char_type* buf, streamsize bufsize)
     _RWSTD_ASSERT (_C_is_valid ());
 
     if (   !(_C_state & _C_dynamic) || (_C_state & _C_frozen)
-        || !buf && !bufsize) {
+        || (!buf && !bufsize)) {
         // lwg issue 66
         return 0;
     }
@@ -344,9 +345,9 @@ _C_init (streamsize  alsize,
          const void *gnext_v,
          streamsize  n,
          const void *pbeg_v,
-         void*     (*palloc)(_RWSTD_SIZE_T),
+         void*     (*palloc)(size_t),
          void      (*pdealloc)(void*),
-         int         state)
+         int         state) _THROWS (())
 {
     _C_alsize = alsize;
     _C_palloc = palloc;

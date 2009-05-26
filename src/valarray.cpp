@@ -22,14 +22,14 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2006 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
 #define _RWSTD_LIB_SRC
 
 #include <valarray>
-#include <string.h>   // for memset()
+#include <string.h>   // for memset(), size_t
 
 #include <rw/_defs.h>
 
@@ -37,9 +37,9 @@
 _RWSTD_NAMESPACE (std) { 
 
 
-_RWSTD_SIZE_T gslice::next_ind ()
+size_t gslice::next_ind ()
 {
-    _RWSTD_SIZE_T __n = _C_length.size ();
+    size_t __n = _C_length.size ();
 
     for (/**/; __n; --__n)
     {
@@ -69,8 +69,8 @@ _RWSTD_SIZE_T gslice::next_ind ()
     else
         __n = _C_r_length.size ();
 
-    _RWSTD_SIZE_T __inx = _C_start;
-    for (_RWSTD_SIZE_T __i = 0; __i != __n; ++__i)
+    size_t __inx = _C_start;
+    for (size_t __i = 0; __i != __n; ++__i)
         __inx += _C_r_length [__i] * _C_stride [__i];
 
     return __inx;

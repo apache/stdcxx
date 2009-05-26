@@ -150,7 +150,7 @@ public:
         _C_construct (__l1, __l2, __cat);
     }
 
-    ~__rw_locale ();
+    ~__rw_locale () _THROWS (());
 
     // returns the name of the locale
     const char* _C_get_name () const {
@@ -180,7 +180,7 @@ public:
 
     // get a string of locale names, one for each installed standard
     // facet's category; will dynamically allocate string if buf is 0
-    char* _C_get_cat_names (char*, _RWSTD_SIZE_T) const;
+    char* _C_get_cat_names (char*, _RWSTD_SIZE_T) const /* may throw */;
 
     // returns true iff all categories of facets (given by the bitmap)
     // in *this are being globally managed, i.e., iff all of *this facets
@@ -188,19 +188,20 @@ public:
     // (when the category is locale::none, the function fails for all
     // locales that contain any user-defined facets; otherwise only
     // standard facets are considered)
-    bool _C_is_managed (int) const;
+    bool _C_is_managed (int) const _THROWS (());
 
     // converts a LC_XXX constant to a locale::category value
-    static int _C_LC2category (int);
+    static int _C_LC2category (int) _THROWS (());
 
     // converts a LC_XXX constant to an internal bitset of facets
-    static int _C_LC2facet_bits (int);
+    static int _C_LC2facet_bits (int) _THROWS (());
 
-    static bool _C_check_category (int);
+    static bool _C_check_category (int) _THROWS (());
 
     // returns the type of the standard facet object or `unknown'
     // if the facet is of a user-defined type
-    static __rw_facet::_C_facet_type _C_get_facet_type (const __rw_facet&);
+    static __rw_facet::_C_facet_type
+    _C_get_facet_type (const __rw_facet&) _THROWS (());
 
 private:
 
@@ -230,11 +231,13 @@ private:
     //   -1       if the facet isn't installed
     //   value <  _C_n_std_facets for a standard facet
     //   value >= _C_n_std_facets otherwise (i.e., for user defined facets)
-    _RWSTD_SIZE_T _C_get_facet_inx (_RWSTD_SIZE_T) const;
+    _RWSTD_SIZE_T _C_get_facet_inx (_RWSTD_SIZE_T) const _THROWS (());
 };
 
 
-/* static */ inline bool __rw_locale::_C_check_category (int cat)
+/* static */ inline bool
+__rw_locale::
+_C_check_category (int cat) _THROWS (())
 {
     // `cat' is assumed to be a C++ locale category (i.e., not an LC_XXX)
     _RWSTD_ASSERT (cat == _C_LC2category (cat));
@@ -244,7 +247,8 @@ private:
 
 
 /* static */ inline __rw_facet::_C_facet_type
-__rw_locale::_C_get_facet_type (const __rw_facet &__facet)
+__rw_locale::
+_C_get_facet_type (const __rw_facet &__facet) _THROWS (())
 {
     _RWSTD_ASSERT (0 != __facet._C_pid);
     _RWSTD_ASSERT (0 != *__facet._C_pid);
@@ -278,7 +282,7 @@ static const _RWSTD_SIZE_T __rw_n_cats = 6;
 
 // computes LC_XXX category from a numeric facet id, returns the
 // LC_XXX category for standard facets, LC_ALL for all others
-inline int __rw_get_cat (int id)
+inline int __rw_get_cat (int id) _THROWS (())
 {
 #if _RWSTD_LC_MIN >= 0 && _RWSTD_LC_MAX < _RWSTD_UCHAR_MAX
     typedef unsigned char LC_type;
@@ -326,7 +330,7 @@ static const char __rw_C_locale_name[] = {
 
 
 // returns true iff `name' is a name of the classic C locale
-static inline bool __rw_is_C (const char *name)
+static inline bool __rw_is_C (const char *name) _THROWS (())
 {
     _RWSTD_ASSERT (0 != name);
 

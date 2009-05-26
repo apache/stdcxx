@@ -22,15 +22,17 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2006 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
 #define _RWSTD_LIB_SRC
 
 #include <rw/_defs.h>
-
 #include <loc/_ctype.h>
+
+#include <stddef.h>        // for size_t
+
 
 
 _RWSTD_NAMESPACE (std) {
@@ -48,7 +50,7 @@ _RWSTD_DEFINE_STATIC_CONST (const ctype_base::mask ctype_base::xdigit);
 _RWSTD_DEFINE_STATIC_CONST (const ctype_base::mask ctype_base::alnum);
 _RWSTD_DEFINE_STATIC_CONST (const ctype_base::mask ctype_base::graph);
 
-_RWSTD_DEFINE_STATIC_CONST (const _RWSTD_SIZE_T ctype<char>::table_size);
+_RWSTD_DEFINE_STATIC_CONST (const size_t ctype<char>::table_size);
 
 
 }   // namespace std

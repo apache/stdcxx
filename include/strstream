@@ -23,7 +23,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2006 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -51,7 +51,7 @@ class _RWSTD_EXPORT strstreambuf
     typedef basic_streambuf<char, char_traits<char> > _Base;
 
     void _C_init (streamsize, const void*, streamsize, const void*,
-                  void* (*)(_RWSTD_SIZE_T), void (*)(void*), int);
+                  void* (*)(_RWSTD_SIZE_T), void (*)(void*), int) _THROWS (());
 public:
 
     // D.7.1.1, p1

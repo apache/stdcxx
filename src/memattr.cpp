@@ -30,7 +30,7 @@
 #define _RWSTD_LIB_SRC
 
 #include <errno.h>    // for ENOMEM, errno
-#include <string.h>   // for memchr
+#include <string.h>   // for memchr(), size_t
 
 #ifndef EFAULT
 #  define EFAULT  14   // Linux value
@@ -97,7 +97,7 @@
 _RWSTD_NAMESPACE (__rw) {
 
 _RWSTD_EXPORT _RWSTD_SSIZE_T
-__rw_memattr (const void *addr, _RWSTD_SIZE_T nbytes, int attr)
+__rw_memattr (const void *addr, size_t nbytes, int attr)
 {
     // FIXME: allow attr to be set to the equivalent of PROT_READ,
     // PROT_WRITE, and (perhaps also) PROT_EXEC, or any combination
@@ -109,19 +109,19 @@ __rw_memattr (const void *addr, _RWSTD_SIZE_T nbytes, int attr)
     const int errno_save = errno;
 
     // determine the system page size in bytes
-    static const _RWSTD_SIZE_T pgsz = size_t (GETPAGESIZE ());
+    static const size_t pgsz = size_t (GETPAGESIZE ());
 
     // compute the address of the beginning of the page
     // to which the address `addr' belongs
     caddr_t const page =
         _RWSTD_REINTERPRET_CAST (caddr_t,
-            _RWSTD_REINTERPRET_CAST (_RWSTD_SIZE_T, addr) & ~(pgsz - 1));
+            _RWSTD_REINTERPRET_CAST (size_t, addr) & ~(pgsz - 1));
 
     // compute the maximum number of pages occuppied by the memory
     // region pointed to by `addr' (nbytes may be -1 as a request
     // to compute, in a safe way, the length of the string pointed
     // to by `addr')
-    _RWSTD_SIZE_T npages = nbytes ? nbytes / pgsz + 1 : 0;
+    size_t npages = nbytes ? nbytes / pgsz + 1 : 0;
 
     for (size_t i = 0; i < npages; ++i) {
 
@@ -216,7 +216,7 @@ __rw_memattr (const void *addr, _RWSTD_SIZE_T nbytes, int attr)
             // be safe since the first byte of the range has
             // been determined to be readable
 
-            const _RWSTD_SIZE_T maxpage =
+            const size_t maxpage =
                 next == page ? pgsz - DIST (addr, next) : pgsz;
 
             const void* const pnul =

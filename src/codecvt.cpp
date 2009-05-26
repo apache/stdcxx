@@ -98,7 +98,7 @@ _RW::__rw_facet_id codecvt<char, char, _RWSTD_MBSTATE_T>::id;
 
 
 codecvt<char, char, _RWSTD_MBSTATE_T>::
-codecvt (size_t refs /* = 0 */)
+codecvt (size_t refs /* = 0 */) _THROWS (())
     : _RW::__rw_facet (refs), _C_always_noconv (-1)
 {
     // empty
@@ -108,7 +108,7 @@ codecvt (size_t refs /* = 0 */)
 // outlined to avoid generating a vtable in each translation unit
 // that uses the class
 /* virtual */ codecvt<char, char, _RWSTD_MBSTATE_T>::
-~codecvt ()
+~codecvt ()   // nothrow
 {
     // no-op
 }
@@ -127,8 +127,8 @@ do_out (state_type         &state,
     // verify that both ranges are valid
     _RWSTD_ASSERT (from <= from_end);
     _RWSTD_ASSERT (to <= to_end);
-    _RWSTD_ASSERT (from && from_end || !from && !from_end);
-    _RWSTD_ASSERT (to && to_end || !to && !to_end);
+    _RWSTD_ASSERT ((from && from_end) || (!from && !from_end));
+    _RWSTD_ASSERT ((to && to_end) || (!to && !to_end));
 
     // next pointers must always be set before returning, even on error
     from_next = from;
@@ -152,10 +152,10 @@ do_out (state_type         &state,
     if (always_noconv ())
         return noconv;
 
-    const _RWSTD_SIZE_T nfrom = from_end - from;
-    const _RWSTD_SIZE_T nto   = to_end - to;
+    const size_t nfrom = from_end - from;
+    const size_t nto   = to_end - to;
 
-    const _RWSTD_SIZE_T nconv = nfrom < nto ? nfrom : nto;
+    const size_t nconv = nfrom < nto ? nfrom : nto;
 
     // use memmove() in case ranges overlap
     memmove (to, from, nconv);
@@ -183,8 +183,8 @@ do_in (state_type         &state,
     // verify that both ranges are valid
     _RWSTD_ASSERT (from <= from_end);
     _RWSTD_ASSERT (to   <= to_end);
-    _RWSTD_ASSERT (from && from_end || !from && !from_end);
-    _RWSTD_ASSERT (to && to_end || !to && !to_end);
+    _RWSTD_ASSERT ((from && from_end) || (!from && !from_end));
+    _RWSTD_ASSERT ((to && to_end) || (!to && !to_end));
 
     typedef codecvt<char, char, _RWSTD_MBSTATE_T> This;
 
@@ -204,7 +204,7 @@ do_unshift (state_type   &state,
 {
     // verify that the range is valid
     _RWSTD_ASSERT (to <= to_end);
-    _RWSTD_ASSERT (to && to_end || !to && !to_end);
+    _RWSTD_ASSERT ((to && to_end) || (!to && !to_end));
 
     _RWSTD_UNUSED (to_end);
 
@@ -240,13 +240,13 @@ codecvt<char, char, _RWSTD_MBSTATE_T>::
 do_length (state_type        &state,
            const extern_type *from,
            const extern_type *from_end,
-           _RWSTD_SIZE_T      imax) const
+           size_t             imax) const
 {
     // 22.2.1.5.2, p9 - preconditions
     _RWSTD_ASSERT (from <= from_end);
 
     // verify that the range is valid
-    _RWSTD_ASSERT (from && from_end || !from && !from_end);
+    _RWSTD_ASSERT ((from && from_end) || (!from && !from_end));
 
     const int mbstate_valid = _RW::__rw_mbsinit (&state);
     _RWSTD_ASSERT (mbstate_valid);
@@ -255,7 +255,7 @@ do_length (state_type        &state,
         return 0;
 
     // 22.2.1.5.2, p10
-    const _RWSTD_SIZE_T len = from_end - from;
+    const size_t len = from_end - from;
     return int (len < imax ? len : imax);
 }
 
@@ -279,7 +279,7 @@ codecvt_byname (const char *name, size_t ref)
 // outlined to avoid generating a vtable in each translation unit
 // that uses the class
 /* virtual */ codecvt_byname<char, char, _RWSTD_MBSTATE_T>::
-~codecvt_byname ()
+~codecvt_byname ()   // nothrow
 {
     // no-op
 }

@@ -159,7 +159,8 @@ public:
 protected:
 
     // 27.5.2.1, p1: default mode argument is a convenience extension
-    basic_streambuf (ios_base::openmode = ios_base::in | ios_base::out);
+    basic_streambuf (ios_base::openmode = ios_base::in | ios_base::out)
+        _THROWS (());
 
     // 27.5.2.3.1, p1
     char_type* eback () const {

@@ -25,7 +25,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2006 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -39,21 +39,35 @@
 
 _RWSTD_NAMESPACE (__rw) {
 
-_RWSTD_EXPORT void* __rw_fopen (const char*, int, long);
-_RWSTD_EXPORT void* __rw_fdopen (int);
-_RWSTD_EXPORT int __rw_fclose (void*, int);
-_RWSTD_EXPORT int __rw_fileno (void*, int);
-_RWSTD_EXPORT int __rw_fdmode (int);
-_RWSTD_EXPORT int __rw_fmode (void*, int);
+_RWSTD_EXPORT void*
+__rw_fopen (const char*, int, long) _RWSTD_ATTRIBUTE_NOTHROW;
+
+_RWSTD_EXPORT void*
+__rw_fdopen (int) _RWSTD_ATTRIBUTE_NOTHROW;
+
+_RWSTD_EXPORT int
+__rw_fclose (void*, int) _RWSTD_ATTRIBUTE_NOTHROW;
+
+_RWSTD_EXPORT int
+__rw_fileno (void*, int) _RWSTD_ATTRIBUTE_NOTHROW;
+
+_RWSTD_EXPORT int
+__rw_fdmode (int) _RWSTD_ATTRIBUTE_NOTHROW;
+
+_RWSTD_EXPORT int
+__rw_fmode (void*, int) _RWSTD_ATTRIBUTE_NOTHROW;
 
 _RWSTD_EXPORT _RWSTD_SIZE_T
-__rw_fread (void*, int, void*, _RWSTD_SIZE_T);
+__rw_fread (void*, int, void*, _RWSTD_SIZE_T) _RWSTD_ATTRIBUTE_NOTHROW;
 
 _RWSTD_EXPORT _RWSTD_PTRDIFF_T
-__rw_fwrite (void*, int, const void*, _RWSTD_SIZE_T);
+__rw_fwrite (void*, int, const void*, _RWSTD_SIZE_T) _RWSTD_ATTRIBUTE_NOTHROW;
 
-_RWSTD_EXPORT long __rw_fseek (void*, int, _RWSTD_PTRDIFF_T, int);
-_RWSTD_EXPORT int __rw_fflush (void*, int);
+_RWSTD_EXPORT long
+__rw_fseek (void*, int, _RWSTD_PTRDIFF_T, int) _RWSTD_ATTRIBUTE_NOTHROW;
+
+_RWSTD_EXPORT int
+__rw_fflush (void*, int) _RWSTD_ATTRIBUTE_NOTHROW;
 
 }   // namespace __rw
 

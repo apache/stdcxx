@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2006 Rogue Wave Software.
+ * Copyright 1994-2006 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -84,10 +84,10 @@ bool locale::operator== (const locale &rhs) const
         // share the exact same facets (otherwise the bits may or may not
         // be the same)
         _RWSTD_ASSERT (   !eql
-                       ||    _C_body->_C_std_facet_bits
-                          == rhs._C_body->_C_std_facet_bits
-                       &&    _C_body->_C_byname_facet_bits
-                          == rhs._C_body->_C_byname_facet_bits);
+                       || (   _C_body->_C_std_facet_bits
+                              == rhs._C_body->_C_std_facet_bits
+                           &&    _C_body->_C_byname_facet_bits
+                              == rhs._C_body->_C_byname_facet_bits));
 
         // the names of both objects must be the same if the two objects
         // share the exact same facets (otherwise the names may or may not
@@ -118,7 +118,7 @@ bool locale::operator== (const locale &rhs) const
 
     // locales with the same (non-0) number of user-defined
     // facets compare equal iff all the facets are identical
-    for (_RWSTD_SIZE_T i = 0; i != _C_body->_C_n_usr_facets; ++i) {
+    for (size_t i = 0; i != _C_body->_C_n_usr_facets; ++i) {
 
         const _RW::__rw_facet* const pf = _C_body->_C_usr_facets [i];
 

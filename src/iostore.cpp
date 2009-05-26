@@ -42,19 +42,19 @@ _RWSTD_NAMESPACE (__rw) {
 
 // will grow an array of POD elements, never shrinks
 static void*
-__rw_realloc (void *array, _RWSTD_SIZE_T size, _RWSTD_SIZE_T &n, int inx)
+__rw_realloc (void *array, size_t size, size_t &n, int inx)
 {
     if (inx < 0)
         return 0;   // bad index
 
-    if (_RWSTD_STATIC_CAST (_RWSTD_SIZE_T, inx) < n)
+    if (_RWSTD_STATIC_CAST (size_t, inx) < n)
         return array;   // no need to reallocate
 
     void *tmp;
 
     _TRY {
         // make sure index is dereferencable (cast prevents HP aCC warnings)
-        tmp = operator new (_RWSTD_STATIC_CAST (_RWSTD_SIZE_T, ++inx) * size);
+        tmp = operator new (_RWSTD_STATIC_CAST (size_t, ++inx) * size);
     }
     _CATCH (...) {
         return 0;
@@ -70,7 +70,7 @@ __rw_realloc (void *array, _RWSTD_SIZE_T size, _RWSTD_SIZE_T &n, int inx)
     memset (_RWSTD_STATIC_CAST (char*, tmp) + n * size, 0, (inx - n) * size);
 
     // modify passed-in size
-    n = _RWSTD_STATIC_CAST (_RWSTD_SIZE_T, inx);
+    n = _RWSTD_STATIC_CAST (size_t, inx);
 
     operator delete (array);
 
@@ -158,7 +158,7 @@ void ios_base::_C_fire_event (event ev, bool reentrant)
         return;
 
     _C_usr_data::_C_event_cb *cba    = _C_usr->_C_cbarray;
-    _RWSTD_SIZE_T             cbsize = _C_usr->_C_cbsize;
+    size_t                    cbsize = _C_usr->_C_cbsize;
 
     // verify consistency (either both are 0 or neither is)
     _RWSTD_ASSERT (!!cba == !!cbsize);
@@ -196,7 +196,7 @@ void ios_base::_C_fire_event (event ev, bool reentrant)
         }
 
         // 27.4.2.6, p1 - call callbacks in opposite order of registration
-        for (_RWSTD_SIZE_T i = cbsize; i-- > 0; ) {
+        for (size_t i = cbsize; i-- > 0; ) {
 
             _RWSTD_ASSERT (cba && cba [i]._C_fn);
 
@@ -231,8 +231,7 @@ void ios_base::_C_fire_event (event ev, bool reentrant)
 
 // succeeds irrespective of rdstate()
 void ios_base::
-_C_copyfmt (const ios_base &rhs,
-            void *dst, const void *src, _RWSTD_SIZE_T size)
+_C_copyfmt (const ios_base &rhs, void *dst, const void *src, size_t size)
 {
     if (this == &rhs)
         return;
@@ -244,7 +243,7 @@ _C_copyfmt (const ios_base &rhs,
     void*   *pa  = 0;
     EventCB *cba = 0;
 
-    _RWSTD_SIZE_T a_size [3];    // sizes of arrays above
+    size_t a_size [3];    // sizes of arrays above
 
     unsigned   fmtfl;    // formatting flags
     streamsize prec;     // new precision
@@ -390,7 +389,7 @@ _C_copyfmt (const ios_base &rhs,
     }
 
     // copy all but masked flags(), leave masked flags alone
-    _C_fmtfl = fmtfl & flagmask | _C_fmtfl & ~flagmask;
+    _C_fmtfl = (fmtfl & flagmask) | (_C_fmtfl & ~flagmask);
     _C_prec  = prec;
     _C_wide  = wide;
     _C_loc   = loc;
@@ -440,7 +439,7 @@ long& ios_base::iword (int inx)
 
     if (ia) {
         _RWSTD_ASSERT (  _C_usr->_C_isize
-                       > _RWSTD_STATIC_CAST (_RWSTD_SIZE_T, inx));
+                       > _RWSTD_STATIC_CAST (size_t, inx));
 
         return (_C_usr->_C_iarray = ia)[inx];
     }
@@ -470,7 +469,7 @@ void*& ios_base::pword (int inx)
 
     if (pa) {
         _RWSTD_ASSERT (  _C_usr->_C_psize
-                       > _RWSTD_STATIC_CAST (_RWSTD_SIZE_T, inx));
+                       > _RWSTD_STATIC_CAST (size_t, inx));
 
         return (_C_usr->_C_parray = pa)[inx];
     }
@@ -496,8 +495,8 @@ register_callback (event_callback fun, int inx)
 
     typedef _C_usr_data::_C_event_cb EventCB;
 
-    _RWSTD_SIZE_T  sz  = 0;
-    EventCB       *cba = 0;
+    size_t   sz  = 0;
+    EventCB *cba = 0;
 
     if (_C_usr) {
         sz  = _C_usr->_C_cbsize;

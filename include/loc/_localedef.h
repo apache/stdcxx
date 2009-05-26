@@ -774,7 +774,7 @@ __rw_utf8toucs4 (_RWSTD_INT32_T *ret, const char *from, const char *from_end)
         if (len < 2)
             return from;
 
-        *ret = _Int32 ((byte [0] & 0x1fU) << 6 | byte [1] & 0x3fU);
+        *ret = _Int32 ((byte [0] & 0x1fU) << 6 | (byte [1] & 0x3fU));
         return from + 2;
     }
 

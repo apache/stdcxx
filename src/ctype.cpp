@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2001-2006 Rogue Wave Software.
+ * Copyright 2001-2006 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -34,7 +34,7 @@
 #include <limits.h>
 #include <locale.h>
 #include <wctype.h>
-#include <string.h>  // for memset()
+#include <string.h>  // for memset(), size_t
 
 #include <loc/_ctype.h>
 #include <loc/_locale.h>
@@ -618,7 +618,7 @@ __rw_lower_tab [_STD::ctype<char>::table_size + 1] = {
 
 _RWSTD_EXPORT __rw_facet::_C_ctor_t __rw_ct_ctype;
 
-_RWSTD_EXPORT __rw_facet* __rw_ct_ctype (_RWSTD_SIZE_T ref, const char *name)
+_RWSTD_EXPORT __rw_facet* __rw_ct_ctype (size_t ref, const char *name)
 {
     __rw_facet* pfacet;
 
@@ -657,7 +657,8 @@ _RWSTD_NAMESPACE (std) {
 _RW::__rw_facet_id ctype<char>::id;
 
 
-ctype<char>::ctype (const mask *tab, bool del, _RWSTD_SIZE_T refs)
+ctype<char>::
+ctype (const mask *tab, bool del, size_t refs) _THROWS (())
     : _RW::__rw_facet (refs),
     _C_mask_tab (tab),
     _C_delete_it (del)
@@ -677,7 +678,7 @@ ctype<char>::ctype (const mask *tab, bool del, _RWSTD_SIZE_T refs)
 }
 
 
-ctype<char>::~ctype ()
+ctype<char>::~ctype () // nothrow
 {
     if (_C_delete_it) {
         delete[] _RWSTD_CONST_CAST (mask*, _C_mask_tab);
@@ -849,7 +850,7 @@ do_narrow (const char_type* lo, const char_type* hi, char_type,
 }
 
 
-ctype_byname<char>::ctype_byname (const char *name, _RWSTD_SIZE_T refs)
+ctype_byname<char>::ctype_byname (const char *name, size_t refs)
     : ctype<char>(0, false, refs)
 {
     _RWSTD_ASSERT (0 != name);

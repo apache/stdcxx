@@ -45,6 +45,7 @@
 
 #include <sys/types.h>
 #include <fcntl.h>
+#include <stdlib.h>       // for size_t
 
 
 _RWSTD_NAMESPACE (__rw) {
@@ -53,7 +54,7 @@ _RWSTD_NAMESPACE (__rw) {
 // maps a named file into memory as shared, read-only, returns
 // the beginning address on success and fills `size' with the
 // size of the file; returns 0 on failure
-void* __rw_mmap (const char* fname, _RWSTD_SIZE_T *size)
+void* __rw_mmap (const char* fname, size_t *size)   // nothrow
 {
     _RWSTD_ASSERT (0 != fname);
     _RWSTD_ASSERT (0 != size);
@@ -130,12 +131,14 @@ void* __rw_mmap (const char* fname, _RWSTD_SIZE_T *size)
     // read() takes a size_t argument, convert off_t to it
     const size_t mapsize = size_t (sb.st_size);
 
-    void* data = operator new (mapsize);
-    const ssize_t nread = read (fd, data, mapsize);
+    void* data = malloc (mapsize);
+    if (data) {
+        const ssize_t nread = read (fd, data, mapsize);
 
-    if (size_t (nread) != mapsize) {
-        operator delete (data);
-        data = 0;
+        if (size_t (nread) != mapsize) {
+            free (data);
+            data = 0;
+        }
     }
 
 #endif  // _MSC_VER
@@ -144,7 +147,7 @@ void* __rw_mmap (const char* fname, _RWSTD_SIZE_T *size)
 }
 
 
-void __rw_munmap (const void* pcv, _RWSTD_SIZE_T size)
+void __rw_munmap (const void* pcv, size_t size)   // nothrow
 {
     _RWSTD_ASSERT (pcv && size);
 

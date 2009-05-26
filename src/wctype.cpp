@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2001-2005 Rogue Wave Software.
+ * Copyright 2001-2005 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -86,15 +86,15 @@ __rw_get_mask (__rw_ctype_t    *impl,
         for (; beg != end; ++beg) {
 
             // using binary search look up the character and its mask
-            _RWSTD_SIZE_T low  = 0;
-            _RWSTD_SIZE_T high = (_RWSTD_SIZE_T)impl->wmask_s;
+            size_t low  = 0;
+            size_t high = size_t (impl->wmask_s);
 
             if (vec)
                 *vec = MaskT ();
 
             while (low <= high) {
 
-                const _RWSTD_SIZE_T cur = (low + high) / 2;
+                const size_t cur = (low + high) / 2;
                 const __rw_mask_elm next_elm = impl->wmask_tab (cur);
 
                 if (next_elm.ch == *beg) {
@@ -107,8 +107,8 @@ __rw_get_mask (__rw_ctype_t    *impl,
                     // to the current character; otherwise continue
                     if (vec)
                         *vec = MaskT (next_elm.mask & mask);
-                    else if (    scan_is && next_elm.mask & mask
-                             || !scan_is && !(next_elm.mask & mask))
+                    else if (    (scan_is && next_elm.mask & mask)
+                             || (!scan_is && !(next_elm.mask & mask)))
                         return beg;
 
                     break;
@@ -138,7 +138,7 @@ __rw_get_mask (__rw_ctype_t    *impl,
 
         // does the value of *beg fit into the range of an unsigned char?
         const bool fits_char =
-            _RWSTD_STATIC_CAST (_RWSTD_SIZE_T, *beg) <= _RWSTD_UCHAR_MAX;
+            _RWSTD_STATIC_CAST (size_t, *beg) <= _RWSTD_UCHAR_MAX;
 
         // `fits_char' is not used if all wide character
         // classification functions use below are present
@@ -236,7 +236,7 @@ __rw_get_mask (__rw_ctype_t    *impl,
 
         if (vec)
             *vec++ = MaskT (m);
-        else if (scan_is && m & mask || !scan_is && !(m & mask))
+        else if ((scan_is && m & mask) || (!scan_is && !(m & mask)))
             break;
     }
 
@@ -251,9 +251,9 @@ __rw_toupper (__rw_ctype_t* impl,
 {
     if (use_libstd && impl != 0) {
 
-        _RWSTD_SIZE_T low  = 0;
-        _RWSTD_SIZE_T high = (_RWSTD_SIZE_T)impl->wtoupper_s();
-        _RWSTD_SIZE_T cur;
+        size_t low  = 0;
+        size_t high = size_t (impl->wtoupper_s ());
+        size_t cur;
 
         __rw_upper_elm next_elm;
 
@@ -284,7 +284,7 @@ __rw_toupper (__rw_ctype_t* impl,
 
 #else   // if defined (_RWSTD_NO_TOWUPPER)
 
-        if (_RWSTD_STATIC_CAST (_RWSTD_SIZE_T, c) <= _RWSTD_UCHAR_MAX) {
+        if (_RWSTD_STATIC_CAST (size_t, c) <= _RWSTD_UCHAR_MAX) {
 
             const __rw_setlocale clocale (locname, LC_CTYPE);
 
@@ -306,9 +306,9 @@ __rw_tolower (__rw_ctype_t* impl,
 {
     if (use_libstd && impl != 0) {
 
-        _RWSTD_SIZE_T low  = 0;
-        _RWSTD_SIZE_T high = (_RWSTD_SIZE_T)impl->wtolower_s ();
-        _RWSTD_SIZE_T cur;
+        size_t low  = 0;
+        size_t high = size_t (impl->wtolower_s ());
+        size_t cur;
 
         __rw_lower_elm next_elm;
 
@@ -339,7 +339,7 @@ __rw_tolower (__rw_ctype_t* impl,
 
 #else   // if defined (_RWSTD_NO_TOWLOWER)
 
-        if (_RWSTD_STATIC_CAST (_RWSTD_SIZE_T, c) <= _RWSTD_UCHAR_MAX) {
+        if (_RWSTD_STATIC_CAST (size_t, c) <= _RWSTD_UCHAR_MAX) {
 
             const __rw_setlocale clocale (locname, LC_CTYPE);
 
@@ -421,7 +421,7 @@ _RWSTD_NAMESPACE (std) {
 _RW::__rw_facet_id ctype<wchar_t>::id;
 
 
-ctype<wchar_t>::ctype (_RWSTD_SIZE_T ref)
+ctype<wchar_t>::ctype (size_t ref) _THROWS (())
     : _RW::__rw_facet (ref)
 {
 #ifndef _RWSTD_NO_EQUAL_CTYPE_MASK
@@ -459,7 +459,7 @@ ctype<wchar_t>::~ctype ()
 bool ctype<wchar_t>::
 do_is (mask m, char_type c) const
 {
-    return    _RWSTD_STATIC_CAST (_RWSTD_SIZE_T, c) <= _C_tab_size
+    return    _RWSTD_STATIC_CAST (size_t, c) <= _C_tab_size
            && (_C_mask_tab [_UChar (c)] & m);
 }
 
@@ -471,7 +471,7 @@ do_is (const char_type *lo, const char_type *hi, mask *mvec) const
     _RWSTD_ASSERT (lo <= hi);
 
     for ( ; lo != hi; ++lo, ++mvec) {
-        *mvec = _RWSTD_STATIC_CAST (_RWSTD_SIZE_T, *lo) < _C_tab_size ?
+        *mvec = _RWSTD_STATIC_CAST (size_t, *lo) < _C_tab_size ?
             _C_mask_tab [_UChar (*lo)] : mask (0);
     }
 
@@ -509,7 +509,7 @@ ctype<wchar_t>::char_type
 ctype<wchar_t>::
 do_toupper (char_type c) const
 {
-    return _RWSTD_STATIC_CAST (_RWSTD_SIZE_T, c) < _C_tab_size ?
+    return _RWSTD_STATIC_CAST (size_t, c) < _C_tab_size ?
         _C_upper_tab [_UChar (c)] : c;
 }
 
@@ -518,7 +518,7 @@ ctype<wchar_t>::char_type
 ctype<wchar_t>::
 do_tolower (char_type c) const
 {
-    return _RWSTD_STATIC_CAST (_RWSTD_SIZE_T, c) < _C_tab_size ?
+    return _RWSTD_STATIC_CAST (size_t, c) < _C_tab_size ?
         _C_lower_tab [_UChar (c)] : c;
 }
 
@@ -530,7 +530,7 @@ do_toupper (char_type *lo, const char_type *hi) const
     _RWSTD_ASSERT (lo <= hi);
 
     for ( ; lo < hi; ++lo)
-        *lo = _RWSTD_STATIC_CAST (_RWSTD_SIZE_T, *lo) < _C_tab_size ?
+        *lo = _RWSTD_STATIC_CAST (size_t, *lo) < _C_tab_size ?
             _C_upper_tab [_UChar (*lo)] : 0;
 
     return lo;
@@ -544,7 +544,7 @@ do_tolower (char_type *lo, const char_type *hi) const
     _RWSTD_ASSERT (lo <= hi);
 
     for ( ; lo < hi; ++lo)
-        *lo = _RWSTD_STATIC_CAST (_RWSTD_SIZE_T, *lo) < _C_tab_size ?
+        *lo = _RWSTD_STATIC_CAST (size_t, *lo) < _C_tab_size ?
             _C_lower_tab [_UChar (*lo)] : 0;
 
     return lo;
@@ -558,7 +558,7 @@ do_scan_is (mask m, const char_type *lo, const char_type *hi) const
     _RWSTD_ASSERT (lo <= hi);
 
     for ( ; lo != hi; ++lo) {
-        if (   _RWSTD_STATIC_CAST (_RWSTD_SIZE_T, *lo) <= _C_tab_size
+        if (   _RWSTD_STATIC_CAST (size_t, *lo) <= _C_tab_size
             && (_C_mask_tab [_UChar (*lo)] & m))
             break;
     }
@@ -573,7 +573,7 @@ do_scan_not (mask m, const char_type *lo, const char_type *hi) const
 {
     _RWSTD_ASSERT (lo <= hi);
     for ( ; lo != hi; ++lo) {
-        if (   _RWSTD_STATIC_CAST (_RWSTD_SIZE_T, *lo) >= _C_tab_size
+        if (   _RWSTD_STATIC_CAST (size_t, *lo) >= _C_tab_size
             || !(_C_mask_tab [_UChar (*lo)] & m))
             break;
     }
@@ -586,7 +586,7 @@ char
 ctype<wchar_t>::
 do_narrow (char_type c, char dfault) const
 {
-    return _RWSTD_STATIC_CAST (_RWSTD_SIZE_T, c) <= _RWSTD_SCHAR_MAX ?
+    return _RWSTD_STATIC_CAST (size_t, c) <= _RWSTD_SCHAR_MAX ?
         _RWSTD_STATIC_CAST (char, c) : dfault;
 }
 
@@ -605,7 +605,7 @@ do_narrow (const char_type *lo, const char_type *hi,
 
 
 ctype_byname<wchar_t>::
-ctype_byname (const char *name, _RWSTD_SIZE_T refs)
+ctype_byname (const char *name, size_t refs)
     : ctype<wchar_t> (refs), _C_cvtimpl (0), _C_cvtsize (0)
 {
     this->_C_set_name (name, _C_namebuf, sizeof _C_namebuf);
@@ -637,12 +637,12 @@ ctype_byname (const char *name, _RWSTD_SIZE_T refs)
 
         // casts prevent bogus gcc 2.95.2 warning:
         //     size in array new must have integral type
-        _C_mask_tab = new mask [(_RWSTD_SIZE_T)_C_tab_size];
+        _C_mask_tab = new mask [size_t (_C_tab_size)];
 
         _TRY {
             // avoid doing one extra allocation by allocating
             // both the upper and lower tables in the same space
-            _C_upper_tab = new _UChar [(_RWSTD_SIZE_T)_C_tab_size * 2];
+            _C_upper_tab = new _UChar [size_t (_C_tab_size) * 2];
             _C_lower_tab = _C_upper_tab + _C_tab_size;
         }
         _CATCH (...) {
@@ -726,25 +726,23 @@ ctype_byname (const char *name, _RWSTD_SIZE_T refs)
 
             _RWSTD_CONST_CAST (mask*, _C_mask_tab) [i]  = mask (m);
 
-            typedef _RWSTD_SIZE_T SizeT;
-
 #ifndef _RWSTD_NO_TOWUPPER
-            const SizeT upr = SizeT ((::towupper)(i));
+            const size_t upr = size_t ((::towupper)(i));
 #else   // if defined (_RWSTD_NO_TOWUPPER)
-            const SizeT upr = SizeT ((::toupper)(i));
+            const size_t upr = size_t ((::toupper)(i));
 #endif   // _RWSTD_NO_TOWUPPER
 
 #ifndef _RWSTD_NO_TOWLOWER
-            const SizeT lwr = SizeT ((::towlower)(i));
+            const size_t lwr = size_t ((::towlower)(i));
 #else   // if defined (_RWSTD_NO_TOWLOWER)
-            const SizeT lwr = SizeT ((::tolower)(i));
+            const size_t lwr = size_t ((::tolower)(i));
 #endif   // _RWSTD_NO_TOWLOWER
 
             // optimize (and avoid warnings) when wint_t is unsigned
-            _C_upper_tab [i] = upr <= SizeT (_RWSTD_UCHAR_MAX) ?
+            _C_upper_tab [i] = upr <= size_t (_RWSTD_UCHAR_MAX) ?
                 _UChar (upr) : _UChar (0);
 
-            _C_lower_tab [i] = lwr <= SizeT (_RWSTD_UCHAR_MAX) ?
+            _C_lower_tab [i] = lwr <= size_t (_RWSTD_UCHAR_MAX) ?
                 _UChar (lwr) : _UChar (0);
         }
     }
@@ -968,7 +966,7 @@ do_narrow (char_type c, char dfault) const
 
         char  tmp [_UTF8_MB_CUR_MAX + 1];
         char* ptmp = tmp;
-        _RWSTD_SIZE_T utf8_sz = _RW::__rw_itoutf8 (c, tmp);
+        size_t utf8_sz = _RW::__rw_itoutf8 (c, tmp);
 
 #if _RWSTD_WCHAR_MIN < 0
         // compute the invalid bit mask (the MSB set)
@@ -979,7 +977,7 @@ do_narrow (char_type c, char dfault) const
 
         typedef unsigned char UChar;
         
-        _RWSTD_SIZE_T i = 0;
+        size_t i = 0;
         wc = ptbl [UChar (*ptmp)];
         while (wc & imask) {
             // check validity of the value
@@ -1002,7 +1000,7 @@ do_narrow (char_type c, char dfault) const
         // to have length of one
         const char* impl_raw = 
             _RWSTD_REINTERPRET_CAST(const char*, cvt);
-        _RWSTD_SIZE_T offset = wc + sizeof (_RW::__rw_codecvt_t);
+        size_t offset = wc + sizeof (_RW::__rw_codecvt_t);
 
         if (impl_raw [offset + 1])
             return dfault;

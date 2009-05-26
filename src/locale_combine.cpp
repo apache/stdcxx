@@ -64,7 +64,7 @@ __rw_combine_names (__rw_chararray &locname,
     // `cat' must be a locale::category (and not a LC_XXX value)
     _RWSTD_ASSERT (__rw_locale::_C_check_category (cat));
 
-    for (_RWSTD_SIZE_T i = 0; i != __rw_n_cats; ++i) {
+    for (size_t i = 0; i != __rw_n_cats; ++i) {
         const char *nxt1 = strchr (name_1, *_RWSTD_CAT_SEP);
         const char *nxt2 = strchr (name_2, *_RWSTD_CAT_SEP);
 
@@ -77,8 +77,8 @@ __rw_combine_names (__rw_chararray &locname,
         // convert a LC_XXX constant to a locale::category value
         const int c = __rw_locale::_C_LC2category (__rw_cats [i].cat);
 
-        const char    *from;   // copy from where
-        _RWSTD_SIZE_T  len;    // this many chars
+        const char *from;   // copy from where
+        size_t      len;    // this many chars
 
         if (cat & c) {   // category comes from `other'
             from = name_2;
@@ -122,7 +122,7 @@ _C_construct (const __rw_locale &rhs, const __rw_facet *pfacet)
     // and fixed in __rw_locale::__rw_locale, but related to the use of
     // memcpy.
 
-    for(_RWSTD_SIZE_T i = 0; i != _C_n_std_facets; i++)
+    for (size_t i = 0; i != _C_n_std_facets; i++)
         _C_std_facets [i] = rhs._C_std_facets [i];
 
 #endif   // i86/gcc 3.x
@@ -130,8 +130,8 @@ _C_construct (const __rw_locale &rhs, const __rw_facet *pfacet)
     _RWSTD_ASSERT (!pfacet || pfacet->_C_pid);
 
     // get facet's index into one of the facet arrays
-    _RWSTD_SIZE_T inx = pfacet
-        ? rhs._C_get_facet_inx (*pfacet->_C_pid) : (_RWSTD_SIZE_T)(-1);
+    size_t inx = pfacet
+        ? rhs._C_get_facet_inx (*pfacet->_C_pid) : size_t (-1);
 
     // extend size if facet isn't installed in `rhs'
     _C_n_usr_facets =   rhs._C_n_usr_facets
@@ -158,7 +158,7 @@ _C_construct (const __rw_locale &rhs, const __rw_facet *pfacet)
         if (inx < _C_n_std_facets) {
             _C_std_facets [inx] = pf;
 
-            const _RWSTD_SIZE_T facet_bit = 1UL << inx;
+            const size_t facet_bit = 1UL << inx;
 
             // set or clear a corresponding bit based on whether
             // the facet is one of the standard facets or not
@@ -179,7 +179,7 @@ _C_construct (const __rw_locale &rhs, const __rw_facet *pfacet)
             // _C_name =
             //     _C_make_name (_C_namebuf, sizeof _C_namebuf, rhs, *pfacet);
         }
-        else if ((_RWSTD_SIZE_T)(-1) == inx)
+        else if (size_t (-1) == inx)
             _C_usr_facets [_C_n_usr_facets - 1] = pf;
         else
             _C_usr_facets [inx - _C_n_std_facets] = pf;
@@ -187,7 +187,7 @@ _C_construct (const __rw_locale &rhs, const __rw_facet *pfacet)
 
     if (!_C_name) {
         // simply copy name from `rhs'
-        const _RWSTD_SIZE_T size = strlen (rhs._C_name) + 1;
+        const size_t size = strlen (rhs._C_name) + 1;
         char* const name = size <= sizeof _C_namebuf
             ? _C_namebuf : new char [size];
 
@@ -235,13 +235,13 @@ _C_construct (const __rw_locale &one, const __rw_locale &other, int cat)
     // compute and assign facet bitmaps
     const int bits = _C_LC2facet_bits (cat);
 
-    _C_std_facet_bits    =   one._C_std_facet_bits & ~bits
-                           | other._C_std_facet_bits & bits;
+    _C_std_facet_bits    =   (one._C_std_facet_bits & ~bits)
+                           | (other._C_std_facet_bits & bits);
 
-    _C_byname_facet_bits =   one._C_byname_facet_bits & ~bits
-                           | other._C_byname_facet_bits & bits;
+    _C_byname_facet_bits =   (one._C_byname_facet_bits & ~bits)
+                           | (other._C_byname_facet_bits & bits);
 
-    for (_RWSTD_SIZE_T i = 0; i != _C_n_std_facets; ++i) {
+    for (size_t i = 0; i != _C_n_std_facets; ++i) {
 
         // each facet is stored at an index equal to its (id - 1)
         // convert an LC_XXX constant to a locale::category value
@@ -260,7 +260,7 @@ _C_construct (const __rw_locale &one, const __rw_locale &other, int cat)
     }
 
     // increment the ref count of user-defined facets (if any)
-    for (_RWSTD_SIZE_T j = 0; j != _C_n_usr_facets; ++j) {
+    for (size_t j = 0; j != _C_n_usr_facets; ++j) {
 
         _RWSTD_ASSERT (_C_usr_facets [j]);
 
@@ -314,8 +314,7 @@ _C_combine (const __rw_facet *pfacet) const
         // compute the number of the bit in _C_std_facet_bits or
         //_C_byname_facet_bits corresponding to the facet being
         // used (i.e., `*pfacet')
-        const _RWSTD_SIZE_T facet_bit =
-            (_RWSTD_SIZE_T)1U << (*pfacet->_C_pid - 1U);
+        const size_t facet_bit = size_t (1U) << (*pfacet->_C_pid - 1U);
 
         // a locale object is globally managed if all its facets are objects
         // of standard facet types (ordinary or byname) that were constructed
@@ -345,8 +344,7 @@ _C_combine (const __rw_facet *pfacet) const
             const int cat_bits = _C_LC2facet_bits (facet_cat);
 
             // get the index into the _C_std_facets array for `pfacet'
-            const _RWSTD_SIZE_T facet_inx =
-                _C_get_facet_inx (*pfacet->_C_pid);
+            const size_t facet_inx = _C_get_facet_inx (*pfacet->_C_pid);
 
             managed = true;
 
@@ -356,7 +354,7 @@ _C_combine (const __rw_facet *pfacet) const
             // _byname facets that are not installed yet (i.e., whose
             // pointers are 0 come from a locale whose name is given
             // by the name of the whole locale
-            for (_RWSTD_SIZE_T i = 0; i != _C_n_std_facets; ++i) {
+            for (size_t i = 0; i != _C_n_std_facets; ++i) {
 
                 // skip facets from other categories
                 if (!((1 << i) & cat_bits))
@@ -520,7 +518,7 @@ _C_get_body (__rw_locale      *one,
             // a match; if found, remember its position (duplicates
             // are not allowed)
 
-            for (_RWSTD_SIZE_T i = 0; i != __rw_n_cats; ++i) {
+            for (size_t i = 0; i != __rw_n_cats; ++i) {
                 if (!strncmp (__rw_cats [i].name, s, endcat - s)) {
                     if (pcatnames [i])
                         return 0;    // error: duplicate LC_XXX
@@ -534,8 +532,8 @@ _C_get_body (__rw_locale      *one,
         }
 
         // compose a normalized locale name out of category names
-        _RWSTD_SIZE_T size = 0;
-        for (_RWSTD_SIZE_T i = 0; i != __rw_n_cats; ++i) {
+        size_t size = 0;
+        for (size_t i = 0; i != __rw_n_cats; ++i) {
 
             if (!pcatnames [i]) {
                 // use "C" for missing LC_XXX values
@@ -547,7 +545,7 @@ _C_get_body (__rw_locale      *one,
             if (!endcat)
                 endcat = pcatnames [i] + strlen (pcatnames [i]);
 
-            const _RWSTD_SIZE_T catsize = endcat - pcatnames [i];
+            const size_t catsize = endcat - pcatnames [i];
 
             // append name followed by the libc "native" separator
             realname.append (pcatnames [i], catsize);
@@ -707,8 +705,8 @@ _C_get_facet (const id &fid) const
     _RWSTD_ASSERT (0 != _C_body);
 
     // find the index at which the facet is stored in one of the facet arrays
-    const _RWSTD_SIZE_T inx = _C_body->_C_get_facet_inx (fid._C_id);
-    if ((_RWSTD_SIZE_T)(-1) == inx)
+    const size_t inx = _C_body->_C_get_facet_inx (fid._C_id);
+    if (size_t (-1) == inx)
         return 0;
 
     const locale::facet* const pfacet = inx < _RW::__rw_locale::_C_n_std_facets

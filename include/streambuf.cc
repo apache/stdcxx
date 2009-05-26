@@ -34,6 +34,7 @@ _RWSTD_NAMESPACE (std) {
 template <class _CharT, class _Traits>
 basic_streambuf<_CharT, _Traits>::
 basic_streambuf (ios_base::openmode __mode /* = ios_base::in | ios_base::out */)
+    _THROWS (())
     : _C_buffer (0),
     _C_bufsize (0),
     _C_state (__mode),
