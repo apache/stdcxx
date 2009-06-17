@@ -434,6 +434,10 @@ process_results "Red Hat Enterprise Linux 5.0" "EM64T" "gcc 4.1.1" \
                 "linux_redhat_el-5.0-em64t-gcc-4.1.1-*-*-log.gz.txt" \
                 linux_redhat_el-5.0-em64t-gcc-4.1.1.html
 
+process_results "Red Hat Enterprise Linux 5.0" "EM64T" "Intel C++ 11.0" \
+                "linux_redhat_el-5.0-em64t-icc-11.0-*-*-log.gz.txt" \
+                linux_redhat_el-5.0-em64t-icc-11.0.html
+
 process_results "Red Hat Enterprise Linux 5.0" "EM64T" "Intel C++ 10.0" \
                 "linux_redhat_el-5.0-em64t-icc-10.0-*-*-log.gz.txt" \
                 linux_redhat_el-5.0-em64t-icc-10.0.html
@@ -585,6 +589,15 @@ process_results "CygWin/Windows XP" "x86" "gcc 3.4.4" \
                  win_xp-2-x86-gcc-3.4.4.html
 
 # Windows ##############################################################
+
+process_results "Windows 2008" "EM64T" "MSVC 9.0" \
+                "win_2008-0-em64t-msvc-9.0-*-*-log.gz.txt" \
+                 win_2008_0-em64t-msvc-9.0.html
+
+process_results "Windows 2008" "EM64T" "Intel C++ 11.0" \
+                "win_2008-0-em64t-icl-11.0-*-*-log.gz.txt" \
+                 win_2008_0-em64t-icl-11.0.html
+
 process_results "Windows Vista" "EM64T" "MSVC 9.0" \
                 "win_vista-0-em64t-msvc-9.0-*-*-log.gz.txt" \
                  win_vista_0-em64t-msvc-9.0.html
@@ -592,6 +605,10 @@ process_results "Windows Vista" "EM64T" "MSVC 9.0" \
 process_results "Windows Vista" "EM64T" "MSVC 8.0" \
                 "win_vista-0-em64t-msvc-8.0-*-*-log.gz.txt" \
                  win_vista_0-em64t-msvc-8.0.html
+
+process_results "Windows Vista" "EM64T" "Intel C++ 11.0" \
+                "win_vista-0-em64t-icl-11.0-*-*-log.gz.txt" \
+                 win_vista_0-em64t-icl-11.0.html
 
 process_results "Windows Vista" "EM64T" "Intel C++ 10.0" \
                 "win_vista-0-em64t-icl-10.0-*-*-log.gz.txt" \
@@ -604,6 +621,10 @@ process_results "Windows XP, SP2" "x86" "MSVC 8.0" \
 process_results "Windows XP, SP2" "x86" "MSVC 7.1" \
                 "win_xp-2-x86-msvc-7.1-*-*-log.gz.txt" \
                  win_xp_2-x86-msvc-7.1.html
+
+process_results "Windows XP, SP2" "x86" "Intel C++ 11.0" \
+                "win_xp-2-x86-icl-11.0-*-*-log.gz.txt" \
+                 win_xp_2-x86-icl-11.0.html
 
 process_results "Windows XP, SP2" "x86" "Intel C++ 10.0" \
                 "win_xp-2-x86-icl-10.0-*-*-log.gz.txt" \
