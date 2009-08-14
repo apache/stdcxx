@@ -133,6 +133,7 @@ _C_unsafe_swap (vector &__other)
     _RWSTD_ASSERT (__tmp.get_allocator () == __other.get_allocator ());
 
     __tmp.assign (begin (), end ());
+    assign (__other.begin (), __other.end ());
     __other.swap (__tmp);
 }
 
