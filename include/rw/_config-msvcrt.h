@@ -134,6 +134,15 @@ typedef unsigned short wchar_t;
 
 #endif   // _NATIVE_WCHAR_T_DEFINED
 
+#ifndef _CPPUNWIND
+   // disable exceptions when the macro _CPPUNWIND
+   // is not #deined by the compiler, e.g., when
+   // the /GX- option is used
+#  ifndef _RWSTD_NO_EXCEPTIONS
+#    define _RWSTD_NO_EXCEPTIONS
+#  endif   // _RWSTD_NO_EXCEPTIONS
+#endif
+
 #if _RWSTD_VER_MAJOR < 5 && defined (_DLL)
    // defined for binary compatibility with stdcxx 4.1.x
    // (for all versions of MSVC and Intel C++)
