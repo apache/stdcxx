@@ -32,8 +32,6 @@
 
 _RWSTD_NAMESPACE (std) {
 
-#ifdef _RWSTD_NO_LOGIC_ERROR_DTOR
-
 // outlined to avoid generating a vtable in each translation unit
 // that uses the class
 /* virtual */ logic_error::
@@ -41,7 +39,5 @@ _RWSTD_NAMESPACE (std) {
 {
     // no-op
 }
-
-#endif   // _RWSTD_NO_LOGIC_ERROR_DTOR
 
 }   // namespace std
