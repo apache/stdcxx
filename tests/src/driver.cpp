@@ -305,6 +305,8 @@ _RWSTD_DLLIMPORT int (fileno)(FILE*) _LIBC_THROWS ();
             RW_TEST_STR (__GLIBC__) "."          \
             RW_TEST_STR (__GLIBC_MINOR__)
 
+#  elif defined (__SunOS_5_11)
+#    define RW_TEST_OS "sunos-5.11"
 #  elif defined (__SunOS_5_10)
 #    define RW_TEST_OS "sunos-5.10"
 #  elif defined (__SunOS_5_9)
