@@ -32,17 +32,18 @@ class Alloc : public std::allocator <char>
 {
 };
 
-bool operator == (Alloc a1, Alloc a2)
+bool operator== (Alloc, Alloc)
 {
     return false;
 }
 
-bool operator != (Alloc a1, Alloc a2)
+bool operator!= (Alloc, Alloc)
 {
     return true;
 }
 
-int main(int argc, char* argv[])
+
+int main ()
 {
     const char src [] = "source string";
     const char dst [] = "destination string";

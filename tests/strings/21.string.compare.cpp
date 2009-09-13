@@ -800,9 +800,9 @@ void test_compare (charT, Traits*, Allocator*,
         }
 
         // verify the returned value
-        const bool success =    res < 0 && tcase.nres == NPOS
-                             || res > 0 && tcase.nres > 0
-                             || res == 0 && tcase.nres == 0;
+        const bool success =    (res < 0 && tcase.nres == NPOS)
+                             || (res > 0 && tcase.nres > 0)
+                             || (res == 0 && tcase.nres == 0);
 
         rw_assert (success, 0, tcase.line,
                    "line %d. %{$FUNCALL} == %d, got %d",

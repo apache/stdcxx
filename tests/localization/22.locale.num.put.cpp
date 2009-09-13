@@ -419,7 +419,7 @@ void do_test (charT           /* dummy */,
         || '+' == fill
         || pun.thousands_sep_ == fill
         || pun.decimal_point_ == fill
-        || fill >= '0' && fill <= '9')
+        || (fill >= '0' && fill <= '9'))
         return;
 
     // do not perform extraction if there is no data to extract

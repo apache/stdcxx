@@ -2232,7 +2232,7 @@ _rw_fmtstrarray (FmtSpec *pspec, size_t paramno, Buffer &buf,
 
         len += n;
 
-        if (i + 1 == argc || _RWSTD_SIZE_MAX == argc && 0 == argv [i + 1])
+        if (i + 1 == argc || (_RWSTD_SIZE_MAX == argc && 0 == argv [i + 1]))
             break;
 
         const unsigned pound = spec.fl_pound;
@@ -2845,8 +2845,9 @@ _rw_vasnprintf_ext (FmtSpec    *pspec,
         break;
 
     case 'S':   // %{S}, %{lS}, %{#*S}
-        if (   spec.mod == spec.mod_l || spec.mod == FmtSpec::mod_none
-            && spec.fl_pound && sizeof (wchar_t) == spec.width) {
+        if (   spec.mod == spec.mod_l
+            || (   spec.mod == FmtSpec::mod_none
+                && spec.fl_pound && sizeof (wchar_t) == spec.width)) {
             // std::wstring
             spec.param.ptr_ = PARAM (ptr_, pva);
 
@@ -3269,7 +3270,7 @@ rw_sprintfa (const char *fmt, ...)
     // verify that the length of the fomatted buffer is less than
     // its size (this test is unreliable if there are any embedded
     // NULs in the output)
-    RW_ASSERT (nchars < 0 || buf && strlen (buf) < bufsize);
+    RW_ASSERT (nchars < 0 || (buf && strlen (buf) < bufsize));
 
     _RWSTD_UNUSED (nchars);
 

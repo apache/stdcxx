@@ -208,7 +208,7 @@ test_behavior ()
                 const float xf = std::pow (fi, j);
                 const float yf = std::pow (fi, fj);
 
-                rw_assert (rw_equal (xf, yf) || !i && j < 0,
+                rw_assert (rw_equal (xf, yf) || (!i && j < 0),
                            0, __LINE__,
                            "std::pow (%d.0f, %d) = %g, "
                            "std::pow (%d,0f, %d.0f) = %g",
@@ -221,7 +221,7 @@ test_behavior ()
             const double xd = std::pow (id, j);
             const double yd = std::pow (id, jd);
 
-            rw_assert (rw_equal (xd, yd) || !i && j < 0,
+            rw_assert (rw_equal (xd, yd) || (!i && j < 0),
                        0, __LINE__,
                        "std::pow (%d.0, %d) = %g, "
                        "std::pow (%d.0, %d.0) = %g",
@@ -235,7 +235,7 @@ test_behavior ()
             const long double xl = std::pow (il, j);
             const long double yl = std::pow (il, jl);
 
-            rw_assert (rw_equal (xl, yl) || !i && j < 0,
+            rw_assert (rw_equal (xl, yl) || (!i && j < 0),
                        0, __LINE__,
                        "std::pow (%d.0L, %d) = %Lg, "
                        "std::pow (%d.0L, %d.0L) = %Lg",

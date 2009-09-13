@@ -865,8 +865,6 @@ write_coll_info (const std::string &ch, unsigned int idx,
                         if (n_cmap2_it != cmap->get_mb_cmap().end())
                             std::cout << cmap->get_rw_cmap().find(
                                 n_cmap2_it->second)->second;
-                        else
-                            ;
                     }
                     else {
                         for (unsigned int j = 0; j < idx; j++) {

@@ -224,8 +224,8 @@ bool check_numpunct (charT,
 
         // check that newly constructed locale matches
 
-        if (   'C' == locnamebuf [0] && '\0' == locnamebuf [1]
-            || 'C' == locname [0] && '\0' == locname [1]
+        if (   ('C' == locnamebuf [0] && '\0' == locnamebuf [1])
+            || ('C' == locname [0] && '\0' == locname [1])
             || *loc == std::locale::classic ()) {
             // follow requirements in 22.2.3.1.2. p1, 2, and 3
             check_decimal_point (charT ('.'), tname, loc);

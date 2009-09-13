@@ -141,7 +141,8 @@ int irand (int n)
 
     std::random_shuffle (seq, seq + sizeof seq / sizeof *seq);
 
-    const int rnd = (seq [0] << 11) | (seq [1] << 8) | (seq [2] << 4) + seq [3];
+    const int rnd =
+        ((seq [0] << 11) | (seq [1] << 8) | (seq [2] << 4)) + seq [3];
 
     return rnd % n;
 }

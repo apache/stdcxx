@@ -190,7 +190,7 @@ equal (const istreambuf_iterator &__rhs) const
     const bool __eof_rhs =
         !__rhs._C_sb || traits_type::eq_int_type (__rhs._C_sb->sgetc(), __eof);
 
-    return __eof_lhs && __eof_rhs || !__eof_lhs && !__eof_rhs;
+    return __eof_lhs == __eof_rhs;
 }
 
 

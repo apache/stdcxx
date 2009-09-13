@@ -298,9 +298,10 @@ _rw_sigcat (char **pbuf, size_t *pbufsize,
         RW_ASSERT (0 != tname);
 
         if (   0 == func || is_member
-            || Ids::arg_cont != argtype && Ids::arg_ccont != argtype) {
+            || (Ids::arg_cont != argtype && Ids::arg_ccont != argtype)) {
                 // append the name or mnemonic of the argument type
-                rw_asnprintf (pbuf, pbufsize, "%{+}%{?}_%{:}%{?}, %{;}%{;}%s%s%s",
+                rw_asnprintf (pbuf, pbufsize,
+                              "%{+}%{?}_%{:}%{?}, %{;}%{;}%s%s%s",
                     0 == func, 0 < argno, pfx, tname, sfx);
             }
         else {

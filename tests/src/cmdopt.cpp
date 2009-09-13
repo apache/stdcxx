@@ -121,8 +121,8 @@ _rw_print_help (int argc, char *argv[])
 
         if (opthelp && *opthelp) {
 
-            if (   opt->sopt_ == opthelp [0] && '\0' == opthelp [1]
-                || *lopt && 0 == strcmp (lopt + 1, opthelp)) {
+            if (   (opt->sopt_ == opthelp [0] && '\0' == opthelp [1])
+                || (*lopt && 0 == strcmp (lopt + 1, opthelp))) {
 
                 // remember that we found the option whose (short
                 // or long) name we're to give help on; after printing
@@ -374,7 +374,7 @@ _rw_getbounds (const char *next, char sep, RW_VA_LIST_ARG_PTR pva)
 
             if (   '*' == *next
                 || '+' == *next
-                || val < 0 && '-' == *next
+                || (val < 0 && '-' == *next)
                 || isdigit (*next)) {
 
                 end = 0;
@@ -991,11 +991,11 @@ rw_runopts (int argc, char *argv[])
 
                 // try to match the long option first, and only if it
                 // doesn't match try the short single-character option
-                if (   cmplen == strlen (lopt)
-                    && 0 == memcmp (optname, lopt, cmplen)
-                    || opt->sopt_
-                    && optname [0] == opt->sopt_
-                    && (1 == optlen || opt->arg_)) {
+                if (   (   cmplen == strlen (lopt)
+                        && 0 == memcmp (optname, lopt, cmplen))
+                    || (   opt->sopt_
+                        && optname [0] == opt->sopt_
+                        && (1 == optlen || opt->arg_))) {
 
                     // matching option has been found
                     found = true;

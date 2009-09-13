@@ -332,21 +332,21 @@ lt (const char_type &c1, const char_type &c2)
 {
     ++n_calls_ [MemFun::lt];
 
-    return c1.f < c2.f || c1.f == c2.f && c1.c < c2.c;
+    return c1.f < c2.f || (c1.f == c2.f && c1.c < c2.c);
 }
 
 
 int UserTraits<UserChar>::
 compare (const char_type *s1, const char_type *s2, size_t n)
 {
-    RW_ASSERT (0 == n || s1 && s2);
+    RW_ASSERT (0 == n || (s1 && s2));
 
     ++n_calls_ [MemFun::compare];
 
     for (size_t i = 0; i != n; ++i) {
         if (s1 [i].f != s2 [i].f || s1 [i].c != s2 [i].c) {
             if (   s1 [i].f < s2 [i].f
-                || s1 [i].f == s2 [i].f && s1 [i].c < s2 [i].c)
+                || (s1 [i].f == s2 [i].f && s1 [i].c < s2 [i].c))
                 return -1;
 
             return 1;
@@ -393,7 +393,7 @@ UserTraits<UserChar>::char_type*
 UserTraits<UserChar>::
 copy (char_type *dst, const char_type *src, size_t n)
 {
-    RW_ASSERT (0 == n || dst && src);
+    RW_ASSERT (0 == n || (dst && src));
 
     ++n_calls_ [MemFun::copy];
 
@@ -408,7 +408,7 @@ UserTraits<UserChar>::char_type*
 UserTraits<UserChar>::
 move (char_type *dst, const char_type *src, size_t n)
 {
-    RW_ASSERT (0 == n || dst && src);
+    RW_ASSERT (0 == n || (dst && src));
 
     ++n_calls_ [MemFun::move];
 

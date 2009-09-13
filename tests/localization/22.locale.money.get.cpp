@@ -361,7 +361,7 @@ void do_test (bool        intl,    // international?
             err_expect = err;
 
         const int success =
-            !(-1 != consumed && last - next != consumed || err != err_expect);
+            !((-1 != consumed && last - next != consumed) || err != err_expect);
 
         rw_assert (success, __FILE__, lineno,
                    "money_get<%s>::get (%{*Ac}, ..., %b, ..., %s&), "
@@ -393,7 +393,7 @@ void do_test (bool        intl,    // international?
         last = mg.get (next, last, intl, io, err, bs);
 
         int success =
-            !(-1 != consumed && last - next != consumed || err != err_expect);
+            !((-1 != consumed && last - next != consumed) || err != err_expect);
 
         rw_assert (success, __FILE__, lineno,
                    "money_get<%s>::get (%{*Ac}, ..., %b, ..., "
@@ -418,10 +418,10 @@ void do_test (bool        intl,    // international?
             int n = std::sscanf (narrow_buf, fmt, &x);
 
             success = 
-                !(   err_expect & std::ios::failbit && !*grouping
-                  && (1 == n || bs != initial)
-                  || !(err_expect & std::ios::failbit)
-                  && 1 < rw_ldblcmp (x, val));
+                !(   (   err_expect & std::ios::failbit && !*grouping
+                      && (1 == n || bs != initial))
+                  || (   !(err_expect & std::ios::failbit)
+                      && 1 < rw_ldblcmp (x, val)));
 
             rw_assert (success, __FILE__, lineno,
                        "money_get<%s>::get (%{*Ac}, ..., %b, ..., "
