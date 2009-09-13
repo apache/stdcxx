@@ -51,7 +51,8 @@ public:
 
 int ListItem::count_ = 0;
 
-int main(int argc, char* argv[])
+
+int main ()
 {
     typedef std::list<ListItem> List;
     ListItem items [20];

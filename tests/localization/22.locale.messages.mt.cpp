@@ -375,13 +375,21 @@ run_test (int, char**)
         try {
             const std::locale loc (data.locale_name_);
 
-            const std::messages<char>& nm =
-                std::use_facet<std::messages<char> >(loc);
+            {
+                const std::messages<char>& nm =
+                    std::use_facet<std::messages<char> >(loc);
 
-#ifdef _RWSTD_NO_WCHAR_T
+                _RWSTD_UNUSED (nm);
+            }
 
-            const std::messages<wchar_t>& nm =
-                std::use_facet<std::messages<wchar_t> >(loc);
+#ifndef _RWSTD_NO_WCHAR_T
+
+            {
+                const std::messages<wchar_t>& wm =
+                    std::use_facet<std::messages<wchar_t> >(loc);
+
+                _RWSTD_UNUSED (wm);
+            }
 
 #endif // _RWSTD_NO_WCHAR_T
 

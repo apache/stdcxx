@@ -388,25 +388,25 @@ void test_ctors (const std::bitset<N>*)
     const ULong bmask = ULong (::bitmax (N));
 
     {   // bitset::bitset()
-        rw_info (0, 0, __LINE__, "std::bitset<%d>::bitset()", N);
+        rw_info (0, 0, __LINE__, "std::bitset<%zu>::bitset()", N);
 
         const std::bitset<N> b;
         rw_assert (0 == b.to_ulong (), 0, __LINE__,
-                   "bitset<%d>::bitset ().to_ulong() == 0, got %#lx",
+                   "bitset<%zu>::bitset ().to_ulong() == 0, got %#lx",
                    b.to_ulong ());
     }
     
     {   // bitset::bitset (unsigned long)
-        rw_info (0, 0, __LINE__, "std::bitset<%d>::bitset (unsigned long)", N);
+        rw_info (0, 0, __LINE__, "std::bitset<%zu>::bitset (unsigned long)", N);
 
         const std::bitset<N> b (ULONG_MAX & bmask);
         rw_assert ((ULONG_MAX & bmask) == b.to_ulong (), 0, __LINE__,
-                   "bitset<%d>::bitset (%#lx).to_ulong() == 0, got %#lx",
+                   "bitset<%zu>::bitset (%#lx).to_ulong() == 0, got %#lx",
                    N, ULONG_MAX & bmask, b.to_ulong ());
     }
 
     {   // bitset (const string& str, size_t pos = 0, size_t n = (size_t)-1);
-        rw_info (0, 0, __LINE__, "std::bitset<%d>::bitset (string)", N);
+        rw_info (0, 0, __LINE__, "std::bitset<%zu>::bitset (string)", N);
 
         test_set<N> ts;
         ts.set ();
@@ -416,12 +416,12 @@ void test_ctors (const std::bitset<N>*)
 
             if (N <= sizeof (unsigned long) * CHAR_BIT)
                 rw_assert (b == bmask, 0, __LINE__,
-                           "bitset<%d>::bitset(string(\"%s\").to_ulong()"
+                           "bitset<%zu>::bitset(string(\"%s\").to_ulong()"
                            " == %#x, got %#x", N, ts.bits (), bmask,
                            b.to_ulong ());
             else
                 rw_assert (test_set<N>(b) == ts, 0, __LINE__,
-                           "bitset<%d>::bitset(string(\"111...111\")"
+                           "bitset<%zu>::bitset(string(\"111...111\")"
                            " == 111...111, got %s",
                            N, test_set<N>(b).bits ());
 
@@ -432,24 +432,24 @@ void test_ctors (const std::bitset<N>*)
     }
 
     {   // bitset (const bitset<N>& rhs)
-        rw_info (0, 0, __LINE__, "std::bitset<%d>::bitset (const bitset&)", N);
+        rw_info (0, 0, __LINE__, "std::bitset<%zu>::bitset (const bitset&)", N);
 
         const std::bitset<N> b1 (12345);
         const std::bitset<N> b2 (b1);
 
         rw_assert (b1.to_ulong () == b2.to_ulong (), 0, __LINE__,
-                   "bitset<%d>::bitset (bitset<%d>(%#lx)).to_ulong() == %#lx,"
-                   " got %#lx", N, b1.to_ulong (), b2.to_ulong ());
+                   "bitset<%zu>::bitset (bitset<%1$zu>(%#lx)).to_ulong() "
+                   "== %#2$lx, got %#lx", N, b1.to_ulong (), b2.to_ulong ());
 
         rw_info (0, 0, __LINE__,
-                 "std::bitset<%d>::operator=(const bitset&)", N);
+                 "std::bitset<%zu>::operator=(const bitset&)", N);
 
         std::bitset<N> b3;
         b3 = b1;
 
         rw_assert (b1.to_ulong () == b3.to_ulong (), 0, __LINE__,
-                   "bitset<%d>::bitset (bitset<%d>(%#lx)).to_ulong() == %#lx,"
-                   " got %#lx", N, b1.to_ulong (), b3.to_ulong ());
+                   "bitset<%zu>::bitset (bitset<%1$zu>(%#lx)).to_ulong() "
+                   "== %#1$lx, got %#lx", N, b1.to_ulong (), b3.to_ulong ());
     }
 }
 
@@ -458,7 +458,7 @@ void test_ctors (const std::bitset<N>*)
 template <std::size_t N>
 void stress_ctors (const std::bitset<N>*)
 {
-    rw_info (0, 0, __LINE__, "std::bitset<%d>::bitset (string)", N);
+    rw_info (0, 0, __LINE__, "std::bitset<%zu>::bitset (string)", N);
 
     const std::size_t max_mask = bitmax (N);
 
@@ -471,7 +471,7 @@ void stress_ctors (const std::bitset<N>*)
         const std::bitset<N> b1 (n);
 
         rw_assert (n == b1.to_ulong (), 0, __LINE__,
-                   "bitset<%d>::bitset(%#lx).to_ulong() == %#lx, got %#lx",
+                   "bitset<%zu>::bitset(%#lx).to_ulong() == %#lx, got %#lx",
                    N, n, n, b1.to_ulong ());
 
         test_set<N> ts;
@@ -480,7 +480,7 @@ void stress_ctors (const std::bitset<N>*)
         // exercise 23.3.5.1, p3
         std::bitset<N> b2 = std::bitset<N>(std::string (ts.bits ()));
         rw_assert (test_set<N>(b2) == ts, 0, __LINE__,
-                   "bitset<%d>::bitset (\"%s\") got %s",
+                   "bitset<%zu>::bitset (\"%s\") got %s",
                    N, ts.bits (), b2.to_string ().c_str ());
     }
 }
@@ -491,7 +491,7 @@ template <std::size_t N>
 void test_operators (const std::bitset<N>*)
 {
 #define TEST_OP(op) do {                                                   \
-   rw_info (!i, 0, __LINE__, "std::bitset<%d>::operator" #op               \
+   rw_info (!i, 0, __LINE__, "std::bitset<%zu>::operator" #op              \
                              "= (const bitset&)", N);                      \
                                                                            \
           test_set<N> lhs = test_set<N>().random ();                       \
@@ -502,12 +502,12 @@ void test_operators (const std::bitset<N>*)
     const std::bitset<N> b_res = b_lhs op ## = b_rhs;                      \
                                                                            \
     rw_assert (res == test_set<N>(b_res), 0, __LINE__,                     \
-               "bitset<%lu>::operator" #op "= (const bitset<%lu>&):"       \
+               "bitset<%zu>::operator" #op "= (const bitset<%zu>&):"       \
                " %s " #op " %s == %s, got %s",                             \
                N, N, lhs.bits (), rhs.bits (), res.bits (),                \
                test_set<N>(b_res).bits ());                                \
                                                                            \
-    rw_info (!i, 0, __LINE__, "std::bitset<%d>::operator" #op              \
+    rw_info (!i, 0, __LINE__, "std::bitset<%zu>::operator" #op             \
                               " (const bitset&)", N);                      \
     lhs.random ();                                                         \
     b_lhs = std::bitset<N>(std::string (lhs.bits ()));                     \
@@ -516,7 +516,7 @@ void test_operators (const std::bitset<N>*)
     const std::bitset<N> b_res2 = b_lhs op b_rhs;                          \
                                                                            \
     rw_assert (res2 == test_set<N>(b_res2), 0, __LINE__,                   \
-               "bitset<%lu>::operator" #op " (const bitset<%lu>&):"        \
+               "bitset<%zu>::operator" #op " (const bitset<%zu>&):"        \
                " %s " #op " %s == %s, got %s",                             \
                N, N, lhs.bits (), rhs.bits (), res2.bits (),               \
                test_set<N>(b_res2).bits ());                               \
@@ -539,7 +539,7 @@ void test_operators (const std::bitset<N>*)
         // 23.3.5.2, p5 and 23.3.5.3, p3
         TEST_OP (^);
 
-        rw_info (!i, 0, __LINE__, "std::bitset<%d>::operator<<=(size_t)", N);
+        rw_info (!i, 0, __LINE__, "std::bitset<%zu>::operator<<=(size_t)", N);
 
         const test_set<N> ts1 = test_set<N>().random ();
         const test_set<N> ts2 = test_set<N>(ts1) <<= i % M;
@@ -550,11 +550,11 @@ void test_operators (const std::bitset<N>*)
         b1 <<= i % M;
 
         rw_assert (test_set<N>(b1) == ts2, 0, __LINE__,
-                   "bitset<%d>::operator<<=(%lu): %s << %lu == %s, got %s",
+                   "bitset<%zu>::operator<<=(%lu): %s << %lu == %s, got %s",
                    N, i % M, ts1.bits (), i % M, ts2.bits (),
                    test_set<N>(b1).bits ());
 
-        rw_info (!i, 0, __LINE__, "std::bitset<%d>::operator>>=(size_t)", N);
+        rw_info (!i, 0, __LINE__, "std::bitset<%zu>::operator>>=(size_t)", N);
 
         const test_set<N> ts3 = test_set<N>(ts1) >>= i % M;
         std::bitset<N> b2 = std::bitset<N>(std::string (ts1.bits ()));
@@ -563,32 +563,32 @@ void test_operators (const std::bitset<N>*)
         b2 >>= i % M;
 
         rw_assert (test_set<N>(b2) == ts3, 0, __LINE__,
-                   "bitset<%d>::operator>>=(%lu): %s >> %lu == %s, got %s",
+                   "bitset<%zu>::operator>>=(%lu): %s >> %lu == %s, got %s",
                    N, i % M, ts1.bits (), i % M, ts3.bits (),
                    test_set<N>(b2).bits ());
 
         rw_info (!i, 0, __LINE__,
-                 "std::bitset<%d>::operator<<=(size_t) (unused bits)", N);
+                 "std::bitset<%zu>::operator<<=(size_t) (unused bits)", N);
 
         if (N) {
             b1.set (N - 1);
             std::size_t first  = b1.count ();
             std::size_t second = (b1 <<= 1).count ();
             rw_assert (!(first == second), 0, __LINE__,
-                       "bitset<%lu>::operator<<=(1): "
+                       "bitset<%zu>::operator<<=(1): "
                        "after <<= 1: expected %lu, got %lu",
                        N, first - 1, second);
         }
 
         rw_info (!i, 0, __LINE__,
-                 "std::bitset<%d>::operator>>=(size_t) (unused bits)", N);
+                 "std::bitset<%zu>::operator>>=(size_t) (unused bits)", N);
 
         if (N) {
             b2.set ();
             std::size_t first  = b2.count ();
             std::size_t second = (b2 >>= 1).count ();
             rw_assert (first - 1 == second, 0, __LINE__,
-                       "bitset<%lu>::operator>>=(1): "
+                       "bitset<%zu>::operator>>=(1): "
                        "after >>= 1: expected %lu, got %lu",
                        N, first - 1, second);
         }
@@ -612,13 +612,13 @@ void test_other (const std::bitset<N>*)
         std::bitset<N> b2 = ~b1;
 
         rw_assert (ts2 == test_set<N>(b2), 0, __LINE__,
-                   "bitset<%d>::operator~(): ~%s == %s, got %s",
+                   "bitset<%zu>::operator~(): ~%s == %s, got %s",
                    N, ts1.bits (), ts2.bits (), test_set<N>(b2).bits ());
 
         // 23.3.5.2, p25
         b2.flip ();
         rw_assert (ts1 == test_set<N>(b2), 0, __LINE__,
-                   "bitset<%d>::flip (): ~%s == %s, got %s",
+                   "bitset<%zu>::flip (): ~%s == %s, got %s",
                    N, ts1.bits (), ts2.bits (), test_set<N>(b2).bits ());
 
         // 23.3.5.2, p27
@@ -626,36 +626,36 @@ void test_other (const std::bitset<N>*)
             b2.flip (_j);
 
         rw_assert (ts2 == test_set<N>(b2), 0, __LINE__,
-            "bitset<%d>::flip () == %s, got %s",
+            "bitset<%zu>::flip () == %s, got %s",
             N, ts2.bits (), test_set<N>(b2).bits ());
 
         // 23.3.5.3, p35
         rw_assert (ts2.count () == b2.count (), 0, __LINE__,
-                   "bitset<%d>::count () == %d, got %d [%s]",
+                   "bitset<%zu>::count () == %zu, got %d [%s]",
                    N, ts2.count (), b2.count (), test_set<N>(b2).bits());
                
         // 23.3.5.3, p37
-        rw_assert (b2 == b2 && (N && !(b1 == b2) || !N && b1 == b2),
+        rw_assert (b2 == b2 && ((N && !(b1 == b2)) || (!N && b1 == b2)),
                    0, __LINE__,
-                   "bitset<%d>::operator==(const bitset<%ul>&) [%s]",
-                   N, N, N ? test_set<N>(b2).bits () : "<empty>");
+                   "bitset<%zu>::operator== (const bitset&) [%s]",
+                   N, N ? test_set<N>(b2).bits () : "<empty>");
     
         // 23.3.5.3, p38
-        rw_assert ((N && b1 != b2 || !N && !(b1 != b2)) && !(b2 != b2),
+        rw_assert ((N && b1 != b2) || (!N && !(b1 != b2) && !(b2 != b2)),
                    0, __LINE__,
-                   "bitset<%d>::operator!=(const bitset<%ul>&) [%s]",
-                   N, N, N ? test_set<N>(b2).bits () : "<empty>");
+                   "bitset<%zu>::operator!= (const bitset&) [%s]",
+                   N, N ? test_set<N>(b2).bits () : "<empty>");
     
         // 23.3.5.3, p42
-        rw_assert (b2.count() && b2.any() || !b2.count() && !b2.any(),
+        rw_assert ((b2.count () && b2.any ()) || (!b2.count () && !b2.any ()),
                    0, __LINE__,
-                   "bitset<%d>::any () [%s]",
+                   "bitset<%zu>::any () [%s]",
                    N, test_set<N>(b2).bits ());
 
         // 23.3.5.3, p43
-        rw_assert (b2.count() && !b2.none() || !b2.count() && b2.none(),
+        rw_assert ((b2.count () && !b2.none ()) || (!b2.count () && b2.none ()),
                    0, __LINE__,
-                   "bitset<%d>::none () [%s]",
+                   "bitset<%zu>::none () [%s]",
                    N, test_set<N>(b2).bits ());
 
         for (std::size_t k = 0; k != N; ++k) {
@@ -663,13 +663,13 @@ void test_other (const std::bitset<N>*)
             std::bitset<N> b3  = b1 << k;
 
             rw_assert (test_set<N>(b3) == ts3,  0, __LINE__,
-                       "bitset<%lu>::operator<<(%lu)", N, k);
+                       "bitset<%zu>::operator<< (%zu)", N, k);
 
             ts3 = test_set<N>(ts1) >>= k;
             b3  = b1 >> k;
 
             rw_assert (test_set<N>(b3) == ts3, 0, __LINE__,
-                       "bitset<%lu>::operator>>(%lu)", N, k);
+                       "bitset<%zu>::operator>> (%zu)", N, k);
         }
     }
 }
@@ -679,7 +679,7 @@ void test_other (const std::bitset<N>*)
 template <std::size_t N>
 void stress_count (const std::bitset<N>*)
 {
-    rw_info (0, 0, __LINE__, "std::bitset<%lu>::count()", N);
+    rw_info (0, 0, __LINE__, "std::bitset<%zu>::count()", N);
 
     for (std::size_t i = 0; i != N; i++) {
         std::bitset<N> b;
@@ -688,7 +688,7 @@ void stress_count (const std::bitset<N>*)
             b.set (j);
 
         rw_assert (b.count () == i,  0, __LINE__,
-                   "%lu. std::bitset<%lu>::count()", i, N);
+                   "%lu. std::bitset<%zu>::count()", i, N);
     }
 }
 
@@ -697,9 +697,9 @@ void stress_count (const std::bitset<N>*)
 template <std::size_t N>
 void test_elem_access (const std::bitset<N>*)
 {
-    rw_info (0, 0, __LINE__, "std::bitset<%lu>::test(size_t)", N);
-    rw_info (0, 0, __LINE__, "std::bitset<%lu>::operator[](size_t)", N);
-    rw_info (0, 0, __LINE__, "std::bitset<%lu>::operator[](size_t) const", N);
+    rw_info (0, 0, __LINE__, "std::bitset<%zu>::test(size_t)", N);
+    rw_info (0, 0, __LINE__, "std::bitset<%zu>::operator[](size_t)", N);
+    rw_info (0, 0, __LINE__, "std::bitset<%zu>::operator[](size_t) const", N);
 
     for (std::size_t i = 0; i != NLOOPS; ++i) {
 
@@ -709,18 +709,18 @@ void test_elem_access (const std::bitset<N>*)
         for (std::size_t _j = 0; _j != N; ++_j) {
             // 23.3.5.2, p39
             rw_assert (b.test (_j) == ts.test (_j), 0, __LINE__,
-                       "bitset<%lu>::test (%lu): %s",
+                       "bitset<%zu>::test (%lu): %s",
                        N, _j, test_set<N>(b).bits ());
 
             // 23.3.5.2, p??: see lwg issue 11
             rw_assert (b [_j] == ts.test (_j), 0, __LINE__,
-                       "bitset<%lu>::operator[](%lu): %s",
+                       "bitset<%zu>::operator[](%lu): %s",
                        N, _j, test_set<N>(b).bits ());
 
             // 23.3.5.2, p??: see lwg issue 11
             rw_assert (((const std::bitset<N>&)b) [_j] == ts.test (_j),
                        0, __LINE__,
-                       "bitset<%lu>::operator[](%lu) const: %s",
+                       "bitset<%zu>::operator[](%lu) const: %s",
                        N, _j, test_set<N>(b).bits ());
 
             // exercise std::bitset<N>::reference
@@ -729,18 +729,18 @@ void test_elem_access (const std::bitset<N>*)
             // std::bitset<N>::reference::flip()
             r.flip ();
             rw_assert (r == !ts.test (_j), 0, __LINE__,
-                       "bitset<%lu>::reference::flip()", N);
+                       "bitset<%zu>::reference::flip()", N);
 
             // std::bitset<N>::reference::operator~()
             bool toggled = ~r;
             rw_assert (toggled == ts.test (_j), 0, __LINE__,
-                       "bitset<%lu>::reference::operator~()", N);
+                       "bitset<%zu>::reference::operator~()", N);
 
             // std::bitset<N>::reference::operator=(bool)
             r = toggled;
             rw_assert (r == ts.test (_j) && b.test (_j) == ts.test (_j),
                        0, __LINE__,
-                       "bitset<%lu>::reference::operator=(bool)", N);
+                       "bitset<%zu>::reference::operator=(bool)", N);
         }
     }
 }
@@ -1044,7 +1044,7 @@ void test_to_string (std::bitset<N>*, charT*, Traits*, Alloc*,
     static const char* const aname = alloc_name (Alloc ());
 
     rw_info (0, 0, __LINE__,
-             "std::bitset<%lu>::to_string<%s, %s, %s >()",
+             "std::bitset<%zu>::to_string<%s, %s, %s >()",
              N, cname, tname, aname);
 
     test_set<N> ts;
@@ -1078,7 +1078,7 @@ void test_to_string (std::bitset<N>*, charT*, Traits*, Alloc*,
     pos  = compare (str3.data (), ts.bits (), "01");
 
     rw_assert (-1 == pos, 0, __LINE__,
-               "bitset<%lu>::to_string () == \"%s\", got \"%s\": "
+               "bitset<%zu>::to_string () == \"%s\", got \"%s\": "
                "mismatch at bit %d",
                N, ts.bits (), TO_STR (str3), pos);
 
@@ -1086,14 +1086,14 @@ void test_to_string (std::bitset<N>*, charT*, Traits*, Alloc*,
     // specify one of the two function arguments (exercise the default
     // or the respective overload)
     rw_info (0, 0, __LINE__,
-             "std::bitset<%lu>::to_string<%s, %s, %s >(\"%s\")",
+             "std::bitset<%zu>::to_string<%s, %s, %s >(\"%s\")",
              N, cname, tname, aname, cname);
 
     str3 = bitset_to_string_3 (bs, 1, zero, one, (String3*)0);
     pos  = compare (str3.data (), ts.bits (), "o1");
 
     rw_assert (-1 == pos, 0, __LINE__,
-               "bitset<%lu>::to_string ('o') == %s, got %s: "
+               "bitset<%zu>::to_string ('o') == %s, got %s: "
                "mismatch at bit %d", N,
                to_string (ts.bits (), "o1").c_str (),
                TO_STR (str3), pos);
@@ -1101,14 +1101,14 @@ void test_to_string (std::bitset<N>*, charT*, Traits*, Alloc*,
 
     // specify both of the two function arguments
     rw_info (0, 0, __LINE__,
-             "std::bitset<%lu>::to_string<%s, %s, %s >(%s, %s)",
+             "std::bitset<%zu>::to_string<%s, %s, %s >(%s, %s)",
              N, cname, tname, aname, cname, cname);
 
     str3 = bitset_to_string_3 (bs, 2, zero, one, (String3*)0);
     pos  = compare (str3.data (), ts.bits (), "ox");
 
     rw_assert (-1 == pos, 0, __LINE__,
-               "bitset<%lu>::to_string ('o', 'x') == %s, got %s: "
+               "bitset<%zu>::to_string ('o', 'x') == %s, got %s: "
                "mismatch at bit %d", N,
                to_string (ts.bits (), "ox").c_str (),
                TO_STR (str3), pos);
@@ -1118,7 +1118,7 @@ void test_to_string (std::bitset<N>*, charT*, Traits*, Alloc*,
     // exercise the overload of the to_string() member function template
     // that takes the first two template parameters different from char,
     // and char_traits<char>
-    rw_info (0, 0, __LINE__, "std::bitset<%lu>::to_string<%s, %s >()",
+    rw_info (0, 0, __LINE__, "std::bitset<%zu>::to_string<%s, %s >()",
              N, cname, tname);
 
     typedef std::allocator<charT>                        CharTAlloc;
@@ -1132,21 +1132,21 @@ void test_to_string (std::bitset<N>*, charT*, Traits*, Alloc*,
     pos  = compare (str2.data (), ts.bits (), "01");
 
     rw_assert (-1 == pos, 0, __LINE__,
-               "bitset<%lu>::to_string () == %s, got %s: mismatch at bit %d",
+               "bitset<%zu>::to_string () == %s, got %s: mismatch at bit %d",
                N, ts.bits (), TO_STR (str2), pos);
 
 
     // specify one of the two function arguments (exercise the default
     // or the respective overload)
     rw_info (0, 0, __LINE__,
-             "std::bitset<%lu>::to_string<%s, %s >(%s)",
+             "std::bitset<%zu>::to_string<%s, %s >(%s)",
              N, cname, tname, cname);
 
     str2 = bitset_to_string_2 (bs, 1, zero, one, (String2*)0);
     pos  = compare (str2.data (), ts.bits (), "o1");
 
     rw_assert (-1 == pos, 0, __LINE__,
-               "bitset<%lu>::to_string ('o') == %s, got %s: "
+               "bitset<%zu>::to_string ('o') == %s, got %s: "
                "mismatch at bit %d", N,
                to_string (ts.bits (), "o1").c_str (),
                TO_STR (str2), pos);
@@ -1154,14 +1154,14 @@ void test_to_string (std::bitset<N>*, charT*, Traits*, Alloc*,
 
     // specify both of the two function arguments
     rw_info (0, 0, __LINE__,
-             "std::bitset<%lu>::to_string<%s, %s >(%s, %s)",
+             "std::bitset<%zu>::to_string<%s, %s >(%s, %s)",
              N, cname, tname, cname, cname);
 
     str2 = bitset_to_string_2 (bs, 2, zero, one, (String2*)0);
     pos  = compare (str2.data (), ts.bits (), "ox");
 
     rw_assert (-1 == pos, 0, __LINE__,
-               "bitset<%lu>::to_string ('o', 'x') == %s, got %s: "
+               "bitset<%zu>::to_string ('o', 'x') == %s, got %s: "
                "mismatch at bit %d", N,
                to_string (ts.bits (), "ox").c_str (),
                TO_STR (str2), pos);
@@ -1170,7 +1170,7 @@ void test_to_string (std::bitset<N>*, charT*, Traits*, Alloc*,
     ////////////////////////////////////////////////////////////////////////
     // exercise the overload of the to_string() member function template
     // that takes the first template parameter different from char
-    rw_info (0, 0, __LINE__, "std::bitset<%lu>::to_string<%s>()",
+    rw_info (0, 0, __LINE__, "std::bitset<%zu>::to_string<%s>()",
              N, cname);
 
     typedef std::char_traits<charT>                          CharTraits;
@@ -1184,20 +1184,20 @@ void test_to_string (std::bitset<N>*, charT*, Traits*, Alloc*,
     pos  = compare (str1.data (), ts.bits (), "01");
 
     rw_assert (-1 == pos, 0, __LINE__,
-               "bitset<%lu>::to_string () == %s, got %s: mismatch at bit %d",
+               "bitset<%zu>::to_string () == %s, got %s: mismatch at bit %d",
                N, ts.bits (), TO_STR (str1), pos);
 
 
     // specify one of the two function arguments (exercise the default
     // or the respective overload)
-    rw_info (0, 0, __LINE__, "std::bitset<%lu>::to_string<%s>(%s)",
+    rw_info (0, 0, __LINE__, "std::bitset<%zu>::to_string<%s>(%s)",
              N, cname, cname);
 
     str1 = bitset_to_string_1 (bs, 1, zero, one, (String1*)0);
     pos  = compare (str1.data (), ts.bits (), "o1");
 
     rw_assert (-1 == pos, 0, __LINE__,
-               "bitset<%lu>::to_string ('o') == %s, got %s: "
+               "bitset<%zu>::to_string ('o') == %s, got %s: "
                "mismatch at bit %d", N,
                to_string (ts.bits (), "o1").c_str (),
                TO_STR (str1), pos);
@@ -1205,14 +1205,14 @@ void test_to_string (std::bitset<N>*, charT*, Traits*, Alloc*,
 
     // specify both of the two function arguments
     rw_info (0, 0, __LINE__,
-             "std::bitset<%lu>::to_string<%s>(%s, %s)",
+             "std::bitset<%zu>::to_string<%s>(%s, %s)",
              N, cname, cname, cname);
 
     str1 = bitset_to_string_1 (bs, 2, zero, one, (String1*)0);
     pos  = compare (str1.data (), ts.bits (), "ox");
 
     rw_assert (-1 == pos, 0, __LINE__,
-               "bitset<%lu>::to_string ('o', 'x') == %s, got %s: "
+               "bitset<%zu>::to_string ('o', 'x') == %s, got %s: "
                "mismatch at bit %d", N,
                to_string (ts.bits (), "ox").c_str (),
                TO_STR (str1), pos);
@@ -1226,7 +1226,7 @@ void test_to_string (std::bitset<N>*, charT*, Traits*, Alloc*,
     if (nontemplate_done)
         return;
 
-    rw_info (0, 0, __LINE__, "std::bitset<%lu>::to_string ()", N);
+    rw_info (0, 0, __LINE__, "std::bitset<%zu>::to_string ()", N);
 
     typedef std::string String0;
 
@@ -1238,32 +1238,32 @@ void test_to_string (std::bitset<N>*, charT*, Traits*, Alloc*,
     pos  = compare (str0.data (), ts.bits (), "01");
 
     rw_assert (-1 == pos, 0, __LINE__,
-               "bitset<%lu>::to_string () == %s, got %s: mismatch at bit %d",
+               "bitset<%zu>::to_string () == %s, got %s: mismatch at bit %d",
                N, ts.bits (), str0.c_str (), pos);
 
 
     // specify one of the two function arguments (exercise the default
     // or the respective overload)
-    rw_info (0, 0, __LINE__, "std::bitset<%lu>::to_string (char)", N);
+    rw_info (0, 0, __LINE__, "std::bitset<%zu>::to_string (char)", N);
 
     str0 = bitset_to_string_0 (bs, 1, 'o', 'x', (String0*)0);
     pos  = compare (str0.data (), ts.bits (), "o1");
 
     rw_assert (-1 == pos, 0, __LINE__,
-               "bitset<%lu>::to_string ('o') == %s, got %s: "
+               "bitset<%zu>::to_string ('o') == %s, got %s: "
                "mismatch at bit %d", N,
                to_string (ts.bits (), "o1").c_str (),
                str0.c_str (), pos);
 
 
     // specify both of the two function arguments
-    rw_info (0, 0, __LINE__, "std::bitset<%lu>::to_string (char, char)", N);
+    rw_info (0, 0, __LINE__, "std::bitset<%zu>::to_string (char, char)", N);
 
     str0 = bitset_to_string_0 (bs, 2, 'o', 'x', (String0*)0);
     pos  = compare (str0.data (), ts.bits (), "ox");
 
     rw_assert (-1 == pos, 0, __LINE__,
-               "bitset<%lu>::to_string ('o', 'x') == %s, got %s: "
+               "bitset<%zu>::to_string ('o', 'x') == %s, got %s: "
                "mismatch at bit %d", N,
                to_string (ts.bits (), "ox").c_str (),
                str0.c_str (), pos);

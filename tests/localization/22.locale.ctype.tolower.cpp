@@ -83,8 +83,6 @@ const char* locale_root;
                  "{zh-CN-*-{GB*,UTF-8,CP125?}},"                           \
                  "{ru-RU-*-{KOI*,UTF-8,CP125?}}}"
 
-const char* locale_list = 0;
-
 #define BEGIN_LOCALE_LOOP(num, locname, loop_cntrl)                        \
    const char* locale_list = rw_locale_query (LC_CTYPE, LOCALES);          \
    for (const char* locname = locale_list;                                 \

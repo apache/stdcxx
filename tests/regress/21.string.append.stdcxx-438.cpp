@@ -40,7 +40,7 @@ void* operator new (std::size_t n) throw (std::bad_alloc)
 {
     void* const ptr = std::malloc (n + sizeof n);
     if (!ptr)
-        return 0;
+        throw std::bad_alloc ();
 
     std::memset (ptr, -1, n);
     *(std::size_t*)ptr = n;
