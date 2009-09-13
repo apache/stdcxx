@@ -376,7 +376,7 @@ open_catalog (const std::messages<charT> &msgs,
         cat = (msgs.open)(cat_name, loc);
 
         const bool success =
-            expect_success && -1 < cat || expect_failure && cat < 0;
+            (expect_success && -1 < cat) || (expect_failure && cat < 0);
 
         rw_assert (success, 0, line,
                    "messages<%s>::open(%#s, locale(%#s))"

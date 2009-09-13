@@ -93,7 +93,7 @@ test_classic (void*)
 static void*
 test_global (void*)
 {
-    for (std::size_t i = 0; i != opt_nloops; ++i) {
+    for (std::size_t i = 0; i != std::size_t (opt_nloops); ++i) {
 
         if (rw_thread_pool_timeout_expired ())
             break;

@@ -42,7 +42,8 @@ struct Alloc : std::allocator<T>
     };
 
     template <typename U>
-    Alloc (const Alloc<U>& other) : std::allocator (other), i_ (other.i_) { }
+    Alloc (const Alloc<U>& other)
+        : std::allocator<T>(other), i_ (other.i_) { }
 
     template <typename U>
     Alloc& operator= (const Alloc<U>& other)

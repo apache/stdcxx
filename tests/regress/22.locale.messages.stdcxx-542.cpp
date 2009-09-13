@@ -65,7 +65,7 @@ static int run_test (int, char**)
 
     messagesT::catalog cats [4];
 
-    int i;
+    std::size_t i;
 
     // test STDCXX-508
     for (i = 0; i < sizeof (cats) / sizeof (*cats); ++i) {
@@ -74,7 +74,7 @@ static int run_test (int, char**)
     }
     
     // test STDCXX-542
-    for (--i; i >= 0; --i)
+    while (i-- > 0)
         msgs.close (cats [i]);
 
     std::remove (CATALOG CAT_EXT);

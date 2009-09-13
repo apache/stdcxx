@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2008 Rogue Wave Software.
+ * Copyright 1994-2008 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -33,15 +33,15 @@ struct Value
 {
     static const unsigned magic = 0x12344321;
 
-    Value (unsigned value = 0)
-        : value (value)
-        , valid (magic)
+    Value (unsigned val = 0)
+        : value (val),
+          valid (magic)
     {
     }
 
     Value (const Value& key)
-        : value (key.value)
-        , valid (key.magic)
+        : value (key.value),
+          valid (key.magic)
     {
     }
 
@@ -89,17 +89,6 @@ struct Value
     unsigned valid;
 };
 
-//#include <iostream>
-//
-//void dump (const std::set<Value>& s)
-//{
-//    std::set<Value>::const_iterator b = s.begin ();
-//    std::set<Value>::const_iterator e = s.end   ();
-//
-//    for (/**/; b != e; ++b)
-//        std::cout << b->value << ' ';
-//    std::cout << std::endl;
-//}
 
 int main ()
 {

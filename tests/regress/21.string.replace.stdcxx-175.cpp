@@ -28,17 +28,15 @@
 #include <string>
 #include <stdexcept>
 
-int main (int argc, char* argv [])
+int main ()
 {
     std::string s (4095, 'a');
 
-    try 
-    {
+    try {
         s.replace (0, 1, "a", s.max_size () + 1);
         assert (!"Expect length error, got nothing");
     }
-    catch (std::length_error& e)
-    {
+    catch (std::length_error&) {
     }
 
     return 0;

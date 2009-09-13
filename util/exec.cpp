@@ -550,8 +550,9 @@ wait_for_child (pid_t child_pid, int timeout, struct target_status* result)
             else if (WIFCONTINUED (status))
                 stopped = 0;
 #endif
-            else
-                ;   /* huh? */
+            else {
+                /* huh? */
+            }
         }
         else if ((pid_t)-1 == wait_pid) {
             if (EINTR == errno && alarm_timeout) {
@@ -619,8 +620,9 @@ wait_for_child (pid_t child_pid, int timeout, struct target_status* result)
                 if (waitopts)
                     /* bad waitpid options, reset to 0 and try again */
                     waitopts = 0;
-                else
-                    ; /* Now what? */
+                else {
+                    /* Now what? */
+                }
             }
             else if (ECHILD == errno) {
                 /* should not happen */

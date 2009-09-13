@@ -300,7 +300,7 @@ void gen_test (const T*              ptr,
 
     //////////////////////////////////////////////////////////////////
     if (rw_opt_no_input_iter) {
-        if (1 == tag1 || 0 == tag1 && 1 == tag2)
+        if (1 == tag1 || (0 == tag1 && 1 == tag2))
             rw_note (0, __FILE__, __LINE__, "InputIterator test disabled");
     }
     else {
@@ -316,7 +316,7 @@ void gen_test (const T*              ptr,
 
     //////////////////////////////////////////////////////////////////
     if (rw_opt_no_fwd_iter) {
-        if (tag1 || !tag1 && tag2 || !tag1 && !tag2 && tag3)
+        if (tag1 || (!tag1 && tag2) || (!tag1 && !tag2 && tag3))
             rw_note (0, __FILE__, __LINE__, "ForwardIterator test disabled");
     }
     else {
@@ -344,7 +344,7 @@ void gen_test (const T*              ptr,
 
     //////////////////////////////////////////////////////////////////
     if (rw_opt_no_bidir_iter) {
-        if (tag1 || !tag1 && tag2 || !tag1 && !tag2 && tag3)
+        if (tag1 || (!tag1 && tag2) || (!tag1 && !tag2 && tag3))
             rw_note (0, __FILE__, __LINE__,
                      "BidirectionalIterator test disabled");
     }
@@ -373,7 +373,7 @@ void gen_test (const T*              ptr,
 
     //////////////////////////////////////////////////////////////////
     if (rw_opt_no_rnd_iter) {
-        if (tag1 || !tag1 && tag2 || !tag1 && !tag2 && tag3)
+        if (tag1 || (!tag1 && tag2) || (!tag1 && !tag2 && tag3))
             rw_note (0, __FILE__, __LINE__,
                      "RandomAccessIterator test disabled");
     }

@@ -286,7 +286,7 @@ splice (iterator __i, list &__x, iterator __j, iterator __k)
     _RWSTD_ASSERT_RANGE (__j, __k);
 
     // 23.2.2.4, p12 - check undefined behavior
-    _RWSTD_ASSERT (&__x != this || __i != __j && __i != __k);
+    _RWSTD_ASSERT (&__x != this || (__i != __j && __i != __k));
 
     if (__j == __k)
         return;

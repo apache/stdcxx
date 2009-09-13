@@ -89,7 +89,7 @@ void do_test (int lineno, charT, const char *cname,
 
     _TRY {
         if (   '\0' == fmt [1]
-            || ('E' ==  fmt [0] || 'O' == fmt [0] && '\0' == fmt [2])) {
+            || ('E' ==  fmt [0] || ('O' == fmt [0] && '\0' == fmt [2]))) {
 
             // single-character format strings "a", "b", "x", "X", and "Y"
             // exercise the standard time_get interface, i.e., get_weekday(),

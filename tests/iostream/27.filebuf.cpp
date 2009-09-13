@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 1994-2008 Rogue Wave Software.
+ * Copyright 1994-2008 Rogue Wave Software, Inc.
  *
  **************************************************************************/
 
@@ -2096,12 +2096,12 @@ CodeCvt<charT>::do_in (      state_type  &state,
                 return std::codecvt_base::partial;
 
             if (   from_next [0] != '\\' || from_next [1] != 'x'
-                || !(   from_next [2] >= '0' && from_next [2] <= '9'
-                     || from_next [2] >= 'A' && from_next [2] <= 'F'
-                     || from_next [2] >= 'a' && from_next [2] <= 'f')
-                || !(   from_next [3] >= '0' && from_next [3] <= '9'
-                     || from_next [3] >= 'A' && from_next [3] <= 'F'
-                     || from_next [3] >= 'a' && from_next [3] <= 'f'))
+                || !(   (from_next [2] >= '0' && from_next [2] <= '9')
+                     || (from_next [2] >= 'A' && from_next [2] <= 'F')
+                     || (from_next [2] >= 'a' && from_next [2] <= 'f'))
+                || !(   (from_next [3] >= '0' && from_next [3] <= '9')
+                     || (from_next [3] >= 'A' && from_next [3] <= 'F')
+                     || (from_next [3] >= 'a' && from_next [3] <= 'f')))
                 return std::codecvt_base::error;
 
             // convert a hex literal to a number

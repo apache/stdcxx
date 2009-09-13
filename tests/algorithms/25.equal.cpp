@@ -125,7 +125,7 @@ void test_equal (std::size_t           N,
         }
 
         // verify 25.1.8, p1
-        int success = res && i < mid_inx || !res && mid_inx <= i;
+        int success = (res && i < mid_inx) || (!res && mid_inx <= i);
 
         const bool equal_expected = i < mid_inx;
 

@@ -503,7 +503,7 @@ cformat::do_in (      state_type& /* unused */,
         else if ('?' == ch && !(mask & trigraphs)) {
             // (try to) convert a trigraph sequence
             if (   2 > from_end - from_next
-                || '?' == from_next [1] && 3 > from_end - from_next) {
+                || ('?' == from_next [1] && 3 > from_end - from_next)) {
                 res = partial;
                 break;
             }
@@ -1126,17 +1126,17 @@ run_test (int, char*[])
         // if end-of-file occurs on the input sequence
         RW_ASSERT_STATE (f, std::ios::eofbit | std::ios::failbit);
 
-        rw_assert (long (n) == buflen, 0, __LINE__,
+        rw_assert (std::size_t (n) == buflen, 0, __LINE__,
                    "ifstream::read (%#p, %d); read %ld, expected %d",
                    tmpbuf, sizeof tmpbuf, long (n), buflen);
 
         // assert that converted file contents are the same
         // as the originally generated buffer
-        const long len = long (n) < buflen ? long (n) : buflen;
-        for (long i = 0; i != len; ++i) {
+        const long len = std::size_t (n) < buflen ? std::size_t (n) : buflen;
+        for (std::size_t i = 0; i != len; ++i) {
             if (tmpbuf [i] != buffer [i]) {
                 rw_assert (0, 0, __LINE__,
-                           "'\\%03o' == '\\%03o'; offset %d",
+                           "'\\%03o' == '\\%03o'; offset %zu",
                            (unsigned char)buffer [i],
                            (unsigned char)tmpbuf [i], i);
                 break;

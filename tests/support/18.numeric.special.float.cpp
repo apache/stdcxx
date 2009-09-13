@@ -1259,8 +1259,8 @@ void test_limits (FloatT, const char *tname, const char *fmt)
         _RWSTD_UNUSED (pf);                                                \
         /* verify value */                                                 \
         rw_assert (   FLim::member () == FVal::member ()                   \
-                   || FLim::member () != FLim::member ()                   \
-                   && FVal::member () != FVal::member (),                  \
+                   || (   FLim::member () != FLim::member ()               \
+                       && FVal::member () != FVal::member ()),             \
                    0, __LINE__,                                            \
                    "numeric_limits<%s>::" #member "() == %{@}, got %{@}",  \
                    tname, fmt, FVal::member (), fmt, FLim::member ());     \

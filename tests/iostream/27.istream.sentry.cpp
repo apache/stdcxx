@@ -22,7 +22,7 @@
  * implied.   See  the License  for  the  specific language  governing
  * permissions and limitations under the License.
  *
- * Copyright 2003-2006 Rogue Wave Software.
+ * Copyright 2003-2006 Rogue Wave Software, Inc.
  * 
  **************************************************************************/
 
@@ -434,9 +434,8 @@ void test_ok (const charT*, const Traits*,
 
                     _RWSTD_UNUSED (guard);
 
-                    const bool success =
-                           is.good () && guard
-                        || !is.good () && !guard;
+                    // verify that both are either false or true
+                    const bool success = !is.good () == !guard;
 
                     rw_assert (success, 0, __LINE__,
                                "%u. %{$SENTRY}"

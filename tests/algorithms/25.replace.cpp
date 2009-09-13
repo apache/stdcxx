@@ -210,8 +210,7 @@ void test_replace (int line,
 
         success =
                val != src [i]
-            || val == src [i]
-            && replace_with.origin_ == xsrc [i].origin_;
+            || (val == src [i] && replace_with.origin_ == xsrc [i].origin_);
 
         if (!success)
             break;
@@ -324,8 +323,7 @@ void test_replace (int line,
     for (i = 0; i != nsrc; ++i) {
         success =
                val != src [i]
-            || val == src [i]
-            && replace_with.origin_ == xdst [i].origin_;
+            || (val == src [i] && replace_with.origin_ == xdst [i].origin_);
 
         if (!success)
             break;
