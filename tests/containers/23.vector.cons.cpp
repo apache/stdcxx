@@ -634,23 +634,23 @@ void test_ctors (Vector*, T*, Alloc alloc)
             const Vector v1 (first, last, alloc);
 
             if (   i != v0.size ()
-                || (!(i && !v0.empty () || !i && v0.empty ()))
+                || (!((i && !v0.empty ()) || (!i && v0.empty ())))
                 || (i != v1.size ())
-                || (!(i && !v1.empty () || !i && v1.empty ())))
+                || (!((i && !v1.empty ()) || (!i && v1.empty ()))))
                 success = false;
 
             // verify size() and empty()
             rw_assert (i == v0.size (), 0, __LINE__,
                        "size () == %zu, got %zu", i, v0.size ());
 
-            rw_assert (i && !v0.empty () || !i && v0.empty (),
+            rw_assert ((i && !v0.empty ()) || (!i && v0.empty ()),
                        0, __LINE__, "size () == %zu, empty () == %d",
                        v0.size (), v0.empty ());
 
             rw_assert (i == v1.size (), 0, __LINE__,
                        "size () == %zu, got %zu", i, v1.size ());
 
-            rw_assert (i && !v1.empty () || !i && v1.empty (),
+            rw_assert ((i && !v1.empty ()) || (!i && v1.empty ()),
                        0, __LINE__, "size () == %zu, empty () == %d",
                        v1.size (), v1.empty ());
         }

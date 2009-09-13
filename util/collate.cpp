@@ -151,8 +151,8 @@ unsigned int Def::process_order_stmt (collate_section_t& section)
                     std::string second = ord_it->name.substr (comma_pos + 1);
 
                     // verify a valid weight ordering
-                    if ((first == "forward" && second != "position") || 
-                        first == "backward" && second != "position") {
+                    if (   (first == "forward" && second != "position")
+                        || (first == "backward" && second != "position")) {
                         issue_diag (E_COLORD, true,
                                     &*ord_it, "unrecognized collating order\n");
                         break;

@@ -233,8 +233,8 @@ _C_push (bool __at_back, const_reference __x)
     const bool __empty = empty ();
 
     if (   __empty
-        || __at_back && _C_end._C_node == _C_nodes + _C_node_size - 1
-        || !__at_back && _C_beg._C_node == _C_nodes) {
+        || (__at_back && _C_end._C_node == _C_nodes + _C_node_size - 1)
+        || (!__at_back && _C_beg._C_node == _C_nodes)) {
 
         _C_node_alloc_type __node_alloc (*this);
 

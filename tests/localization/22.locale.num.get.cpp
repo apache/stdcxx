@@ -380,7 +380,7 @@ int do_test (int         lineno,          // line number
     // that the extracted value can be in
     success =
            err == err_expect
-        && (rw_equal (x, val) || val <= x && x <= val_max);
+        && (rw_equal (x, val) || (val <= x && x <= val_max));
 
     nfailures += !success;
 
@@ -416,8 +416,8 @@ int do_test (int         lineno,          // line number
         const int n = std::sscanf (str, scanspec, &y);
 
         success =
-            !(   err & std::ios::failbit    && n > 0
-              || !(err & std::ios::failbit) && 1 != n
+            !(   (err & std::ios::failbit    && n > 0)
+              || (!(err & std::ios::failbit) && 1 != n)
               || !rw_equal (x, y));
 
         nfailures += !success;

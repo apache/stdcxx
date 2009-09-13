@@ -676,7 +676,7 @@ rw_get_wchars (wchar_t *wbuf, size_t bufsize, int nbytes /* = 0 */)
         const wchar_t wc = wchar_t (i);
         const int len = wctomb (tmp, wc);
 
-        if (nbytes == 0 && 0 < len || nbytes != 0 && nbytes == len) {
+        if ((nbytes == 0 && 0 < len) || (nbytes != 0 && nbytes == len)) {
             // if the requested length is 0 (i.e., the caller doesn't
             // care) and the character is valid, store it
             // if the requested length is non-zero (including -1),
@@ -706,7 +706,7 @@ rw_get_wchars (wchar_t *wbuf, size_t bufsize, int nbytes /* = 0 */)
 
         const int len = wctomb (tmp, wc);
 
-        if (nbytes == 0 && 0 < len || nbytes != 0 && nbytes == len) {
+        if ((nbytes == 0 && 0 < len) || (nbytes != 0 && nbytes == len)) {
             wbuf [nchars++] = wc;
             if (nchars == bufsize)
                 return nchars;

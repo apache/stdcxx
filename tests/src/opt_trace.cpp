@@ -115,7 +115,7 @@ _rw_setopt_trace_mask (int argc, char *argv[])
         // skip any trailing whitespace
         for ( ; ' ' == *end; ++end);
 
-        if (end == parg || '-' != *end && ',' != *end && '\0' != *end) {
+        if (end == parg || ('-' != *end && ',' != *end && '\0' != *end)) {
             fprintf (stderr,
                      "invalid character '%c' at position %d: \"%s\"\n",
                      *end, int (parg - argbeg), argv [0]);

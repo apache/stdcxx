@@ -48,7 +48,7 @@ test (int line, int exp, const char *pat, const char *str)
     const int native = exp;
 #endif   // FNMATCH
 
-    if (result != native || -1 < exp && result != exp) {
+    if (result != native || (-1 < exp && result != exp)) {
 
         ++nerrors;
 
