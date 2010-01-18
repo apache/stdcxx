@@ -29,6 +29,8 @@
 
 #define _RWSTD_LIB_SRC
 
+#include <config.h>
+
 #include <errno.h>    // for ENOMEM, errno
 #include <string.h>   // for memchr(), size_t
 
@@ -55,6 +57,11 @@
 
 #  include <sys/mman.h>   // for mincore()
 #  include <sys/types.h>
+#  if defined (_RWSTD_OS_SUNOS) && defined (_RWSTD_NO_POSIX_MADVISE)
+     // can't get a proper prototype for madvise with C++ defines in Solaris 10
+     extern "C" int madvise(caddr_t, size_t, int);
+#  endif
+
 
 #  ifndef _SC_PAGE_SIZE
      // fall back on the alternative macro if it exists,
@@ -93,7 +100,6 @@
   (  _RWSTD_REINTERPRET_CAST (const char*, addr1)  \
    - _RWSTD_REINTERPRET_CAST (const char*, addr2))
 
-
 _RWSTD_NAMESPACE (__rw) {
 
 _RWSTD_EXPORT _RWSTD_SSIZE_T
@@ -129,11 +135,21 @@ __rw_memattr (const void *addr, size_t nbytes, int attr)
 
 #  ifdef _RWSTD_OS_SUNOS
 
-        char dummy = '\0';
+#    ifndef _RWSTD_NO_POSIX_MADVISE
 
-        // on Solaris use mincore() instead of madvise() since
-        // the latter is unreliable
-        if (-1 == mincore (next, 1, &dummy)) {
+	const int advice = POSIX_MADV_WILLNEED;
+
+        // on Solaris use posix_madvise if available
+        if (-1 == posix_madvise (next, 1, advice)) {
+
+#    else
+
+	const int advice = MADV_WILLNEED;
+
+        // on Solaris use madvise if available
+        if (-1 == madvise (next, 1, advice)) {
+
+#    endif  // _RWSTD_NO_POSIX_MADVISE
 
             const int err = errno;
             errno = errno_save;
