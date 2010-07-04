@@ -40,18 +40,25 @@
 
 #include <rw/_defs.h>
 
-#ifdef _WIN32
-#  include <io.h>
-#  ifndef STDIN_FILENO
-#    define STDIN_FILENO  0
-#    define STDOUT_FILENO 1
-#    define STDERR_FILENO 2
-#  endif   // STDIN_FILENO
-#else
-   // unistd.h must preceed other headers to avoid a namespace issue
-   // ("time_t" vrs "std::time_t") on SunPro 5.3/SunOS 5.8
-#  include <unistd.h>
-#endif 
+#ifndef _RWSTD_NO_NATIVE_IO
+#  ifdef _WIN32
+#    include <io.h>
+#    ifndef STDIN_FILENO
+#      define STDIN_FILENO  0
+#      define STDOUT_FILENO 1
+#      define STDERR_FILENO 2
+#    endif   // STDIN_FILENO
+#  else   // if !defined _WIN32
+     // <unistd.h> must preceed other headers to avoid a namespace
+     // issue ("time_t" vrs "std::time_t") on SunPro 5.3/SunOS 5.8
+#    include <unistd.h>
+#  endif   // _WIN32
+#else   // if defined _RWSTD_NO_NATIVE_IO
+   // <stdio.h> must be included before <fstream> so that the FILE*
+   // basic_filebuf ctor extensions get declared (they depend on the
+   // stdin macro being declared)
+#  include <stdio.h>
+#endif   // _RWSTD_NO_NATIVE_IO
 
 #include <iosfwd>
 #include <istream>
@@ -100,6 +107,10 @@
 // for destruction prior to any other objects with static storage duration
 // and is undetectable
 
+// buftype: basic_filebuf specialization
+// stream:  [w]istream or [w]ostream
+// name:    name of the standard iostream object
+// ignN:    ignored
 #define _RWSTD_DEFINE_STREAM_OBJECT(buftype, stream, name, ign1, ign2)        \
   _RWSTD_NAMESPACE (__rw) {                                                   \
     /* static character buffer to prevent dynamic allocation */               \
@@ -127,6 +138,10 @@
 // lie is transparent to the compiler/linker as neither ever sees both
 // declarations
 
+// buftype: basic_filebuf specialization
+// stream:  [w]istream or [w]ostream
+// name:    name of the standard iostream object
+// ignN:    ignored
 #define _RWSTD_DEFINE_STREAM_OBJECT(buftype, stream, name, ign1, ign2)      \
   _RWSTD_NAMESPACE (__rw) {                                                 \
     /* static character buffer to prevent dynamic allocation */             \
@@ -155,7 +170,7 @@
   /* backed by a static characater array                           */         \
   new (&_RW::__rw_indestructible_##name) stream                               \
           (new (&_RW::__rw_##name##_buffer) buftype                           \
-              (f, _RW::__rw_##name##_databuf,                                 \
+           (FILEREF (f), _RW::__rw_##name##_databuf,                          \
      sizeof _RW::__rw_##name##_databuf / sizeof *_RW::__rw_##name##_databuf)) \
 
 
@@ -163,12 +178,17 @@
 
 // iostream objects and buffers are constructed at definition time
 
+// buftype: basic_filebuf specialization
+// stream:  [w]istream or [w]ostream
+// name:    name of the standard iostream object
+// buf:     tied indestructible buffer
+// f:       associated file descriptor or FILE pointer
 #define _RWSTD_DEFINE_STREAM_OBJECT(buftype, stream, name, buf, f)           \
   _RWSTD_NAMESPACE (__rw) {                                                  \
     /* static character buffer to prevent dynamic allocation */              \
     static _STD::stream::char_type __rw_##name##_databuf [512];              \
     /* static `basic_filebuf<>' object, destroyed at program termination */  \
-    static _STD::buftype __rw_##name##_buffer (f,                            \
+    static _STD::buftype __rw_##name##_buffer (FILEREF (f),                  \
         __rw_##name##_databuf,                                               \
         sizeof __rw_##name##_databuf / sizeof *__rw_##name##_databuf);       \
   }   /* namespace __rw */                                                   \
@@ -182,19 +202,30 @@
 
 #endif   // _RWSTD_NO_STATIC_IOSTREAM_INIT
 
+#ifndef _RWSTD_NO_NATIVE_IO
+   // use STDIN_FILENO etc. to initialize basic_filebuf
+#  define FILEREF(name)   name ##_FILENO
+#else
+   // use stdin etc. to initialize basic_filebuf
+#  define STDIN_FILEPTR   stdin
+#  define STDOUT_FILEPTR  stdout
+#  define STDERR_FILEPTR  stderr
+#  define FILEREF(name)   name ##_FILEPTR
+#endif   // _RWSTD_NO_NATIVE_IO
+
 
 // define iostream objects and their corresponding "buffers"
-_RWSTD_DEFINE_STREAM_OBJECT (filebuf, istream, cin,  cin,  STDIN_FILENO);
-_RWSTD_DEFINE_STREAM_OBJECT (filebuf, ostream, cout, cout, STDOUT_FILENO);
-_RWSTD_DEFINE_STREAM_OBJECT (filebuf, ostream, cerr, cerr, STDERR_FILENO);
-_RWSTD_DEFINE_STREAM_OBJECT (filebuf, ostream, clog, cerr, STDERR_FILENO);
+_RWSTD_DEFINE_STREAM_OBJECT (filebuf, istream, cin,  cin,  STDIN);
+_RWSTD_DEFINE_STREAM_OBJECT (filebuf, ostream, cout, cout, STDOUT);
+_RWSTD_DEFINE_STREAM_OBJECT (filebuf, ostream, cerr, cerr, STDERR);
+_RWSTD_DEFINE_STREAM_OBJECT (filebuf, ostream, clog, cerr, STDERR);
 
 #ifndef _RWSTD_NO_WCHAR_T
 
-_RWSTD_DEFINE_STREAM_OBJECT (wfilebuf, wistream, wcin,  wcin,  STDIN_FILENO);
-_RWSTD_DEFINE_STREAM_OBJECT (wfilebuf, wostream, wcout, wcout, STDOUT_FILENO);
-_RWSTD_DEFINE_STREAM_OBJECT (wfilebuf, wostream, wcerr, wcerr, STDERR_FILENO);
-_RWSTD_DEFINE_STREAM_OBJECT (wfilebuf, wostream, wclog, wcerr, STDERR_FILENO);
+_RWSTD_DEFINE_STREAM_OBJECT (wfilebuf, wistream, wcin,  wcin,  STDIN);
+_RWSTD_DEFINE_STREAM_OBJECT (wfilebuf, wostream, wcout, wcout, STDOUT);
+_RWSTD_DEFINE_STREAM_OBJECT (wfilebuf, wostream, wcerr, wcerr, STDERR);
+_RWSTD_DEFINE_STREAM_OBJECT (wfilebuf, wostream, wclog, wcerr, STDERR);
 
 #endif   // _RWSTD_NO_WCHAR_T
 
@@ -238,10 +269,10 @@ ios_base::Init::Init ()
     // since references need not be initialzied statically, cin, et al
     // may not be initialized at this time (i.e., &cin == 0 may hold,
     // and does with MSVC 6.0), obtain and use pointers to the objects
-    istream *pcin =  _INIT (filebuf, istream, cin,  cin,  STDIN_FILENO);
-    ostream *pcout = _INIT (filebuf, ostream, cout, cout, STDOUT_FILENO);
-    ostream *pcerr = _INIT (filebuf, ostream, cerr, cerr, STDERR_FILENO);
-    ostream *pclog = _INIT (filebuf, ostream, clog, cerr, STDERR_FILENO);
+    istream* const pcin  = _INIT (filebuf, istream, cin,  cin,  STDIN);
+    ostream* const pcout = _INIT (filebuf, ostream, cout, cout, STDOUT);
+    ostream* const pcerr = _INIT (filebuf, ostream, cerr, cerr, STDERR);
+    ostream* const pclog = _INIT (filebuf, ostream, clog, cerr, STDERR);
 
     // stream objects expected to be arranged in this order
     // must be initialized dynamically (as opposed to statically)
@@ -277,10 +308,10 @@ ios_base::Init::Init ()
 
 #ifndef _RWSTD_NO_WCHAR_T
 
-    wistream *pwcin =  _INIT (wfilebuf, wistream, wcin,  wcin,  STDIN_FILENO);
-    wostream *pwcout = _INIT (wfilebuf, wostream, wcout, wcout, STDOUT_FILENO);
-    wostream *pwcerr = _INIT (wfilebuf, wostream, wcerr, wcerr, STDERR_FILENO);
-    wostream *pwclog = _INIT (wfilebuf, wostream, wclog, wcerr, STDERR_FILENO);
+    wistream* const pwcin  = _INIT (wfilebuf, wistream, wcin,  wcin,  STDIN);
+    wostream* const pwcout = _INIT (wfilebuf, wostream, wcout, wcout, STDOUT);
+    wostream* const pwcerr = _INIT (wfilebuf, wostream, wcerr, wcerr, STDERR);
+    wostream* const pwclog = _INIT (wfilebuf, wostream, wclog, wcerr, STDERR);
 
     // stream objects expected to be arranged in this order
     // must be initialized dynamically (as opposed to statically)

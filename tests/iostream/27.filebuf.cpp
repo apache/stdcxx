@@ -192,6 +192,8 @@ test_ctors (const char* tname)
 
 #  endif   // stdin
 
+#  ifndef _RWSTD_NO_NATIVE_IO
+
     //////////////////////////////////////////////////////////////////
     rw_info (0, __FILE__, __LINE__,
              "std::basic_filebuf<%s>::basic_filebuf(int) "
@@ -230,6 +232,8 @@ test_ctors (const char* tname)
                fdcount [1] - fdcount [0]);
 
     delete pfb;
+
+#  endif   // _RWSTD_NO_NATIVE_IO
 
 #endif   // _RWSTD_NO_EXT_FILEBUF
 
@@ -1280,7 +1284,7 @@ template <class charT>
 static void
 test_attach (const char* tname)
 {
-#ifndef _RWSTD_NO_EXT_FILEBUF
+#if !defined _RWSTD_NO_EXT_FILEBUF && !defined _RWSTD_NO_NATIVE_IO
 
     //////////////////////////////////////////////////////////////////
     // exercise attach(int) and fd()
@@ -1686,11 +1690,11 @@ test_attach (const char* tname)
         REMOVE_FILE (tmpfname);
     }
 
-#else   // if defined (_RWSTD_NO_EXT_FILEBUF)
+#else   // if !_RWSTD_NO_EXT_FILEBUF && !_RWSTD_NO_NATIVE_IO
 
     _RWSTD_UNUSED (tname);
 
-#endif   // _RWSTD_NO_EXT_FILEBUF
+#endif   // _RWSTD_NO_EXT_FILEBUF || _RWSTD_NO_NATIVE_IO
 
 }
 

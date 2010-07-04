@@ -46,7 +46,7 @@
 #endif   // !_WIN32 || __CYGWIN__
 
 
-int write_bytes (const char *fname, std::size_t nbytes)
+static int write_bytes (const char *fname, std::size_t nbytes)
 {
     std::filebuf fb;
 
@@ -54,19 +54,22 @@ int write_bytes (const char *fname, std::size_t nbytes)
         || 0 == fb.open (fname, std::ios::out))
         return -1;
 
-#if defined (_RWSTD_VER) && !defined (_RWSTD_NO_EXT_FILEBUF)
+#if     defined _RWSTD_VER              \
+    && !defined _RWSTD_NO_EXT_FILEBUF   \
+    && !defined _RWSTD_NO_NATIVE_IO
+
 
     // use the filebuf::fd() extension to get the filebuf's
     // associated file descriptor
     const int fd = fb.fd ();
 
-#else   // if defined (RWSTD_NO_EXT_FILEBUF)
+#else   // if !RWSTD_NO_EXT_FILEBUF && !_RWSTD_NO_NATIVE_IO
 
     // assume fd is the next available file descriptor after
     // STDIN_FILENO, _FILENO_STDOUT, and STDERR_FILENO
     const int fd = 3;
 
-#endif   // RWSTD_NO_EXT_FILEBUF
+#endif   // _RWSTD_NO_EXT_FILEBUF || _RWSTD_NO_NATIVE_IO
 
     if (0 < fd) {
         // fill up the filebuf's character buffer without
