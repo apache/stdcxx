@@ -549,7 +549,7 @@ template &lt;class InputIterator&gt;
 </TABLE></UL>
 </UL>
 
-<A NAME="sec7"><H3>Destructors</H3></A>
+<A NAME="sec7"><H3>Destructor</H3></A>
 
 <A NAME="idx327"></A><PRE><B>~basic_string</B> ();</PRE>
 <UL>
@@ -1117,26 +1117,28 @@ void
 
 <A NAME="sec12"><H3>Nonmember Operators</H3></A>
 
-<A NAME="idx373"></A><PRE>template&lt;class charT, class traits, class Allocator&gt;
-basic_string 
-<B>operator+</B>(const basic_string&amp; lhs, const basic_string&amp; rhs);</PRE>
+<A NAME="idx373"></A><PRE>
+template&lt;class charT, class traits, class Allocator&gt;
+basic_string&lt;charT, traits allocator&gt;
+<B>operator+</B>(const basic_string&lt;charT, traits allocator&gt; &amp;lhs, const basic_string&lt;charT, traits allocator&gt; &amp;rhs);</PRE>
 <UL>
 <P>Returns a string of length <SAMP>lhs.size() + rhs.size()</SAMP>, where the first <SAMP>lhs.size()</SAMP> elements are copies of the elements of <SAMP>lhs</SAMP>, and the next <SAMP>rhs.size()</SAMP> elements are copies of the elements of <SAMP>rhs</SAMP>.</P>
 </UL>
 
 
-<A NAME="idx374"></A><PRE>template&lt;class charT, class traits, class Allocator&gt;
-basic_string
-<B>operator+</B>(const charT* lhs, const basic_string&amp; rhs);
+<A NAME="idx374"></A><PRE>
 template&lt;class charT, class traits, class Allocator&gt;
-basic_string
-<B>operator+</B>(charT lhs, const basic_string&amp; rhs);
+basic_string&lt;charT, traits allocator&gt;
+<B>operator+</B>(const charT* lhs, const basic_string&lt;charT, traits allocator&gt; &amp;rhs);
 template&lt;class charT, class traits, class Allocator&gt;
-basic_string 
-<B>operator+</B>(const basic_string&amp; lhs, const charT* rhs);
+basic_string&lt;charT, traits allocator&gt;
+<B>operator+</B>(charT lhs, const basic_string&lt;charT, traits allocator&gt; &amp; rhs);
 template&lt;class charT, class traits, class Allocator&gt;
-basic_string 
-<B>operator+</B>(const basic_string&amp; lhs, charT rhs);</PRE>
+basic_string&lt;charT, traits allocator&gt;
+<B>operator+</B>(const basic_string&lt;charT, traits allocator&gt; &amp;lhs, const charT* rhs);
+template&lt;class charT, class traits, class Allocator&gt;
+basic_string&lt;charT, traits allocator&gt;
+<B>operator+</B>(const basic_string&lt;charT, traits allocator&gt; &amp;lhs, charT rhs);</PRE>
 <UL>
 <P>Returns a string that represents the concatenation of two string-like entities. These functions return, respectively:</P>
 
@@ -1148,21 +1150,23 @@ lhs + basic_string(1, rhs)
 </UL>
 
 
-<A NAME="idx375"></A><PRE>template&lt;class charT, class traits, class Allocator&gt;
+<A NAME="idx375"></A><PRE>
+template&lt;class charT, class traits, class Allocator&gt;
 bool 
-<B>operator==</B>(const basic_string&amp; lhs, 
-           const basic_string&amp; rhs);</PRE>
+<B>operator==</B>(const basic_string&lt;charT, traits allocator&gt; &amp;lhs, 
+            const basic_string&lt;charT, traits allocator&gt; &amp;rhs);</PRE>
 <UL>
 <P>Returns a boolean value of <SAMP>true</SAMP> if <SAMP>lhs</SAMP> and <SAMP>rhs</SAMP> are equal, and <SAMP>false</SAMP> if they are not. Equality is defined by the <SAMP>compare()</SAMP> member function.</P>
 </UL>
 
 
-<A NAME="idx376"></A><PRE>template&lt;class charT, class traits, class Allocator&gt;
+<A NAME="idx376"></A><PRE>
+template&lt;class charT, class traits, class Allocator&gt;
 bool   
-<B>operator==</B>(const charT* lhs, const basic_string&amp; rhs);
+<B>operator==</B>(const charT* lhs, const basic_string&lt;charT, traits allocator&gt; &amp;rhs);
 template&lt;class charT, class traits, class Allocator&gt;
 bool 
-<B>operator==</B>(const basic_string&amp; lhs, const charT* rhs);</PRE>
+<B>operator==</B>(const basic_string&lt;charT, traits allocator&gt; &amp;lhs, const charT* rhs);</PRE>
 <UL>
 <P>Returns a boolean value indicating whether <SAMP>lhs</SAMP> and <SAMP>rhs</SAMP> are equal. Equality is defined by the <SAMP>compare()</SAMP> member function. These functions return, respectively:</P>
 
@@ -1172,21 +1176,23 @@ lhs == basic_string(rhs)
 </UL>
 
 
-<A NAME="idx377"></A><PRE>template&lt;class charT, class traits, class Allocator&gt;
+<A NAME="idx377"></A><PRE>
+template&lt;class charT, class traits, class Allocator&gt;
 bool 
-<B>operator!=</B>(const basic_string&amp; lhs,
-           const basic_string&amp; rhs);</PRE>
+<B>operator!=</B>(const basic_string&lt;charT, traits allocator&gt; &amp;lhs,
+            const basic_string&lt;charT, traits allocator&gt; &amp;rhs);</PRE>
 <UL>
 <P>Returns a boolean value representing the inequality of <SAMP>lhs</SAMP> and <SAMP>rhs</SAMP>. Inequality is defined by the <SAMP>compare()</SAMP> member function.</P>
 </UL>
 
 
-<A NAME="idx378"></A><PRE>template&lt;class charT, class traits, class Allocator&gt;
-bool 
-<B>operator!=</B>(const charT* lhs, const basic_string&amp; rhs);
+<A NAME="idx378"></A><PRE>
 template&lt;class charT, class traits, class Allocator&gt;
 bool 
-<B>operator!=</B>(const basic_string&amp; lhs, const charT* rhs);</PRE>
+<B>operator!=</B>(const charT* lhs, const basic_string&lt;charT, traits allocator&gt; &amp;rhs);
+template&lt;class charT, class traits, class Allocator&gt;
+bool 
+<B>operator!=</B>(const basic_string&lt;charT, traits allocator&gt; &amp;lhs, const charT* rhs);</PRE>
 <UL>
 <P>Returns a boolean value representing the inequality of <SAMP>lhs</SAMP> and <SAMP>rhs</SAMP>. Inequality is defined by the <SAMP>compare()</SAMP> member function. The functions return, respectively:</P>
 
@@ -1196,20 +1202,22 @@ lhs != basic_string(rhs)
 </UL>
 
 
-<A NAME="idx379"></A><PRE>template&lt;class charT, class traits, class Allocator&gt;
+<A NAME="idx379"></A><PRE>
+template&lt;class charT, class traits, class Allocator&gt;
 bool 
-<B>operator&lt;</B>(const basic_string&amp; lhs, const basic_string&amp; rhs);</PRE>
+<B>operator&lt;</B>(const basic_string&lt;charT, traits allocator&gt; &amp;lhs, const basic_string&lt;charT, traits allocator&gt; &amp;rhs);</PRE>
 <UL>
 <P>Returns a boolean value representing the lexicographical less-than relationship of <SAMP>lhs</SAMP> and <SAMP>rhs</SAMP>. Less-than is defined by the <SAMP>compare() </SAMP>member.</P>
 </UL>
 
 
-<A NAME="idx380"></A><PRE>template&lt;class charT, class traits, class Allocator&gt;
-bool 
-<B>operator&lt;</B>(const charT* lhs, const basic_string&amp; rhs);
+<A NAME="idx380"></A><PRE>
 template&lt;class charT, class traits, class Allocator&gt;
 bool 
-<B>operator&lt;</B>(const basic_string&amp; lhs, const charT* rhs);</PRE>
+<B>operator&lt;</B>(const charT* lhs, const basic_string&lt;charT, traits allocator&gt; &amp;rhs);
+template&lt;class charT, class traits, class Allocator&gt;
+bool 
+<B>operator&lt;</B>(const basic_string&lt;charT, traits allocator&gt; &amp;lhs, const charT* rhs);</PRE>
 <UL>
 <P>Returns a boolean value representing the lexicographical less-than relationship of <SAMP>lhs</SAMP> and <SAMP>rhs</SAMP>. Less-than is defined by the<SAMP> compare() </SAMP>member function. These functions return, respectively:</P>
 
@@ -1219,20 +1227,22 @@ lhs &lt; basic_string(rhs)
 </UL>
 
 
-<A NAME="idx381"></A><PRE>template&lt;class charT, class traits, class Allocator&gt;
+<A NAME="idx381"></A><PRE>
+template&lt;class charT, class traits, class Allocator&gt;
 bool 
-<B>operator&gt;</B>(const basic_string&amp; lhs, const basic_string&amp; rhs);</PRE>
+<B>operator&gt;</B>(const basic_string&lt;charT, traits allocator&gt; &amp;lhs, const basic_string&lt;charT, traits allocator&gt; &amp;rhs);</PRE>
 <UL>
 <P>Returns a boolean value representing the lexicographical greater-than relationship of <SAMP>lhs</SAMP> and <SAMP>rhs</SAMP>. Greater-than is defined by the<SAMP> compare()</SAMP> member function.</P>
 </UL>
 
 
-<A NAME="idx382"></A><PRE>template&lt;class charT, class traits, class Allocator&gt;
-bool 
-<B>operator&gt;</B>(const charT* lhs, const basic_string&amp; rhs);
+<A NAME="idx382"></A><PRE>
 template&lt;class charT, class traits, class Allocator&gt;
 bool 
-<B>operator&gt;</B>(const basic_string&amp; lhs, const charT* rhs);</PRE>
+<B>operator&gt;</B>(const charT* lhs, const basic_string&lt;charT, traits allocator&gt; &amp;rhs);
+template&lt;class charT, class traits, class Allocator&gt;
+bool 
+<B>operator&gt;</B>(const basic_string&lt;charT, traits allocator&gt; &amp;lhs, const charT* rhs);</PRE>
 <UL>
 <P>Returns a boolean value representing the lexicographical greater-than relationship of <SAMP>lhs</SAMP> and <SAMP>rhs</SAMP>. Greater-than is defined by the <SAMP>compare()</SAMP> member. The functions return, respectively:</P>
 
@@ -1242,21 +1252,23 @@ lhs &gt; basic_string(rhs)
 </UL>
 
 
-<A NAME="idx383"></A><PRE>template&lt;class charT, class traits, class Allocator&gt;
+<A NAME="idx383"></A><PRE>
+template&lt;class charT, class traits, class Allocator&gt;
 bool 
-<B>operator&lt;=</B>(const basic_string&amp; lhs,
-             const basic_string&amp; rhs);</PRE>
+<B>operator&lt;=</B>(const basic_string&lt;charT, traits allocator&gt; &amp;lhs,
+             const basic_string&lt;charT, traits allocator&gt; &amp;rhs);</PRE>
 <UL>
 <P>Returns a boolean value representing the lexicographical less-than-or-equal relationship of <SAMP>lhs</SAMP> and <SAMP>rhs</SAMP>. Less-than-or-equal is defined by the <SAMP>compare()</SAMP> member function.</P>
 </UL>
 
 
-<A NAME="idx384"></A><PRE>template&lt;class charT, class traits, class Allocator&gt;
+<A NAME="idx384"></A><PRE>
+template&lt;class charT, class traits, class Allocator&gt;
 bool   
-<B>operator&lt;=</B>(const charT* lhs, const basic_string&amp; rhs);
+<B>operator&lt;=</B>(const charT* lhs, const basic_string&lt;charT, traits allocator&gt; &amp;rhs);
 template&lt;class charT, class traits, class Allocator&gt;
 bool 
-<B>operator&lt;=</B>(const basic_string&amp; lhs, const charT* rhs);</PRE>
+<B>operator&lt;=</B>(const basic_string&lt;charT, traits allocator&gt; &amp;lhs, const charT* rhs);</PRE>
 <UL>
 <P>Returns a boolean value representing the lexicographical less-than-or-equal relationship of <SAMP>lhs</SAMP> and <SAMP>rhs</SAMP>. Less-than-or-equal is defined by the <SAMP>compare()</SAMP> member function. These functions return, respectively:</P>
 
@@ -1266,21 +1278,23 @@ lhs &lt;= basic_string(rhs)
 </UL>
 
 
-<A NAME="idx385"></A><PRE>template&lt;class charT, class traits, class Allocator&gt;
+<A NAME="idx385"></A><PRE>
+template&lt;class charT, class traits, class Allocator&gt;
 bool 
-<B>operator&gt;=</B>(const basic_string&amp; lhs, 
-           const basic_string&amp; rhs);</PRE>
+<B>operator&gt;=</B>(const basic_string&lt;charT, traits allocator&gt; &amp;lhs, 
+           const basic_string&lt;charT, traits allocator&gt; &amp;rhs);</PRE>
 <UL>
 <P>Returns a boolean value representing the lexicographical greater-than-or-equal relationship of <SAMP>lhs</SAMP> and <SAMP>rhs</SAMP>. Greater-than-or-equal is defined by the <SAMP>compare()</SAMP> member function.</P>
 </UL>
 
 
-<A NAME="idx386"></A><PRE>template&lt;class charT, class traits, class Allocator&gt;
-bool 
-<B>operator&gt;=</B>(const charT* lhs, const basic_string&amp; rhs);
+<A NAME="idx386"></A><PRE>
 template&lt;class charT, class traits, class Allocator&gt;
 bool 
-<B>operator&gt;=</B>(const basic_string&amp; lhs, const charT* rhs);</PRE>
+<B>operator&gt;=</B>(const charT* lhs, const basic_string&lt;charT, traits allocator&gt; &amp;rhs);
+template&lt;class charT, class traits, class Allocator&gt;
+bool 
+<B>operator&gt;=</B>(const basic_string&lt;charT, traits allocator&gt; &amp;lhs, const charT* rhs);</PRE>
 <UL>
 <P>Returns a boolean value representing the lexicographical greater-than-or-equal relationship of <SAMP>lhs</SAMP> and <SAMP>rhs</SAMP>. Greater-than-or-equal is defined by the <SAMP>compare()</SAMP> member. The functions return, respectively:</P>
 
@@ -1290,38 +1304,41 @@ lhs &gt;= basic_string(rhs)
 </UL>
 
 
-<A NAME="idx387"></A><PRE>template &lt;class charT, class traits, class Allocator&gt;
+<A NAME="idx387"></A><PRE>
+template &lt;class charT, class traits, class Allocator&gt;
 void <B>swap</B>(basic_string&lt;charT,traits,Allocator&gt;&amp; a, 
-          basic_string&lt;charT,traits,Allocator&gt;&amp; b); </PRE>
+           basic_string&lt;charT,traits,Allocator&gt;&amp; b); </PRE>
 <UL>
 <P>Swaps the contents of <SAMP>a</SAMP> and <SAMP>b</SAMP> by calling <SAMP>a</SAMP>'s swap function on <SAMP>b</SAMP>.</P>
 </UL>
 
 
-<A NAME="idx388"></A><PRE>template&lt;class charT, class traits, class Allocator&gt;
+<A NAME="idx388"></A><PRE>
+template&lt;class charT, class traits, class Allocator&gt;
 basic_istream&lt;charT, traits&gt;&amp;
 <B>operator&gt;&gt;</B>(basic_istream&lt;charT, traits&gt;&amp; is, 
-           basic_string&amp; str);</PRE>
+            basic_string&lt;charT, traits allocator&gt; &amp;str);</PRE>
 <UL>
 <P>All elements read from the stream <SAMP>is</SAMP>, except the delimiter, are placed in <SAMP>str</SAMP>. After the read, the function returns <SAMP>is</SAMP>.</P>
 </UL>
 
 
-<A NAME="idx389"></A><PRE>template&lt;class charT, class traits, class Allocator&gt;
+<A NAME="idx389"></A><PRE>
+template&lt;class charT, class traits, class Allocator&gt;
 basic_ostream&lt;charT, traits&gt;&amp;
 <B>operator&lt;&lt;</B>(basic_ostream &lt;charT, traits&gt;&amp; os, 
-           const&lt;charT, traits allocator&gt; str);</PRE>
+            const basic_string&lt;charT, traits allocator&gt; &amp;str);</PRE>
 <UL>
 <P>Writes all elements of <SAMP>str</SAMP> to <SAMP>os</SAMP> in order from first to last. After the write, the function returns <SAMP>os</SAMP>.</P>
 </UL>
 
 <A NAME="sec13"><H3>Nonmember Functions</H3></A>
 
-<A NAME="idx390"></A><PRE>template &lt;class Stream, class charT, class traits,
-          class Allocator&gt;
+<A NAME="idx390"></A><PRE>
+template &lt;class Stream, class charT, class traits, class Allocator&gt;
 basic_istream&lt;charT, traits&gt;
 <B>getline</B>(basic_istream&lt;charT, traits&gt; is, 
-        &lt;charT, traits allocator&gt; str, charT delim);</PRE>
+         basic_string&lt;charT, traits allocator&gt; &amp;str, charT delim);</PRE>
 <UL>
 <P>An unformatted input function that extracts characters from <SAMP>is</SAMP> into <SAMP>str</SAMP> until <SAMP>npos - 1</SAMP> characters are read, the end of the input sequence is reached, or the character read is <SAMP>delim</SAMP>.  </P>
 </UL>
