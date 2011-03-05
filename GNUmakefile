@@ -121,6 +121,10 @@
 #
 #   DEPENDDIR - the subdirectory where dependency files will reside
 #
+#   LIBM      - the linker option to link with the math library
+#               (typically -lm, may be unnecessary or not even exist
+#               on some systems) 
+#
 #   LIBNAME   - full name of the library being built
 #
 #   LIBVER    - library version number in the <major>.<minor>.<micro> format
@@ -600,6 +604,11 @@ endef   # make-builddir
 
 
 # create $(MAKEFILE_IN)
+#
+# NOTE: adding a new variable here that is used by the configuration
+#       machinery requires replacing $BUILDDIR/$(MAKEFILE_IN) as well
+#       as $BUILDDIR/include/vars.sh generated from this file and
+#       used by the libc_decl.sh script
 $(MAKEFILE_IN): $(configpath)
 	@(   $(make-builddir);                                              \
              echo "generating $(MAKEFILE_IN) from $(configpath)"            \
@@ -625,6 +634,7 @@ $(MAKEFILE_IN): $(configpath)
           && echo "LDFLAGS    = $(LDFLAGS)"              >> $(MAKEFILE_IN)  \
           && echo "LDLIBS     = $(LDLIBS)"               >> $(MAKEFILE_IN)  \
           && echo "LDSOFLAGS  = $(LDSOFLAGS)"            >> $(MAKEFILE_IN)  \
+          && echo "LIBM       = $(LIBM)"                 >> $(MAKEFILE_IN)  \
           && echo "MAPFLAGS   = $(MAPFLAGS)"             >> $(MAKEFILE_IN)  \
           && echo "RPATH      = $(RPATH)"                >> $(MAKEFILE_IN)  \
           && [ "$(MAPFILE)" = "" ]                                          \
@@ -652,7 +662,7 @@ $(MAKEFILE_IN): $(configpath)
           && echo "CADVISEFLAGS = $(CADVISEFLAGS)"       >> $(MAKEFILE_IN)  \
           && echo "WITH_PURIFY = $(WITH_PURIFY)"         >> $(MAKEFILE_IN)  \
           && echo "PURIFYFLAGS = $(PURIFYFLAGS)"         >> $(MAKEFILE_IN)  \
-          && echo "CXX_REPOSITORY = $(CXX_REPOSITORY)"	 >> $(MAKEFILE_IN));
+          && echo "CXX_REPOSITORY = $(CXX_REPOSITORY)"   >> $(MAKEFILE_IN));
 
 # creates the build directory tree and generates makefile.in
 builddir: $(MAKEFILE_IN)

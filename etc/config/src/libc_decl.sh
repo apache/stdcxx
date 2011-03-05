@@ -68,7 +68,8 @@ fi
 
 [ -r vars.sh ] && . ./vars.sh
 
-# include headers.inc file
+# include headers.inc file with names of functions to test for
+# and the headers they are declared in
 . $TOPDIR/etc/config/src/headers.inc
 
 if [ ! -z "$4" ]; then
@@ -291,9 +292,18 @@ for h in $hdrs ; do
     fi
 
     if [ "$hdr_base" = "math" ] ; then
-        lib=m
+        # the name of the library as it should appear in script
+        # output/log and (after capitalization) in config macros
+        # (such as _RWSTD_NO_ACOS_IN_LIBM)
+        libname=libm
+        # the option to pass to the linker to link with the library
+        # (when necessary)
+        libopt=$LIBM
     else
-        lib=c
+        # libc is invariably implicitly specified by the compiler
+        # driver, there's no reason to specify it explicitly
+        libname=libc
+        unset libopt
     fi
 
     # float and long double versions of <math.h> functions
@@ -349,7 +359,7 @@ for h in $hdrs ; do
              "-DHDRNAME=\"<$hdrname>\" -DFUNNAME=$funname " \
              "-DFUN=$f -DTAKE_ADDR=$take_addr "             \
              "$tmpsrc -o $tmpobj"                           \
-             "&& $LD $tmpobj $LDFLAGS -l$lib" >>$logfile 2>&1
+             "&& $LD $tmpobj $LDFLAGS $libopt" >>$logfile 2>&1
 
         # spell out all arguments just like above, being careful
         # about quoting HDRNAME
@@ -357,7 +367,7 @@ for h in $hdrs ; do
                 -DHDRNAME="<$hdrname>" -DFUNNAME=$funname  \
                 -DFUN=$f -DTAKE_ADDR=$take_addr            \
              $tmpsrc -o $tmpobj >>$logfile 2>&1            \
-        && $LD $tmpobj $LDFLAGS -l$lib >>$logfile 2>&1
+        && $LD $tmpobj $LDFLAGS $libopt >>$logfile 2>&1
 
         if [ $? -eq 0 ] ; then
             echo "ok"
@@ -369,18 +379,18 @@ for h in $hdrs ; do
             echo "no ($sym)"
             echo "#define $sym" >>$output
 
-            sym="`echo ${sym}_IN_LIB$lib | $capitalize`"
+            sym="`echo ${sym}_IN_$libname | $capitalize`"
             
-            printf "%-50.50s " "checking for extern \"C\" $funname() in lib$lib"
+            printf "%-50.50s " "checking for extern \"C\" $funname() in $libname"
 
             # define cxxflags for convenience
             cxxflags="$CXXFLAGS $WARNFLAGS -DFUNNAME=$funname"
 
             echo "$CXX -c $cxxflags $tmpsrc -o $tmpobj \
-                 && $LD $tmpobj $LDFLAGS -l$lib" >>$logfile
+                 && $LD $tmpobj $LDFLAGS $libopt" >>$logfile
 
             $CXX -c $cxxflags $tmpsrc -o $tmpobj >>$logfile 2>&1 \
-            && $LD $tmpobj $LDFLAGS -l$lib >>$logfile 2>&1
+            && $LD $tmpobj $LDFLAGS $libopt >>$logfile 2>&1
 
             if [ $? -eq 0 ] ; then
                 echo "ok"

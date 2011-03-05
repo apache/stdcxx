@@ -151,7 +151,7 @@ ifeq ($(findstring $(LIBNAME),$(TARGET)),)
   # set the GNU make variable LDLIBS to the names of the libraries
   # to link with (make puts $(LDLIBS) last on the link line in
   # implicit rules)
-  LDLIBS  := -l$(LIBBASE) $(LDLIBS) -lm
+  LDLIBS  := -l$(LIBBASE) $(LDLIBS) $(LIBM)
 endif  # ifneq ($(LIBNAME),$findstring ($(LIBNAME),$(TARGET)))
 
 
