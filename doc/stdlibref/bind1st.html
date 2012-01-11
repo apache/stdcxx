@@ -64,14 +64,13 @@ namespace std {
 <A NAME="sec4"><H3>Description</H3></A>
 <P>Because so many functions included in the C++ Standard Library take other functions as arguments, the library includes classes that let you build new function objects out of old ones. Both <SAMP><A HREF="bind1st.html">bind1st()</A></SAMP> and <SAMP><A HREF="bind1st.html">bind2nd()</A></SAMP> are functions that take as arguments a binary function object <SAMP>f</SAMP> and a value <SAMP>x,</SAMP> and return, respectively, classes <B><I><A HREF="bind1st.html">binder1st</A></I></B> and <B><I><A HREF="bind1st.html">binder2nd</A></I></B>. The underlying function object must be a subclass of <B><I><A HREF="binary-function.html">binary_function</A></I></B>.</P>
 <P>Class <B><I><A HREF="bind1st.html">binder1st</A></I></B> binds the value to the first argument of the binary function, and <B><I><A HREF="bind1st.html">binder2nd</A></I></B> does the same thing for the second argument of the function. The resulting classes can be used in place of a unary predicate in other function calls.</P>
-<P>For example, you could use the <SAMP><A HREF="count.html">count_if()</A></SAMP> algorithm to count all elements in a <B><I><A HREF="vector.html">vector</A></I></B> that are less than or equal to 7, using the following:</P>
+<P>For example, you could use the <SAMP><A HREF="count.html">count_if()</A></SAMP> algorithm to count all elements in a <B><I><A HREF="vector.html">vector</A></I></B> that are less than 7, using the following:</P>
 
 <UL><PRE>
-vector&lt;int&gt; v;<br>int littleNums;<br>
-count_if(v.begin, v.end, bind1st(greater&lt;int&gt;(),7),
-         littleNums)
+std::vector&lt;int&gt; v (/* ... */);
+int littleNums = std::count_if (v.begin (), v.end (), std::bind1st (std::less&lt;int&gt;(), 7));
 </PRE></UL>
-<P>This function adds one to <SAMP>littleNums</SAMP> each time the element is greater than&nbsp;7.</P>
+<P>The function counts the number of elements in the range [<SAMP>v.begin()</SAMP>, <SAMP>v.end()</SAMP>) as denoted by the first two iterator arguments that satisfy the predicate specified by the third argument and returns the result.</P>
 <A NAME="sec5"><H3>Interface</H3></A>
 
 <UL><PRE>namespace std {
