@@ -435,7 +435,7 @@ namespace std {
   basic_ostream&lt;charT, traits&gt;&amp; operator&lt;&lt;(ostream&amp;, 
                                            const basic_string&amp;);
 
-  template &lt;class Stream, class charT,class traits, class Allocator&gt;
+  template &lt;class Stream, class charT, class traits, class Allocator&gt;
   basic_istream&lt;charT, traits&gt;&amp; 
   getline(Stream&amp;, basic_string&amp;, charT);
 }
@@ -1337,7 +1337,7 @@ basic_ostream&lt;charT, traits&gt;&amp;
 <A NAME="idx390"></A><PRE>
 template &lt;class Stream, class charT, class traits, class Allocator&gt;
 basic_istream&lt;charT, traits&gt;&amp;
-<B>getline</B>(basic_istream&lt;charT, traits&gt; is, 
+<B>getline</B>(basic_istream&lt;charT, traits&gt;&amp; is, 
          basic_string&lt;charT, traits allocator&gt; &amp;str, charT delim);</PRE>
 <UL>
 <P>An unformatted input function that extracts characters from <SAMP>is</SAMP> into <SAMP>str</SAMP> until <SAMP>npos - 1</SAMP> characters are read, the end of the input sequence is reached, or the character read is <SAMP>delim</SAMP>.  </P>
