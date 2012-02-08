@@ -776,7 +776,7 @@ inline valarray<bool>
 operator&& (const valarray<_TypeT> &__lhs, const _TypeT &__rhs)
 {
     return _RW::__rw_binary_function (__lhs,
-                                      bind2nd (equal_to<_TypeT>(), __rhs));
+                                      bind2nd (logical_and<_TypeT>(), __rhs));
 }
 
 template<class _TypeT>
