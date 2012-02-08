@@ -34,10 +34,10 @@ int main ()
 {
     const int a[] = { 0, 1, 0, 3, 0, -5, 0, -7, 0, -11 };
 
-    const std::valarray<int>  v0 (a, sizeof a);
+    const std::valarray<int>  v0 (a, sizeof a / sizeof *a);
     const std::valarray<bool> v1 = std::operator&& (v0, 1);
 
-    for (std::size_t i = 0; i < sizeof a; ++i)
+    for (std::size_t i = 0; i < sizeof a / sizeof *a; ++i)
         assert ((a [i] && 1) == v1 [i]);
     
     return 0;
