@@ -1237,7 +1237,7 @@ public:
 #ifdef _RWSTD_BOUNDS_CHECKING
 
         _RWSTD_REQUIRES (__n < size (),
-                         (_RWSTD_ERROR_LENGTH_ERROR,
+                         (_RWSTD_ERROR_OUT_OF_RANGE,
                           _RWSTD_FUNC ("vector<bool>::[](size_type)"),
                           __n, size ()));
 
@@ -1250,7 +1250,7 @@ public:
 #ifdef _RWSTD_BOUNDS_CHECKING
 
         _RWSTD_REQUIRES (__n < size (),
-                         (_RWSTD_ERROR_LENGTH_ERROR,
+                         (_RWSTD_ERROR_OUT_OF_RANGE,
                           _RWSTD_FUNC ("vector<bool>::[](size_type)"),
                           __n, size ()));
 
@@ -1261,7 +1261,7 @@ public:
     reference       at (size_type __n)               
     { 
         _RWSTD_REQUIRES (__n < size (),
-                         (_RWSTD_ERROR_LENGTH_ERROR,
+                         (_RWSTD_ERROR_OUT_OF_RANGE,
                           _RWSTD_FUNC ("vector<bool>::at(size_type)"),
                           __n, size ()));
       return *(begin() + __n); 
@@ -1269,7 +1269,7 @@ public:
     const_reference at (size_type __n)   const 
     {
         _RWSTD_REQUIRES (__n < size (),
-                         (_RWSTD_ERROR_LENGTH_ERROR,
+                         (_RWSTD_ERROR_OUT_OF_RANGE,
                           _RWSTD_FUNC ("vector<bool>::at(size_type) const"),
                           __n, size ()));
 
