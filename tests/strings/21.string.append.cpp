@@ -264,6 +264,9 @@ cptr_size_test_cases [] = {
     TEST ("",              "x@4096", 4096,  "x@4096",        0),
     TEST ("x@4096",        "",          0,  "x@4096",        0),
 
+    TEST ("abc",           "d",        -1, "abc",            2),
+    TEST ("a@16",          "d",        -1, "a@16",           2),
+
     TEST ("last",          "test",      4,  "lasttest",      0)
 };
 
@@ -429,6 +432,9 @@ size_val_test_cases [] = {
     TEST ("x@3694",        1, 'x', "x@3695",           0),
     TEST ("x@540",         1, 'x', "x@541",            0),
 
+    TEST ("ab",           -1, 'c', "ab",               2),
+    TEST ("a@16",         -1, 'c', "a@16",             2),
+
     TEST ("last",          4, 't', "lasttttt",         0)
 };
 
@@ -586,9 +592,10 @@ void test_append (charT*, Traits*, Allocator*, const RangeBase<
     // the state of the object after an exception)
     const StringState str_state (rw_get_string_state (str));
 
-    const charT* const ptr_arg = tcase.arg ? arg.c_str () : str.c_str ();
-    const String&      str_arg = tcase.arg ? arg : str;
-    const charT        val_arg = (make_char (char (tcase.val), (charT*)0));
+    const charT* const ptr_arg  = tcase.arg ? arg.c_str () : str.c_str ();
+    const String&      str_arg  = tcase.arg ? arg : str;
+    const charT        val_arg  = (make_char (char (tcase.val), (charT*)0));
+    const SizeT        size_arg = 0 <= tcase.size ? tcase.size : str.max_size () + 1;
 
     std::size_t total_length_calls = 0;
     std::size_t n_length_calls = 0;
@@ -657,7 +664,7 @@ void test_append (charT*, Traits*, Allocator*, const RangeBase<
                 break;
 
             case Append (cptr_size):
-                ret_ptr = &str.append (ptr_arg, tcase.size);
+                ret_ptr = &str.append (ptr_arg, size_arg);
                 break;
 
             case Append (cstr_size_size):
@@ -666,7 +673,7 @@ void test_append (charT*, Traits*, Allocator*, const RangeBase<
                 break;
 
             case Append (size_val):
-                ret_ptr = &str.append (tcase.size, val_arg);
+                ret_ptr = &str.append (size_arg, val_arg);
                 break;
 
             case Append (range):
