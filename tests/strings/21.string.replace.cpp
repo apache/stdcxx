@@ -385,6 +385,9 @@ iter_iter_cptr_size_test_cases [] = {
     TEST ("x@4096",    0, 4095, 0 /* self */, 4095, "x@4096",          0),
     TEST ("x@4096",    0, 4095, 0 /* self */,    1, "xx",              0),
 
+    TEST ("ab",        0,    1, "abc",          -1, "ab",              3),
+    TEST ("a@16",      0,    1, "abc",          -1, "a@16",            3),
+
     TEST ("last",      4,    0, "test",          4, "lasttest",        0)
 };
 
@@ -712,6 +715,9 @@ iter_iter_size_val_test_cases [] = {
 
     TEST ("a",          0,   1, 4095, 'x', "x@4095",       0),
 
+    TEST ("ab",        0, 1,-1, 'c',  "ab",                3),
+    TEST ("a@16",      0, 1,-1, 'c',  "a@16",              3),
+
     TEST ("last",      4, 0, 4, 't', "lasttttt",           0)
 };
 
@@ -882,7 +888,7 @@ void test_replace (charT*, Traits*, Allocator*, const RangeBase<
             expected = exceptions [1];      // out_of_range
         else if (2 == tcase.bthrow && !use_iters)
             expected = exceptions [1];      // out_of_range
-        else if (3 == tcase.bthrow && !use_iters)
+        else if (3 == tcase.bthrow)
             expected = exceptions [2];      // length_error
         else if (0 == tcase.bthrow) {
             // by default excercise the exception safety of the function

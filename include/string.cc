@@ -405,6 +405,12 @@ replace (size_type __pos, size_type __len, size_type __count, value_type __val)
 
     const size_type __xlen = _C_min (__size0 - __pos, __len);
 
+    _RWSTD_REQUIRES (__count <= max_size (),
+                     (_RWSTD_ERROR_LENGTH_ERROR,
+                      _RWSTD_FUNC ("basic_string::replace (size_type, "
+                                   "size_type, size_type, value_type)"), 
+                     __count, max_size ()));
+
     _RWSTD_REQUIRES (__size0 - __xlen <= max_size () - __count,
                      (_RWSTD_ERROR_LENGTH_ERROR,
                       _RWSTD_FUNC ("basic_string::replace (size_type, "
