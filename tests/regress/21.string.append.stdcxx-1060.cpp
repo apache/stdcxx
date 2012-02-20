@@ -39,18 +39,20 @@ struct my_traits : std::char_traits<ch>
     using std::char_traits<ch>::pos_type;
 
     using std::char_traits<ch>::eof;
-    using std::char_traits<ch>::assign;
     using std::char_traits<ch>::eq;
     using std::char_traits<ch>::lt;
     using std::char_traits<ch>::compare;
     using std::char_traits<ch>::find;
     using std::char_traits<ch>::length;
     using std::char_traits<ch>::move;
-    using std::char_traits<ch>::copy;
     using std::char_traits<ch>::eq_int_type;
     using std::char_traits<ch>::not_eof;
     using std::char_traits<ch>::to_char_type;
     using std::char_traits<ch>::to_int_type;
+
+    static void assign (ch& c1, const ch& c2) {
+        std::char_traits<ch>::assign (c1, c2);
+    }
 
     static ch* copy (ch* dst, const ch* src, std::size_t n);
     static ch* assign (ch* s, std::size_t n, ch c);
