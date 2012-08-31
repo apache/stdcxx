@@ -335,8 +335,14 @@ _C_copyfmt (const ios_base &rhs, void *dst, const void *src, size_t size)
             // delete existing arrays, if any; _C_usr will only be deleted
             // if `rhs' contains no user data (see below)
             operator delete (_C_usr->_C_iarray);
+            _C_usr->_C_iarray = 0;
+            _C_usr->_C_isize = 0;
             operator delete (_C_usr->_C_parray);
+            _C_usr->_C_parray = 0;
+            _C_usr->_C_psize = 0;
             operator delete (_C_usr->_C_cbarray);
+            _C_usr->_C_cbarray = 0;
+            _C_usr->_C_cbsize = 0;
         }
         else if (ia || pa || cba || ptie) {
             // allocation may throw
