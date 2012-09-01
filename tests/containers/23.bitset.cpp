@@ -278,8 +278,8 @@ test_synopsis (std::bitset<0>*)
     MEMFUN (Bitset&, flip, ());
     MEMFUN (Bitset&, flip, (std::size_t));
 
-    MEMFUN (Bitset::reference, operator[], (std::size_t));
     MEMFUN (bool, operator[], (std::size_t) const);
+    MEMFUN (Bitset::reference, operator[], (std::size_t));
 
     MEMFUN (unsigned long, to_ulong, () const);
 
