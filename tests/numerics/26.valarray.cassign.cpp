@@ -805,9 +805,9 @@ run_test (int, char**)
     TEST (int);
     TEST (double);
 
-#if 0x04020100 >= _RWSTD_VER
+#if 0x05000000 > _RWSTD_VER
 
-    // test fails to compile with stdcxx 4.2.1 and prior due to
+    // test fails to compile with stdcxx 4.x and prior due to
     // STDCXX-512: http://issues.apache.org/jira/browse/STDCXX-512
     rw_warn (0, 0, __LINE__,
              "test of UserClass disabled in stdcxx 4.2.0 and prior "

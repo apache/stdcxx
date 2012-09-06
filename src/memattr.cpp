@@ -29,8 +29,6 @@
 
 #define _RWSTD_LIB_SRC
 
-#include <config.h>
-
 #include <errno.h>    // for ENOMEM, errno
 #include <string.h>   // for memchr(), size_t
 
