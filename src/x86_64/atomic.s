@@ -26,8 +26,17 @@
  * 
  **************************************************************************/
 
+#if defined (__MACH__)
+// Mac OS X Mach-O assembler: no .type, power of two alignment
+#  define ALIGN_DIR           .align 4
+#  define TYPE_DIR(ignore,ignore2) 
+#else
+#  define ALIGN_DIR           .align 16
+#  define TYPE_DIR(sym,attr)  .type sym, attr
+#endif // __MACH__
+
     .text
-    .align 16
+    ALIGN_DIR
 
 /***************************************************************************
  * extern "C" int8_t __rw_atomic_xchg8 (int8_t *x, int8_t y);
@@ -37,7 +46,7 @@
  **************************************************************************/
 
     .globl __rw_atomic_xchg8
-    .type __rw_atomic_xchg8, @function
+    TYPE_DIR (__rw_atomic_xchg8, STT_FUNC)
 __rw_atomic_xchg8:                 /* ; int8_t (int8_t *x, int8_t y)  */
     movq          %rdi, %rcx       /* ; %rcx = x                      */
     movb          %sil,  %al       /* ; %al = y                       */
@@ -53,7 +62,7 @@ __rw_atomic_xchg8:                 /* ; int8_t (int8_t *x, int8_t y)  */
  **************************************************************************/
 
     .globl __rw_atomic_xchg16
-    .type __rw_atomic_xchg16, @function
+    TYPE_DIR (__rw_atomic_xchg16, STT_FUNC)
 __rw_atomic_xchg16:                /* ; int16_t (int16_t *x, int16_t y) */
     movq          %rdi, %rcx       /* ; %rcx = x                        */
     movw          %si,  %ax        /* ; %ax = y                         */
@@ -69,7 +78,7 @@ __rw_atomic_xchg16:                /* ; int16_t (int16_t *x, int16_t y) */
  **************************************************************************/
 
     .globl __rw_atomic_xchg32
-    .type __rw_atomic_xchg32, @function
+    TYPE_DIR (__rw_atomic_xchg32, STT_FUNC)
 __rw_atomic_xchg32:                /* ; int32_t (int32_t *x, int32_t y) */
     movq          %rdi,  %rcx      /* ; %rcx = x                        */
     movl          %esi,  %eax      /* ; %eax = y                        */
@@ -85,7 +94,7 @@ __rw_atomic_xchg32:                /* ; int32_t (int32_t *x, int32_t y) */
  **************************************************************************/
 
     .globl __rw_atomic_xchg64
-    .type __rw_atomic_xchg64, @function
+    TYPE_DIR (__rw_atomic_xchg64, STT_FUNC)
 __rw_atomic_xchg64:                /* ; int64_t (int64_t *x, int64_t y) */
     movq          %rdi,  %rcx      /* ; %rcx = x                        */
     movq          %rsi,  %rax      /* ; %rax = y                        */
@@ -101,7 +110,7 @@ __rw_atomic_xchg64:                /* ; int64_t (int64_t *x, int64_t y) */
  **************************************************************************/
 
     .globl __rw_atomic_add8
-    .type __rw_atomic_add8, @function
+    TYPE_DIR (__rw_atomic_add8, STT_FUNC)
 __rw_atomic_add8:                  /* ; int8_t (int8_t *dst, int8_t inc) */
     movq           %rdi, %rcx      /* ; %rcx = dst                       */
     movl           %esi, %eax      /* ; %eax = inc                       */
@@ -123,7 +132,7 @@ __rw_atomic_add8:                  /* ; int8_t (int8_t *dst, int8_t inc) */
  **************************************************************************/
 
      .globl __rw_atomic_add16
-    .type __rw_atomic_add16, @function
+    TYPE_DIR (__rw_atomic_add16, STT_FUNC)
 __rw_atomic_add16:                 /* ; int16_t (int16_t *dst, int16_t inc) */
     movq           %rdi, %rcx      /* ; %rcx = dst                          */
     movw           %si,  %ax       /* ; %ax = inc                           */
@@ -146,7 +155,7 @@ __rw_atomic_add16:                 /* ; int16_t (int16_t *dst, int16_t inc) */
  **************************************************************************/
 
     .globl __rw_atomic_add32
-    .type __rw_atomic_add32, @function
+    TYPE_DIR (__rw_atomic_add32, STT_FUNC)
 __rw_atomic_add32:                 /* ; int32_t (int32_t *dst, int32_t inc) */
     movq           %rdi, %rcx      /* ; %rcx = dst                          */
     movl           %esi, %edx      /* ; %edx = inc                          */
@@ -169,7 +178,7 @@ __rw_atomic_add32:                 /* ; int32_t (int32_t *dst, int32_t inc) */
  **************************************************************************/
 
     .globl __rw_atomic_add64
-    .type __rw_atomic_add64, @function
+    TYPE_DIR (__rw_atomic_add64, STT_FUNC)
 __rw_atomic_add64:                 /* ; int64_t (int64_t *dst, int64_t inc) */
     movq           %rdi, %rcx      /* ; %rcx = dst                          */
     movq           %rsi, %rdx      /* ; %edx = inc                          */
