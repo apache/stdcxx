@@ -173,7 +173,7 @@ template <class T>
 T compute_limits (T *pval, const char *pfx, const char *sfx, const char *type)
 {
     T min = T (-one);
-    T max = T (one);
+    T volatile max = T (one);
 
     int is_signed = T (min - one) < T (zero);
 
