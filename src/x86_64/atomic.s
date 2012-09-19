@@ -46,7 +46,7 @@
  **************************************************************************/
 
     .globl __rw_atomic_xchg8
-    TYPE_DIR (__rw_atomic_xchg8, STT_FUNC)
+    TYPE_DIR (__rw_atomic_xchg8, @function)
 __rw_atomic_xchg8:                 /* ; int8_t (int8_t *x, int8_t y)  */
     movq          %rdi, %rcx       /* ; %rcx = x                      */
     movb          %sil,  %al       /* ; %al = y                       */
@@ -62,7 +62,7 @@ __rw_atomic_xchg8:                 /* ; int8_t (int8_t *x, int8_t y)  */
  **************************************************************************/
 
     .globl __rw_atomic_xchg16
-    TYPE_DIR (__rw_atomic_xchg16, STT_FUNC)
+    TYPE_DIR (__rw_atomic_xchg16, @function)
 __rw_atomic_xchg16:                /* ; int16_t (int16_t *x, int16_t y) */
     movq          %rdi, %rcx       /* ; %rcx = x                        */
     movw          %si,  %ax        /* ; %ax = y                         */
@@ -78,7 +78,7 @@ __rw_atomic_xchg16:                /* ; int16_t (int16_t *x, int16_t y) */
  **************************************************************************/
 
     .globl __rw_atomic_xchg32
-    TYPE_DIR (__rw_atomic_xchg32, STT_FUNC)
+    TYPE_DIR (__rw_atomic_xchg32, @function)
 __rw_atomic_xchg32:                /* ; int32_t (int32_t *x, int32_t y) */
     movq          %rdi,  %rcx      /* ; %rcx = x                        */
     movl          %esi,  %eax      /* ; %eax = y                        */
@@ -94,7 +94,7 @@ __rw_atomic_xchg32:                /* ; int32_t (int32_t *x, int32_t y) */
  **************************************************************************/
 
     .globl __rw_atomic_xchg64
-    TYPE_DIR (__rw_atomic_xchg64, STT_FUNC)
+    TYPE_DIR (__rw_atomic_xchg64, @function)
 __rw_atomic_xchg64:                /* ; int64_t (int64_t *x, int64_t y) */
     movq          %rdi,  %rcx      /* ; %rcx = x                        */
     movq          %rsi,  %rax      /* ; %rax = y                        */
@@ -110,7 +110,7 @@ __rw_atomic_xchg64:                /* ; int64_t (int64_t *x, int64_t y) */
  **************************************************************************/
 
     .globl __rw_atomic_add8
-    TYPE_DIR (__rw_atomic_add8, STT_FUNC)
+    TYPE_DIR (__rw_atomic_add8, @function)
 __rw_atomic_add8:                  /* ; int8_t (int8_t *dst, int8_t inc) */
     movq           %rdi, %rcx      /* ; %rcx = dst                       */
     movl           %esi, %eax      /* ; %eax = inc                       */
@@ -132,7 +132,7 @@ __rw_atomic_add8:                  /* ; int8_t (int8_t *dst, int8_t inc) */
  **************************************************************************/
 
      .globl __rw_atomic_add16
-    TYPE_DIR (__rw_atomic_add16, STT_FUNC)
+    TYPE_DIR (__rw_atomic_add16, @function)
 __rw_atomic_add16:                 /* ; int16_t (int16_t *dst, int16_t inc) */
     movq           %rdi, %rcx      /* ; %rcx = dst                          */
     movw           %si,  %ax       /* ; %ax = inc                           */
@@ -155,7 +155,7 @@ __rw_atomic_add16:                 /* ; int16_t (int16_t *dst, int16_t inc) */
  **************************************************************************/
 
     .globl __rw_atomic_add32
-    TYPE_DIR (__rw_atomic_add32, STT_FUNC)
+    TYPE_DIR (__rw_atomic_add32, @function)
 __rw_atomic_add32:                 /* ; int32_t (int32_t *dst, int32_t inc) */
     movq           %rdi, %rcx      /* ; %rcx = dst                          */
     movl           %esi, %edx      /* ; %edx = inc                          */
@@ -178,7 +178,7 @@ __rw_atomic_add32:                 /* ; int32_t (int32_t *dst, int32_t inc) */
  **************************************************************************/
 
     .globl __rw_atomic_add64
-    TYPE_DIR (__rw_atomic_add64, STT_FUNC)
+    TYPE_DIR (__rw_atomic_add64, @function)
 __rw_atomic_add64:                 /* ; int64_t (int64_t *dst, int64_t inc) */
     movq           %rdi, %rcx      /* ; %rcx = dst                          */
     movq           %rsi, %rdx      /* ; %edx = inc                          */
