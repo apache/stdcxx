@@ -138,7 +138,7 @@ T compute_min (T min)
 {
     // prevents overzealous gcc optimizer from invoking
     // undefined behavior on signed integer over/underflow
-    for (T tmp; ; --min) {
+    for (T volatile tmp; ; --min) {
         tmp = T (min - one);
         if (tmp >= min)
             break;
