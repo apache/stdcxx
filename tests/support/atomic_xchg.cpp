@@ -297,7 +297,7 @@ void run_test (intT, thr_args_base::tag_t tag)
     // compute the expected result, "skipping" zeros by incrementing
     // expect twice when it overflows and wraps around to 0 (zero is
     // used as the lock variable in thread_routine() above)
-    intT volatile expect = intT (1);
+    volatile intT expect = intT (1);
 
     const unsigned long nincr = (Args::nthreads_ * Args::nincr_) / 2U;
         
