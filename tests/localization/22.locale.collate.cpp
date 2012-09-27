@@ -502,6 +502,20 @@ make_test_locale ()
 
 /**************************************************************************/
 
+template <class charT>
+void
+test_hash (const char*, const std::collate<charT>&, 
+           const char*, const char*);
+
+template <class charT>
+void
+test_string (const char*, const std::collate<charT>&, 
+             const char*, const char*, int);
+
+template <class charT>
+void
+test_weight_val (const char*, const std::collate<charT>&,
+                 charT, int, int, int, int, bool);
 
 template <class charT>
 /*static*/ void
