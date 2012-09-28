@@ -33,11 +33,6 @@
 
 #include <rw/_defs.h>
 
-#if defined (__linux__) && !defined (_XOPEN_SOURCE)
-   // need S_IFDIR on Linux
-#  define _XOPEN_SOURCE 
-#endif   // __linux__ && !_XOPEN_SOURCE
-
 #include <locale.h>   // for setlocale()
 #include <stdlib.h>   // for getenv()
 #include <string.h>   // for memcpy(), strcmp()

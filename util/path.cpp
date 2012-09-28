@@ -27,16 +27,6 @@
  **************************************************************************/
 
 #ifndef _WIN32
-#  ifdef __linux__
-     // for symlink()
-#    ifndef _XOPEN_SOURCE
-#      define _XOPEN_SOURCE
-#    endif
-#    ifndef _XOPEN_SOURCE_EXTENDED
-#      define _XOPEN_SOURCE_EXTENDED
-#    endif
-#  endif   // __linux__
-
 #  include <unistd.h>      // for getcwd()
 #  include <sys/stat.h>    // for struct stat, stat()
 #else
