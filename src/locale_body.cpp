@@ -1024,14 +1024,12 @@ _C_manage (__rw_locale *plocale, const char *locname)
 
                     // the classic C locale is statically allocated
                     // and not destroyed during the lifetime of the process
-                    static union {
-                        void* _C_align;
-                        char  _C_buf [sizeof (__rw_locale)];
-                    } classic_body;
+                    static __rw_aligned_buffer<__rw_locale> classic_body;
 
                     // construct a locale body in place
                     // with the initial reference count of 1
-                    classic = new (&classic_body) __rw_locale (locname);
+                    classic = new (classic_body._C_store ()) 
+                        __rw_locale (locname);
 
                     _RWSTD_ASSERT (1 == classic->_C_ref);
                 }

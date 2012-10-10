@@ -33,16 +33,13 @@
 
 #include <loc/_locale.h>   // for locale
 #include "once.h"          // for __rw_once()
+#include "podarray.h"
 
 
 _RWSTD_NAMESPACE (__rw) { 
 
 // static buffer for the classic "C" locale object
-static union {
-    void* _C_align;
-    char  _C_buf [sizeof (_STD::locale)];
-} __rw_classic;
-
+static __rw_aligned_buffer<_STD::locale> __rw_classic;
 
 // init-once flag for the classic "C" locale object
 static __rw_once_t
@@ -67,7 +64,7 @@ __rw_init_classic ()
 #endif   // _RWSTDDEBUG
 
     // construct the classic "C" locale in the provided buffer
-    new (&__rw_classic) _STD::locale ("C");
+    new (__rw_classic._C_store ()) _STD::locale ("C");
 }
 
 }   // extern "C"
@@ -78,15 +75,14 @@ __rw_init_classic ()
 _RWSTD_NAMESPACE (std) {
 
 
-/* static */ const locale& locale::
-classic ()
+/* static */ const locale& 
+locale::classic ()
 {
     // initialize classic locale in the static buffer exactly once
     _RW::__rw_once (&_RW::__rw_classic_once_init, _RW::__rw_init_classic);
 
     // cast the address of the buffer to a locale pointer
-    const locale* const pclassic =
-        _RWSTD_REINTERPRET_CAST (locale*, &_RW::__rw_classic);
+    const locale* const pclassic = _RW::__rw_classic._C_data ();
 
     _RWSTD_ASSERT (0 != pclassic->_C_body);
 

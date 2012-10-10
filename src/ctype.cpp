@@ -626,12 +626,9 @@ _RWSTD_EXPORT __rw_facet* __rw_ct_ctype (size_t ref, const char *name)
         pfacet = new _STD::ctype_byname<char>(name, ref);
     }
     else {
-        static union {
-            void *align_;
-            char  data_ [sizeof (_STD::ctype<char>)];
-        } f;
-        static __rw_facet* const pf =
-            new (&f) _STD::ctype<char>(__rw_classic_tab, false, ref);
+        static __rw_aligned_buffer<_STD::ctype<char> > f;
+        static __rw_facet* const pf = new (f._C_store ()) 
+            _STD::ctype<char> (__rw_classic_tab, false, ref);
         pfacet = pf;
     }
 

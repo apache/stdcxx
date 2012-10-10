@@ -37,6 +37,7 @@
 #include <rw/_defs.h>
 
 #include "access.h"
+#include "podarray.h"
 
 
 // helper macro _RWSTD_DEFINE_FACET_FACTORY() defines a facet factory
@@ -63,12 +64,9 @@
                }                                                           \
                else {                                                      \
                    /* construct an ordinary facet in static memory */      \
-                   static union {                                          \
-                       void *align_;                                       \
-                       char  data_ [sizeof (__rw_ ## fid ## _facet)];      \
-                   } f;                                                    \
+                   static __rw_aligned_buffer<__rw_ ## fid ## _facet> f;   \
                    static __rw_facet* const pf =                           \
-                       new (&f) __rw_ ## fid ## _facet (ref);              \
+                       new (f._C_store ()) __rw_ ## fid ## _facet (ref);   \
                    pfacet = pf;                                            \
                }                                                           \
                /* set the pointer to the facet id */                       \
@@ -90,12 +88,9 @@
            __rw_ct_ ## fid (_RWSTD_SIZE_T ref, const char*)                \
            {                                                               \
                /* construct an ordinary facet in static memory */          \
-               static union {                                              \
-                   void *align_;                                           \
-                   char  data_ [sizeof (__rw_ ## fid ## _facet)];          \
-               } f;                                                        \
+               static __rw_aligned_buffer<__rw_ ## fid ## _facet> f;       \
                static __rw_facet* const pf =                               \
-                   new (&f) __rw_ ## fid ## _facet (ref);                  \
+                   new (f._C_store ()) __rw_ ## fid ## _facet (ref);       \
                /* set the pointer to the facet id */                       \
                __rw_access::_C_get_pid (*pf) =                             \
                    &(__rw_access::_C_get_id (__rw_ ## fid ## _facet::id)); \

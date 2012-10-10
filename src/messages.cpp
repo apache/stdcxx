@@ -38,6 +38,7 @@
 
 #include <rw/_mutex.h>
 
+#include "podarray.h"
 
 #if !defined (_RWSTD_NO_NL_TYPES_H) && !defined (_RWSTD_NO_CATOPEN_CATGETS)
 #  include <nl_types.h>
@@ -64,10 +65,7 @@ _RWSTD_NAMESPACE (__rw) {
 struct __rw_open_cat_data
 {
     nl_catd catd;
-    union {
-        void *_C_align;
-        char _C_data [sizeof (_STD::locale)];
-    } loc;
+    __rw_aligned_buffer<_STD::locale> loc;
 };
 
 struct __rw_open_cat_page
@@ -159,7 +157,8 @@ __rw_manage_cat_data (int &cat,  __rw_open_cat_data *pcat_data)
                 cat = int (n_catalogs);
 
                 catalogs [cat]->catd = pcat_data->catd;
-                memcpy (&catalogs [cat]->loc, &pcat_data->loc,
+                memcpy (catalogs [cat]->loc._C_store (), 
+                        pcat_data->loc._C_store (),
                         sizeof (_STD::locale));
 
                 if (size_t (cat) > largest_cat)
@@ -175,7 +174,8 @@ __rw_manage_cat_data (int &cat,  __rw_open_cat_data *pcat_data)
                 }
 
                 catalogs [cat]->catd = pcat_data->catd;
-                memcpy (&catalogs [cat]->loc, &pcat_data->loc,
+                memcpy (catalogs [cat]->loc._C_store (),
+                        pcat_data->loc._C_store (),
                         sizeof (_STD::locale));
 
                 if (size_t (cat) > largest_cat)
@@ -258,8 +258,9 @@ int __rw_cat_open (const _STD::string &cat_name, const _STD::locale &loc)
         return -1;
 
     __rw_open_cat_data cat_data;
+
     cat_data.catd = catd;
-    new (&cat_data.loc) _STD::locale (loc);
+    new (cat_data.loc._C_store ()) _STD::locale (loc);
 
     int cat = -1;
     __rw_manage_cat_data (cat, &cat_data);
@@ -307,7 +308,7 @@ const _STD::locale& __rw_get_locale (int cat)
 
     _RWSTD_ASSERT (0 != pcat_data);
 
-    return *(_RWSTD_REINTERPRET_CAST (_STD::locale*, &(pcat_data->loc)));
+    return *pcat_data->loc._C_data ();
 }
 
 
@@ -329,8 +330,7 @@ void __rw_cat_close (int cat)
 
             catclose (pcat_data->catd);
 
-            _STD::locale* const ploc =
-                _RWSTD_REINTERPRET_CAST (_STD::locale*, &pcat_data->loc);
+            _STD::locale* const ploc = pcat_data->loc._C_data ();
 
             ploc->~locale ();
 
