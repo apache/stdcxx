@@ -43,6 +43,9 @@
 #include <rw_locale.h>
 #include <rw_process.h>
 
+#define IGNORE    0
+#define STR_SIZE  16
+#define LOCNAME_SIZE  256
 
 #if _RWSTD_PATH_SEP == '/'
 #  define SLASH                 "/"
@@ -59,10 +62,6 @@
 #define LOCALE_ROOT             "RWSTD_LOCALE_ROOT"
 const char* locale_root;
 
-#define LC_COLLATE_SRC          "LC_COLLATE.src"
-#define LC_COLLATE_CM           "LC_COLLATE.cm"
-#define TEST_LOCALE_NAME        "test.locale"
-
 /**************************************************************************/
 
 // These overloads are necessary in our template
@@ -77,18 +76,18 @@ int c_strcoll (const char* s1, const char* s2)
 
 std::size_t c_xfrm (char* to, const char* from, std::size_t size)
 {
-    char safety_buf [8];
+    char safety_buf [8] = { 0 };
+
     if (0 == to && 0 == size) {
         // prevent buggy implementations (such as MSVC 8) from trying
         // to write to the destination buffer even though it's 0 and
         // its size is zero (see stdcxx-69)
         to = safety_buf;
-        *to = '\0';
     }
 
     std::size_t n = std::strxfrm (to, from, size);
 
-    if (to)
+    if (to && to != safety_buf)
         n = std::strlen (to);
 
     return n;
@@ -127,45 +126,42 @@ int c_strcoll (const wchar_t* s1, const wchar_t* s2)
 
 std::size_t c_xfrm (wchar_t* to, const wchar_t* from, std::size_t size)
 {
+    std::size_t n = 0;
+
 #if !defined (_MSC_VER) || _MSC_VER > 1200
 
-    wchar_t safety_buf [8];
+    wchar_t safety_buf [8] = { 0 };
+
     if (0 == to && 0 == size) {
         // prevent buggy implementations (such as MSVC 8) from trying
         // to write to the destination buffer even though it's 0 and
         // its size is zero (see stdcxx-69)
         to = safety_buf;
-        *to = L'\0';
     }
 
-    std::size_t n = std::wcsxfrm (to, from, size);
+    n = std::wcsxfrm (to, from, size);
 
-    if (to)
+    if (to && to != safety_buf)
         n = std::wcslen (to);
 
 #else   // MSVC 6 and prior
 
     // working around an MSVC 6.0 libc bug (PR #26437)
-
     if (to) {
-        std::size_t n = std::wcsxfrm (to, from, size);
-
+        std::wcsxfrm (to, from, size);
         n = std::wcslen (to);
-
-        return n;
     }
+    else {
+        wchar_t tmp [1024];
 
-    wchar_t tmp [1024];
-
-    std::size_t n = std::wcslen (from);
-
-    _RWSTD_ASSERT (n < sizeof tmp / sizeof *tmp);
-
-    std::wcscpy (tmp, from);
-
-    std::wcsxfrm (tmp, from, sizeof tmp / sizeof *tmp);
-
-    n = std::wcslen (tmp);
+        n = std::wcslen (from);
+        _RWSTD_ASSERT (n < sizeof tmp / sizeof *tmp);
+        
+        std::wcscpy (tmp, from);
+        std::wcsxfrm (tmp, from, sizeof tmp / sizeof *tmp);
+        
+        n = std::wcslen (tmp);
+    }
 
 #endif   // MSVC 6
 
@@ -226,7 +222,7 @@ const char* narrow (char* dst, const wchar_t* src)
 /**************************************************************************/
 
 template <class charT>
-/*static*/ void
+void
 gen_str (charT* str, std::size_t size)
 {
     // generate a random string with the given size
@@ -234,7 +230,7 @@ gen_str (charT* str, std::size_t size)
         return;
 
     // use ASCII characters in the printable range
-    for (std::size_t i = 0; i != size - 1; ++i)
+    for (std::size_t i = 0; i < size - 1; ++i)
         str [i] = ' ' + std::rand () % ('~' - ' ');
 
     str [size - 1] = charT ();
@@ -243,7 +239,117 @@ gen_str (charT* str, std::size_t size)
 /**************************************************************************/
 
 template <class charT>
-/*static*/ void
+void
+check_libc_locale (const char* charTname, char const* locname,
+                   int (&nfail) [3])
+{
+    typedef std::char_traits<charT> traits_type;
+    typedef std::allocator<charT> allocator_type;
+    typedef std::basic_string <charT, traits_type, allocator_type> string_type;
+
+    std::locale loc (locname);
+
+    const std::collate<charT> &co =
+        _STD_USE_FACET (std::collate<charT>, loc);
+
+    co._C_opts |= co._C_use_libc;
+    co._C_opts &= ~co._C_use_libstd;
+
+    for (int nloops = 0; nloops < 10; ++nloops) {
+
+        charT str1 [STR_SIZE] = { 0 };
+        charT str2 [STR_SIZE] = { 0 };
+
+        // generate two random NUL-terminated strings
+        gen_str (str1, sizeof str1 / sizeof *str1);
+        gen_str (str2, sizeof str2 / sizeof *str2);
+
+        // call transform on the generated string
+        // not including the terminating NUL
+        string_type out = co.transform (
+            str1, str1 + sizeof str1 / sizeof *str1 - 1);
+
+        // get the size of the buffer needed to hold the
+        // transformed string (with the terminating NUL)
+        std::size_t size = 1U + c_xfrm (0, str1, 0);
+
+        // prevent errors caused by huge return values (e.g., MSVC)
+        if (size > STR_SIZE * 64)
+            size = 0;
+
+        string_type c_out;
+
+        if (size) {
+            c_out.resize (size);
+
+            // call the C-library transform function
+            size = c_xfrm (&c_out [0], str1, size);
+
+            if (size > STR_SIZE * 64)
+                size = 0;
+
+            // shrink to fit (chop off the terminating NUL)
+            c_out.resize (size);
+        }
+
+        if (out != c_out)
+            ++nfail [0];
+
+        // make sure the output is the same
+        rw_assert (out == c_out, __FILE__, __LINE__,
+                   "%d. collate<%s>::transform(%{*.*Ac}, ...) "
+                   "== %{*.*Ac}, got %{*.*Ac} in locale(\"%s\")",
+                   nloops, charTname, 
+                   sizeof (charT), sizeof str1 / sizeof *str1, str1,
+                   sizeof (charT), c_out.size (), c_out.c_str (),
+                   sizeof (charT),   out.size (),   out.c_str (),
+                   locname);
+
+        // now call compare on the two generated strings
+        int ret1 = co.compare (
+            str1, str1 + sizeof str1 / sizeof *str1,
+            str2, str2 + sizeof str2 / sizeof *str2);
+
+        // call the C-library comparison function
+        int ret2 = c_strcoll (str1, str2);
+
+        if (ret1 != ret2)
+            ++nfail [1];
+
+        // make sure the results are the same
+        rw_assert (ret1 == ret2, __FILE__, __LINE__,
+                   "%d. collate<%s>::compare(%{*.*Ac}, ..., "
+                   "%{*.*Ac}, ...) == %d, got %d in locale(\"%s\")",
+                   nloops, charTname, 
+                   sizeof (charT), sizeof str1 / sizeof *str1, str1,
+                   sizeof (charT), sizeof str2 / sizeof *str2, str2,
+                   ret2, ret1, locname);
+
+        // two strings that compare identically must hash
+        // identically as well.  Calling hash on the same string is
+        // not very conclusive but generating strings that have exactly
+        // the same weights is not possible without knowing all the
+        // weight orderings
+        const long hashNum1 =
+            co.hash (str1, str1 + sizeof str1 / sizeof *str1);
+
+        const long hashNum2 =
+            co.hash (str1, str1 + sizeof str1 / sizeof *str1);
+
+        if (hashNum1 != hashNum2)
+            ++nfail [2];
+
+        rw_assert (hashNum1 == hashNum2, __FILE__, __LINE__,
+                   "%d. collate<%s>::hash(%{*.*Ac}, ...) == %d, "
+                   "got %d in locale(\"%s\")",
+                   nloops, charTname, 
+                   sizeof (charT), sizeof str1 / sizeof *str1, str1,
+                   hashNum1, hashNum2, locname);
+    }
+}
+
+template <class charT>
+void
 check_libc (const char* charTname)
 {
     // the libc implementation of the library should act the same as
@@ -251,8 +357,6 @@ check_libc (const char* charTname)
     // strings and make sure that the following holds true:
     // transform acts like strxfrm and wcsxfrm,
     // compare acts like strcoll and wcscoll
-
-    int nfail [3] = { 0 };
 
     rw_info (0, __FILE__, __LINE__,
              "libc std::collate<%s>::transform ()", charTname);
@@ -263,132 +367,37 @@ check_libc (const char* charTname)
     rw_info (0, __FILE__, __LINE__,
              "std::collate<%s>::hash ()", charTname);
 
+    int nfail [3] = { 0 };
+    char curlocname [256];
+    
     for (const char* locname = rw_locales (LC_COLLATE);
          *locname; locname += std::strlen (locname) + 1) {
 
-        _TRY {
-            std::setlocale (LC_COLLATE, locname);
-            int max = MB_CUR_MAX;
-            if (max > 1)
-                continue;
+        std::strcpy (curlocname, std::setlocale (LC_COLLATE, 0));
+        
+        if (0 == std::setlocale (LC_COLLATE, locname))
+            continue;
 
-            std::locale loc;
-
+        int max = MB_CUR_MAX;
+        
+        if (max == 1) {
+            //
+            // FIXME test variable length multibyte encodings
+            //
             _TRY {
-                loc = std::locale (locname);
+                check_libc_locale<charT> (charTname, locname, nfail);
             }
             _CATCH (...) {
                 rw_assert (false, __FILE__, __LINE__,
-                           "std::locale(\"%s\") unexpectedly threw "
-                           "an exception", locname);
-                continue;
-            }
-
-            const std::collate<charT> &co =
-                _STD_USE_FACET (std::collate<charT>, loc);
-            co._C_opts |= co._C_use_libc;
-            co._C_opts &= ~co._C_use_libstd;
-
-            // now the locale is set up so lets test the transform and
-            // compare functions
-
-            for (int loop_cntrl = 0; loop_cntrl < 10; loop_cntrl++) {
-
-#define STR_SIZE 16
-
-                charT str1 [STR_SIZE] = { 0 };
-                charT str2 [STR_SIZE] = { 0 };
-
-                // generate two random NUL-terminated strings
-                gen_str (str1, sizeof str1 / sizeof *str1);
-                gen_str (str2, sizeof str2 / sizeof *str2);
-
-                // call transform on the generated string
-                // not including the terminating NUL
-                const std::basic_string <charT, std::char_traits<charT>,
-                    std::allocator<charT> > out =
-                    co.transform (str1, str1 + sizeof str1 / sizeof *str1 - 1);
-
-                // get the size of the buffer needed to hold the
-                // transformed string (with the terminating NUL)
-                std::size_t size = 1U + c_xfrm (0, str1, 0);
-
-                // prevent errors caused by huge return values (e.g., MSVC)
-                if (size > STR_SIZE * 64)
-                    size = 0;
-
-                std::basic_string <charT, std::char_traits<charT>,
-                    std::allocator<charT> > c_out;
-
-                if (size) {
-                    c_out.resize (size);
-
-                    // call the C-library transform function
-                    size = c_xfrm (&c_out [0], str1, size);
-
-                    if (size > STR_SIZE * 64)
-                        size = 0;
-
-                    // shrink to fit (chop off the terminating NUL)
-                    c_out.resize (size);
-                }
-
-                // make sure the output is the same
-                if (out != c_out) {
-                    nfail[0]++;
-                    rw_assert (false, __FILE__, __LINE__,
-                               "%d. collate<%s>::transform(%s, ...) "
-                               "== %{S}, got %{S} in locale(\"%s\")",
-                               loop_cntrl, charTname, str1,
-                               &c_out, &out, locname);
-                }
-
-                // now call compare on the two generated strings
-                int ret1 = co.compare (str1, str1 + sizeof str1 / sizeof *str1,
-                                       str2, str2 + sizeof str2 / sizeof *str2);
-
-                // call the C-library comparison function
-                int ret2 = c_strcoll (str1, str2);
-
-                // make sure the results are the same
-                if (ret1 != ret2) {
-                    nfail [1]++;
-                    rw_assert (false, __FILE__, __LINE__,
-                               "%d. collate<%s>::compare(%s, ..., %s, ...) "
-                               "== %d, got %d in locale(\"%s\")",
-                               loop_cntrl, charTname, str1,
-                               str2, ret2, ret1, locname);
-                }
-
-                // two strings that compare identically must hash
-                // identically as well.  Calling hash on the same string is
-                // not very conclusive but generating strings that have exactly
-                // the same weights is not possible without knowing all the
-                // weight orderings
-                const long hashNum1 =
-                    co.hash (str1, str1 + sizeof str1 / sizeof *str1);
-
-                const long hashNum2 =
-                    co.hash (str1, str1 + sizeof str1 / sizeof *str1);
-
-                if (hashNum1 != hashNum2) {
-                    nfail[2]++;
-                    rw_assert (false, __FILE__, __LINE__,
-                               "%d. collate<%s>::hash(%s, ...) == %d, "
-                               "got %d in locale(\"%s\")",
-                               loop_cntrl, charTname, str1,
-                               hashNum1, hashNum2, locname);
-                }
-
-
+                           "locale(\"%s\") threw an exception", 
+                           locname);
             }
         }
-        _CATCH (...) {
-            rw_assert (false, __FILE__, __LINE__,
-                       "locale(\"%s\") threw an exception", locname);
-        }
+
+        std::setlocale (LC_COLLATE, curlocname);
     }
 
+ 
     rw_assert (0 == nfail [0], __FILE__, __LINE__,
                "collate<%s>::transform () failed %d times",
                charTname, nfail [0]);
@@ -407,17 +416,78 @@ check_libc (const char* charTname)
 static const char*
 make_test_locale ()
 {
+    // Create a synthetic locale to exercises as many different parts
+    // of the collate standard as possible.
+
+    static const char charmap [] = {
+        //
+        // The portable character set
+        //
+        "<code_set_name> \"UTF-8\"\n"
+        "<mb_cur_max> 1\n<mb_cur_min> 1\n"
+        "CHARMAP\n"
+        "<NUL> \\x00\n<SOH> \\x01\n<STX> \\x02\n<ETX> \\x03\n<EOT> \\x04\n"
+        "<ENQ> \\x05\n<ACK> \\x06\n<BEL> \\x07\n"
+        "<backspace> \\x08\n<tab> \\x09\n<newline> \\x0a\n"
+        "<vertical-tab> \\x0b\n<form-feed> \\x0c\n"
+        "<carriage-return> \\x0d\n"
+        "<SO> \\x0e\n<SI> \\x0f\n<DLE> \\x10\n<DC1> \\x11\n<DC2> \\x12\n"
+        "<DC3> \\x13\n<DC4> \\x14\n<NAK> \\x15\n<SYN> \\x16\n<ETB> \\x17\n"
+        "<CAN> \\x18\n<EM> \\x19\n<SUB> \\x1a\n<ESC> \\x1b\n<IS4> \\x1c\n"
+        "<IS3> \\x1d\n<IS2> \\x1e\n<IS1> \\x1f\n"
+        "<space> \\x20\n"
+        "<exclamation-mark> \\x21\n"
+        "<quotation-mark> \\x22\n"
+        "<number-sign> \\x23\n"
+        "<dollar-sign> \\x24\n"
+        "<percent-sign> \\x25\n"
+        "<ampersand> \\x26\n"
+        "<apostrophe> \\x27\n"
+        "<left-parenthesis> \\x28\n"
+        "<right-parenthesis> \\x29\n"
+        "<asterisk> \\x2a\n"
+        "<plus-sign> \\x2b\n"
+        "<comma> \\x2c\n"
+        "<hyphen> \\x2d\n"
+        "<period> \\x2e\n"
+        "<slash> \\x2f\n"
+        "<zero> \\x30\n<one> \\x31\n<two> \\x32\n<three> \\x33\n"
+        "<four> \\x34\n<five> \\x35\n<six> \\x36\n<seven> \\x37\n"
+        "<eight> \\x38\n<nine> \\x39\n"
+        "<colon> \\x3a\n"
+        "<semicolon> \\x3b\n"
+        "<less-than-sign> \\x3c\n"
+        "<equals-sign> \\x3d\n"
+        "<greater-than-sign> \\x3e\n"
+        "<question-mark> \\x3f\n"
+        "<commercial-at> \\x40\n"
+        "<A> \\x41\n<B> \\x42\n<C> \\x43\n<D> \\x44\n<E> \\x45\n<F> \\x46\n"
+        "<G> \\x47\n<H> \\x48\n<I> \\x49\n<J> \\x4a\n<K> \\x4b\n<L> \\x4c\n"
+        "<M> \\x4d\n<N> \\x4e\n<O> \\x4f\n<P> \\x50\n<Q> \\x51\n<R> \\x52\n"
+        "<S> \\x53\n<T> \\x54\n<U> \\x55\n<V> \\x56\n<W> \\x57\n<X> \\x58\n"
+        "<Y> \\x59\n<Z> \\x5a\n"
+        "<left-square-bracket> \\x5b\n"
+        "<backslash> \\x5c\n"
+        "<right-square-bracket> \\x5d\n"
+        "<circumflex> \\x5e\n"
+        "<underscore> \\x5f\n"
+        "<grave-accent> \\x60\n"
+        "<a> \\x61\n<b> \\x62\n<c> \\x63\n<d> \\x64\n<e> \\x65\n<f> \\x66\n"
+        "<g> \\x67\n<h> \\x68\n<i> \\x69\n<j> \\x6a\n<k> \\x6b\n<l> \\x6c\n"
+        "<m> \\x6d\n<n> \\x6e\n<o> \\x6f\n<p> \\x70\n<q> \\x71\n<r> \\x72\n"
+        "<s> \\x73\n<t> \\x74\n<u> \\x75\n<v> \\x76\n<w> \\x77\n<x> \\x78\n"
+        "<y> \\x79\n<z> \\x7a\n"
+        "<left-brace> \\x7b\n"
+        "<vertical-line> \\x7c\n"
+        "<right-brace> \\x7d\n"
+        "<tilde> \\x7e\n"
+        "<DEL> \\x7f\n"
+        "END CHARMAP\n\n"
+    };
+
     // create a temporary locale definition file that exercises as
     // many different parts of the collate standard as possible
-
-    char lc_collate_src_path [L_tmpnam + sizeof LC_COLLATE_SRC + 2];
-    std::strcpy (lc_collate_src_path, locale_root);
-    std::strcat (lc_collate_src_path, SLASH);
-    std::strcat (lc_collate_src_path, LC_COLLATE_SRC);
-
-    std::FILE *fout = std::fopen (lc_collate_src_path, "w");
-
-    const char lc_collate_file[] = {
+    const char lc_collate [] = {
         "LC_COLLATE\n"
         "script <ALL_FORWARD>\n"
         "collating-element <er> from \"<e><r>\"\n"
@@ -479,25 +549,7 @@ make_test_locale ()
         "\nEND LC_COLLATE\n"
     };
 
-    std::fputs (lc_collate_file, fout);
-
-    std::fclose (fout);
-
-    // create a temporary character map file
-
-    char lc_collate_cm_path [L_tmpnam + sizeof LC_COLLATE_CM + 2];
-    std::strcpy (lc_collate_cm_path, locale_root);
-    std::strcat (lc_collate_cm_path, SLASH);
-    std::strcat (lc_collate_cm_path, LC_COLLATE_CM);
-
-    fout = std::fopen (lc_collate_cm_path, "w");
-    pcs_write (fout, 0);
-
-    std::fclose (fout);
-
-    return rw_localedef ("-w", lc_collate_src_path,
-                         lc_collate_cm_path,
-                         TEST_LOCALE_NAME);
+    return rw_create_locale (charmap, lc_collate);
 }
 
 /**************************************************************************/
@@ -518,7 +570,7 @@ test_weight_val (const char*, const std::collate<charT>&,
                  charT, int, int, int, int, bool);
 
 template <class charT>
-/*static*/ void
+void
 check_libstd_test_locale (const char* charTname)
 {
     rw_info (0, __FILE__, __LINE__,
@@ -560,8 +612,8 @@ check_libstd_test_locale (const char* charTname)
         // correct weight for each level.
 
 #undef TEST
-#define TEST(ch, w0, w1, w2, w3, w3_is_fp)   \
-  test_weight_val (charTname, co, charT (ch), w0, w1, w2, w3, w3_is_fp)
+#define TEST(ch, w0, w1, w2, w3, w3_is_fp)                              \
+        test_weight_val (charTname, co, charT (ch), w0, w1, w2, w3, w3_is_fp)
 
         TEST ('a',       6, IGNORE,      2, IGNORE, true);
         TEST ('b',       5, IGNORE,      2, IGNORE, true);
@@ -608,16 +660,14 @@ check_libstd_test_locale (const char* charTname)
 
 /**************************************************************************/
 
-enum { bufsiz = 256 };
-
 template <class charT>
-/*static*/ void
+void
 test_hash (const char* charTname, const std::collate<charT>& co,
            const char* str1, const char* str2)
 {
     // convert narrow string to a (possibly) wide representation
-    charT wstrbuf [bufsiz];
-    charT wstrbuf2 [bufsiz];
+    charT wstrbuf [256];
+    charT wstrbuf2 [256];
 
     const charT* const wstr = widen (wstrbuf, str1);
     const charT* const wstr2 = widen (wstrbuf2, str2);
@@ -637,14 +687,14 @@ test_hash (const char* charTname, const std::collate<charT>& co,
 /**************************************************************************/
 
 template <class charT>
-/*static*/ void
+void
 test_string (const char* charTname, const std::collate<charT>& co,
              const char* str1, const char* str2,
              int expected_val)
 {
     // convert narrow string to a (possibly) wide representation
-    charT wstrbuf [bufsiz];
-    charT wstrbuf2 [bufsiz];
+    charT wstrbuf [256];
+    charT wstrbuf2 [256];
 
     const charT* const wstr = widen (wstrbuf, str1);
     const charT* const wstr2 = widen (wstrbuf2, str2);
@@ -661,7 +711,7 @@ test_string (const char* charTname, const std::collate<charT>& co,
 /**************************************************************************/
 
 template <class charT>
-/*static*/ void
+void
 test_weight_val (const char* charTname, const std::collate<charT>& co,
                  charT ch, int w1a, int w1b, int w2, int w3, bool w3_is_fp)
 {
@@ -710,15 +760,17 @@ test_weight_val (const char* charTname, const std::collate<charT>& co,
     const String actual = co.transform (&ch, &ch + 1);
 
     // make sure the strings are equal
-    rw_assert (expected != actual, __FILE__, __LINE__,
-               "collate<%s>::transform (\"%c\", ...) == %{S}, "
-               "got %{S}", charTname, ch, &expected, &actual);
+    rw_assert (expected == actual, __FILE__, __LINE__,
+               "collate<%s>::transform (\"%c\", ...) == %{*.*Ac}, "
+               "got %{*.*Ac}", charTname, ch, sizeof (charT),
+               expected.size (), expected.c_str (), sizeof (charT), 
+               actual.size (), actual.c_str ());
 }
 
 /**************************************************************************/
 
 template <class charT>
-/*static*/ void
+void
 check_libstd (const char* charTname)
 {
     rw_info (0, __FILE__, __LINE__,
@@ -799,12 +851,9 @@ check_libstd (const char* charTname)
             // out holds the strings located in the output file
             String out [1000];
 
-#define TOPDIR   "TOPDIR"   /* the TOPDIR environment variable */
-
-            const char* in_path = std::getenv (TOPDIR);
+            const char* in_path = std::getenv ("TOPDIR");
             if (!in_path || !*in_path) {
                 std::fprintf (stderr, "TOPDIR not defined or empty");
-
                 std::exit (1);
             }
 
@@ -820,10 +869,12 @@ check_libstd (const char* charTname)
             }
 
             std::size_t j = 0;
-            while (1) {
-                char next_line [bufsiz];
 
-                if (0 != std::fgets (next_line, bufsiz, f)) {
+            while (1) {
+
+                char next_line [256];
+
+                if (0 != std::fgets (next_line, 256, f)) {
 
                     std::size_t line_len = std::strlen (next_line);
 
@@ -832,7 +883,7 @@ check_libstd (const char* charTname)
 
                     // convert from external to internal encoding
                     // (both of which might be the same type)
-                    charT to [bufsiz];
+                    charT to [256];
                     const char* from_next;
                     charT*      to_next;
 
@@ -920,7 +971,7 @@ check_libstd (const char* charTname)
 
 
 template <class charT>
-/*static*/ void
+void
 check_hash_eff (const char* charTname)
 {
     // test effectiveness of hash function
@@ -976,91 +1027,85 @@ check_hash_eff (const char* charTname)
 
 /**************************************************************************/
 
+template <class charT>
+void
+check_NUL_locale (const char* charTname, const char* locname)
+{
+    std::locale loc (locname);
+
+    charT s [STR_SIZE];
+    gen_str (s, STR_SIZE);
+
+    charT buf [2][STR_SIZE];
+
+    std::memcpy (buf [0], s, sizeof s);
+    std::memcpy (buf [1], s, sizeof s);
+
+    //
+    // Verify that first buffer compares more:
+    // |--------0----| = buf [0]
+    // |----0--------| = buf [1]
+    // 
+    buf [0][4] = charT ();
+    buf [1][3] = charT ();
+
+    typedef std::collate<charT> Collate;
+
+    const Collate &col = std::use_facet<Collate> (loc);
+
+    int cmp = col.compare (
+        buf [0], buf [0] + sizeof buf [0] / sizeof *buf [0], 
+        buf [1], buf [1] + sizeof buf [1] / sizeof *buf [1]);
+
+    rw_assert (cmp > 0, __FILE__, __LINE__,
+               "collate<%s>::compare (%{*.*Ac}, %{*.*Ac}) "
+               " > 0, failed in locale (\"%s\")", charTname,
+               sizeof (charT), sizeof buf [0] / sizeof *buf [0], buf [0],
+               sizeof (charT), sizeof buf [1] / sizeof *buf [1], buf [1],
+               locname);
+
+    std::memcpy (buf [0], s, sizeof s);
+    std::memcpy (buf [1], s, sizeof s);
+
+    //
+    // Verify that first compare less:
+    // |----0---0----| = buf [0]
+    // |----0--------| = buf [1]
+    // 
+    buf [0][3] = charT ();
+    buf [0][5] = charT ();
+    buf [1][3] = charT ();
+
+    cmp = col.compare (
+        buf [0], buf [0] + sizeof buf [0] / sizeof *buf [0], 
+        buf [1], buf [1] + sizeof buf [1] / sizeof *buf [1]);
+
+    rw_assert (cmp < 0, __FILE__, __LINE__,
+               "collate<%s>::compare (%{*.*Ac}, ..., %{*.*Ac}, ...) "
+               " < 0, failed in locale (\"%s\")", charTname,
+               sizeof (charT), sizeof buf [0] / sizeof *buf [0], buf [0],
+               sizeof (charT), sizeof buf [1] / sizeof *buf [1], buf [1],
+               locname);
+}
 
 template <class charT>
-/*static*/ void
+void
 check_NUL (const char* charTname)
 {
+    // Verify that the collate facet correctly handles character
+    // sequences with embedded NULs.
+
     rw_info (0, __FILE__, __LINE__,
-             "std::collate<%s>::compare() with embedded NULs", charTname);
+             "std::collate<%s>::compare () with embedded NUL's", charTname);
 
-    // verify that the collate facet correctly handles
-    // character sequences with embedded NULs
+    size_t i = 0;
 
-    charT buf_1 [STR_SIZE];
-    charT buf_2 [STR_SIZE];
-
-    bool fail = false;
-
-    unsigned i = 0;
-
-    for (const char* locname = rw_locales (LC_COLLATE);
-         *locname && !fail; locname += std::strlen (locname) + 1, ++i) {
-
-        std::locale loc;
-
-        _TRY {
-            loc = std::locale (locname);
+    for (const char* locname = rw_locales (LC_COLLATE); 
+         *locname; locname += std::strlen (locname) + 1, ++i) {
+        try {
+            check_NUL_locale<charT> (charTname, locname);
         }
-        _CATCH (...) {
-            continue;
-        }
-
-        const std::size_t buflen = sizeof buf_1 / sizeof *buf_1 - 1;
-
-        gen_str (buf_1, sizeof buf_1 / sizeof *buf_1);
-        std::memcpy (buf_2, buf_1, sizeof buf_2);
-
-        // compute a random index into the character buffers
-        // at which to set the element to NUL; the indices
-        // are such that (inx_1 > inx_2) always holds
-        const std::size_t inx_2 = std::rand () % (buflen - 1);
-        const std::size_t inx_1 =
-            inx_2 + 1 + std::rand () % (buflen - inx_2 - 1);
-
-        buf_2 [inx_2] = charT ();
-
-        typedef std::collate<charT> CollateT;
-
-        const CollateT &col = std::use_facet<CollateT>(loc);
-
-        int cmp = col.compare (buf_1, buf_1 + buflen, buf_2, buf_2 + buflen);
-
-        if (!cmp) {
-            typedef typename CollateT::string_type StringT;
-
-            const StringT str_1 (buf_1, buflen);
-            const StringT str_2 (buf_2, buflen);
-
-            fail = true;
-
-            rw_assert (false, __FILE__, __LINE__,
-                       "collate<%s>::compare(%{S}, ..., %{S}, ...) "
-                       "!= 0, got 0 in locale(\"%s\")", charTname,
-                       &str_1, &str_2, locname);
-        }
-
-        // set the character at the smaller index in both buffers to
-        // NUL, then set a character at the larger index in the first
-        // buffer to NUL, compare the two, and verify that the buffers
-        // compare unequal (buf_1 probably less)
-        buf_1 [inx_1] = charT ();
-        buf_1 [inx_2] = charT ();
-
-        cmp = col.compare (buf_1, buf_1 + buflen, buf_2, buf_2 + buflen);
-
-        if (!cmp) {
-            typedef typename CollateT::string_type StringT;
-
-            const StringT str_1 (buf_1, buflen);
-            const StringT str_2 (buf_2, buflen);
-
-            fail = true;
-
-            rw_assert (false, __FILE__, __LINE__,
-                       "collate<%s>::compare(%{S}, ..., %{S}, ...) "
-                       "!= 0, got 0 in locale(\"%s\")", charTname,
-                       &str_1, &str_2, locname);
+        catch (...) {
         }
     }
 }
@@ -1068,7 +1113,7 @@ check_NUL (const char* charTname)
 /**************************************************************************/
 
 template <class charT>
-/*static*/ void
+void
 do_test (const char* charTname)
 {
     check_libstd_test_locale<charT> (charTname);
@@ -1078,50 +1123,20 @@ do_test (const char* charTname)
     check_hash_eff<charT> (charTname);
 }
 
-
-#if _RWSTD_PATH_SEP == '/'
-#  define RM_RF    "rm -rf "
-#else
-#  define RM_RF    "rmdir /Q /S "
-#endif   // _RWSTD_PATH_SEP == '/'
-
-
 static int
 run_test (int /*argc*/, char* /*argv*/ [])
 {
-    // set any additional environment variables defined in
-    // the RW_PUTENV environment variable (if it exists)
-    rw_putenv (0);
-
-    // create a temporary directory for files created by the test
-    char namebuf [L_tmpnam];
-    locale_root = std::tmpnam (namebuf);
-
-    char envvar [sizeof LOCALE_ROOT + L_tmpnam] = LOCALE_ROOT "=";
-    std::strcat (envvar, locale_root);
-
-    rw_system ("mkdir %s", locale_root);
-
-    // set the LOCALE_ROOT variable where std::locale looks
-    // for locale database files
-    rw_putenv (envvar);
-
     do_test<char> ("char");
 
-#ifndef _RWSTD_NO_WCHAR_T
-
+#if defined (_RWSTD_NO_WCHAR_T)
     do_test<wchar_t> ("wchar_t");
-
 #endif   // _RWSTD_NO_WCHAR_T
-
-    // remove temporary locale databases created by the test
-    rw_system (RM_RF "%s", locale_root);
 
     return 0;
 }
 
 
-/*extern*/ int
+int
 main (int argc, char* argv [])
 {
     return rw_test (argc, argv, __FILE__,
