@@ -116,7 +116,7 @@ const char* widen (char* dst, const char* src)
     return dst;
 }
 
-#ifndef _RWSTD_NO_WCHAR_T
+#if !defined (_RWSTD_NO_WCHAR_T)
 
 int c_strcoll (const wchar_t* s1, const wchar_t* s2)
 {
@@ -1029,64 +1029,118 @@ check_hash_eff (const char* charTname)
 
 template <class charT>
 void
-check_NUL_locale (const char* charTname, const char* locname)
+check_NUL_collate (const char* charTname, const char* locname,
+                   const charT* s1, size_t s1_len,
+                   const charT* s2, size_t s2_len)
 {
     std::locale loc (locname);
 
-    charT s [STR_SIZE];
-    gen_str (s, STR_SIZE);
-
-    charT buf [2][STR_SIZE];
-
-    std::memcpy (buf [0], s, sizeof s);
-    std::memcpy (buf [1], s, sizeof s);
-
-    //
-    // Verify that first buffer compares more:
-    // |--------0----| = buf [0]
-    // |----0--------| = buf [1]
-    // 
-    buf [0][4] = charT ();
-    buf [1][3] = charT ();
-
-    typedef std::collate<charT> Collate;
+    typedef typename std::collate<charT> Collate;
+    typedef typename Collate::string_type String;
 
     const Collate &col = std::use_facet<Collate> (loc);
 
-    int cmp = col.compare (
-        buf [0], buf [0] + sizeof buf [0] / sizeof *buf [0], 
-        buf [1], buf [1] + sizeof buf [1] / sizeof *buf [1]);
+    const String x1 = col.transform (s1, s1 + s1_len);
+    const String x2 = col.transform (s2, s2 + s2_len);
 
-    rw_assert (cmp > 0, __FILE__, __LINE__,
-               "collate<%s>::compare (%{*.*Ac}, %{*.*Ac}) "
-               " > 0, failed in locale (\"%s\")", charTname,
-               sizeof (charT), sizeof buf [0] / sizeof *buf [0], buf [0],
-               sizeof (charT), sizeof buf [1] / sizeof *buf [1], buf [1],
-               locname);
+    const int colcmp = col.compare (s1, s1 + s1_len, s2, s2 + s2_len);
 
-    std::memcpy (buf [0], s, sizeof s);
-    std::memcpy (buf [1], s, sizeof s);
+    int lexcmp = x1.compare (x2);
+    lexcmp = lexcmp < -1 ? -1 : 1 < lexcmp ? 1 : lexcmp;
+    
+    rw_assert (colcmp == lexcmp, __FILE__, __LINE__,
+               "collate<%s>::compare (%{*.*Ac}, %{*.*Ac}) = %d, "
+               "lexicographical comparison of transformed strings = %d, "
+               "mismatch in locale (\"%s\")", charTname,
+               sizeof (charT), s1_len, s1, 
+               sizeof (charT), s2_len, s2, 
+               colcmp, lexcmp, locname);
 
-    //
-    // Verify that first compare less:
-    // |----0---0----| = buf [0]
-    // |----0--------| = buf [1]
-    // 
-    buf [0][3] = charT ();
-    buf [0][5] = charT ();
-    buf [1][3] = charT ();
+    const bool eq = 
+        std::string (s1, s1 + s1_len) == 
+        std::string (s2, s2 + s2_len);
 
-    cmp = col.compare (
-        buf [0], buf [0] + sizeof buf [0] / sizeof *buf [0], 
-        buf [1], buf [1] + sizeof buf [1] / sizeof *buf [1]);
-
-    rw_assert (cmp < 0, __FILE__, __LINE__,
-               "collate<%s>::compare (%{*.*Ac}, ..., %{*.*Ac}, ...) "
-               " < 0, failed in locale (\"%s\")", charTname,
-               sizeof (charT), sizeof buf [0] / sizeof *buf [0], buf [0],
-               sizeof (charT), sizeof buf [1] / sizeof *buf [1], buf [1],
-               locname);
+    rw_assert (bool (colcmp) != eq, __FILE__, __LINE__,
+               "collate<%s>::compare (%{*.*Ac}, %{*.*Ac}) = %d, "
+               "lexicographical compare = %s, mismatch in locale (\"%s\")",
+               charTname,
+               sizeof (charT), s1_len, s1, 
+               sizeof (charT), s2_len, s2, colcmp,
+               (eq ? "true" : "false"), locname);
 }
+
+static void
+check_NUL_collate (const char* charTname, const char* locname, char)
+{
+#define T(s, t)                                     \
+    check_NUL_collate (charTname, locname,          \
+                       s, sizeof s / sizeof *s - 1, \
+                       t, sizeof t / sizeof *t - 1)
+
+    T ("", "");
+    T ("", "\0");
+    T ("", "\0\0");
+    T ("\0", "");
+    T ("\0", "\0");
+    T ("\0", "\0\0");
+    T ("a", "\0");
+    T ("a", "\0a");
+    T ("a", "a\0");
+    T ("a", "a\0\0");
+    T ("a\0", "a");
+    T ("a\0", "a\0");
+    T ("a\0", "a\0\0");
+    T ("\0a", "");
+    T ("\0a", "\0");
+    T ("\0a", "\0a");
+    T ("\0a", "\0a\0");
+    T ("a\0\0b", "");
+    T ("a\0\0b", "a");
+    T ("a\0\0b", "ab");
+    T ("a\0\0b", "a\0");
+    T ("a\0\0b", "a\0\0");
+    T ("a\0\0b", "a\0b");
+    T ("a\0\0b", "a\0\0b");
+}
+
+#if !defined (_RWSTD_NO_WCHAR_T)
+
+static void
+check_NUL_collate (const char* charTname, const char* locname, wchar_t)
+{
+    T (L"", L"");
+    T (L"", L"\0");
+    T (L"", L"\0\0");
+    T (L"\0", L"");
+    T (L"\0", L"\0");
+    T (L"\0", L"\0\0");
+    T (L"a", L"\0");
+    T (L"a", L"\0a");
+    T (L"a", L"a\0");
+    T (L"a", L"a\0\0");
+    T (L"a\0", L"a");
+    T (L"a\0", L"a\0");
+    T (L"a\0", L"a\0\0");
+    T (L"\0a", L"");
+    T (L"\0a", L"\0");
+    T (L"\0a", L"\0a");
+    T (L"\0a", L"\0a\0");
+    T (L"a\0\0b", L"");
+    T (L"a\0\0b", L"a");
+    T (L"a\0\0b", L"ab");
+    T (L"a\0\0b", L"a\0");
+    T (L"a\0\0b", L"a\0\0");
+    T (L"a\0\0b", L"a\0b");
+    T (L"a\0\0b", L"a\0\0b");
+    T (L"a\0\0b\0", L"a\0\0b");
+    T (L"a\0\0b\0\0", L"a\0\0b");
+    T (L"a\0\0b\0\0", L"a\0\0b\0");
+    T (L"a\0\0b\0\0", L"a\0\0bc");
+
+#undef T
+}
+
+#endif // _RWSTD_NO_WCHAR_T
 
 template <class charT>
 void
@@ -1101,9 +1155,9 @@ check_NUL (const char* charTname)
     size_t i = 0;
 
     for (const char* locname = rw_locales (LC_COLLATE); 
-         *locname; locname += std::strlen (locname) + 1, ++i) {
+         *locname; locname += std::strlen (locname) + 1) {
         try {
-            check_NUL_locale<charT> (charTname, locname);
+            check_NUL_collate (charTname, locname, charT ());
         }
         catch (...) {
         }
@@ -1128,13 +1182,12 @@ run_test (int /*argc*/, char* /*argv*/ [])
 {
     do_test<char> ("char");
 
-#if defined (_RWSTD_NO_WCHAR_T)
+#if !defined (_RWSTD_NO_WCHAR_T)
     do_test<wchar_t> ("wchar_t");
 #endif   // _RWSTD_NO_WCHAR_T
 
     return 0;
 }
-
 
 int
 main (int argc, char* argv [])

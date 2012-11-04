@@ -488,99 +488,100 @@ __rw_strnxfrm (const char *src, size_t nchars)
 
     while (nchars) {
 
-        // using a C-style cast instead of static_cast to avoid
-        // a gcc 2.95.2 bug causing an error on some platforms:
-        //   static_cast from `void *' to `const char *'
-        const char* const last = (const char*)memchr (src, '\0', nchars);
+        if (src [0]) {
 
-        if (0 == last) {
+            // using a C-style cast instead of static_cast to avoid
+            // a gcc 2.95.2 bug causing an error on some platforms:
+            //   static_cast from `void *' to `const char *'
+            const char* const last = (const char*)memchr (src, '\0', nchars);
 
-            // no NUL found in the initial portion of the source string
-            // that fits into the local temporary buffer; copy as many
-            // characters as fit into the buffer
+            if (0 == last) {
 
-            if (bufsize <= nchars) {
-                if (pbuf != buf)
-                    delete[] pbuf;
-                pbuf = new char [nchars + 1];
+                // no NUL found in the initial portion of the source string
+                // that fits into the local temporary buffer; copy as many
+                // characters as fit into the buffer
+
+                if (bufsize <= nchars) {
+                    if (pbuf != buf)
+                        delete[] pbuf;
+                    pbuf = new char [nchars + 1];
+                }
+
+                psrc = pbuf;
+                memcpy (psrc, src, nchars);
+
+                // append a terminating NUL and decrement the number
+                // of characters that remain to be processed
+                psrc [nchars] = '\0';
+                src          += nchars;
+                nchars        = 0;
+            }
+            else {
+                // terminating NUL found in the source buffer
+                nchars -= (last - src) + 1;
+                psrc    = _RWSTD_CONST_CAST (char*, src);
+                src    += (last - src) + 1;
             }
 
-            psrc = pbuf;
-            memcpy (psrc, src, nchars);
+#ifdef _RWSTD_OS_SUNOS
+            // Solaris 10u5 on AMD64 overwrites memory past the end of
+            // just_in_case_buf[8], to avoid this, pass a null pointer
+            char* const just_in_case_buf = 0;
+#else
+            // provide a destination buffer to strxfrm() in case
+            // it's buggy (such as MSVC's) and tries to write to
+            // the buffer even if it's 0
+            char just_in_case_buf [8];
+#endif // _RWSTD_OS_SUNOS
 
-            // append a terminating NUL and decrement the number
-            // of characters that remain to be processed
-            psrc [nchars] = '\0';
-            src          += nchars;
-            nchars        = 0;
+            const size_t dst_size = strxfrm (just_in_case_buf, psrc, 0);
+
+            // check for strxfrm() errors
+            if (0 == (dst_size << 1)) {
+                if (pbuf != buf)
+                    delete[] pbuf;
+
+                return _STD::string ();
+            }
+
+            size_t res_size = res.size ();
+
+            _TRY {
+                // resize the result string to fit itself plus the result
+                // of the transformation including the terminating NUL
+                // appended by strxfrm()
+                res.resize (res_size + dst_size + 1);
+            }
+            _CATCH (...) {
+                if (pbuf != buf)
+                    delete[] pbuf;
+                _RETHROW;
+            }
+
+            strxfrm (&res [0] + res_size, psrc, dst_size + 1);
+            res.resize (res.size () - !last);
         }
         else {
 
-            // terminating NUL found in the source buffer
-            nchars -= (last - src) + 1;
-            psrc    = _RWSTD_CONST_CAST (char*, src);
-            src    += (last - src) + 1;
-        }
+            // count and append the consecutive NULs embedded in the 
+            // input string
 
-#ifdef _RWSTD_OS_SUNOS
-        // Solaris 10u5 on AMD64 overwrites memory past the end of
-        // just_in_case_buf[8], to avoid this, pass a null pointer
-        char* const just_in_case_buf = 0;
-#else
-        // provide a destination buffer to strxfrm() in case
-        // it's buggy (such as MSVC's) and tries to write to
-        // the buffer even if it's 0
-        char just_in_case_buf [8];
-#endif
+            size_t i = 0;
+            for (; i < nchars && 0 == src [i]; ++i) ;
 
-        const size_t dst_size = strxfrm (just_in_case_buf, psrc, 0);
+            _TRY {
+                // resize the result string to fit itself plus the 
+                // embedded NULs
+                res.resize (res.size () + i);
+            }
+            _CATCH (...) {
+                if (pbuf != buf)
+                    delete[] pbuf;
+                _RETHROW;
+            }
 
-        // check for strxfrm() errors
-        if (0 == (dst_size << 1)) {
-            if (pbuf != buf)
-                delete[] pbuf;
-
-            return _STD::string ();
-        }
-
-        size_t res_size = res.size ();
-
-        _TRY {
-            // resize the result string to fit itself plus the result
-            // of the transformation including the terminatin NUL
-            // appended by strxfrm()
-            res.resize (res_size + dst_size + 1);
-        }
-        _CATCH (...) {
-            if (pbuf != buf)
-                delete[] pbuf;
-            _RETHROW;
-        }
-
-        // transfor the source string up to the terminating NUL
-        size_t xfrm_size =
-            strxfrm (&res [0] + res_size, psrc, dst_size + 1);
-
-#if defined _MSC_VER && _MSC_VER < 1400
-        // compute the correct value that should have been returned from
-        // strxfrm() after the transformation has completed (MSVC strxfrm()
-        // returns a bogus result; see PR #29935)
-        xfrm_size = strlen (&res [0] + res_size);
-#endif   // MSVC < 8.0
-
-        // increment the size of the result string by the number
-        // of transformed characters excluding the terminating NUL
-        // if strxfrm() transforms the empty string into the empty
-        // string, keep the terminating NUL, otherwise drop it
-        res_size += xfrm_size + (last && !*psrc && !xfrm_size);
-
-        _TRY {
-            res.resize (res_size);
-        }
-        _CATCH (...) {
-            if (pbuf != buf)
-                delete[] pbuf;
-            _RETHROW;
+            nchars -= i;
+            src += i;
         }
     }
 
@@ -702,99 +703,102 @@ __rw_wcsnxfrm (const wchar_t *src, size_t nchars)
 
     while (nchars) {
 
-        typedef _STD::char_traits<wchar_t> Traits;
+        if (src [0]) {
 
-        const wchar_t* const last = Traits::find (src, nchars, L'\0');
+            typedef _STD::char_traits<wchar_t> Traits;
 
-        if (0 == last) {
+            const wchar_t* const last = Traits::find (src, nchars, L'\0');
 
-            // no NUL found in the initial portion of the source string
-            // that fits into the local temporary buffer; copy as many
-            // characters as fit into the buffer
+            if (0 == last) {
 
-            if (bufsize <= nchars) {
-                if (pbuf != buf)
-                    delete[] pbuf;
-                pbuf = new wchar_t [nchars + 1];
+                // no NUL found in the initial portion of the source string
+                // that fits into the local temporary buffer; copy as many
+                // characters as fit into the buffer
+
+                if (bufsize <= nchars) {
+                    if (pbuf != buf)
+                        delete[] pbuf;
+                    pbuf = new wchar_t [nchars + 1];
+                }
+
+                psrc = pbuf;
+                memcpy (psrc, src, nchars * sizeof *psrc);
+
+                // append a terminating NUL and decrement the number
+                // of characters that remain to be processed
+                psrc [nchars] = 0;
+                src          += nchars;
+                nchars        = 0;
+            }
+            else {
+
+                // terminating NUL found in the source buffer
+                nchars -= (last - src) + 1;
+                psrc    = _RWSTD_CONST_CAST (wchar_t*, src);
+                src    += (last - src) + 1;
             }
 
-            psrc = pbuf;
-            memcpy (psrc, src, nchars * sizeof *psrc);
+#ifdef _RWSTD_OS_SUNOS
+            // just in case Solaris wcsxfrm() has the same bug
+            // as its strxfrm() (see above)
+            wchar_t* const just_in_case_buf = 0;
+#else
+            // provide a destination buffer to strxfrm() in case
+            // it's buggy (such as MSVC's) and tries to write to
+            // the buffer even if it's 0
+            wchar_t just_in_case_buf [8];
+#endif
 
-            // append a terminating NUL and decrement the number
-            // of characters that remain to be processed
-            psrc [nchars] = 0;
-            src          += nchars;
-            nchars        = 0;
+            const size_t dst_size =
+                _RWSTD_WCSXFRM (just_in_case_buf, psrc, 0);
+
+            // check for wcsxfrm() errors
+            if (_RWSTD_SIZE_MAX == dst_size) {
+                if (pbuf != buf)
+                    delete[] pbuf;
+
+                return _STD::wstring ();
+            }
+
+            size_t res_size = res.size ();
+
+            _TRY {
+                // resize the result string to fit itself plus the result
+                // of the transformation including the terminatin NUL
+                // appended by strxfrm()
+                res.resize (res_size + dst_size + 1);
+            }
+            _CATCH (...) {
+                if (pbuf != buf)
+                    delete[] pbuf;
+                _RETHROW;
+            }
+
+            // transform the source string up to the terminating NUL
+            _RWSTD_WCSXFRM (&res [0] + res_size, psrc, dst_size + 1);
+            res.resize (res.size () - !last);
         }
         else {
 
-            // terminating NUL found in the source buffer
-            nchars -= (last - src) + 1;
-            psrc    = _RWSTD_CONST_CAST (wchar_t*, src);
-            src    += (last - src) + 1;
-        }
+            // count and append the consecutive NULs embedded in the 
+            // input string
 
-#ifdef _RWSTD_OS_SUNOS
-        // just in case Solaris wcsxfrm() has the same bug
-        // as its strxfrm() (see above)
-        wchar_t* const just_in_case_buf = 0;
-#else
-        // provide a destination buffer to strxfrm() in case
-        // it's buggy (such as MSVC's) and tries to write to
-        // the buffer even if it's 0
-        wchar_t just_in_case_buf [8];
-#endif
+            size_t i = 0;
+            for (; i < nchars && 0 == src [i]; ++i) ;
 
-        const size_t dst_size =
-            _RWSTD_WCSXFRM (just_in_case_buf, psrc, 0);
+            _TRY {
+                // resize the result string to fit itself plus the 
+                // embedded NULs
+                res.resize (res.size () + i);
+            }
+            _CATCH (...) {
+                if (pbuf != buf)
+                    delete[] pbuf;
+                _RETHROW;
+            }
 
-        // check for wcsxfrm() errors
-        if (_RWSTD_SIZE_MAX == dst_size) {
-            if (pbuf != buf)
-                delete[] pbuf;
-
-            return _STD::wstring ();
-        }
-
-        size_t res_size = res.size ();
-
-        _TRY {
-            // resize the result string to fit itself plus the result
-            // of the transformation including the terminatin NUL
-            // appended by strxfrm()
-            res.resize (res_size + dst_size + 1);
-        }
-        _CATCH (...) {
-            if (pbuf != buf)
-                delete[] pbuf;
-            _RETHROW;
-        }
-
-        // transfor the source string up to the terminating NUL
-        size_t xfrm_size =
-            _RWSTD_WCSXFRM (&res [0] + res_size, psrc, dst_size + 1);
-
-#  if defined _MSC_VER && _MSC_VER < 1400
-        // compute the correct value that should have been returned from
-        // strxfrm() after the transformation has completed (MSVC strxfrm()
-        // returns a bogus result; see PR #29935)
-        xfrm_size = Traits::length (&res [0] + res_size);
-#  endif   // MSVC < 8.0
-
-        // increment the size of the result string by the number
-        // of transformed characters excluding the terminating NUL
-        // if strxfrm() transforms the empty string into the empty
-        // string, keep the terminating NUL, otherwise drop it
-        res_size += xfrm_size + (last && !*psrc && !xfrm_size);
-
-        _TRY {
-            res.resize (res_size);
-        }
-        _CATCH (...) {
-            if (pbuf != buf)
-                delete[] pbuf;
-            _RETHROW;
+            nchars -= i;
+            src += i;
         }
     }
 
@@ -1136,43 +1140,94 @@ do_compare (const wchar_t* low1, const wchar_t* high1,
         const string_type s2 = do_transform (low2, high2);
 
         // FIXME: optimize
-        return s1.compare (s2);
+        const int cmp = s1.compare (s2);
+
+        // adjust return value
+        return cmp < 0 ? -1 : cmp ? 1 : 0;
     }
 
 #ifndef _RWSTD_NO_WCSCOLL
 
     // use the system C library to compare the strings
-
     _RW::__rw_setlocale clocale (this->_C_name, _RWSTD_LC_COLLATE);
     
-    const size_t len1 = high1 - low1;
-    const size_t len2 = high2 - low2;
-    const size_t len  = len1 + len2;
+    size_t len1 = high1 - low1;
+    size_t len2 = high2 - low2;
 
-    // small local buffer
-    wchar_t local_buffer [256];
-    const size_t bufsize = sizeof local_buffer / sizeof *local_buffer;
+    if (0 == len1 || 0 == len2)
+        return len1 ? 1 : len2 ? -1 : 0;
 
-    // allocate only if local buffer is too small
-    wchar_t* const wbuf =
-        len + 2 >= bufsize ? new wchar_t [len + 2] : local_buffer;
+    // attempt to use a small buffer
+    wchar_t wbuf [256], *pwbuf = wbuf;
+    const size_t bufsize = sizeof wbuf / sizeof *wbuf;
 
-    // copy and null-terminate first sequence
-    char_traits<wchar_t>::copy (wbuf, low1, len1);
-    wbuf [len1] = '\0';
+    wchar_t* pwbuf1 = high1 [-1] ? wbuf : const_cast< wchar_t* > (low1);
+    wchar_t* pwbuf2 = high2 [-1] ? wbuf : const_cast< wchar_t* > (low2);
+    
+    size_t len = 
+        (pwbuf1 == wbuf ? (len1 + 1) : 0) +
+        (pwbuf2 == wbuf ? (len2 + 1) : 0);
 
-    // append and null-terminate first sequence
-    char_traits<wchar_t>::copy (wbuf + len1 + 1, low2, len2);
-    wbuf [len1 + 1 + len2] = '\0';
+    if (len >= bufsize) 
+        pwbuf = new wchar_t [len];
+    
+    wchar_t* ptmp = pwbuf;
 
-    // compare sequences using wcscoll()
-    const int result = wcscoll (wbuf, wbuf + len1 + 1);
+    // only copy non NUL-terminated buffers
+    if (pwbuf1 == wbuf) {
+        pwbuf1 = pwbuf;
 
-    // deallocate only if allocated
-    if (wbuf != local_buffer)
-        delete[] wbuf;
+        // append and null-terminate first sequence
+        char_traits<wchar_t>::copy (pwbuf1, low1, len1);
+        pwbuf1 [len1] = '\0';
 
-    return result ? result > 0 ? 1 : -1 : 0;
+        ptmp = pwbuf + len1 + 1;
+    }
+
+    if (pwbuf2 == wbuf) {
+        pwbuf2 = ptmp;
+
+        // append and null-terminate second sequence
+        char_traits<wchar_t>::copy (pwbuf2, low2, len2);
+        pwbuf2 [len2] = '\0';
+    }
+
+    int cmp = 0;
+
+    for (; len1 && len2;) {
+
+        for (; len1 && len2 && 0 == pwbuf1 [0] && 0 == pwbuf2 [0];
+             ++pwbuf1, ++pwbuf2, --len1, --len2) ;
+
+        // compare sequences using wcscoll, stopping at first NUL
+        cmp = wcscoll (pwbuf1, pwbuf2);
+
+        if (cmp) {
+            if (pwbuf != wbuf)
+                delete [] pwbuf;
+            return cmp > 0 ? 1 : -1;
+        }
+
+        // if they compared equal, they may have embedded NULs
+        size_t n = _RWSTD_WCSLEN (pwbuf1);
+
+        len1   -= n;
+        pwbuf1 += n;
+
+        n = _RWSTD_WCSLEN (pwbuf2);
+
+        len2   -= n;
+        pwbuf2 += n;
+    }    
+
+    // adjust return value
+    if (0 == cmp)
+        cmp = len1 ? 1 : len2 ? -1 : 0;
+
+    if (pwbuf != wbuf)
+        delete [] pwbuf;
+
+    return cmp;
 
 #else   // if defined (_RWSTD_NO_WCSCOLL)
 
@@ -1180,7 +1235,10 @@ do_compare (const wchar_t* low1, const wchar_t* high1,
     const string_type s1 = do_transform (low1, high1);
     const string_type s2 = do_transform (low2, high2);
 
-    return s1.compare (s2);
+    const int cmp = s1.compare (s2);
+    
+    // adjust return value
+    return cmp < 0 ? -1 : cmp ? 1 : 0;
 
 #endif   // _RWSTD_NO_WCSCOLL
 
