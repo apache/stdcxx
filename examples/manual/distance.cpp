@@ -64,7 +64,7 @@ int main ()
 #ifndef _RWSTD_NO_EXT_VOID_DISTANCE
 
     // using the extended overload of function template distance()
-    // provided by this implmentation, compute the distance between
+    // provided by this implementation, compute the distance between
     // the two iterators
     std::distance (v.begin (), it, dist);
 
